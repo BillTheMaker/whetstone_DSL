@@ -1,0 +1,24 @@
+# PLACE THIS FILE AT PROJECT ROOT: E:\Whetstone_DSL\.gitignore
+
+# --- MPS Generated Code (Crucial to ignore) ---
+# These folders appear inside languages/*/
+source_gen
+classes_gen
+source_gen.caches
+
+# --- MPS Project Settings ---
+# Ignore workspace specific settings, but keep project definitions
+.mps/workspace.xml
+.mps/modules.xml
+.mps/shelf/
+
+# --- IntelliJ/Java Artifacts ---
+*.class
+*.iml
+.idea/
+build/
+out/
+
+# --- OS Junk ---
+.DS_Store
+Thumbs.db
