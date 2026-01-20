@@ -9,6 +9,8 @@ source_gen.caches
 # --- MPS Project Settings ---
 # Ignore workspace specific settings, but keep project definitions
 .mps/workspace.xml
+.mps/modules.xml
+.mps/shelf/
 
 # --- IntelliJ/Java Artifacts ---
 *.class

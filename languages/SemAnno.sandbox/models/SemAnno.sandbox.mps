@@ -56,5 +56,14 @@
       <ref role="2oykae" node="4K9yrbkvnV_" resolve="Mainframe" />
     </node>
   </node>
+  <node concept="2oyt4B" id="10sW45eDj3I">
+    <property role="TrG5h" value="AlphaTeam" />
+    <node concept="2oyt7e" id="10sW45eDj3J" role="2oyt4C">
+      <ref role="2oykae" node="4K9yrbkvnV_" resolve="Mainframe" />
+    </node>
+    <node concept="2oyt7e" id="10sW45eDj3K" role="2oyt4C">
+      <ref role="2oykae" node="4K9yrbkw0YE" resolve="Database2" />
+    </node>
+  </node>
 </model>
 
