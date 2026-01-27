@@ -37,40 +37,12 @@
         <property id="1073389577007" name="text" index="3F0ifm" />
       </concept>
       <concept id="1073389658414" name="jetbrains.mps.lang.editor.structure.CellModel_Property" flags="sg" stub="730538219796134133" index="3F0A7n" />
-      <concept id="1073389882823" name="jetbrains.mps.lang.editor.structure.CellModel_RefNode" flags="sg" stub="730538219795960754" index="3F1sOY" />
       <concept id="1073390211982" name="jetbrains.mps.lang.editor.structure.CellModel_RefNodeList" flags="sg" stub="2794558372793454595" index="3F2HdR" />
       <concept id="1166049232041" name="jetbrains.mps.lang.editor.structure.AbstractComponent" flags="ng" index="1XWOmA">
         <reference id="1166049300910" name="conceptDeclaration" index="1XX52x" />
       </concept>
     </language>
   </registry>
-  <node concept="24kQdi" id="7_JEctSCX2R">
-    <ref role="1XX52x" to="k8se:7_JEctSCX2J" resolve="AgentCommand" />
-    <node concept="3EZMnI" id="1Bwr$Jac9xB" role="2wV5jI">
-      <node concept="2iRfu4" id="1Bwr$Jac9xC" role="2iSdaV" />
-      <node concept="3F0ifn" id="1Bwr$Jac9xJ" role="3EZMnx">
-        <property role="3F0ifm" value="&quot;Agent Command:&quot;" />
-      </node>
-      <node concept="3F0A7n" id="6tmO3rGdfQj" role="3EZMnx">
-        <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
-      </node>
-      <node concept="3F1sOY" id="4K9yrbkuVkT" role="3EZMnx">
-        <ref role="1NtTu8" to="k8se:4K9yrbkuVkN" resolve="metrics" />
-      </node>
-      <node concept="3F0ifn" id="4K9yrbkv_Ez" role="3EZMnx">
-        <property role="3F0ifm" value=" targeting " />
-      </node>
-      <node concept="1iCGBv" id="4K9yrbkvibs" role="3EZMnx">
-        <ref role="1NtTu8" to="k8se:4K9yrbkvibg" resolve="target" />
-        <node concept="1sVBvm" id="4K9yrbkvibu" role="1sWHZn">
-          <node concept="3F0A7n" id="4K9yrbkvib_" role="2wV5jI">
-            <property role="1Intyy" value="true" />
-            <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
-          </node>
-        </node>
-      </node>
-    </node>
-  </node>
   <node concept="24kQdi" id="12Ch1YcKjFC">
     <ref role="1XX52x" to="k8se:12Ch1YcKjFx" resolve="ExecutionMetric" />
     <node concept="3EZMnI" id="12Ch1YcKjFK" role="2wV5jI">
@@ -83,46 +55,65 @@
       </node>
     </node>
   </node>
-  <node concept="24kQdi" id="4K9yrbkviaZ">
-    <ref role="1XX52x" to="k8se:4K9yrbkviaT" resolve="AgentTarget" />
-    <node concept="3EZMnI" id="4K9yrbkvib6" role="2wV5jI">
-      <node concept="2iRfu4" id="4K9yrbkvib7" role="2iSdaV" />
-      <node concept="3F0ifn" id="4K9yrbkvib4" role="3EZMnx">
-        <property role="3F0ifm" value="Target:" />
+  <node concept="24kQdi" id="CisPcOYEkB">
+    <ref role="1XX52x" to="k8se:CisPcOYEky" resolve="SemanticEntity" />
+    <node concept="3EZMnI" id="CisPcOYEkK" role="2wV5jI">
+      <node concept="2iRfu4" id="CisPcOYEkL" role="2iSdaV" />
+      <node concept="3F0ifn" id="CisPcOYEkI" role="3EZMnx">
+        <property role="3F0ifm" value="Entity:" />
       </node>
-      <node concept="3F0A7n" id="4K9yrbkvibd" role="3EZMnx">
+      <node concept="3F0A7n" id="CisPcOYEkN" role="3EZMnx">
         <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
+      </node>
+      <node concept="3F2HdR" id="CisPcOYEkS" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:CisPcOYEkA" resolve="components" />
+        <node concept="2iRfu4" id="CisPcOYEkU" role="2czzBx" />
       </node>
     </node>
   </node>
-  <node concept="24kQdi" id="4K9yrbkw5y4">
-    <ref role="1XX52x" to="k8se:4K9yrbkw5xW" resolve="SquadMember" />
-    <node concept="1iCGBv" id="4K9yrbkw5ya" role="2wV5jI">
-      <ref role="1NtTu8" to="k8se:4K9yrbkwcGW" resolve="agent" />
-      <node concept="1sVBvm" id="4K9yrbkw5yc" role="1sWHZn">
-        <node concept="3F0A7n" id="4K9yrbkw5yX" role="2wV5jI">
-          <property role="1Intyy" value="true" />
-          <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
+  <node concept="24kQdi" id="CisPcOZ8ml">
+    <ref role="1XX52x" to="k8se:CisPcOZ8mj" resolve="StringList" />
+    <node concept="3EZMnI" id="CisPcOZ8mr" role="2wV5jI">
+      <node concept="2iRfu4" id="CisPcOZ8ms" role="2iSdaV" />
+      <node concept="3F0ifn" id="CisPcOZ8mp" role="3EZMnx">
+        <property role="3F0ifm" value="List [" />
+      </node>
+      <node concept="3F0A7n" id="CisPcOZ8mw" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:CisPcOZ8mk" resolve="values" />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="CisPcOZ8mC">
+    <ref role="1XX52x" to="k8se:CisPcOZ8mz" resolve="Iterator" />
+    <node concept="3EZMnI" id="CisPcOZ8mL" role="2wV5jI">
+      <node concept="2iRfu4" id="CisPcOZ8mM" role="2iSdaV" />
+      <node concept="3F0ifn" id="CisPcOZ8mI" role="3EZMnx">
+        <property role="3F0ifm" value="Iterate over: " />
+      </node>
+      <node concept="1iCGBv" id="CisPcOZ8mR" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:CisPcOZ8m$" resolve="target" />
+        <node concept="1sVBvm" id="CisPcOZ8mT" role="1sWHZn">
+          <node concept="3F0A7n" id="CisPcOZ8n0" role="2wV5jI">
+            <property role="1Intyy" value="true" />
+            <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
+          </node>
         </node>
       </node>
     </node>
   </node>
-  <node concept="24kQdi" id="4K9yrbkw5yv">
-    <ref role="1XX52x" to="k8se:4K9yrbkw5yl" resolve="SquadLink" />
-    <node concept="3EZMnI" id="4K9yrbkw5yD" role="2wV5jI">
-      <node concept="2iRfu4" id="4K9yrbkw5yE" role="2iSdaV" />
-      <node concept="3F0ifn" id="4K9yrbkw5y_" role="3EZMnx">
-        <property role="3F0ifm" value="Squad" />
+  <node concept="24kQdi" id="CisPcP0y_F">
+    <ref role="1XX52x" to="k8se:CisPcP0y__" resolve="Script" />
+    <node concept="3EZMnI" id="CisPcP0y_S" role="2wV5jI">
+      <node concept="2iRkQZ" id="CisPcP0y_T" role="2iSdaV" />
+      <node concept="3F0ifn" id="CisPcP0yA1" role="3EZMnx">
+        <property role="3F0ifm" value="Script: " />
       </node>
-      <node concept="3F0A7n" id="4K9yrbkw5yJ" role="3EZMnx">
+      <node concept="3F0A7n" id="CisPcP0yA6" role="3EZMnx">
         <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
       </node>
-      <node concept="3F0ifn" id="4K9yrbkw5yP" role="3EZMnx">
-        <property role="3F0ifm" value="members:" />
-      </node>
-      <node concept="3F2HdR" id="4K9yrbkw5yT" role="3EZMnx">
-        <ref role="1NtTu8" to="k8se:4K9yrbkw5yq" resolve="members" />
-        <node concept="2iRkQZ" id="4K9yrbkwnjK" role="2czzBx" />
+      <node concept="3F2HdR" id="CisPcP0AJ9" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:CisPcP0y_C" resolve="entities" />
+        <node concept="2iRkQZ" id="CisPcP0AJf" role="2czzBx" />
       </node>
     </node>
   </node>

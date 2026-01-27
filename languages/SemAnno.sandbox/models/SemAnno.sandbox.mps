@@ -7,19 +7,17 @@
   <imports />
   <registry>
     <language id="a452e1cf-6f8c-4bca-8447-fd4d6e4d0003" name="SemAnno">
-      <concept id="8750398175680123055" name="SemAnno.structure.AgentCommand" flags="ng" index="1N7xC">
-        <reference id="5479061822835073744" name="target" index="2otaHy" />
-        <child id="5479061822834980147" name="metrics" index="2oszM1" />
+      <concept id="725769291168392482" name="SemAnno.structure.SemanticEntity" flags="ng" index="YUdpL">
+        <child id="725769291168392486" name="components" index="YUdpP" />
       </concept>
-      <concept id="5479061822835073721" name="SemAnno.structure.AgentTarget" flags="ng" index="2otaGb" />
-      <concept id="5479061822835284117" name="SemAnno.structure.SquadLink" flags="ng" index="2oyt4B">
-        <child id="5479061822835284122" name="members" index="2oyt4C" />
+      <concept id="725769291168515475" name="SemAnno.structure.StringList" flags="ng" index="YVJr0">
+        <property id="725769291168515476" name="values" index="YVJr7" />
       </concept>
-      <concept id="5479061822835284092" name="SemAnno.structure.SquadMember" flags="ng" index="2oyt7e">
-        <reference id="5479061822835313468" name="agent" index="2oykae" />
+      <concept id="725769291168515491" name="SemAnno.structure.Iterator" flags="ng" index="YVJrK">
+        <reference id="725769291168515492" name="target" index="YVJrR" />
       </concept>
-      <concept id="1200284202990385889" name="SemAnno.structure.ExecutionMetric" flags="ng" index="2sqnVY">
-        <property id="1200284202990385892" name="runcount" index="2sqnVV" />
+      <concept id="725769291168885093" name="SemAnno.structure.Script" flags="ng" index="Z45CQ">
+        <child id="725769291168885096" name="entities" index="Z45CV" />
       </concept>
     </language>
     <language id="ceab5195-25ea-4f22-9b92-103b95ca8c0c" name="jetbrains.mps.lang.core">
@@ -28,41 +26,19 @@
       </concept>
     </language>
   </registry>
-  <node concept="1N7xC" id="4zm6nSzGYJZ">
-    <property role="TrG5h" value="Defend" />
-  </node>
-  <node concept="2otaGb" id="4K9yrbkvnV_">
-    <property role="TrG5h" value="Mainframe" />
-  </node>
-  <node concept="1N7xC" id="4K9yrbkvnVA">
-    <property role="TrG5h" value="Attack" />
-    <ref role="2otaHy" node="4K9yrbkvnV_" resolve="Mainframe" />
-    <node concept="2sqnVY" id="4K9yrbkw5xV" role="2oszM1">
-      <property role="2sqnVV" value="0" />
+  <node concept="Z45CQ" id="CisPcP0I_m">
+    <property role="TrG5h" value="RunMe" />
+    <node concept="YUdpL" id="CisPcP0Qn6" role="Z45CV">
+      <property role="TrG5h" value=" MyData" />
+      <node concept="YVJr0" id="CisPcP0Qn7" role="YUdpP">
+        <property role="YVJr7" value="A, B, C" />
+      </node>
     </node>
-  </node>
-  <node concept="2otaGb" id="4K9yrbkw0YE">
-    <property role="TrG5h" value="Database2" />
-  </node>
-  <node concept="2oyt4B" id="4K9yrbkwcGO">
-    <property role="TrG5h" value="Alpha" />
-    <node concept="2oyt7e" id="4K9yrbkwcGU" role="2oyt4C">
-      <ref role="2oykae" node="4K9yrbkvnV_" resolve="Mainframe" />
-    </node>
-    <node concept="2oyt7e" id="4K9yrbkwnjI" role="2oyt4C">
-      <ref role="2oykae" node="4K9yrbkw0YE" resolve="Database2" />
-    </node>
-    <node concept="2oyt7e" id="4K9yrbkwnjJ" role="2oyt4C">
-      <ref role="2oykae" node="4K9yrbkvnV_" resolve="Mainframe" />
-    </node>
-  </node>
-  <node concept="2oyt4B" id="10sW45eDj3I">
-    <property role="TrG5h" value="AlphaTeam" />
-    <node concept="2oyt7e" id="10sW45eDj3J" role="2oyt4C">
-      <ref role="2oykae" node="4K9yrbkvnV_" resolve="Mainframe" />
-    </node>
-    <node concept="2oyt7e" id="10sW45eDj3K" role="2oyt4C">
-      <ref role="2oykae" node="4K9yrbkw0YE" resolve="Database2" />
+    <node concept="YUdpL" id="CisPcP0Qnb" role="Z45CV">
+      <property role="TrG5h" value="TheLoop" />
+      <node concept="YVJrK" id="CisPcP0Qnc" role="YUdpP">
+        <ref role="YVJrR" node="CisPcP0Qnb" resolve="TheLoop" />
+      </node>
     </node>
   </node>
 </model>
