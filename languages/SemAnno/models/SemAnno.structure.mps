@@ -110,5 +110,47 @@
       <ref role="PrY4T" to="tpck:h0TrEE$" resolve="INamedConcept" />
     </node>
   </node>
+  <node concept="1TIwiD" id="GMyc5g4aRq">
+    <property role="EcuMT" value="806857647106076122" />
+    <property role="TrG5h" value="TextLine" />
+    <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
+    <node concept="1TJgyi" id="GMyc5g4aV9" role="1TKVEl">
+      <property role="IQ2nx" value="806857647106076361" />
+      <property role="TrG5h" value="content" />
+      <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
+    </node>
+  </node>
+  <node concept="1TIwiD" id="GMyc5g4aVl">
+    <property role="EcuMT" value="806857647106076373" />
+    <property role="TrG5h" value="PythonScript" />
+    <property role="19KtqR" value="true" />
+    <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
+    <node concept="PrWs8" id="GMyc5g4aVo" role="PzmwI">
+      <ref role="PrY4T" to="tpck:h0TrEE$" resolve="INamedConcept" />
+    </node>
+    <node concept="1TJgyj" id="GMyc5g4aVr" role="1TKVEi">
+      <property role="IQ2ns" value="806857647106076379" />
+      <property role="20lmBu" value="fLJjDmT/aggregation" />
+      <property role="20kJfa" value="lines" />
+      <property role="20lbJX" value="fLJekj5/_0__n" />
+      <ref role="20lvS9" node="GMyc5g4aRq" resolve="TextLine" />
+    </node>
+  </node>
+  <node concept="1TIwiD" id="GMyc5g4aVv">
+    <property role="EcuMT" value="806857647106076383" />
+    <property role="TrG5h" value="CPPScript" />
+    <property role="19KtqR" value="true" />
+    <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
+    <node concept="PrWs8" id="GMyc5g4aVy" role="PzmwI">
+      <ref role="PrY4T" to="tpck:h0TrEE$" resolve="INamedConcept" />
+    </node>
+    <node concept="1TJgyj" id="GMyc5g4aV_" role="1TKVEi">
+      <property role="IQ2ns" value="806857647106076389" />
+      <property role="20lmBu" value="fLJjDmT/aggregation" />
+      <property role="20kJfa" value="lines" />
+      <property role="20lbJX" value="fLJekj5/_0__n" />
+      <ref role="20lvS9" node="GMyc5g4aRq" resolve="TextLine" />
+    </node>
+  </node>
 </model>
 

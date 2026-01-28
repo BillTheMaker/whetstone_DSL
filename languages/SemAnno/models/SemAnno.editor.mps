@@ -117,5 +117,11 @@
       </node>
     </node>
   </node>
+  <node concept="24kQdi" id="GMyc5g4aVc">
+    <ref role="1XX52x" to="k8se:GMyc5g4aRq" resolve="TextLine" />
+    <node concept="3F0ifn" id="GMyc5g4aVi" role="2wV5jI">
+      <property role="3F0ifm" value="{content}" />
+    </node>
+  </node>
 </model>
 
