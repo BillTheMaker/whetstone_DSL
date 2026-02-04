@@ -152,12 +152,8 @@
       <ref role="20lvS9" node="GMyc5g4aRq" resolve="TextLine" />
     </node>
   </node>
-
-  <!-- ==================== CORE AST NODES (PHASE 1) ==================== -->
-
-  <!-- Module: Root container for all code -->
   <node concept="1TIwiD" id="7kypvuIwECC">
-    <property role="EcuMT" value="8982541288447632588" />
+    <property role="EcuMT" value="8440420766104857128" />
     <property role="TrG5h" value="Module" />
     <property role="19KtqR" value="true" />
     <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
@@ -186,10 +182,8 @@
       <ref role="20lvS9" node="7kypvuIwEDC" resolve="Function" />
     </node>
   </node>
-
-  <!-- Function: Callable unit of code -->
   <node concept="1TIwiD" id="7kypvuIwEDC">
-    <property role="EcuMT" value="8982541288447632620" />
+    <property role="EcuMT" value="8440420766104857192" />
     <property role="TrG5h" value="Function" />
     <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
     <node concept="PrWs8" id="7kypvuIwEDD" role="PzmwI">
@@ -216,7 +210,7 @@
       <property role="20lbJX" value="fLJekj4/_1" />
       <ref role="20lvS9" node="7kypvuIwBBC" resolve="Type" />
     </node>
-    <node concept="1TJgyj" id="7kypvuIwEDI2" role="1TKVEi">
+    <node concept="1TJgyj" id="4ypvuIwEDI2" role="1TKVEi">
       <property role="IQ2ns" value="8982541288447632624" />
       <property role="20lmBu" value="fLJjDmT/aggregation" />
       <property role="20kJfa" value="annotations" />
@@ -224,10 +218,8 @@
       <ref role="20lvS9" node="7kypvuIwFCC" resolve="Annotation" />
     </node>
   </node>
-
-  <!-- Parameter: Function input -->
   <node concept="1TIwiD" id="7kypvuIwEEC">
-    <property role="EcuMT" value="8982541288447632652" />
+    <property role="EcuMT" value="8440420766104857256" />
     <property role="TrG5h" value="Parameter" />
     <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
     <node concept="PrWs8" id="7kypvuIwEED" role="PzmwI">
@@ -248,8 +240,6 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- Variable: Named data container -->
   <node concept="1TIwiD" id="7kypvuIwEFC">
     <property role="EcuMT" value="8982541288447632700" />
     <property role="TrG5h" value="Variable" />
@@ -279,23 +269,17 @@
       <ref role="20lvS9" node="7kypvuIwFCC" resolve="Annotation" />
     </node>
   </node>
-
-  <!-- ==================== STATEMENT HIERARCHY ==================== -->
-
-  <!-- Abstract Statement parent -->
   <node concept="1TIwiD" id="7kypvuIwDDC">
     <property role="EcuMT" value="8982541288447632332" />
     <property role="TrG5h" value="Statement" />
     <property role="R5$K7" value="true" />
     <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
   </node>
-
-  <!-- Block: Container for multiple statements -->
   <node concept="1TIwiD" id="7kypvuIwDDD">
     <property role="EcuMT" value="8982541288447632333" />
     <property role="TrG5h" value="Block" />
     <ref role="1TJDcQ" node="7kypvuIwDDC" resolve="Statement" />
-    <node concept="1TJgyj" id="7kypvuIwDDD2" role="1TKVEi">
+    <node concept="1TJgyj" id="4ypvuIwDDD2" role="1TKVEi">
       <property role="IQ2ns" value="8982541288447632334" />
       <property role="20lmBu" value="fLJjDmT/aggregation" />
       <property role="20kJfa" value="statements" />
@@ -303,10 +287,8 @@
       <ref role="20lvS9" node="7kypvuIwDDC" resolve="Statement" />
     </node>
   </node>
-
-  <!-- Assignment: Assign value to target -->
   <node concept="1TIwiD" id="7kypvuIwDEC">
-    <property role="EcuMT" value="8982541288447632364" />
+    <property role="EcuMT" value="8440420766104853160" />
     <property role="TrG5h" value="Assignment" />
     <ref role="1TJDcQ" node="7kypvuIwDDC" resolve="Statement" />
     <node concept="1TJgyj" id="7kypvuIwDED" role="1TKVEi">
@@ -324,10 +306,8 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- IfStatement: Conditional execution -->
   <node concept="1TIwiD" id="7kypvuIwDFC">
-    <property role="EcuMT" value="8982541288447632396" />
+    <property role="EcuMT" value="8440420766104853224" />
     <property role="TrG5h" value="IfStatement" />
     <ref role="1TJDcQ" node="7kypvuIwDDC" resolve="Statement" />
     <node concept="1TJgyj" id="7kypvuIwDFD" role="1TKVEi">
@@ -352,8 +332,6 @@
       <ref role="20lvS9" node="7kypvuIwDDC" resolve="Statement" />
     </node>
   </node>
-
-  <!-- WhileLoop: Loop with condition -->
   <node concept="1TIwiD" id="7kypvuIwDGC">
     <property role="EcuMT" value="8982541288447632428" />
     <property role="TrG5h" value="WhileLoop" />
@@ -373,10 +351,8 @@
       <ref role="20lvS9" node="7kypvuIwDDC" resolve="Statement" />
     </node>
   </node>
-
-  <!-- ForLoop: Iteration loop -->
   <node concept="1TIwiD" id="7kypvuIwDHC">
-    <property role="EcuMT" value="8982541288447632460" />
+    <property role="EcuMT" value="8440420766104853352" />
     <property role="TrG5h" value="ForLoop" />
     <ref role="1TJDcQ" node="7kypvuIwDDC" resolve="Statement" />
     <node concept="1TJgyi" id="7kypvuIwDHD" role="1TKVEl">
@@ -399,8 +375,6 @@
       <ref role="20lvS9" node="7kypvuIwDDC" resolve="Statement" />
     </node>
   </node>
-
-  <!-- Return: Return from function -->
   <node concept="1TIwiD" id="7kypvuIwDIC">
     <property role="EcuMT" value="8982541288447632492" />
     <property role="TrG5h" value="Return" />
@@ -413,10 +387,8 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- ExpressionStatement: Standalone expression -->
   <node concept="1TIwiD" id="7kypvuIwDJC">
-    <property role="EcuMT" value="8982541288447632524" />
+    <property role="EcuMT" value="8440420766104853480" />
     <property role="TrG5h" value="ExpressionStatement" />
     <ref role="1TJDcQ" node="7kypvuIwDDC" resolve="Statement" />
     <node concept="1TJgyj" id="7kypvuIwDJD" role="1TKVEi">
@@ -427,19 +399,13 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- ==================== EXPRESSION HIERARCHY ==================== -->
-
-  <!-- Abstract Expression parent -->
   <node concept="1TIwiD" id="7kypvuIwCIC">
-    <property role="EcuMT" value="8982541288447632556" />
+    <property role="EcuMT" value="8440420766104849320" />
     <property role="TrG5h" value="Expression" />
     <property role="R5$K7" value="true" />
     <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
   </node>
-
-  <!-- BinaryOperation: Binary operator with left/right operands -->
-  <node concept="1TIwiD" id="7kypvuIwCIC2">
+  <node concept="1TIwiD" id="4ypvuIwCIC2">
     <property role="EcuMT" value="8982541288447632557" />
     <property role="TrG5h" value="BinaryOperation" />
     <ref role="1TJDcQ" node="7kypvuIwCIC" resolve="Expression" />
@@ -463,8 +429,6 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- UnaryOperation: Unary operator with operand -->
   <node concept="1TIwiD" id="7kypvuIwCJC">
     <property role="EcuMT" value="8982541288447632588" />
     <property role="TrG5h" value="UnaryOperation" />
@@ -482,10 +446,8 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- FunctionCall: Call a function with arguments -->
   <node concept="1TIwiD" id="7kypvuIwCLC">
-    <property role="EcuMT" value="8982541288447632620" />
+    <property role="EcuMT" value="8440420766104849512" />
     <property role="TrG5h" value="FunctionCall" />
     <ref role="1TJDcQ" node="7kypvuIwCIC" resolve="Expression" />
     <node concept="1TJgyi" id="7kypvuIwCLD" role="1TKVEl">
@@ -501,8 +463,6 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- VariableReference: Reference to a variable -->
   <node concept="1TIwiD" id="7kypvuIwCKC">
     <property role="EcuMT" value="8982541288447632652" />
     <property role="TrG5h" value="VariableReference" />
@@ -513,8 +473,6 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
-  <!-- IntegerLiteral: Integer value -->
   <node concept="1TIwiD" id="7kypvuIwCDC">
     <property role="EcuMT" value="8982541288447632556" />
     <property role="TrG5h" value="IntegerLiteral" />
@@ -525,8 +483,6 @@
       <ref role="AX2Wp" to="tpck:fKAQMTA" resolve="integer" />
     </node>
   </node>
-
-  <!-- FloatLiteral: Float value -->
   <node concept="1TIwiD" id="7kypvuIwCEC">
     <property role="EcuMT" value="8982541288447632564" />
     <property role="TrG5h" value="FloatLiteral" />
@@ -537,8 +493,6 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
-  <!-- StringLiteral: String value -->
   <node concept="1TIwiD" id="7kypvuIwCFC">
     <property role="EcuMT" value="8982541288447632572" />
     <property role="TrG5h" value="StringLiteral" />
@@ -549,8 +503,6 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
-  <!-- BooleanLiteral: Boolean value -->
   <node concept="1TIwiD" id="7kypvuIwCGC">
     <property role="EcuMT" value="8982541288447632580" />
     <property role="TrG5h" value="BooleanLiteral" />
@@ -558,18 +510,14 @@
     <node concept="1TJgyi" id="7kypvuIwCGD" role="1TKVEl">
       <property role="IQ2nx" value="8982541288447632581" />
       <property role="TrG5h" value="value" />
-      <ref role="AX2Wp" to="tpck:fKQzUAO" resolve="boolean" />
+      <ref role="AX2Wp" to="tpck:fKAQMTB" resolve="boolean" />
     </node>
   </node>
-
-  <!-- NullLiteral: Null/None value -->
   <node concept="1TIwiD" id="7kypvuIwCHC">
-    <property role="EcuMT" value="8982541288447632588" />
+    <property role="EcuMT" value="8440420766104849256" />
     <property role="TrG5h" value="NullLiteral" />
     <ref role="1TJDcQ" node="7kypvuIwCIC" resolve="Expression" />
   </node>
-
-  <!-- ListLiteral: List of expressions -->
   <node concept="1TIwiD" id="7kypvuIwCMC">
     <property role="EcuMT" value="8982541288447632620" />
     <property role="TrG5h" value="ListLiteral" />
@@ -582,10 +530,8 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- IndexAccess: Array/list indexing -->
   <node concept="1TIwiD" id="7kypvuIwCNC">
-    <property role="EcuMT" value="8982541288447632652" />
+    <property role="EcuMT" value="8440420766104849640" />
     <property role="TrG5h" value="IndexAccess" />
     <ref role="1TJDcQ" node="7kypvuIwCIC" resolve="Expression" />
     <node concept="1TJgyj" id="7kypvuIwCND" role="1TKVEi">
@@ -603,8 +549,6 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- MemberAccess: Object member access -->
   <node concept="1TIwiD" id="7kypvuIwCOC">
     <property role="EcuMT" value="8982541288447632684" />
     <property role="TrG5h" value="MemberAccess" />
@@ -622,20 +566,14 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
-  <!-- ==================== TYPE SYSTEM ==================== -->
-
-  <!-- Abstract Type parent -->
   <node concept="1TIwiD" id="7kypvuIwBBC">
     <property role="EcuMT" value="8982541288447632316" />
     <property role="TrG5h" value="Type" />
     <property role="R5$K7" value="true" />
     <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
   </node>
-
-  <!-- PrimitiveType: int, float, string, bool -->
   <node concept="1TIwiD" id="7kypvuIwBCC">
-    <property role="EcuMT" value="8982541288447632332" />
+    <property role="EcuMT" value="8440420766104844840" />
     <property role="TrG5h" value="PrimitiveType" />
     <ref role="1TJDcQ" node="7kypvuIwBBC" resolve="Type" />
     <node concept="1TJgyi" id="7kypvuIwBCE" role="1TKVEl">
@@ -644,8 +582,6 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
-  <!-- ListType: list[T] -->
   <node concept="1TIwiD" id="7kypvuIwBDC">
     <property role="EcuMT" value="8982541288447632364" />
     <property role="TrG5h" value="ListType" />
@@ -658,8 +594,6 @@
       <ref role="20lvS9" node="7kypvuIwBBC" resolve="Type" />
     </node>
   </node>
-
-  <!-- SetType: set[T] -->
   <node concept="1TIwiD" id="7kypvuIwBGC">
     <property role="EcuMT" value="8982541288447632396" />
     <property role="TrG5h" value="SetType" />
@@ -672,10 +606,8 @@
       <ref role="20lvS9" node="7kypvuIwBBC" resolve="Type" />
     </node>
   </node>
-
-  <!-- MapType: map[K, V] -->
   <node concept="1TIwiD" id="7kypvuIwBEC">
-    <property role="EcuMT" value="8982541288447632428" />
+    <property role="EcuMT" value="8440420766104844968" />
     <property role="TrG5h" value="MapType" />
     <ref role="1TJDcQ" node="7kypvuIwBBC" resolve="Type" />
     <node concept="1TJgyj" id="7kypvuIwBEE" role="1TKVEi">
@@ -693,8 +625,6 @@
       <ref role="20lvS9" node="7kypvuIwBBC" resolve="Type" />
     </node>
   </node>
-
-  <!-- TupleType: tuple[T1, T2, ...] -->
   <node concept="1TIwiD" id="7kypvuIwBHC">
     <property role="EcuMT" value="8982541288447632460" />
     <property role="TrG5h" value="TupleType" />
@@ -707,10 +637,8 @@
       <ref role="20lvS9" node="7kypvuIwBBC" resolve="Type" />
     </node>
   </node>
-
-  <!-- ArrayType: T[size] -->
   <node concept="1TIwiD" id="7kypvuIwBIC">
-    <property role="EcuMT" value="8982541288447632492" />
+    <property role="EcuMT" value="8440420766104845224" />
     <property role="TrG5h" value="ArrayType" />
     <ref role="1TJDcQ" node="7kypvuIwBBC" resolve="Type" />
     <node concept="1TJgyj" id="7kypvuIwBIE" role="1TKVEi">
@@ -728,8 +656,6 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- OptionalType: T? -->
   <node concept="1TIwiD" id="7kypvuIwBFC">
     <property role="EcuMT" value="8982541288447632524" />
     <property role="TrG5h" value="OptionalType" />
@@ -742,10 +668,8 @@
       <ref role="20lvS9" node="7kypvuIwBBC" resolve="Type" />
     </node>
   </node>
-
-  <!-- CustomType: User-defined type -->
   <node concept="1TIwiD" id="7kypvuIwBJC">
-    <property role="EcuMT" value="8982541288447632556" />
+    <property role="EcuMT" value="8440420766104845288" />
     <property role="TrG5h" value="CustomType" />
     <ref role="1TJDcQ" node="7kypvuIwBBC" resolve="Type" />
     <node concept="1TJgyi" id="7kypvuIwBJD" role="1TKVEl">
@@ -754,18 +678,12 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
-  <!-- ==================== ANNOTATIONS ==================== -->
-
-  <!-- Abstract Annotation parent -->
   <node concept="1TIwiD" id="7kypvuIwFCC">
-    <property role="EcuMT" value="8982541288447632620" />
+    <property role="EcuMT" value="8440420766104861224" />
     <property role="TrG5h" value="Annotation" />
     <property role="R5$K7" value="true" />
     <ref role="1TJDcQ" to="tpck:gw2VY9q" resolve="BaseConcept" />
   </node>
-
-  <!-- DerefStrategy: Memory deref strategy annotation -->
   <node concept="1TIwiD" id="7kypvuIwFCD">
     <property role="EcuMT" value="8982541288447632621" />
     <property role="TrG5h" value="DerefStrategy" />
@@ -793,8 +711,6 @@
       <ref role="20lvS9" node="7kypvuIwCIC" resolve="Expression" />
     </node>
   </node>
-
-  <!-- OptimizationLock: Lock annotation on optimized nodes -->
   <node concept="1TIwiD" id="7kypvuIwFDD">
     <property role="EcuMT" value="8982541288447632653" />
     <property role="TrG5h" value="OptimizationLock" />
@@ -825,8 +741,6 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
-  <!-- LangSpecific: Language-specific idiom annotation -->
   <node concept="1TIwiD" id="7kypvuIwFED">
     <property role="EcuMT" value="8982541288447632685" />
     <property role="TrG5h" value="LangSpecific" />
@@ -857,6 +771,5 @@
       <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
     </node>
   </node>
-
 </model>
 
