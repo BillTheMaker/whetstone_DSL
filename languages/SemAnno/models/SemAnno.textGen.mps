@@ -237,5 +237,539 @@
       </node>
     </node>
   </node>
+
+  <!-- Phase 1: Core AST Structure Textgen Definitions (38 concepts) -->
+
+  <!-- Annotation Textgen -->
+  <node concept="WtQ9Q" id="TG_20001">
+    <ref role="WuzLi" to="k8se:7kypvuIwFCC" resolve="Annotation" />
+    <node concept="11bSqf" id="TG_20002" role="11c4hB">
+      <node concept="3clFbS" id="TG_20003" role="2VODD2">
+        <node concept="lc7rE" id="TG_20004" role="3cqZAp">
+          <node concept="l9hG8" id="TG_20005" role="lcghm">
+            <node concept="117lpO" id="TG_20006" role="lb14g" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- ArrayType Textgen -->
+  <node concept="WtQ9Q" id="TG_20007">
+    <ref role="WuzLi" to="k8se:7kypvuIwBIC" resolve="ArrayType" />
+    <node concept="11bSqf" id="TG_20008" role="11c4hB">
+      <node concept="3clFbS" id="TG_20009" role="2VODD2">
+        <node concept="lc7rE" id="TG_20010" role="3cqZAp">
+          <node concept="la8eA" id="TG_20011" role="lcghm">
+            <property role="lacIc" value="[elementType][[size]]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Assignment Textgen -->
+  <node concept="WtQ9Q" id="TG_20012">
+    <ref role="WuzLi" to="k8se:7kypvuIwDEC" resolve="Assignment" />
+    <node concept="11bSqf" id="TG_20013" role="11c4hB">
+      <node concept="3clFbS" id="TG_20014" role="2VODD2">
+        <node concept="lc7rE" id="TG_20015" role="3cqZAp">
+          <node concept="la8eA" id="TG_20016" role="lcghm">
+            <property role="lacIc" value="[target] = [value]&#10;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- BinaryOperation Textgen -->
+  <node concept="WtQ9Q" id="TG_20017">
+    <ref role="WuzLi" to="k8se:4ypvuIwCIC2" resolve="BinaryOperation" />
+    <node concept="11bSqf" id="TG_20018" role="11c4hB">
+      <node concept="3clFbS" id="TG_20019" role="2VODD2">
+        <node concept="lc7rE" id="TG_20020" role="3cqZAp">
+          <node concept="la8eA" id="TG_20021" role="lcghm">
+            <property role="lacIc" value="[left] [operator] [right]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Block Textgen -->
+  <node concept="WtQ9Q" id="TG_20022">
+    <ref role="WuzLi" to="k8se:7kypvuIwDDD" resolve="Block" />
+    <node concept="11bSqf" id="TG_20023" role="11c4hB">
+      <node concept="3clFbS" id="TG_20024" role="2VODD2">
+        <node concept="lc7rE" id="TG_20025" role="3cqZAp">
+          <node concept="la8eA" id="TG_20026" role="lcghm">
+            <property role="lacIc" value="[statements]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- BooleanLiteral Textgen -->
+  <node concept="WtQ9Q" id="TG_20027">
+    <ref role="WuzLi" to="k8se:7kypvuIwCGC" resolve="BooleanLiteral" />
+    <node concept="11bSqf" id="TG_20028" role="11c4hB">
+      <node concept="3clFbS" id="TG_20029" role="2VODD2">
+        <node concept="lc7rE" id="TG_20030" role="3cqZAp">
+          <node concept="la8eA" id="TG_20031" role="lcghm">
+            <property role="lacIc" value="[value]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- CustomType Textgen -->
+  <node concept="WtQ9Q" id="TG_20032">
+    <ref role="WuzLi" to="k8se:7kypvuIwBJC" resolve="CustomType" />
+    <node concept="11bSqf" id="TG_20033" role="11c4hB">
+      <node concept="3clFbS" id="TG_20034" role="2VODD2">
+        <node concept="lc7rE" id="TG_20035" role="3cqZAp">
+          <node concept="la8eA" id="TG_20036" role="lcghm">
+            <property role="lacIc" value="[typeName]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- DerefStrategy Textgen -->
+  <node concept="WtQ9Q" id="TG_20037">
+    <ref role="WuzLi" to="k8se:7kypvuIwFCD" resolve="DerefStrategy" />
+    <node concept="11bSqf" id="TG_20038" role="11c4hB">
+      <node concept="3clFbS" id="TG_20039" role="2VODD2">
+        <node concept="lc7rE" id="TG_20040" role="3cqZAp">
+          <node concept="la8eA" id="TG_20041" role="lcghm">
+            <property role="lacIc" value="@deref([strategy])" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Expression Textgen -->
+  <node concept="WtQ9Q" id="TG_20042">
+    <ref role="WuzLi" to="k8se:7kypvuIwCIC" resolve="Expression" />
+    <node concept="11bSqf" id="TG_20043" role="11c4hB">
+      <node concept="3clFbS" id="TG_20044" role="2VODD2">
+        <node concept="lc7rE" id="TG_20045" role="3cqZAp">
+          <node concept="l9hG8" id="TG_20046" role="lcghm">
+            <node concept="117lpO" id="TG_20047" role="lb14g" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- ExpressionStatement Textgen -->
+  <node concept="WtQ9Q" id="TG_20048">
+    <ref role="WuzLi" to="k8se:7kypvuIwDJC" resolve="ExpressionStatement" />
+    <node concept="11bSqf" id="TG_20049" role="11c4hB">
+      <node concept="3clFbS" id="TG_20050" role="2VODD2">
+        <node concept="lc7rE" id="TG_20051" role="3cqZAp">
+          <node concept="la8eA" id="TG_20052" role="lcghm">
+            <property role="lacIc" value="[expression]&#10;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- FloatLiteral Textgen -->
+  <node concept="WtQ9Q" id="TG_20053">
+    <ref role="WuzLi" to="k8se:7kypvuIwCEC" resolve="FloatLiteral" />
+    <node concept="11bSqf" id="TG_20054" role="11c4hB">
+      <node concept="3clFbS" id="TG_20055" role="2VODD2">
+        <node concept="lc7rE" id="TG_20056" role="3cqZAp">
+          <node concept="la8eA" id="TG_20057" role="lcghm">
+            <property role="lacIc" value="[value]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- ForLoop Textgen -->
+  <node concept="WtQ9Q" id="TG_20058">
+    <ref role="WuzLi" to="k8se:7kypvuIwDHC" resolve="ForLoop" />
+    <node concept="11bSqf" id="TG_20059" role="11c4hB">
+      <node concept="3clFbS" id="TG_20060" role="2VODD2">
+        <node concept="lc7rE" id="TG_20061" role="3cqZAp">
+          <node concept="la8eA" id="TG_20062" role="lcghm">
+            <property role="lacIc" value="for [iteratorName] in [iterable]:&#10;[body]&#10;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Function Textgen -->
+  <node concept="WtQ9Q" id="TG_20063">
+    <ref role="WuzLi" to="k8se:7kypvuIwEDC" resolve="Function" />
+    <node concept="11bSqf" id="TG_20064" role="11c4hB">
+      <node concept="3clFbS" id="TG_20065" role="2VODD2">
+        <node concept="lc7rE" id="TG_20066" role="3cqZAp">
+          <node concept="la8eA" id="TG_20067" role="lcghm">
+            <property role="lacIc" value="def [name]([parameters]) -> [returnType]:&#10;[body]&#10;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- FunctionCall Textgen -->
+  <node concept="WtQ9Q" id="TG_20068">
+    <ref role="WuzLi" to="k8se:7kypvuIwCLC" resolve="FunctionCall" />
+    <node concept="11bSqf" id="TG_20069" role="11c4hB">
+      <node concept="3clFbS" id="TG_20070" role="2VODD2">
+        <node concept="lc7rE" id="TG_20071" role="3cqZAp">
+          <node concept="la8eA" id="TG_20072" role="lcghm">
+            <property role="lacIc" value="[functionName]([arguments])" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- IfStatement Textgen -->
+  <node concept="WtQ9Q" id="TG_20073">
+    <ref role="WuzLi" to="k8se:7kypvuIwDFC" resolve="IfStatement" />
+    <node concept="11bSqf" id="TG_20074" role="11c4hB">
+      <node concept="3clFbS" id="TG_20075" role="2VODD2">
+        <node concept="lc7rE" id="TG_20076" role="3cqZAp">
+          <node concept="la8eA" id="TG_20077" role="lcghm">
+            <property role="lacIc" value="if [condition]:&#10;[thenBranch]&#10;else:&#10;[elseBranch]&#10;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- IndexAccess Textgen -->
+  <node concept="WtQ9Q" id="TG_20078">
+    <ref role="WuzLi" to="k8se:7kypvuIwCNC" resolve="IndexAccess" />
+    <node concept="11bSqf" id="TG_20079" role="11c4hB">
+      <node concept="3clFbS" id="TG_20080" role="2VODD2">
+        <node concept="lc7rE" id="TG_20081" role="3cqZAp">
+          <node concept="la8eA" id="TG_20082" role="lcghm">
+            <property role="lacIc" value="[target][[index]]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- IntegerLiteral Textgen -->
+  <node concept="WtQ9Q" id="TG_20083">
+    <ref role="WuzLi" to="k8se:7kypvuIwCDC" resolve="IntegerLiteral" />
+    <node concept="11bSqf" id="TG_20084" role="11c4hB">
+      <node concept="3clFbS" id="TG_20085" role="2VODD2">
+        <node concept="lc7rE" id="TG_20086" role="3cqZAp">
+          <node concept="la8eA" id="TG_20087" role="lcghm">
+            <property role="lacIc" value="[value]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- LangSpecific Textgen -->
+  <node concept="WtQ9Q" id="TG_20088">
+    <ref role="WuzLi" to="k8se:7kypvuIwFED" resolve="LangSpecific" />
+    <node concept="11bSqf" id="TG_20089" role="11c4hB">
+      <node concept="3clFbS" id="TG_20090" role="2VODD2">
+        <node concept="lc7rE" id="TG_20091" role="3cqZAp">
+          <node concept="la8eA" id="TG_20092" role="lcghm">
+            <property role="lacIc" value="@lang([language]:[idiomType])" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- ListLiteral Textgen -->
+  <node concept="WtQ9Q" id="TG_20093">
+    <ref role="WuzLi" to="k8se:7kypvuIwCMC" resolve="ListLiteral" />
+    <node concept="11bSqf" id="TG_20094" role="11c4hB">
+      <node concept="3clFbS" id="TG_20095" role="2VODD2">
+        <node concept="lc7rE" id="TG_20096" role="3cqZAp">
+          <node concept="la8eA" id="TG_20097" role="lcghm">
+            <property role="lacIc" value="[elements]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- ListType Textgen -->
+  <node concept="WtQ9Q" id="TG_20098">
+    <ref role="WuzLi" to="k8se:7kypvuIwBDC" resolve="ListType" />
+    <node concept="11bSqf" id="TG_20099" role="11c4hB">
+      <node concept="3clFbS" id="TG_20100" role="2VODD2">
+        <node concept="lc7rE" id="TG_20101" role="3cqZAp">
+          <node concept="la8eA" id="TG_20102" role="lcghm">
+            <property role="lacIc" value="list[[elementType]]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- MapType Textgen -->
+  <node concept="WtQ9Q" id="TG_20103">
+    <ref role="WuzLi" to="k8se:7kypvuIwBEC" resolve="MapType" />
+    <node concept="11bSqf" id="TG_20104" role="11c4hB">
+      <node concept="3clFbS" id="TG_20105" role="2VODD2">
+        <node concept="lc7rE" id="TG_20106" role="3cqZAp">
+          <node concept="la8eA" id="TG_20107" role="lcghm">
+            <property role="lacIc" value="map[[keyType], [valueType]]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- MemberAccess Textgen -->
+  <node concept="WtQ9Q" id="TG_20108">
+    <ref role="WuzLi" to="k8se:7kypvuIwCOC" resolve="MemberAccess" />
+    <node concept="11bSqf" id="TG_20109" role="11c4hB">
+      <node concept="3clFbS" id="TG_20110" role="2VODD2">
+        <node concept="lc7rE" id="TG_20111" role="3cqZAp">
+          <node concept="la8eA" id="TG_20112" role="lcghm">
+            <property role="lacIc" value="[target].[memberName]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Module Textgen -->
+  <node concept="WtQ9Q" id="TG_20113">
+    <ref role="WuzLi" to="k8se:7kypvuIwECC" resolve="Module" />
+    <node concept="11bSqf" id="TG_20114" role="11c4hB">
+      <node concept="3clFbS" id="TG_20115" role="2VODD2">
+        <node concept="lc7rE" id="TG_20116" role="3cqZAp">
+          <node concept="la8eA" id="TG_20117" role="lcghm">
+            <property role="lacIc" value="module [name] {&#10;  [functions]&#10;  [variables]&#10;}" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- NullLiteral Textgen -->
+  <node concept="WtQ9Q" id="TG_20118">
+    <ref role="WuzLi" to="k8se:7kypvuIwCHC" resolve="NullLiteral" />
+    <node concept="11bSqf" id="TG_20119" role="11c4hB">
+      <node concept="3clFbS" id="TG_20120" role="2VODD2">
+        <node concept="lc7rE" id="TG_20121" role="3cqZAp">
+          <node concept="la8eA" id="TG_20122" role="lcghm">
+            <property role="lacIc" value="null" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- OptimizationLock Textgen -->
+  <node concept="WtQ9Q" id="TG_20123">
+    <ref role="WuzLi" to="k8se:7kypvuIwFDD" resolve="OptimizationLock" />
+    <node concept="11bSqf" id="TG_20124" role="11c4hB">
+      <node concept="3clFbS" id="TG_20125" role="2VODD2">
+        <node concept="lc7rE" id="TG_20126" role="3cqZAp">
+          <node concept="la8eA" id="TG_20127" role="lcghm">
+            <property role="lacIc" value="@lock([lockedBy], [lockReason])" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- OptionalType Textgen -->
+  <node concept="WtQ9Q" id="TG_20128">
+    <ref role="WuzLi" to="k8se:7kypvuIwBFC" resolve="OptionalType" />
+    <node concept="11bSqf" id="TG_20129" role="11c4hB">
+      <node concept="3clFbS" id="TG_20130" role="2VODD2">
+        <node concept="lc7rE" id="TG_20131" role="3cqZAp">
+          <node concept="la8eA" id="TG_20132" role="lcghm">
+            <property role="lacIc" value="optional[[innerType]]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Parameter Textgen -->
+  <node concept="WtQ9Q" id="TG_20133">
+    <ref role="WuzLi" to="k8se:7kypvuIwEEC" resolve="Parameter" />
+    <node concept="11bSqf" id="TG_20134" role="11c4hB">
+      <node concept="3clFbS" id="TG_20135" role="2VODD2">
+        <node concept="lc7rE" id="TG_20136" role="3cqZAp">
+          <node concept="la8eA" id="TG_20137" role="lcghm">
+            <property role="lacIc" value="[name]: [type]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- PrimitiveType Textgen -->
+  <node concept="WtQ9Q" id="TG_20138">
+    <ref role="WuzLi" to="k8se:7kypvuIwBCC" resolve="PrimitiveType" />
+    <node concept="11bSqf" id="TG_20139" role="11c4hB">
+      <node concept="3clFbS" id="TG_20140" role="2VODD2">
+        <node concept="lc7rE" id="TG_20141" role="3cqZAp">
+          <node concept="la8eA" id="TG_20142" role="lcghm">
+            <property role="lacIc" value="[kind]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Return Textgen -->
+  <node concept="WtQ9Q" id="TG_20143">
+    <ref role="WuzLi" to="k8se:7kypvuIwDIC" resolve="Return" />
+    <node concept="11bSqf" id="TG_20144" role="11c4hB">
+      <node concept="3clFbS" id="TG_20145" role="2VODD2">
+        <node concept="lc7rE" id="TG_20146" role="3cqZAp">
+          <node concept="la8eA" id="TG_20147" role="lcghm">
+            <property role="lacIc" value="return [value]&#10;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- SetType Textgen -->
+  <node concept="WtQ9Q" id="TG_20148">
+    <ref role="WuzLi" to="k8se:7kypvuIwBGC" resolve="SetType" />
+    <node concept="11bSqf" id="TG_20149" role="11c4hB">
+      <node concept="3clFbS" id="TG_20150" role="2VODD2">
+        <node concept="lc7rE" id="TG_20151" role="3cqZAp">
+          <node concept="la8eA" id="TG_20152" role="lcghm">
+            <property role="lacIc" value="set[[elementType]]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Statement Textgen -->
+  <node concept="WtQ9Q" id="TG_20153">
+    <ref role="WuzLi" to="k8se:7kypvuIwDDC" resolve="Statement" />
+    <node concept="11bSqf" id="TG_20154" role="11c4hB">
+      <node concept="3clFbS" id="TG_20155" role="2VODD2">
+        <node concept="lc7rE" id="TG_20156" role="3cqZAp">
+          <node concept="l9hG8" id="TG_20157" role="lcghm">
+            <node concept="117lpO" id="TG_20158" role="lb14g" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- StringLiteral Textgen -->
+  <node concept="WtQ9Q" id="TG_20159">
+    <ref role="WuzLi" to="k8se:7kypvuIwCFC" resolve="StringLiteral" />
+    <node concept="11bSqf" id="TG_20160" role="11c4hB">
+      <node concept="3clFbS" id="TG_20161" role="2VODD2">
+        <node concept="lc7rE" id="TG_20162" role="3cqZAp">
+          <node concept="la8eA" id="TG_20163" role="lcghm">
+            <property role="lacIc" value="&quot;[value]&quot;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- TupleType Textgen -->
+  <node concept="WtQ9Q" id="TG_20164">
+    <ref role="WuzLi" to="k8se:7kypvuIwBHC" resolve="TupleType" />
+    <node concept="11bSqf" id="TG_20165" role="11c4hB">
+      <node concept="3clFbS" id="TG_20166" role="2VODD2">
+        <node concept="lc7rE" id="TG_20167" role="3cqZAp">
+          <node concept="la8eA" id="TG_20168" role="lcghm">
+            <property role="lacIc" value="tuple[[elementTypes]]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Type Textgen -->
+  <node concept="WtQ9Q" id="TG_20169">
+    <ref role="WuzLi" to="k8se:7kypvuIwBBC" resolve="Type" />
+    <node concept="11bSqf" id="TG_20170" role="11c4hB">
+      <node concept="3clFbS" id="TG_20171" role="2VODD2">
+        <node concept="lc7rE" id="TG_20172" role="3cqZAp">
+          <node concept="l9hG8" id="TG_20173" role="lcghm">
+            <node concept="117lpO" id="TG_20174" role="lb14g" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- UnaryOperation Textgen -->
+  <node concept="WtQ9Q" id="TG_20175">
+    <ref role="WuzLi" to="k8se:7kypvuIwCJC" resolve="UnaryOperation" />
+    <node concept="11bSqf" id="TG_20176" role="11c4hB">
+      <node concept="3clFbS" id="TG_20177" role="2VODD2">
+        <node concept="lc7rE" id="TG_20178" role="3cqZAp">
+          <node concept="la8eA" id="TG_20179" role="lcghm">
+            <property role="lacIc" value="[operator][operand]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- Variable Textgen -->
+  <node concept="WtQ9Q" id="TG_20180">
+    <ref role="WuzLi" to="k8se:7kypvuIwEFC" resolve="Variable" />
+    <node concept="11bSqf" id="TG_20181" role="11c4hB">
+      <node concept="3clFbS" id="TG_20182" role="2VODD2">
+        <node concept="lc7rE" id="TG_20183" role="3cqZAp">
+          <node concept="la8eA" id="TG_20184" role="lcghm">
+            <property role="lacIc" value="[name]: [type]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- VariableReference Textgen -->
+  <node concept="WtQ9Q" id="TG_20185">
+    <ref role="WuzLi" to="k8se:7kypvuIwCKC" resolve="VariableReference" />
+    <node concept="11bSqf" id="TG_20186" role="11c4hB">
+      <node concept="3clFbS" id="TG_20187" role="2VODD2">
+        <node concept="lc7rE" id="TG_20188" role="3cqZAp">
+          <node concept="la8eA" id="TG_20189" role="lcghm">
+            <property role="lacIc" value="[variableName]" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+
+  <!-- WhileLoop Textgen -->
+  <node concept="WtQ9Q" id="TG_20190">
+    <ref role="WuzLi" to="k8se:7kypvuIwDGC" resolve="WhileLoop" />
+    <node concept="11bSqf" id="TG_20191" role="11c4hB">
+      <node concept="3clFbS" id="TG_20192" role="2VODD2">
+        <node concept="lc7rE" id="TG_20193" role="3cqZAp">
+          <node concept="la8eA" id="TG_20194" role="lcghm">
+            <property role="lacIc" value="while [condition]:&#10;[body]&#10;" />
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
 </model>
 
