@@ -126,7 +126,7 @@
       <node concept="2KtLg9" id="Phase1_B002" role="2Ks9SJ">
         <node concept="2KtLhQ" id="Phase1_IF001" role="2KtLgA">
           <node concept="2KtLkU" id="Phase1_E005" role="2KtLhR">
-            <property role="TrG5h" value=">" />
+            <property role="TrG5h" value="&gt;" />
             <node concept="2KtLnB" id="Phase1_E006" role="2KtLkW">
               <property role="TrG5h" value="num" />
             </node>
@@ -173,7 +173,7 @@
         </node>
         <node concept="2KtLiZ" id="Phase1_W001" role="2KtLgA">
           <node concept="2KtLkU" id="Phase1_E011" role="2KtLjA">
-            <property role="TrG5h" value="<" />
+            <property role="TrG5h" value="&lt;" />
             <node concept="2KtLoP" id="Phase1_E012" role="2KtLkW">
               <property role="TrG5h" value="0" />
             </node>
