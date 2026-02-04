@@ -9,8 +9,8 @@
   <registry>
     <language id="a452e1cf-6f8c-4bca-8447-fd4d6e4d0003" name="SemAnno">
       <concept id="8440420766104857128" name="SemAnno.structure.Module" flags="ng" index="2Ks9RF">
-        <child id="8982541288447632589" name="variables" index="2Ks9RG" />
-        <child id="8982541288447632588" name="functions" index="2Ks9RH" />
+        <child id="8982541288447632590" name="variables" index="2Ks9RG" />
+        <child id="8982541288447632589" name="functions" index="2Ks9RH" />
       </concept>
       <concept id="8982541288447632700" name="SemAnno.structure.Variable" flags="ng" index="2KtM7O" />
       <concept id="8440420766104857192" name="SemAnno.structure.Function" flags="ng" index="2Ks9S5">
