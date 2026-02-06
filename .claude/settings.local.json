@@ -10,7 +10,10 @@
       "WebFetch(domain:mps-support.jetbrains.com)",
       "WebFetch(domain:www.jetbrains.com)",
       "Bash(wc:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:java.hotexamples.com)"
     ]
   }
 }

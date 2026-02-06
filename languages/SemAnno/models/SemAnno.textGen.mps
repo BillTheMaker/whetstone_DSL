@@ -56,6 +56,9 @@
       <concept id="1237305334312" name="jetbrains.mps.lang.textGen.structure.NodeAppendPart" flags="ng" index="l9hG8">
         <child id="1237305790512" name="value" index="lb14g" />
       </concept>
+      <concept id="1237305491868" name="jetbrains.mps.lang.textGen.structure.CollectionAppendPart" flags="ng" index="l9S2W">
+        <child id="1237305945551" name="list" index="lbANJ" />
+      </concept>
       <concept id="1237305557638" name="jetbrains.mps.lang.textGen.structure.ConstantStringAppendPart" flags="ng" index="la8eA">
         <property id="1237305576108" name="value" index="lacIc" />
       </concept>
@@ -1553,11 +1556,11 @@
           </node>
         </node>
         <node concept="lc7rE" id="FTG2_R001" role="3cqZAp">
-          <node concept="l9hG8" id="FTG2_R002" role="lcghm">
-            <node concept="2OqwBi" id="FTG2_R003" role="lb14g">
-              <node concept="117lpO" id="FTG2_R004" role="2Oq$k0" />
-              <node concept="3TrEf2" id="FTG2_R005" role="2OqNvi">
-                <ref role="3Tt5mk" to="k8se:7kypvuIwDID" resolve="value" />
+          <node concept="l9S2W" id="CLQqfECxfo" role="lcghm">
+            <node concept="2OqwBi" id="CLQqfECxoo" role="lbANJ">
+              <node concept="117lpO" id="CLQqfECxfM" role="2Oq$k0" />
+              <node concept="3Tsc0h" id="CLQqfECxNN" role="2OqNvi">
+                <ref role="3TtcxE" to="k8se:7kypvuIwDID" resolve="value" />
               </node>
             </node>
           </node>
