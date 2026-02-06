@@ -172,7 +172,7 @@
     <node concept="1TJgyi" id="7kypvuIwECI" role="1TKVEl">
       <property role="IQ2nx" value="8982541288447632592" />
       <property role="TrG5h" value="targetLanguage" />
-      <ref role="AX2Wp" to="tpck:fKAOsGN" resolve="string" />
+      <ref role="AX2Wp" node="6LZhwXW979c" resolve="TargetLanguage" />
     </node>
     <node concept="1TJgyj" id="7kypvuIwECH" role="1TKVEi">
       <property role="IQ2ns" value="8982541288447632591" />

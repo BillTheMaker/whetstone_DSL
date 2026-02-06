@@ -51,7 +51,7 @@
   </registry>
   <node concept="3rCcZv" id="Calc_M001">
     <property role="TrG5h" value="Calculator" />
-    <property role="2EAK5_" value="c" />
+    <property role="2EAK5_" value="6LZhwXW98Rc/cpp" />
     <node concept="2EAK29" id="Calc_V001" role="2EAK5V">
       <property role="TrG5h" value="PI" />
       <node concept="3rC1Zv" id="Calc_VT001" role="2EAK2b">
