@@ -4,6 +4,7 @@
     <projectModules>
       <modulePath path="$PROJECT_DIR$/languages/SemAnno.runtime/SemAnno.runtime.msd" folder="" />
       <modulePath path="$PROJECT_DIR$/languages/SemAnno.sandbox/SemAnno.sandbox.msd" folder="" />
+      <modulePath path="$PROJECT_DIR$/Phase1Example.sandbox/Phase1Example.sandbox.msd" folder="" />
       <modulePath path="$PROJECT_DIR$/languages/SemAnno/SemAnno.mpl" folder="" />
     </projectModules>
   </component>

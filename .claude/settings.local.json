@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd textgen definitions for all Phase 1 AST concepts\n\n- Added ConceptTextGenDeclaration nodes for all 38 Phase 1 concepts\n- Includes textgen rules for core concepts \\(Module, Function, Parameter, Variable\\)\n- Textgen rules for statements \\(Block, Assignment, If, Loops, Return, etc.\\)\n- Textgen rules for expressions \\(BinaryOp, UnaryOp, FunctionCall, Literals, etc.\\)\n- Textgen rules for types \\(Primitive, List, Set, Map, Tuple, Array, Optional, Custom\\)\n- Textgen rules for annotations \\(Annotation, DerefStrategy, OptimizationLock, LangSpecific\\)\n\nCo-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebSearch",
+      "WebFetch(domain:mps-support.jetbrains.com)",
+      "WebFetch(domain:www.jetbrains.com)",
+      "Bash(wc:*)",
+      "Bash(python3:*)"
+    ]
+  }
+}

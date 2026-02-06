@@ -123,5 +123,310 @@
       <property role="3F0ifm" value="{content}" />
     </node>
   </node>
+  <node concept="24kQdi" id="Ed_10001">
+    <ref role="1XX52x" to="k8se:7kypvuIwECC" resolve="Module" />
+    <node concept="3EZMnI" id="Ed_10002" role="2wV5jI">
+      <node concept="2iRkQZ" id="Ed_10002b" role="2iSdaV" />
+      <node concept="3EZMnI" id="Ed_10002c" role="3EZMnx">
+        <node concept="2iRfu4" id="Ed_10002d" role="2iSdaV" />
+        <node concept="3F0ifn" id="Ed_10004" role="3EZMnx">
+          <property role="3F0ifm" value="Module: " />
+        </node>
+        <node concept="3F0A7n" id="Ed_10004b" role="3EZMnx">
+          <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
+        </node>
+      </node>
+      <node concept="3EZMnI" id="Ed_10004c" role="3EZMnx">
+        <node concept="2iRfu4" id="Ed_10004d" role="2iSdaV" />
+        <node concept="3F0ifn" id="Ed_10004e" role="3EZMnx">
+          <property role="3F0ifm" value="Target: " />
+        </node>
+        <node concept="3F0A7n" id="Ed_10004f" role="3EZMnx">
+          <ref role="1NtTu8" to="k8se:7kypvuIwECI" resolve="targetLanguage" />
+        </node>
+        <node concept="3F0ifn" id="Ed_10004g" role="3EZMnx">
+          <property role="3F0ifm" value="(python | cpp | empty=both)" />
+        </node>
+      </node>
+      <node concept="3F2HdR" id="Ed_10004h" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:7kypvuIwECG" resolve="variables" />
+        <node concept="2iRkQZ" id="Ed_10004i" role="2czzBx" />
+      </node>
+      <node concept="3F2HdR" id="Ed_10004j" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:7kypvuIwECF" resolve="functions" />
+        <node concept="2iRkQZ" id="Ed_10004k" role="2czzBx" />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10005">
+    <ref role="1XX52x" to="k8se:7kypvuIwEDC" resolve="Function" />
+    <node concept="3EZMnI" id="Ed_10006" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10007" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10008" role="3EZMnx">
+        <property role="3F0ifm" value="Function: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10009">
+    <ref role="1XX52x" to="k8se:7kypvuIwEEC" resolve="Parameter" />
+    <node concept="3EZMnI" id="Ed_10010" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10011" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10012" role="3EZMnx">
+        <property role="3F0ifm" value="Parameter: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10013">
+    <ref role="1XX52x" to="k8se:7kypvuIwEFC" resolve="Variable" />
+    <node concept="3EZMnI" id="Ed_10014" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10015" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10016" role="3EZMnx">
+        <property role="3F0ifm" value="Variable: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10017">
+    <ref role="1XX52x" to="k8se:7kypvuIwDDD" resolve="Block" />
+    <node concept="3EZMnI" id="Ed_10018" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10019" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10020" role="3EZMnx">
+        <property role="3F0ifm" value="Block: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10021">
+    <ref role="1XX52x" to="k8se:7kypvuIwDEC" resolve="Assignment" />
+    <node concept="3EZMnI" id="Ed_10022" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10023" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10024" role="3EZMnx">
+        <property role="3F0ifm" value="Assignment: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10025">
+    <ref role="1XX52x" to="k8se:7kypvuIwDFC" resolve="IfStatement" />
+    <node concept="3EZMnI" id="Ed_10026" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10027" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10028" role="3EZMnx">
+        <property role="3F0ifm" value="IfStatement: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10029">
+    <ref role="1XX52x" to="k8se:7kypvuIwDGC" resolve="WhileLoop" />
+    <node concept="3EZMnI" id="Ed_10030" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10031" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10032" role="3EZMnx">
+        <property role="3F0ifm" value="WhileLoop: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10033">
+    <ref role="1XX52x" to="k8se:7kypvuIwDHC" resolve="ForLoop" />
+    <node concept="3EZMnI" id="Ed_10034" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10035" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10036" role="3EZMnx">
+        <property role="3F0ifm" value="ForLoop: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10037">
+    <ref role="1XX52x" to="k8se:7kypvuIwDIC" resolve="Return" />
+    <node concept="3EZMnI" id="Ed_10038" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10039" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10040" role="3EZMnx">
+        <property role="3F0ifm" value="Return: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10041">
+    <ref role="1XX52x" to="k8se:7kypvuIwDJC" resolve="ExpressionStatement" />
+    <node concept="3EZMnI" id="Ed_10042" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10043" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10044" role="3EZMnx">
+        <property role="3F0ifm" value="ExpressionStatement: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10045">
+    <ref role="1XX52x" to="k8se:4ypvuIwCIC2" resolve="BinaryOperation" />
+    <node concept="3EZMnI" id="Ed_10046" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10047" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10048" role="3EZMnx">
+        <property role="3F0ifm" value="BinaryOperation: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10049">
+    <ref role="1XX52x" to="k8se:7kypvuIwCJC" resolve="UnaryOperation" />
+    <node concept="3EZMnI" id="Ed_10050" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10051" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10052" role="3EZMnx">
+        <property role="3F0ifm" value="UnaryOperation: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10053">
+    <ref role="1XX52x" to="k8se:7kypvuIwCLC" resolve="FunctionCall" />
+    <node concept="3EZMnI" id="Ed_10054" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10055" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10056" role="3EZMnx">
+        <property role="3F0ifm" value="FunctionCall: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10057">
+    <ref role="1XX52x" to="k8se:7kypvuIwCKC" resolve="VariableReference" />
+    <node concept="3EZMnI" id="Ed_10058" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10059" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10060" role="3EZMnx">
+        <property role="3F0ifm" value="VariableReference: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10061">
+    <ref role="1XX52x" to="k8se:7kypvuIwCDC" resolve="IntegerLiteral" />
+    <node concept="3EZMnI" id="Ed_10062" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10063" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10064" role="3EZMnx">
+        <property role="3F0ifm" value="IntegerLiteral: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10065">
+    <ref role="1XX52x" to="k8se:7kypvuIwCEC" resolve="FloatLiteral" />
+    <node concept="3EZMnI" id="Ed_10066" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10067" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10068" role="3EZMnx">
+        <property role="3F0ifm" value="FloatLiteral: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10069">
+    <ref role="1XX52x" to="k8se:7kypvuIwCFC" resolve="StringLiteral" />
+    <node concept="3EZMnI" id="Ed_10070" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10071" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10072" role="3EZMnx">
+        <property role="3F0ifm" value="StringLiteral: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10073">
+    <ref role="1XX52x" to="k8se:7kypvuIwCGC" resolve="BooleanLiteral" />
+    <node concept="3EZMnI" id="Ed_10074" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10075" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10076" role="3EZMnx">
+        <property role="3F0ifm" value="BooleanLiteral: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10077">
+    <ref role="1XX52x" to="k8se:7kypvuIwCHC" resolve="NullLiteral" />
+    <node concept="3EZMnI" id="Ed_10078" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10079" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10080" role="3EZMnx">
+        <property role="3F0ifm" value="NullLiteral: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10081">
+    <ref role="1XX52x" to="k8se:7kypvuIwCMC" resolve="ListLiteral" />
+    <node concept="3EZMnI" id="Ed_10082" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10083" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10084" role="3EZMnx">
+        <property role="3F0ifm" value="ListLiteral: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10085">
+    <ref role="1XX52x" to="k8se:7kypvuIwCNC" resolve="IndexAccess" />
+    <node concept="3EZMnI" id="Ed_10086" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10087" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10088" role="3EZMnx">
+        <property role="3F0ifm" value="IndexAccess: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10089">
+    <ref role="1XX52x" to="k8se:7kypvuIwCOC" resolve="MemberAccess" />
+    <node concept="3EZMnI" id="Ed_10090" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10091" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10092" role="3EZMnx">
+        <property role="3F0ifm" value="MemberAccess: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10093">
+    <ref role="1XX52x" to="k8se:7kypvuIwBCC" resolve="PrimitiveType" />
+    <node concept="3EZMnI" id="Ed_10094" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10095" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10096" role="3EZMnx">
+        <property role="3F0ifm" value="PrimitiveType: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10097">
+    <ref role="1XX52x" to="k8se:7kypvuIwBDC" resolve="ListType" />
+    <node concept="3EZMnI" id="Ed_10098" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10099" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10100" role="3EZMnx">
+        <property role="3F0ifm" value="ListType: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10101">
+    <ref role="1XX52x" to="k8se:7kypvuIwBGC" resolve="SetType" />
+    <node concept="3EZMnI" id="Ed_10102" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10103" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10104" role="3EZMnx">
+        <property role="3F0ifm" value="SetType: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10105">
+    <ref role="1XX52x" to="k8se:7kypvuIwBEC" resolve="MapType" />
+    <node concept="3EZMnI" id="Ed_10106" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10107" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10108" role="3EZMnx">
+        <property role="3F0ifm" value="MapType: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10109">
+    <ref role="1XX52x" to="k8se:7kypvuIwBHC" resolve="TupleType" />
+    <node concept="3EZMnI" id="Ed_10110" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10111" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10112" role="3EZMnx">
+        <property role="3F0ifm" value="TupleType: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10113">
+    <ref role="1XX52x" to="k8se:7kypvuIwBIC" resolve="ArrayType" />
+    <node concept="3EZMnI" id="Ed_10114" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10115" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10116" role="3EZMnx">
+        <property role="3F0ifm" value="ArrayType: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10117">
+    <ref role="1XX52x" to="k8se:7kypvuIwBFC" resolve="OptionalType" />
+    <node concept="3EZMnI" id="Ed_10118" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10119" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10120" role="3EZMnx">
+        <property role="3F0ifm" value="OptionalType: " />
+      </node>
+    </node>
+  </node>
+  <node concept="24kQdi" id="Ed_10121">
+    <ref role="1XX52x" to="k8se:7kypvuIwBJC" resolve="CustomType" />
+    <node concept="3EZMnI" id="Ed_10122" role="2wV5jI">
+      <node concept="2iRfu4" id="Ed_10123" role="2iSdaV" />
+      <node concept="3F0ifn" id="Ed_10124" role="3EZMnx">
+        <property role="3F0ifm" value="CustomType: " />
+      </node>
+    </node>
+  </node>
 </model>
 
