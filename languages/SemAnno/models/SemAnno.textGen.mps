@@ -258,8 +258,33 @@
     <node concept="11bSqf" id="TG_20008" role="11c4hB">
       <node concept="3clFbS" id="TG_20009" role="2VODD2">
         <node concept="lc7rE" id="TG_20010" role="3cqZAp">
-          <node concept="la8eA" id="TG_20011" role="lcghm">
-            <property role="lacIc" value="[elementType][[size]]" />
+          <node concept="l9hG8" id="TG_AT001" role="lcghm">
+            <node concept="2OqwBi" id="TG_AT002" role="lb14g">
+              <node concept="117lpO" id="TG_AT003" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_AT004" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwBIE" resolve="elementType" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_AT005" role="3cqZAp">
+          <node concept="la8eA" id="TG_AT006" role="lcghm">
+            <property role="lacIc" value="[" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_AT007" role="3cqZAp">
+          <node concept="l9hG8" id="TG_AT008" role="lcghm">
+            <node concept="2OqwBi" id="TG_AT009" role="lb14g">
+              <node concept="117lpO" id="TG_AT010" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_AT011" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwBIF" resolve="size" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_AT012" role="3cqZAp">
+          <node concept="la8eA" id="TG_AT013" role="lcghm">
+            <property role="lacIc" value="]" />
           </node>
         </node>
       </node>
@@ -384,8 +409,13 @@
     <node concept="11bSqf" id="TG_20028" role="11c4hB">
       <node concept="3clFbS" id="TG_20029" role="2VODD2">
         <node concept="lc7rE" id="TG_20030" role="3cqZAp">
-          <node concept="la8eA" id="TG_20031" role="lcghm">
-            <property role="lacIc" value="[value]" />
+          <node concept="l9hG8" id="TG_20031" role="lcghm">
+            <node concept="2OqwBi" id="TG_BL003" role="lb14g">
+              <node concept="117lpO" id="TG_BL004" role="2Oq$k0" />
+              <node concept="3TrcHB" id="CLQqfEBnkl" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwCGD" resolve="value" />
+              </node>
+            </node>
           </node>
         </node>
       </node>
@@ -396,8 +426,13 @@
     <node concept="11bSqf" id="TG_20033" role="11c4hB">
       <node concept="3clFbS" id="TG_20034" role="2VODD2">
         <node concept="lc7rE" id="TG_20035" role="3cqZAp">
-          <node concept="la8eA" id="TG_20036" role="lcghm">
-            <property role="lacIc" value="[typeName]" />
+          <node concept="l9hG8" id="TG_CT001" role="lcghm">
+            <node concept="2OqwBi" id="TG_CT002" role="lb14g">
+              <node concept="117lpO" id="TG_CT003" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_CT004" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwBJD" resolve="typeName" />
+              </node>
+            </node>
           </node>
         </node>
       </node>
@@ -408,8 +443,23 @@
     <node concept="11bSqf" id="TG_20038" role="11c4hB">
       <node concept="3clFbS" id="TG_20039" role="2VODD2">
         <node concept="lc7rE" id="TG_20040" role="3cqZAp">
-          <node concept="la8eA" id="TG_20041" role="lcghm">
-            <property role="lacIc" value="@deref([strategy])" />
+          <node concept="la8eA" id="TG_DS001" role="lcghm">
+            <property role="lacIc" value="@deref(" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_DS002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_DS003" role="lcghm">
+            <node concept="2OqwBi" id="TG_DS004" role="lb14g">
+              <node concept="117lpO" id="TG_DS005" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_DS006" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwFCE" resolve="strategy" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_DS007" role="3cqZAp">
+          <node concept="la8eA" id="TG_DS008" role="lcghm">
+            <property role="lacIc" value=")" />
           </node>
         </node>
       </node>
@@ -437,8 +487,13 @@
     <node concept="11bSqf" id="TG_20054" role="11c4hB">
       <node concept="3clFbS" id="TG_20055" role="2VODD2">
         <node concept="lc7rE" id="TG_20056" role="3cqZAp">
-          <node concept="la8eA" id="TG_20057" role="lcghm">
-            <property role="lacIc" value="[value]" />
+          <node concept="l9hG8" id="TG_20057" role="lcghm">
+            <node concept="2OqwBi" id="TG_FL003" role="lb14g">
+              <node concept="117lpO" id="TG_FL004" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_FL005" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwCED" resolve="value" />
+              </node>
+            </node>
           </node>
         </node>
       </node>
@@ -449,8 +504,69 @@
     <node concept="11bSqf" id="TG_20059" role="11c4hB">
       <node concept="3clFbS" id="TG_20060" role="2VODD2">
         <node concept="lc7rE" id="TG_20061" role="3cqZAp">
-          <node concept="la8eA" id="TG_20062" role="lcghm">
-            <property role="lacIc" value="for [iteratorName] in [iterable]:&#10;[body]&#10;" />
+          <node concept="la8eA" id="TG_FL001" role="lcghm">
+            <property role="lacIc" value="for " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_FL006" role="3cqZAp">
+          <node concept="l9hG8" id="TG_FL007" role="lcghm">
+            <node concept="2OqwBi" id="TG_FL008" role="lb14g">
+              <node concept="117lpO" id="TG_FL009" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_FL010" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwDHD" resolve="iteratorName" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_FL011" role="3cqZAp">
+          <node concept="la8eA" id="TG_FL012" role="lcghm">
+            <property role="lacIc" value=" in " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_FL013" role="3cqZAp">
+          <node concept="l9hG8" id="TG_FL014" role="lcghm">
+            <node concept="2OqwBi" id="TG_FL015" role="lb14g">
+              <node concept="117lpO" id="TG_FL016" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_FL017" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwDHE" resolve="iterable" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_FL018" role="3cqZAp">
+          <node concept="la8eA" id="TG_FL019" role="lcghm">
+            <property role="lacIc" value=":" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_FL020" role="3cqZAp">
+          <node concept="l8MVK" id="TG_FL021" role="lcghm" />
+        </node>
+        <node concept="2Gpval" id="TG_FL022" role="3cqZAp">
+          <node concept="2GrKxI" id="TG_FL023" role="2Gsz3X">
+            <property role="TrG5h" value="fStmt" />
+          </node>
+          <node concept="2OqwBi" id="TG_FL024" role="2GsD0m">
+            <node concept="117lpO" id="TG_FL025" role="2Oq$k0" />
+            <node concept="3Tsc0h" id="TG_FL026" role="2OqNvi">
+              <ref role="3TtcxE" to="k8se:7kypvuIwDHF" resolve="body" />
+            </node>
+          </node>
+          <node concept="3clFbS" id="TG_FL027" role="2LFqv$">
+            <node concept="lc7rE" id="TG_FL028" role="3cqZAp">
+              <node concept="la8eA" id="TG_FL029" role="lcghm">
+                <property role="lacIc" value="    " />
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_FL030" role="3cqZAp">
+              <node concept="l9hG8" id="TG_FL031" role="lcghm">
+                <node concept="2GrUjf" id="TG_FL032" role="lb14g">
+                  <ref role="2Gs0qQ" node="TG_FL023" resolve="fStmt" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_FL033" role="3cqZAp">
+              <node concept="l8MVK" id="TG_FL034" role="lcghm" />
+            </node>
           </node>
         </node>
       </node>
@@ -549,8 +665,48 @@
     <node concept="11bSqf" id="TG_20069" role="11c4hB">
       <node concept="3clFbS" id="TG_20070" role="2VODD2">
         <node concept="lc7rE" id="TG_20071" role="3cqZAp">
-          <node concept="la8eA" id="TG_20072" role="lcghm">
-            <property role="lacIc" value="[functionName]([arguments])" />
+          <node concept="l9hG8" id="TG_FC001" role="lcghm">
+            <node concept="2OqwBi" id="TG_FC002" role="lb14g">
+              <node concept="117lpO" id="TG_FC003" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_FC004" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwCLD" resolve="functionName" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_FC005" role="3cqZAp">
+          <node concept="la8eA" id="TG_FC006" role="lcghm">
+            <property role="lacIc" value="(" />
+          </node>
+        </node>
+        <node concept="2Gpval" id="TG_FC007" role="3cqZAp">
+          <node concept="2GrKxI" id="TG_FC008" role="2Gsz3X">
+            <property role="TrG5h" value="arg" />
+          </node>
+          <node concept="2OqwBi" id="TG_FC009" role="2GsD0m">
+            <node concept="117lpO" id="TG_FC010" role="2Oq$k0" />
+            <node concept="3Tsc0h" id="TG_FC011" role="2OqNvi">
+              <ref role="3TtcxE" to="k8se:7kypvuIwCLE" resolve="arguments" />
+            </node>
+          </node>
+          <node concept="3clFbS" id="TG_FC012" role="2LFqv$">
+            <node concept="lc7rE" id="TG_FC013" role="3cqZAp">
+              <node concept="l9hG8" id="TG_FC014" role="lcghm">
+                <node concept="2GrUjf" id="TG_FC015" role="lb14g">
+                  <ref role="2Gs0qQ" node="TG_FC008" resolve="arg" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_FC016" role="3cqZAp">
+              <node concept="la8eA" id="TG_FC017" role="lcghm">
+                <property role="lacIc" value=", " />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_FC018" role="3cqZAp">
+          <node concept="la8eA" id="TG_FC019" role="lcghm">
+            <property role="lacIc" value=")" />
           </node>
         </node>
       </node>
@@ -561,8 +717,90 @@
     <node concept="11bSqf" id="TG_20074" role="11c4hB">
       <node concept="3clFbS" id="TG_20075" role="2VODD2">
         <node concept="lc7rE" id="TG_20076" role="3cqZAp">
-          <node concept="la8eA" id="TG_20077" role="lcghm">
-            <property role="lacIc" value="if [condition]:&#10;[thenBranch]&#10;else:&#10;[elseBranch]&#10;" />
+          <node concept="la8eA" id="TG_IF001" role="lcghm">
+            <property role="lacIc" value="if " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IF002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_IF003" role="lcghm">
+            <node concept="2OqwBi" id="TG_IF004" role="lb14g">
+              <node concept="117lpO" id="TG_IF005" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_IF006" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwDFD" resolve="condition" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IF007" role="3cqZAp">
+          <node concept="la8eA" id="TG_IF008" role="lcghm">
+            <property role="lacIc" value=":" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IF009" role="3cqZAp">
+          <node concept="l8MVK" id="TG_IF010" role="lcghm" />
+        </node>
+        <node concept="2Gpval" id="TG_IF011" role="3cqZAp">
+          <node concept="2GrKxI" id="TG_IF012" role="2Gsz3X">
+            <property role="TrG5h" value="tStmt" />
+          </node>
+          <node concept="2OqwBi" id="TG_IF013" role="2GsD0m">
+            <node concept="117lpO" id="TG_IF014" role="2Oq$k0" />
+            <node concept="3Tsc0h" id="TG_IF015" role="2OqNvi">
+              <ref role="3TtcxE" to="k8se:7kypvuIwDFE" resolve="thenBranch" />
+            </node>
+          </node>
+          <node concept="3clFbS" id="TG_IF016" role="2LFqv$">
+            <node concept="lc7rE" id="TG_IF017" role="3cqZAp">
+              <node concept="la8eA" id="TG_IF018" role="lcghm">
+                <property role="lacIc" value="    " />
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_IF019" role="3cqZAp">
+              <node concept="l9hG8" id="TG_IF020" role="lcghm">
+                <node concept="2GrUjf" id="TG_IF021" role="lb14g">
+                  <ref role="2Gs0qQ" node="TG_IF012" resolve="tStmt" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_IF022" role="3cqZAp">
+              <node concept="l8MVK" id="TG_IF023" role="lcghm" />
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IF024" role="3cqZAp">
+          <node concept="la8eA" id="TG_IF025" role="lcghm">
+            <property role="lacIc" value="else:" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IF026" role="3cqZAp">
+          <node concept="l8MVK" id="TG_IF027" role="lcghm" />
+        </node>
+        <node concept="2Gpval" id="TG_IF028" role="3cqZAp">
+          <node concept="2GrKxI" id="TG_IF029" role="2Gsz3X">
+            <property role="TrG5h" value="eStmt" />
+          </node>
+          <node concept="2OqwBi" id="TG_IF030" role="2GsD0m">
+            <node concept="117lpO" id="TG_IF031" role="2Oq$k0" />
+            <node concept="3Tsc0h" id="TG_IF032" role="2OqNvi">
+              <ref role="3TtcxE" to="k8se:7kypvuIwDFF" resolve="elseBranch" />
+            </node>
+          </node>
+          <node concept="3clFbS" id="TG_IF033" role="2LFqv$">
+            <node concept="lc7rE" id="TG_IF034" role="3cqZAp">
+              <node concept="la8eA" id="TG_IF035" role="lcghm">
+                <property role="lacIc" value="    " />
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_IF036" role="3cqZAp">
+              <node concept="l9hG8" id="TG_IF037" role="lcghm">
+                <node concept="2GrUjf" id="TG_IF038" role="lb14g">
+                  <ref role="2Gs0qQ" node="TG_IF029" resolve="eStmt" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_IF039" role="3cqZAp">
+              <node concept="l8MVK" id="TG_IF040" role="lcghm" />
+            </node>
           </node>
         </node>
       </node>
@@ -573,8 +811,33 @@
     <node concept="11bSqf" id="TG_20079" role="11c4hB">
       <node concept="3clFbS" id="TG_20080" role="2VODD2">
         <node concept="lc7rE" id="TG_20081" role="3cqZAp">
-          <node concept="la8eA" id="TG_20082" role="lcghm">
-            <property role="lacIc" value="[target][[index]]" />
+          <node concept="l9hG8" id="TG_IA001" role="lcghm">
+            <node concept="2OqwBi" id="TG_IA002" role="lb14g">
+              <node concept="117lpO" id="TG_IA003" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_IA004" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwCND" resolve="target" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IA005" role="3cqZAp">
+          <node concept="la8eA" id="TG_IA006" role="lcghm">
+            <property role="lacIc" value="[" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IA007" role="3cqZAp">
+          <node concept="l9hG8" id="TG_IA008" role="lcghm">
+            <node concept="2OqwBi" id="TG_IA009" role="lb14g">
+              <node concept="117lpO" id="TG_IA010" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_IA011" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwCNE" resolve="index" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_IA012" role="3cqZAp">
+          <node concept="la8eA" id="TG_IA013" role="lcghm">
+            <property role="lacIc" value="]" />
           </node>
         </node>
       </node>
@@ -585,8 +848,13 @@
     <node concept="11bSqf" id="TG_20084" role="11c4hB">
       <node concept="3clFbS" id="TG_20085" role="2VODD2">
         <node concept="lc7rE" id="FTG_IL001" role="3cqZAp">
-          <node concept="la8eA" id="FTG_IL002" role="lcghm">
-            <property role="lacIc" value="&lt;int&gt;" />
+          <node concept="l9hG8" id="FTG_IL002" role="lcghm">
+            <node concept="2OqwBi" id="FTG_IL003" role="lb14g">
+              <node concept="117lpO" id="FTG_IL004" role="2Oq$k0" />
+              <node concept="3TrcHB" id="FTG_IL005" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwCDD" resolve="value" />
+              </node>
+            </node>
           </node>
         </node>
       </node>
@@ -597,8 +865,53 @@
     <node concept="11bSqf" id="TG_20089" role="11c4hB">
       <node concept="3clFbS" id="TG_20090" role="2VODD2">
         <node concept="lc7rE" id="TG_20091" role="3cqZAp">
-          <node concept="la8eA" id="TG_20092" role="lcghm">
-            <property role="lacIc" value="@lang([language]:[idiomType])" />
+          <node concept="la8eA" id="TG_LS001" role="lcghm">
+            <property role="lacIc" value="@lang(" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LS002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_LS003" role="lcghm">
+            <node concept="2OqwBi" id="TG_LS004" role="lb14g">
+              <node concept="117lpO" id="TG_LS005" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_LS006" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwFEE" resolve="language" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LS007" role="3cqZAp">
+          <node concept="la8eA" id="TG_LS008" role="lcghm">
+            <property role="lacIc" value=":" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LS009" role="3cqZAp">
+          <node concept="l9hG8" id="TG_LS010" role="lcghm">
+            <node concept="2OqwBi" id="TG_LS011" role="lb14g">
+              <node concept="117lpO" id="TG_LS012" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_LS013" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwFEF" resolve="idiomType" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LS014" role="3cqZAp">
+          <node concept="la8eA" id="TG_LS015" role="lcghm">
+            <property role="lacIc" value=", " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LS016" role="3cqZAp">
+          <node concept="l9hG8" id="TG_LS017" role="lcghm">
+            <node concept="2OqwBi" id="TG_LS018" role="lb14g">
+              <node concept="117lpO" id="TG_LS019" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_LS020" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwFEG" resolve="rawSyntax" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LS021" role="3cqZAp">
+          <node concept="la8eA" id="TG_LS022" role="lcghm">
+            <property role="lacIc" value=")" />
           </node>
         </node>
       </node>
@@ -609,8 +922,38 @@
     <node concept="11bSqf" id="TG_20094" role="11c4hB">
       <node concept="3clFbS" id="TG_20095" role="2VODD2">
         <node concept="lc7rE" id="TG_20096" role="3cqZAp">
-          <node concept="la8eA" id="TG_20097" role="lcghm">
-            <property role="lacIc" value="[elements]" />
+          <node concept="la8eA" id="TG_LL001" role="lcghm">
+            <property role="lacIc" value="[" />
+          </node>
+        </node>
+        <node concept="2Gpval" id="TG_LL002" role="3cqZAp">
+          <node concept="2GrKxI" id="TG_LL003" role="2Gsz3X">
+            <property role="TrG5h" value="elem" />
+          </node>
+          <node concept="2OqwBi" id="TG_LL004" role="2GsD0m">
+            <node concept="117lpO" id="TG_LL005" role="2Oq$k0" />
+            <node concept="3Tsc0h" id="TG_LL006" role="2OqNvi">
+              <ref role="3TtcxE" to="k8se:7kypvuIwCMD" resolve="elements" />
+            </node>
+          </node>
+          <node concept="3clFbS" id="TG_LL007" role="2LFqv$">
+            <node concept="lc7rE" id="TG_LL008" role="3cqZAp">
+              <node concept="l9hG8" id="TG_LL009" role="lcghm">
+                <node concept="2GrUjf" id="TG_LL010" role="lb14g">
+                  <ref role="2Gs0qQ" node="TG_LL003" resolve="elem" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_LL011" role="3cqZAp">
+              <node concept="la8eA" id="TG_LL012" role="lcghm">
+                <property role="lacIc" value=", " />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LL013" role="3cqZAp">
+          <node concept="la8eA" id="TG_LL014" role="lcghm">
+            <property role="lacIc" value="]" />
           </node>
         </node>
       </node>
@@ -621,8 +964,23 @@
     <node concept="11bSqf" id="TG_20099" role="11c4hB">
       <node concept="3clFbS" id="TG_20100" role="2VODD2">
         <node concept="lc7rE" id="TG_20101" role="3cqZAp">
-          <node concept="la8eA" id="TG_20102" role="lcghm">
-            <property role="lacIc" value="list[[elementType]]" />
+          <node concept="la8eA" id="TG_LT001" role="lcghm">
+            <property role="lacIc" value="list[" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LT002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_LT003" role="lcghm">
+            <node concept="2OqwBi" id="TG_LT004" role="lb14g">
+              <node concept="117lpO" id="TG_LT005" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_LT006" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwBDE" resolve="elementType" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_LT007" role="3cqZAp">
+          <node concept="la8eA" id="TG_LT008" role="lcghm">
+            <property role="lacIc" value="]" />
           </node>
         </node>
       </node>
@@ -633,8 +991,38 @@
     <node concept="11bSqf" id="TG_20104" role="11c4hB">
       <node concept="3clFbS" id="TG_20105" role="2VODD2">
         <node concept="lc7rE" id="TG_20106" role="3cqZAp">
-          <node concept="la8eA" id="TG_20107" role="lcghm">
-            <property role="lacIc" value="map[[keyType], [valueType]]" />
+          <node concept="la8eA" id="TG_MT001" role="lcghm">
+            <property role="lacIc" value="map[" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_MT002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_MT003" role="lcghm">
+            <node concept="2OqwBi" id="TG_MT004" role="lb14g">
+              <node concept="117lpO" id="TG_MT005" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_MT006" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwBEE" resolve="keyType" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_MT007" role="3cqZAp">
+          <node concept="la8eA" id="TG_MT008" role="lcghm">
+            <property role="lacIc" value=", " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_MT009" role="3cqZAp">
+          <node concept="l9hG8" id="TG_MT010" role="lcghm">
+            <node concept="2OqwBi" id="TG_MT011" role="lb14g">
+              <node concept="117lpO" id="TG_MT012" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_MT013" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwBEF" resolve="valueType" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_MT014" role="3cqZAp">
+          <node concept="la8eA" id="TG_MT015" role="lcghm">
+            <property role="lacIc" value="]" />
           </node>
         </node>
       </node>
@@ -645,8 +1033,28 @@
     <node concept="11bSqf" id="TG_20109" role="11c4hB">
       <node concept="3clFbS" id="TG_20110" role="2VODD2">
         <node concept="lc7rE" id="TG_20111" role="3cqZAp">
-          <node concept="la8eA" id="TG_20112" role="lcghm">
-            <property role="lacIc" value="[target].[memberName]" />
+          <node concept="l9hG8" id="TG_MA001" role="lcghm">
+            <node concept="2OqwBi" id="TG_MA002" role="lb14g">
+              <node concept="117lpO" id="TG_MA003" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_MA004" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwCOE" resolve="target" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_MA005" role="3cqZAp">
+          <node concept="la8eA" id="TG_MA006" role="lcghm">
+            <property role="lacIc" value="." />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_MA007" role="3cqZAp">
+          <node concept="l9hG8" id="TG_MA008" role="lcghm">
+            <node concept="2OqwBi" id="TG_MA009" role="lb14g">
+              <node concept="117lpO" id="TG_MA010" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_MA011" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwCOD" resolve="memberName" />
+              </node>
+            </node>
           </node>
         </node>
       </node>
@@ -1014,8 +1422,53 @@
     <node concept="11bSqf" id="TG_20124" role="11c4hB">
       <node concept="3clFbS" id="TG_20125" role="2VODD2">
         <node concept="lc7rE" id="TG_20126" role="3cqZAp">
-          <node concept="la8eA" id="TG_20127" role="lcghm">
-            <property role="lacIc" value="@lock([lockedBy], [lockReason])" />
+          <node concept="la8eA" id="TG_OL001" role="lcghm">
+            <property role="lacIc" value="@lock(" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_OL002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_OL003" role="lcghm">
+            <node concept="2OqwBi" id="TG_OL004" role="lb14g">
+              <node concept="117lpO" id="TG_OL005" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_OL006" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwFDE" resolve="lockedBy" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_OL007" role="3cqZAp">
+          <node concept="la8eA" id="TG_OL008" role="lcghm">
+            <property role="lacIc" value=", " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_OL009" role="3cqZAp">
+          <node concept="l9hG8" id="TG_OL010" role="lcghm">
+            <node concept="2OqwBi" id="TG_OL011" role="lb14g">
+              <node concept="117lpO" id="TG_OL012" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_OL013" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwFDF" resolve="lockReason" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_OL014" role="3cqZAp">
+          <node concept="la8eA" id="TG_OL015" role="lcghm">
+            <property role="lacIc" value=", " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_OL016" role="3cqZAp">
+          <node concept="l9hG8" id="TG_OL017" role="lcghm">
+            <node concept="2OqwBi" id="TG_OL018" role="lb14g">
+              <node concept="117lpO" id="TG_OL019" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_OL020" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwFDG" resolve="lockLevel" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_OL021" role="3cqZAp">
+          <node concept="la8eA" id="TG_OL022" role="lcghm">
+            <property role="lacIc" value=")" />
           </node>
         </node>
       </node>
@@ -1026,8 +1479,18 @@
     <node concept="11bSqf" id="TG_20129" role="11c4hB">
       <node concept="3clFbS" id="TG_20130" role="2VODD2">
         <node concept="lc7rE" id="TG_20131" role="3cqZAp">
-          <node concept="la8eA" id="TG_20132" role="lcghm">
-            <property role="lacIc" value="optional[[innerType]]" />
+          <node concept="l9hG8" id="TG_OT001" role="lcghm">
+            <node concept="2OqwBi" id="TG_OT002" role="lb14g">
+              <node concept="117lpO" id="TG_OT003" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_OT004" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwBFE" resolve="innerType" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_OT005" role="3cqZAp">
+          <node concept="la8eA" id="TG_OT006" role="lcghm">
+            <property role="lacIc" value="?" />
           </node>
         </node>
       </node>
@@ -1094,8 +1557,23 @@
     <node concept="11bSqf" id="TG_20149" role="11c4hB">
       <node concept="3clFbS" id="TG_20150" role="2VODD2">
         <node concept="lc7rE" id="TG_20151" role="3cqZAp">
-          <node concept="la8eA" id="TG_20152" role="lcghm">
-            <property role="lacIc" value="set[[elementType]]" />
+          <node concept="la8eA" id="TG_ST001" role="lcghm">
+            <property role="lacIc" value="set[" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_ST002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_ST003" role="lcghm">
+            <node concept="2OqwBi" id="TG_ST004" role="lb14g">
+              <node concept="117lpO" id="TG_ST005" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_ST006" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwBGE" resolve="elementType" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_ST007" role="3cqZAp">
+          <node concept="la8eA" id="TG_ST008" role="lcghm">
+            <property role="lacIc" value="]" />
           </node>
         </node>
       </node>
@@ -1106,8 +1584,23 @@
     <node concept="11bSqf" id="TG_20160" role="11c4hB">
       <node concept="3clFbS" id="TG_20161" role="2VODD2">
         <node concept="lc7rE" id="TG_20162" role="3cqZAp">
-          <node concept="la8eA" id="TG_20163" role="lcghm">
-            <property role="lacIc" value="&quot;[value]&quot;" />
+          <node concept="la8eA" id="TG_SL001" role="lcghm">
+            <property role="lacIc" value="&quot;" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_SL002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_SL003" role="lcghm">
+            <node concept="2OqwBi" id="TG_SL004" role="lb14g">
+              <node concept="117lpO" id="TG_SL005" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_SL006" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwCFD" resolve="value" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_SL007" role="3cqZAp">
+          <node concept="la8eA" id="TG_SL008" role="lcghm">
+            <property role="lacIc" value="&quot;" />
           </node>
         </node>
       </node>
@@ -1118,8 +1611,38 @@
     <node concept="11bSqf" id="TG_20165" role="11c4hB">
       <node concept="3clFbS" id="TG_20166" role="2VODD2">
         <node concept="lc7rE" id="TG_20167" role="3cqZAp">
-          <node concept="la8eA" id="TG_20168" role="lcghm">
-            <property role="lacIc" value="tuple[[elementTypes]]" />
+          <node concept="la8eA" id="TG_TT001" role="lcghm">
+            <property role="lacIc" value="tuple[" />
+          </node>
+        </node>
+        <node concept="2Gpval" id="TG_TT002" role="3cqZAp">
+          <node concept="2GrKxI" id="TG_TT003" role="2Gsz3X">
+            <property role="TrG5h" value="eType" />
+          </node>
+          <node concept="2OqwBi" id="TG_TT004" role="2GsD0m">
+            <node concept="117lpO" id="TG_TT005" role="2Oq$k0" />
+            <node concept="3Tsc0h" id="TG_TT006" role="2OqNvi">
+              <ref role="3TtcxE" to="k8se:7kypvuIwBHE" resolve="elementTypes" />
+            </node>
+          </node>
+          <node concept="3clFbS" id="TG_TT007" role="2LFqv$">
+            <node concept="lc7rE" id="TG_TT008" role="3cqZAp">
+              <node concept="l9hG8" id="TG_TT009" role="lcghm">
+                <node concept="2GrUjf" id="TG_TT010" role="lb14g">
+                  <ref role="2Gs0qQ" node="TG_TT003" resolve="eType" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_TT011" role="3cqZAp">
+              <node concept="la8eA" id="TG_TT012" role="lcghm">
+                <property role="lacIc" value=", " />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_TT013" role="3cqZAp">
+          <node concept="la8eA" id="TG_TT014" role="lcghm">
+            <property role="lacIc" value="]" />
           </node>
         </node>
       </node>
@@ -1130,8 +1653,23 @@
     <node concept="11bSqf" id="TG_20176" role="11c4hB">
       <node concept="3clFbS" id="TG_20177" role="2VODD2">
         <node concept="lc7rE" id="TG_20178" role="3cqZAp">
-          <node concept="la8eA" id="TG_20179" role="lcghm">
-            <property role="lacIc" value="[operator][operand]" />
+          <node concept="l9hG8" id="TG_UO001" role="lcghm">
+            <node concept="2OqwBi" id="TG_UO002" role="lb14g">
+              <node concept="117lpO" id="TG_UO003" role="2Oq$k0" />
+              <node concept="3TrcHB" id="TG_UO004" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwCJD" resolve="operator" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_UO005" role="3cqZAp">
+          <node concept="l9hG8" id="TG_UO006" role="lcghm">
+            <node concept="2OqwBi" id="TG_UO007" role="lb14g">
+              <node concept="117lpO" id="TG_UO008" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_UO009" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwCJE" resolve="operand" />
+              </node>
+            </node>
           </node>
         </node>
       </node>
@@ -1191,8 +1729,54 @@
     <node concept="11bSqf" id="TG_20191" role="11c4hB">
       <node concept="3clFbS" id="TG_20192" role="2VODD2">
         <node concept="lc7rE" id="TG_20193" role="3cqZAp">
-          <node concept="la8eA" id="TG_20194" role="lcghm">
-            <property role="lacIc" value="while [condition]:&#10;[body]&#10;" />
+          <node concept="la8eA" id="TG_WL001" role="lcghm">
+            <property role="lacIc" value="while " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_WL002" role="3cqZAp">
+          <node concept="l9hG8" id="TG_WL003" role="lcghm">
+            <node concept="2OqwBi" id="TG_WL004" role="lb14g">
+              <node concept="117lpO" id="TG_WL005" role="2Oq$k0" />
+              <node concept="3TrEf2" id="TG_WL006" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwDGD" resolve="condition" />
+              </node>
+            </node>
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_WL007" role="3cqZAp">
+          <node concept="la8eA" id="TG_WL008" role="lcghm">
+            <property role="lacIc" value=":" />
+          </node>
+        </node>
+        <node concept="lc7rE" id="TG_WL009" role="3cqZAp">
+          <node concept="l8MVK" id="TG_WL010" role="lcghm" />
+        </node>
+        <node concept="2Gpval" id="TG_WL011" role="3cqZAp">
+          <node concept="2GrKxI" id="TG_WL012" role="2Gsz3X">
+            <property role="TrG5h" value="wStmt" />
+          </node>
+          <node concept="2OqwBi" id="TG_WL013" role="2GsD0m">
+            <node concept="117lpO" id="TG_WL014" role="2Oq$k0" />
+            <node concept="3Tsc0h" id="TG_WL015" role="2OqNvi">
+              <ref role="3TtcxE" to="k8se:7kypvuIwDGE" resolve="body" />
+            </node>
+          </node>
+          <node concept="3clFbS" id="TG_WL016" role="2LFqv$">
+            <node concept="lc7rE" id="TG_WL017" role="3cqZAp">
+              <node concept="la8eA" id="TG_WL018" role="lcghm">
+                <property role="lacIc" value="    " />
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_WL019" role="3cqZAp">
+              <node concept="l9hG8" id="TG_WL020" role="lcghm">
+                <node concept="2GrUjf" id="TG_WL021" role="lb14g">
+                  <ref role="2Gs0qQ" node="TG_WL012" resolve="wStmt" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="TG_WL022" role="3cqZAp">
+              <node concept="l8MVK" id="TG_WL023" role="lcghm" />
+            </node>
           </node>
         </node>
       </node>

@@ -8,7 +8,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebSearch",
       "WebFetch(domain:mps-support.jetbrains.com)",
-      "WebFetch(domain:www.jetbrains.com)"
+      "WebFetch(domain:www.jetbrains.com)",
+      "Bash(wc:*)",
+      "Bash(python3:*)"
     ]
   }
 }
