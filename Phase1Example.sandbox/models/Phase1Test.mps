@@ -8,41 +8,39 @@
   <imports />
   <registry>
     <language id="a452e1cf-6f8c-4bca-8447-fd4d6e4d0003" name="SemAnno">
-      <concept id="8440420766104857128" name="SemAnno.structure.Module" flags="ng" index="Module_1">
-        <child id="8982541288447632590" name="variables" index="Module_v" />
-        <child id="8982541288447632589" name="functions" index="Module_f" />
+      <concept id="8982541288447632700" name="SemAnno.structure.Variable" flags="ng" index="2EAK29">
+        <child id="8982541288447632702" name="type" index="2EAK2b" />
       </concept>
-      <concept id="8440420766104857192" name="SemAnno.structure.Function" flags="ng" index="Func_1">
-        <child id="8982541288447632623" name="parameters" index="Func_p" />
-        <child id="8982541288447632622" name="body" index="Func_b" />
-        <reference id="8982541288447632621" name="returnType" index="Func_rt" />
+      <concept id="8982541288447632652" name="SemAnno.structure.VariableReference" flags="ng" index="2EAK2T">
+        <property id="8982541288447632653" name="variableName" index="2EAK2S" />
       </concept>
-      <concept id="8440420766104857256" name="SemAnno.structure.Parameter" flags="ng" index="Param_1">
-        <reference id="8982541288447632653" name="type" index="Param_t" />
+      <concept id="8982541288447632557" name="SemAnno.structure.BinaryOperation" flags="ng" index="2EAK4o">
+        <property id="8982541288447632558" name="operator" index="2EAK4r" />
+        <child id="8982541288447632560" name="right" index="2EAK45" />
+        <child id="8982541288447632559" name="left" index="2EAK4q" />
       </concept>
-      <concept id="8982541288447632700" name="SemAnno.structure.Variable" flags="ng" index="Var_1" />
-      <concept id="8982541288447632333" name="SemAnno.structure.Block" flags="ng" index="Block_1">
-        <child id="8982541288447632334" name="statements" index="Block_s" />
+      <concept id="8982541288447632492" name="SemAnno.structure.Return" flags="ng" index="2EAK7p">
+        <child id="8982541288447632493" name="value" index="2EAK7o" />
       </concept>
-      <concept id="8440420766104853160" name="SemAnno.structure.Assignment" flags="ng" index="Assign_1">
-        <reference id="8982541288447632365" name="target" index="Assign_t" />
-        <reference id="8982541288447632366" name="value" index="Assign_v" />
+      <concept id="8440420766104844840" name="SemAnno.structure.PrimitiveType" flags="ng" index="3rC1Zv">
+        <property id="8982541288447632334" name="kind" index="2EAKpV" />
       </concept>
-      <concept id="8982541288447632557" name="SemAnno.structure.BinaryOperation" flags="ng" index="BinOp_1">
-        <reference id="8982541288447632559" name="left" index="BinOp_l" />
-        <reference id="8982541288447632560" name="right" index="BinOp_r" />
+      <concept id="8440420766104857256" name="SemAnno.structure.Parameter" flags="ng" index="3rCcXv">
+        <child id="8982541288447632653" name="type" index="2EAK2S" />
       </concept>
-      <concept id="8982541288447632652" name="SemAnno.structure.VariableReference" flags="ng" index="VarRef_1">
-        <property id="8982541288447632653" name="variableName" index="VarRef_n" />
+      <concept id="8440420766104857192" name="SemAnno.structure.Function" flags="ng" index="3rCcYv">
+        <child id="8982541288447632621" name="returnType" index="2EAK5o" />
+        <child id="8982541288447632623" name="parameters" index="2EAK5q" />
+        <child id="8982541288447632622" name="body" index="2EAK5r" />
       </concept>
-      <concept id="8982541288447632492" name="SemAnno.structure.Return" flags="ng" index="Return_1">
-        <reference id="8982541288447632493" name="value" index="Return_v" />
+      <concept id="8440420766104857128" name="SemAnno.structure.Module" flags="ng" index="3rCcZv">
+        <property id="8982541288447632592" name="targetLanguage" index="2EAK5_" />
+        <child id="8982541288447632589" name="functions" index="2EAK5S" />
+        <child id="8982541288447632590" name="variables" index="2EAK5V" />
       </concept>
-      <concept id="8440420766104844840" name="SemAnno.structure.PrimitiveType" flags="ng" index="PrimT_1">
-        <property id="8982541288447632334" name="kind" index="PrimT_k" />
-      </concept>
-      <concept id="8440420766104853480" name="SemAnno.structure.ExpressionStatement" flags="ng" index="ExprStmt_1">
-        <reference id="8982541288447632525" name="expression" index="ExprStmt_e" />
+      <concept id="8440420766104853160" name="SemAnno.structure.Assignment" flags="ng" index="3rCfXv">
+        <child id="8982541288447632365" name="target" index="2EAKpo" />
+        <child id="8982541288447632366" name="value" index="2EAKpr" />
       </concept>
     </language>
     <language id="ceab5195-25ea-4f22-9b92-103b95ca8c0c" name="jetbrains.mps.lang.core">
@@ -51,105 +49,84 @@
       </concept>
     </language>
   </registry>
-
-  <!-- Shared Type nodes (referenced by parameters and functions) -->
-  <node concept="PrimT_1" id="Type_Int">
-    <property role="PrimT_k" value="int" />
-  </node>
-
-  <!-- Calculator Module -->
-  <node concept="Module_1" id="Calc_M001">
+  <node concept="3rCcZv" id="Calc_M001">
     <property role="TrG5h" value="Calculator" />
-
-    <!-- Variable: PI -->
-    <node concept="Var_1" id="Calc_V001" role="Module_v">
+    <property role="2EAK5_" value="c" />
+    <node concept="2EAK29" id="Calc_V001" role="2EAK5V">
       <property role="TrG5h" value="PI" />
+      <node concept="3rC1Zv" id="Calc_VT001" role="2EAK2b">
+        <property role="2EAKpV" value="float" />
+      </node>
     </node>
-
-    <!-- Function: add(x, y) -->
-    <node concept="Func_1" id="Calc_F001" role="Module_f">
+    <node concept="3rCcYv" id="Calc_F001" role="2EAK5S">
       <property role="TrG5h" value="add" />
-      <ref role="Func_rt" node="Type_Int" />
-
-      <!-- Parameter x -->
-      <node concept="Param_1" id="Calc_P001" role="Func_p">
+      <node concept="3rC1Zv" id="Calc_RT001" role="2EAK5o">
+        <property role="2EAKpV" value="int" />
+      </node>
+      <node concept="3rCcXv" id="Calc_P001" role="2EAK5q">
         <property role="TrG5h" value="x" />
-        <ref role="Param_t" node="Type_Int" />
+        <node concept="3rC1Zv" id="Calc_PT001" role="2EAK2S">
+          <property role="2EAKpV" value="int" />
+        </node>
       </node>
-
-      <!-- Parameter y -->
-      <node concept="Param_1" id="Calc_P002" role="Func_p">
+      <node concept="3rCcXv" id="Calc_P002" role="2EAK5q">
         <property role="TrG5h" value="y" />
-        <ref role="Param_t" node="Type_Int" />
-      </node>
-
-      <!-- Body -->
-      <node concept="Block_1" id="Calc_B001" role="Func_b">
-        <!-- result = x + y -->
-        <node concept="Assign_1" id="Calc_A001" role="Block_s">
-          <ref role="Assign_t" node="Calc_VR_result" />
-          <ref role="Assign_v" node="Calc_E001" />
-        </node>
-        <!-- return result -->
-        <node concept="Return_1" id="Calc_R001" role="Block_s">
-          <ref role="Return_v" node="Calc_VR_return" />
+        <node concept="3rC1Zv" id="Calc_PT002" role="2EAK2S">
+          <property role="2EAKpV" value="int" />
         </node>
       </node>
-
-      <!-- Expression nodes for add function -->
-      <node concept="VarRef_1" id="Calc_VR_result">
-        <property role="VarRef_n" value="result" />
+      <node concept="3rCfXv" id="Calc_A001" role="2EAK5r">
+        <property role="TrG5h" value="result" />
+        <node concept="2EAK2T" id="c_VR_result" role="2EAKpo">
+          <property role="2EAK2S" value="result" />
+        </node>
+        <node concept="2EAK4o" id="Calc_E001" role="2EAKpr">
+          <property role="TrG5h" value="+" />
+          <property role="2EAK4r" value="+" />
+          <node concept="2EAK2T" id="Calc_VR_x" role="2EAK4q">
+            <property role="2EAK2S" value="x" />
+          </node>
+          <node concept="2EAK2T" id="Calc_VR_y" role="2EAK45">
+            <property role="2EAK2S" value="y" />
+          </node>
+        </node>
       </node>
-      <node concept="BinOp_1" id="Calc_E001">
-        <ref role="BinOp_l" node="Calc_VR_x" />
-        <ref role="BinOp_r" node="Calc_VR_y" />
-      </node>
-      <node concept="VarRef_1" id="Calc_VR_x">
-        <property role="VarRef_n" value="x" />
-      </node>
-      <node concept="VarRef_1" id="Calc_VR_y">
-        <property role="VarRef_n" value="y" />
-      </node>
-      <node concept="VarRef_1" id="Calc_VR_return">
-        <property role="VarRef_n" value="result" />
+      <node concept="2EAK7p" id="Calc_R001" role="2EAK5r">
+        <node concept="2EAK2T" id="c_VR_return" role="2EAK7o">
+          <property role="2EAK2S" value="result" />
+        </node>
       </node>
     </node>
-
-    <!-- Function: multiply(a, b) -->
-    <node concept="Func_1" id="Calc_F002" role="Module_f">
+    <node concept="3rCcYv" id="Calc_F002" role="2EAK5S">
       <property role="TrG5h" value="multiply" />
-      <ref role="Func_rt" node="Type_Int" />
-
-      <!-- Parameter a -->
-      <node concept="Param_1" id="Calc_P003" role="Func_p">
+      <node concept="3rC1Zv" id="Calc_RT002" role="2EAK5o">
+        <property role="2EAKpV" value="int" />
+      </node>
+      <node concept="3rCcXv" id="Calc_P003" role="2EAK5q">
         <property role="TrG5h" value="a" />
-        <ref role="Param_t" node="Type_Int" />
-      </node>
-
-      <!-- Parameter b -->
-      <node concept="Param_1" id="Calc_P004" role="Func_p">
-        <property role="TrG5h" value="b" />
-        <ref role="Param_t" node="Type_Int" />
-      </node>
-
-      <!-- Body with ExpressionStatement wrapping BinaryOperation -->
-      <node concept="Block_1" id="Calc_B002" role="Func_b">
-        <node concept="ExprStmt_1" id="Calc_ES001" role="Block_s">
-          <ref role="ExprStmt_e" node="Calc_E005" />
+        <node concept="3rC1Zv" id="Calc_PT003" role="2EAK2S">
+          <property role="2EAKpV" value="int" />
         </node>
       </node>
-
-      <!-- Expression nodes for multiply function -->
-      <node concept="BinOp_1" id="Calc_E005">
-        <ref role="BinOp_l" node="Calc_VR_a" />
-        <ref role="BinOp_r" node="Calc_VR_b" />
+      <node concept="3rCcXv" id="Calc_P004" role="2EAK5q">
+        <property role="TrG5h" value="b" />
+        <node concept="3rC1Zv" id="Calc_PT004" role="2EAK2S">
+          <property role="2EAKpV" value="int" />
+        </node>
       </node>
-      <node concept="VarRef_1" id="Calc_VR_a">
-        <property role="VarRef_n" value="a" />
-      </node>
-      <node concept="VarRef_1" id="Calc_VR_b">
-        <property role="VarRef_n" value="b" />
+      <node concept="2EAK7p" id="Calc_R002" role="2EAK5r">
+        <node concept="2EAK4o" id="Calc_E005" role="2EAK7o">
+          <property role="TrG5h" value="*" />
+          <property role="2EAK4r" value="*" />
+          <node concept="2EAK2T" id="Calc_VR_a" role="2EAK4q">
+            <property role="2EAK2S" value="a" />
+          </node>
+          <node concept="2EAK2T" id="Calc_VR_b" role="2EAK45">
+            <property role="2EAK2S" value="b" />
+          </node>
+        </node>
       </node>
     </node>
   </node>
 </model>
+

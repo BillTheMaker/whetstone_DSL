@@ -123,21 +123,41 @@
       <property role="3F0ifm" value="{content}" />
     </node>
   </node>
-
-  <!-- Phase 1: Core AST Structure Editors (31 concepts) -->
-
-  <!-- Module Editor: module [name] with functions/variables -->
   <node concept="24kQdi" id="Ed_10001">
     <ref role="1XX52x" to="k8se:7kypvuIwECC" resolve="Module" />
     <node concept="3EZMnI" id="Ed_10002" role="2wV5jI">
-      <node concept="2iRfu4" id="Ed_10003" role="2iSdaV" />
-      <node concept="3F0ifn" id="Ed_10004" role="3EZMnx">
-        <property role="3F0ifm" value="Module: " />
+      <node concept="2iRkQZ" id="Ed_10002b" role="2iSdaV" />
+      <node concept="3EZMnI" id="Ed_10002c" role="3EZMnx">
+        <node concept="2iRfu4" id="Ed_10002d" role="2iSdaV" />
+        <node concept="3F0ifn" id="Ed_10004" role="3EZMnx">
+          <property role="3F0ifm" value="Module: " />
+        </node>
+        <node concept="3F0A7n" id="Ed_10004b" role="3EZMnx">
+          <ref role="1NtTu8" to="tpck:h0TrG11" resolve="name" />
+        </node>
+      </node>
+      <node concept="3EZMnI" id="Ed_10004c" role="3EZMnx">
+        <node concept="2iRfu4" id="Ed_10004d" role="2iSdaV" />
+        <node concept="3F0ifn" id="Ed_10004e" role="3EZMnx">
+          <property role="3F0ifm" value="Target: " />
+        </node>
+        <node concept="3F0A7n" id="Ed_10004f" role="3EZMnx">
+          <ref role="1NtTu8" to="k8se:7kypvuIwECI" resolve="targetLanguage" />
+        </node>
+        <node concept="3F0ifn" id="Ed_10004g" role="3EZMnx">
+          <property role="3F0ifm" value="(python | cpp | empty=both)" />
+        </node>
+      </node>
+      <node concept="3F2HdR" id="Ed_10004h" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:7kypvuIwECG" resolve="variables" />
+        <node concept="2iRkQZ" id="Ed_10004i" role="2czzBx" />
+      </node>
+      <node concept="3F2HdR" id="Ed_10004j" role="3EZMnx">
+        <ref role="1NtTu8" to="k8se:7kypvuIwECF" resolve="functions" />
+        <node concept="2iRkQZ" id="Ed_10004k" role="2czzBx" />
       </node>
     </node>
   </node>
-
-  <!-- Function Editor: def [name]([params]) -> [type]: -->
   <node concept="24kQdi" id="Ed_10005">
     <ref role="1XX52x" to="k8se:7kypvuIwEDC" resolve="Function" />
     <node concept="3EZMnI" id="Ed_10006" role="2wV5jI">
@@ -147,8 +167,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Parameter Editor: [name]: [type] -->
   <node concept="24kQdi" id="Ed_10009">
     <ref role="1XX52x" to="k8se:7kypvuIwEEC" resolve="Parameter" />
     <node concept="3EZMnI" id="Ed_10010" role="2wV5jI">
@@ -158,8 +176,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Variable Editor: [name]: [type] -->
   <node concept="24kQdi" id="Ed_10013">
     <ref role="1XX52x" to="k8se:7kypvuIwEFC" resolve="Variable" />
     <node concept="3EZMnI" id="Ed_10014" role="2wV5jI">
@@ -169,8 +185,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Block Editor: statements list -->
   <node concept="24kQdi" id="Ed_10017">
     <ref role="1XX52x" to="k8se:7kypvuIwDDD" resolve="Block" />
     <node concept="3EZMnI" id="Ed_10018" role="2wV5jI">
@@ -180,8 +194,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Assignment Editor: [target] = [value] -->
   <node concept="24kQdi" id="Ed_10021">
     <ref role="1XX52x" to="k8se:7kypvuIwDEC" resolve="Assignment" />
     <node concept="3EZMnI" id="Ed_10022" role="2wV5jI">
@@ -191,8 +203,6 @@
       </node>
     </node>
   </node>
-
-  <!-- IfStatement Editor: if [condition]: [then] else: [else] -->
   <node concept="24kQdi" id="Ed_10025">
     <ref role="1XX52x" to="k8se:7kypvuIwDFC" resolve="IfStatement" />
     <node concept="3EZMnI" id="Ed_10026" role="2wV5jI">
@@ -202,8 +212,6 @@
       </node>
     </node>
   </node>
-
-  <!-- WhileLoop Editor: while [condition]: [body] -->
   <node concept="24kQdi" id="Ed_10029">
     <ref role="1XX52x" to="k8se:7kypvuIwDGC" resolve="WhileLoop" />
     <node concept="3EZMnI" id="Ed_10030" role="2wV5jI">
@@ -213,8 +221,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ForLoop Editor: for [iterator] in [iterable]: [body] -->
   <node concept="24kQdi" id="Ed_10033">
     <ref role="1XX52x" to="k8se:7kypvuIwDHC" resolve="ForLoop" />
     <node concept="3EZMnI" id="Ed_10034" role="2wV5jI">
@@ -224,8 +230,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Return Editor: return [value] -->
   <node concept="24kQdi" id="Ed_10037">
     <ref role="1XX52x" to="k8se:7kypvuIwDIC" resolve="Return" />
     <node concept="3EZMnI" id="Ed_10038" role="2wV5jI">
@@ -235,8 +239,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ExpressionStatement Editor: [expression] -->
   <node concept="24kQdi" id="Ed_10041">
     <ref role="1XX52x" to="k8se:7kypvuIwDJC" resolve="ExpressionStatement" />
     <node concept="3EZMnI" id="Ed_10042" role="2wV5jI">
@@ -246,8 +248,6 @@
       </node>
     </node>
   </node>
-
-  <!-- BinaryOperation Editor: [left] [op] [right] -->
   <node concept="24kQdi" id="Ed_10045">
     <ref role="1XX52x" to="k8se:4ypvuIwCIC2" resolve="BinaryOperation" />
     <node concept="3EZMnI" id="Ed_10046" role="2wV5jI">
@@ -257,8 +257,6 @@
       </node>
     </node>
   </node>
-
-  <!-- UnaryOperation Editor: [op][operand] -->
   <node concept="24kQdi" id="Ed_10049">
     <ref role="1XX52x" to="k8se:7kypvuIwCJC" resolve="UnaryOperation" />
     <node concept="3EZMnI" id="Ed_10050" role="2wV5jI">
@@ -268,8 +266,6 @@
       </node>
     </node>
   </node>
-
-  <!-- FunctionCall Editor: [name]([args]) -->
   <node concept="24kQdi" id="Ed_10053">
     <ref role="1XX52x" to="k8se:7kypvuIwCLC" resolve="FunctionCall" />
     <node concept="3EZMnI" id="Ed_10054" role="2wV5jI">
@@ -279,8 +275,6 @@
       </node>
     </node>
   </node>
-
-  <!-- VariableReference Editor: [name] -->
   <node concept="24kQdi" id="Ed_10057">
     <ref role="1XX52x" to="k8se:7kypvuIwCKC" resolve="VariableReference" />
     <node concept="3EZMnI" id="Ed_10058" role="2wV5jI">
@@ -290,8 +284,6 @@
       </node>
     </node>
   </node>
-
-  <!-- IntegerLiteral Editor: [value] -->
   <node concept="24kQdi" id="Ed_10061">
     <ref role="1XX52x" to="k8se:7kypvuIwCDC" resolve="IntegerLiteral" />
     <node concept="3EZMnI" id="Ed_10062" role="2wV5jI">
@@ -301,8 +293,6 @@
       </node>
     </node>
   </node>
-
-  <!-- FloatLiteral Editor: [value] -->
   <node concept="24kQdi" id="Ed_10065">
     <ref role="1XX52x" to="k8se:7kypvuIwCEC" resolve="FloatLiteral" />
     <node concept="3EZMnI" id="Ed_10066" role="2wV5jI">
@@ -312,8 +302,6 @@
       </node>
     </node>
   </node>
-
-  <!-- StringLiteral Editor: "[value]" -->
   <node concept="24kQdi" id="Ed_10069">
     <ref role="1XX52x" to="k8se:7kypvuIwCFC" resolve="StringLiteral" />
     <node concept="3EZMnI" id="Ed_10070" role="2wV5jI">
@@ -323,8 +311,6 @@
       </node>
     </node>
   </node>
-
-  <!-- BooleanLiteral Editor: [value] -->
   <node concept="24kQdi" id="Ed_10073">
     <ref role="1XX52x" to="k8se:7kypvuIwCGC" resolve="BooleanLiteral" />
     <node concept="3EZMnI" id="Ed_10074" role="2wV5jI">
@@ -334,8 +320,6 @@
       </node>
     </node>
   </node>
-
-  <!-- NullLiteral Editor: null -->
   <node concept="24kQdi" id="Ed_10077">
     <ref role="1XX52x" to="k8se:7kypvuIwCHC" resolve="NullLiteral" />
     <node concept="3EZMnI" id="Ed_10078" role="2wV5jI">
@@ -345,8 +329,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ListLiteral Editor: [elements] -->
   <node concept="24kQdi" id="Ed_10081">
     <ref role="1XX52x" to="k8se:7kypvuIwCMC" resolve="ListLiteral" />
     <node concept="3EZMnI" id="Ed_10082" role="2wV5jI">
@@ -356,8 +338,6 @@
       </node>
     </node>
   </node>
-
-  <!-- IndexAccess Editor: [target][[index]] -->
   <node concept="24kQdi" id="Ed_10085">
     <ref role="1XX52x" to="k8se:7kypvuIwCNC" resolve="IndexAccess" />
     <node concept="3EZMnI" id="Ed_10086" role="2wV5jI">
@@ -367,8 +347,6 @@
       </node>
     </node>
   </node>
-
-  <!-- MemberAccess Editor: [target].[member] -->
   <node concept="24kQdi" id="Ed_10089">
     <ref role="1XX52x" to="k8se:7kypvuIwCOC" resolve="MemberAccess" />
     <node concept="3EZMnI" id="Ed_10090" role="2wV5jI">
@@ -378,8 +356,6 @@
       </node>
     </node>
   </node>
-
-  <!-- PrimitiveType Editor: [kind] -->
   <node concept="24kQdi" id="Ed_10093">
     <ref role="1XX52x" to="k8se:7kypvuIwBCC" resolve="PrimitiveType" />
     <node concept="3EZMnI" id="Ed_10094" role="2wV5jI">
@@ -389,8 +365,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ListType Editor: list[[elementType]] -->
   <node concept="24kQdi" id="Ed_10097">
     <ref role="1XX52x" to="k8se:7kypvuIwBDC" resolve="ListType" />
     <node concept="3EZMnI" id="Ed_10098" role="2wV5jI">
@@ -400,8 +374,6 @@
       </node>
     </node>
   </node>
-
-  <!-- SetType Editor: set[[elementType]] -->
   <node concept="24kQdi" id="Ed_10101">
     <ref role="1XX52x" to="k8se:7kypvuIwBGC" resolve="SetType" />
     <node concept="3EZMnI" id="Ed_10102" role="2wV5jI">
@@ -411,8 +383,6 @@
       </node>
     </node>
   </node>
-
-  <!-- MapType Editor: map[[keyType], [valueType]] -->
   <node concept="24kQdi" id="Ed_10105">
     <ref role="1XX52x" to="k8se:7kypvuIwBEC" resolve="MapType" />
     <node concept="3EZMnI" id="Ed_10106" role="2wV5jI">
@@ -422,8 +392,6 @@
       </node>
     </node>
   </node>
-
-  <!-- TupleType Editor: tuple[[elementTypes]] -->
   <node concept="24kQdi" id="Ed_10109">
     <ref role="1XX52x" to="k8se:7kypvuIwBHC" resolve="TupleType" />
     <node concept="3EZMnI" id="Ed_10110" role="2wV5jI">
@@ -433,8 +401,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ArrayType Editor: [elementType][[size]] -->
   <node concept="24kQdi" id="Ed_10113">
     <ref role="1XX52x" to="k8se:7kypvuIwBIC" resolve="ArrayType" />
     <node concept="3EZMnI" id="Ed_10114" role="2wV5jI">
@@ -444,8 +410,6 @@
       </node>
     </node>
   </node>
-
-  <!-- OptionalType Editor: optional[[innerType]] -->
   <node concept="24kQdi" id="Ed_10117">
     <ref role="1XX52x" to="k8se:7kypvuIwBFC" resolve="OptionalType" />
     <node concept="3EZMnI" id="Ed_10118" role="2wV5jI">
@@ -455,8 +419,6 @@
       </node>
     </node>
   </node>
-
-  <!-- CustomType Editor: [typeName] -->
   <node concept="24kQdi" id="Ed_10121">
     <ref role="1XX52x" to="k8se:7kypvuIwBJC" resolve="CustomType" />
     <node concept="3EZMnI" id="Ed_10122" role="2wV5jI">

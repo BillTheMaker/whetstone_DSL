@@ -34,9 +34,18 @@
         <child id="1068580123156" name="expression" index="3clFbG" />
       </concept>
       <concept id="1068580123157" name="jetbrains.mps.baseLanguage.structure.Statement" flags="nn" index="3clFbH" />
+      <concept id="1068580123159" name="jetbrains.mps.baseLanguage.structure.IfStatement" flags="nn" index="3clFbJ">
+        <child id="1068580123160" name="condition" index="3clFbw" />
+        <child id="1068580123161" name="ifTrue" index="3clFbx" />
+      </concept>
       <concept id="1068580123136" name="jetbrains.mps.baseLanguage.structure.StatementList" flags="sn" stub="5293379017992965193" index="3clFbS">
         <child id="1068581517665" name="statement" index="3cqZAp" />
       </concept>
+      <concept id="1081773326031" name="jetbrains.mps.baseLanguage.structure.BinaryOperation" flags="nn" index="3uHJSO">
+        <child id="1081773367579" name="rightExpression" index="3uHU7w" />
+        <child id="1081773367580" name="leftExpression" index="3uHU7B" />
+      </concept>
+      <concept id="1073239437375" name="jetbrains.mps.baseLanguage.structure.NotEqualsExpression" flags="nn" index="3y3z36" />
     </language>
     <language id="b83431fe-5c8f-40bc-8a36-65e25f4dd253" name="jetbrains.mps.lang.textGen">
       <concept id="8931911391946696733" name="jetbrains.mps.lang.textGen.structure.ExtensionDeclaration" flags="in" index="9MYSb" />
@@ -61,6 +70,9 @@
     <language id="7866978e-a0f0-4cc7-81bc-4d213d9375e1" name="jetbrains.mps.lang.smodel">
       <concept id="1138056022639" name="jetbrains.mps.lang.smodel.structure.SPropertyAccess" flags="nn" index="3TrcHB">
         <reference id="1138056395725" name="property" index="3TsBF5" />
+      </concept>
+      <concept id="1138056143562" name="jetbrains.mps.lang.smodel.structure.SLinkAccess" flags="nn" index="3TrEf2">
+        <reference id="1138056516764" name="link" index="3Tt5mk" />
       </concept>
       <concept id="1138056282393" name="jetbrains.mps.lang.smodel.structure.SLinkListAccess" flags="nn" index="3Tsc0h">
         <reference id="1138056546658" name="link" index="3TtcxE" />
@@ -237,24 +249,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Phase 1: Core AST Structure Textgen Definitions (38 concepts) -->
-
-  <!-- Annotation Textgen -->
-  <node concept="WtQ9Q" id="TG_20001">
-    <ref role="WuzLi" to="k8se:7kypvuIwFCC" resolve="Annotation" />
-    <node concept="11bSqf" id="TG_20002" role="11c4hB">
-      <node concept="3clFbS" id="TG_20003" role="2VODD2">
-        <node concept="lc7rE" id="TG_20004" role="3cqZAp">
-          <node concept="l9hG8" id="TG_20005" role="lcghm">
-            <node concept="117lpO" id="TG_20006" role="lb14g" />
-          </node>
-        </node>
-      </node>
-    </node>
-  </node>
-
-  <!-- ArrayType Textgen -->
   <node concept="WtQ9Q" id="TG_20007">
     <ref role="WuzLi" to="k8se:7kypvuIwBIC" resolve="ArrayType" />
     <node concept="11bSqf" id="TG_20008" role="11c4hB">
@@ -267,13 +261,10 @@
       </node>
     </node>
   </node>
-
-  <!-- Assignment Textgen - simplified to just output name = ... -->
   <node concept="WtQ9Q" id="TG_20012">
     <ref role="WuzLi" to="k8se:7kypvuIwDEC" resolve="Assignment" />
     <node concept="11bSqf" id="TG_20013" role="11c4hB">
       <node concept="3clFbS" id="TG_20014" role="2VODD2">
-        <!-- Output name -->
         <node concept="lc7rE" id="FTG_A001" role="3cqZAp">
           <node concept="l9hG8" id="FTG_A002" role="lcghm">
             <node concept="2OqwBi" id="FTG_A003" role="lb14g">
@@ -284,32 +275,43 @@
             </node>
           </node>
         </node>
-        <!-- Output " = <value>" -->
         <node concept="lc7rE" id="FTG_A006" role="3cqZAp">
           <node concept="la8eA" id="FTG_A007" role="lcghm">
-            <property role="lacIc" value=" = &lt;expr&gt;" />
+            <property role="lacIc" value=" = " />
           </node>
         </node>
-        <!-- Newline -->
-        <node concept="lc7rE" id="FTG_A013" role="3cqZAp">
-          <node concept="l8MVK" id="FTG_A014" role="lcghm" />
+        <node concept="lc7rE" id="FTG2_A001" role="3cqZAp">
+          <node concept="l9hG8" id="FTG2_A002" role="lcghm">
+            <node concept="2OqwBi" id="FTG2_A003" role="lb14g">
+              <node concept="117lpO" id="FTG2_A004" role="2Oq$k0" />
+              <node concept="3TrEf2" id="FTG2_A005" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwDEE" resolve="value" />
+              </node>
+            </node>
+          </node>
         </node>
       </node>
     </node>
   </node>
-
-  <!-- BinaryOperation Textgen - simplified to output name (operator) -->
   <node concept="WtQ9Q" id="TG_20017">
     <ref role="WuzLi" to="k8se:4ypvuIwCIC2" resolve="BinaryOperation" />
     <node concept="11bSqf" id="TG_20018" role="11c4hB">
       <node concept="3clFbS" id="TG_20019" role="2VODD2">
-        <!-- Output "<left> " -->
         <node concept="lc7rE" id="FTG_BO001" role="3cqZAp">
-          <node concept="la8eA" id="FTG_BO002" role="lcghm">
-            <property role="lacIc" value="&lt;left&gt; " />
+          <node concept="l9hG8" id="FTG_BO002" role="lcghm">
+            <node concept="2OqwBi" id="FTG2_BO001" role="lb14g">
+              <node concept="117lpO" id="FTG2_BO002" role="2Oq$k0" />
+              <node concept="3TrEf2" id="FTG2_BO003" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwCIE" resolve="left" />
+              </node>
+            </node>
           </node>
         </node>
-        <!-- Output operator name -->
+        <node concept="lc7rE" id="FTG2_BO004" role="3cqZAp">
+          <node concept="la8eA" id="FTG2_BO005" role="lcghm">
+            <property role="lacIc" value=" " />
+          </node>
+        </node>
         <node concept="lc7rE" id="FTG_BO008" role="3cqZAp">
           <node concept="l9hG8" id="FTG_BO009" role="lcghm">
             <node concept="2OqwBi" id="FTG_BO010" role="lb14g">
@@ -320,22 +322,28 @@
             </node>
           </node>
         </node>
-        <!-- Output " <right>" -->
+        <node concept="lc7rE" id="FTG2_BO006" role="3cqZAp">
+          <node concept="la8eA" id="FTG2_BO007" role="lcghm">
+            <property role="lacIc" value=" " />
+          </node>
+        </node>
         <node concept="lc7rE" id="FTG_BO013" role="3cqZAp">
-          <node concept="la8eA" id="FTG_BO014" role="lcghm">
-            <property role="lacIc" value=" &lt;right&gt;" />
+          <node concept="l9hG8" id="FTG_BO014" role="lcghm">
+            <node concept="2OqwBi" id="FTG2_BO008" role="lb14g">
+              <node concept="117lpO" id="FTG2_BO009" role="2Oq$k0" />
+              <node concept="3TrEf2" id="FTG2_BO010" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwCIF" resolve="right" />
+              </node>
+            </node>
           </node>
         </node>
       </node>
     </node>
   </node>
-
-  <!-- Block Textgen -->
   <node concept="WtQ9Q" id="TG_20022">
     <ref role="WuzLi" to="k8se:7kypvuIwDDD" resolve="Block" />
     <node concept="11bSqf" id="TG_20023" role="11c4hB">
       <node concept="3clFbS" id="TG_20024" role="2VODD2">
-        <!-- Iterate over statements -->
         <node concept="2Gpval" id="FTG_BL001" role="3cqZAp">
           <node concept="2GrKxI" id="FTG_BL002" role="2Gsz3X">
             <property role="TrG5h" value="stmt" />
@@ -347,6 +355,11 @@
             </node>
           </node>
           <node concept="3clFbS" id="FTG_BL006" role="2LFqv$">
+            <node concept="lc7rE" id="FTG2_BL001" role="3cqZAp">
+              <node concept="la8eA" id="FTG2_BL002" role="lcghm">
+                <property role="lacIc" value="    " />
+              </node>
+            </node>
             <node concept="lc7rE" id="FTG_BL007" role="3cqZAp">
               <node concept="l9hG8" id="FTG_BL008" role="lcghm">
                 <node concept="2GrUjf" id="FTG_BL009" role="lb14g">
@@ -354,13 +367,14 @@
                 </node>
               </node>
             </node>
+            <node concept="lc7rE" id="FTG_BL010" role="3cqZAp">
+              <node concept="l8MVK" id="FTG_BL011" role="lcghm" />
+            </node>
           </node>
         </node>
       </node>
     </node>
   </node>
-
-  <!-- BooleanLiteral Textgen -->
   <node concept="WtQ9Q" id="TG_20027">
     <ref role="WuzLi" to="k8se:7kypvuIwCGC" resolve="BooleanLiteral" />
     <node concept="11bSqf" id="TG_20028" role="11c4hB">
@@ -373,8 +387,6 @@
       </node>
     </node>
   </node>
-
-  <!-- CustomType Textgen -->
   <node concept="WtQ9Q" id="TG_20032">
     <ref role="WuzLi" to="k8se:7kypvuIwBJC" resolve="CustomType" />
     <node concept="11bSqf" id="TG_20033" role="11c4hB">
@@ -387,8 +399,6 @@
       </node>
     </node>
   </node>
-
-  <!-- DerefStrategy Textgen -->
   <node concept="WtQ9Q" id="TG_20037">
     <ref role="WuzLi" to="k8se:7kypvuIwFCD" resolve="DerefStrategy" />
     <node concept="11bSqf" id="TG_20038" role="11c4hB">
@@ -401,41 +411,23 @@
       </node>
     </node>
   </node>
-
-  <!-- Expression Textgen -->
-  <node concept="WtQ9Q" id="TG_20042">
-    <ref role="WuzLi" to="k8se:7kypvuIwCIC" resolve="Expression" />
-    <node concept="11bSqf" id="TG_20043" role="11c4hB">
-      <node concept="3clFbS" id="TG_20044" role="2VODD2">
-        <node concept="lc7rE" id="TG_20045" role="3cqZAp">
-          <node concept="l9hG8" id="TG_20046" role="lcghm">
-            <node concept="117lpO" id="TG_20047" role="lb14g" />
-          </node>
-        </node>
-      </node>
-    </node>
-  </node>
-
-  <!-- ExpressionStatement Textgen - simplified -->
   <node concept="WtQ9Q" id="TG_20048">
     <ref role="WuzLi" to="k8se:7kypvuIwDJC" resolve="ExpressionStatement" />
     <node concept="11bSqf" id="TG_20049" role="11c4hB">
       <node concept="3clFbS" id="TG_20050" role="2VODD2">
-        <!-- Output placeholder -->
         <node concept="lc7rE" id="FTG_ES001" role="3cqZAp">
-          <node concept="la8eA" id="FTG_ES002" role="lcghm">
-            <property role="lacIc" value="&lt;expression&gt;" />
+          <node concept="l9hG8" id="FTG_ES002" role="lcghm">
+            <node concept="2OqwBi" id="FTG2_ES001" role="lb14g">
+              <node concept="117lpO" id="FTG2_ES002" role="2Oq$k0" />
+              <node concept="3TrEf2" id="FTG2_ES003" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwDJD" resolve="expression" />
+              </node>
+            </node>
           </node>
-        </node>
-        <!-- Newline -->
-        <node concept="lc7rE" id="FTG_ES006" role="3cqZAp">
-          <node concept="l8MVK" id="FTG_ES007" role="lcghm" />
         </node>
       </node>
     </node>
   </node>
-
-  <!-- FloatLiteral Textgen -->
   <node concept="WtQ9Q" id="TG_20053">
     <ref role="WuzLi" to="k8se:7kypvuIwCEC" resolve="FloatLiteral" />
     <node concept="11bSqf" id="TG_20054" role="11c4hB">
@@ -448,8 +440,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ForLoop Textgen -->
   <node concept="WtQ9Q" id="TG_20058">
     <ref role="WuzLi" to="k8se:7kypvuIwDHC" resolve="ForLoop" />
     <node concept="11bSqf" id="TG_20059" role="11c4hB">
@@ -462,19 +452,15 @@
       </node>
     </node>
   </node>
-
-  <!-- Function Textgen -->
   <node concept="WtQ9Q" id="TG_20063">
     <ref role="WuzLi" to="k8se:7kypvuIwEDC" resolve="Function" />
     <node concept="11bSqf" id="TG_20064" role="11c4hB">
       <node concept="3clFbS" id="TG_20065" role="2VODD2">
-        <!-- Output "def " -->
         <node concept="lc7rE" id="FTG_F001" role="3cqZAp">
           <node concept="la8eA" id="FTG_F002" role="lcghm">
             <property role="lacIc" value="def " />
           </node>
         </node>
-        <!-- Output function name -->
         <node concept="lc7rE" id="FTG_F003" role="3cqZAp">
           <node concept="l9hG8" id="FTG_F004" role="lcghm">
             <node concept="2OqwBi" id="FTG_F005" role="lb14g">
@@ -485,13 +471,11 @@
             </node>
           </node>
         </node>
-        <!-- Output "(" -->
         <node concept="lc7rE" id="FTG_F008" role="3cqZAp">
           <node concept="la8eA" id="FTG_F009" role="lcghm">
             <property role="lacIc" value="(" />
           </node>
         </node>
-        <!-- Iterate over parameters with comma separation -->
         <node concept="2Gpval" id="FTG_F010" role="3cqZAp">
           <node concept="2GrKxI" id="FTG_F011" role="2Gsz3X">
             <property role="TrG5h" value="param" />
@@ -517,7 +501,6 @@
             </node>
           </node>
         </node>
-        <!-- Output "):" and newline -->
         <node concept="lc7rE" id="FTG_F021" role="3cqZAp">
           <node concept="la8eA" id="FTG_F022" role="lcghm">
             <property role="lacIc" value="):" />
@@ -526,7 +509,6 @@
         <node concept="lc7rE" id="FTG_F023" role="3cqZAp">
           <node concept="l8MVK" id="FTG_F024" role="lcghm" />
         </node>
-        <!-- Iterate over body statements -->
         <node concept="2Gpval" id="FTG_F025" role="3cqZAp">
           <node concept="2GrKxI" id="FTG_F026" role="2Gsz3X">
             <property role="TrG5h" value="stmt" />
@@ -550,13 +532,14 @@
                 </node>
               </node>
             </node>
+            <node concept="lc7rE" id="FTG_F036" role="3cqZAp">
+              <node concept="l8MVK" id="FTG_F037" role="lcghm" />
+            </node>
           </node>
         </node>
       </node>
     </node>
   </node>
-
-  <!-- FunctionCall Textgen -->
   <node concept="WtQ9Q" id="TG_20068">
     <ref role="WuzLi" to="k8se:7kypvuIwCLC" resolve="FunctionCall" />
     <node concept="11bSqf" id="TG_20069" role="11c4hB">
@@ -569,8 +552,6 @@
       </node>
     </node>
   </node>
-
-  <!-- IfStatement Textgen -->
   <node concept="WtQ9Q" id="TG_20073">
     <ref role="WuzLi" to="k8se:7kypvuIwDFC" resolve="IfStatement" />
     <node concept="11bSqf" id="TG_20074" role="11c4hB">
@@ -583,8 +564,6 @@
       </node>
     </node>
   </node>
-
-  <!-- IndexAccess Textgen -->
   <node concept="WtQ9Q" id="TG_20078">
     <ref role="WuzLi" to="k8se:7kypvuIwCNC" resolve="IndexAccess" />
     <node concept="11bSqf" id="TG_20079" role="11c4hB">
@@ -597,13 +576,10 @@
       </node>
     </node>
   </node>
-
-  <!-- IntegerLiteral Textgen - simplified (int to string requires conversion) -->
   <node concept="WtQ9Q" id="TG_20083">
     <ref role="WuzLi" to="k8se:7kypvuIwCDC" resolve="IntegerLiteral" />
     <node concept="11bSqf" id="TG_20084" role="11c4hB">
       <node concept="3clFbS" id="TG_20085" role="2VODD2">
-        <!-- Output placeholder for int value -->
         <node concept="lc7rE" id="FTG_IL001" role="3cqZAp">
           <node concept="la8eA" id="FTG_IL002" role="lcghm">
             <property role="lacIc" value="&lt;int&gt;" />
@@ -612,8 +588,6 @@
       </node>
     </node>
   </node>
-
-  <!-- LangSpecific Textgen -->
   <node concept="WtQ9Q" id="TG_20088">
     <ref role="WuzLi" to="k8se:7kypvuIwFED" resolve="LangSpecific" />
     <node concept="11bSqf" id="TG_20089" role="11c4hB">
@@ -626,8 +600,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ListLiteral Textgen -->
   <node concept="WtQ9Q" id="TG_20093">
     <ref role="WuzLi" to="k8se:7kypvuIwCMC" resolve="ListLiteral" />
     <node concept="11bSqf" id="TG_20094" role="11c4hB">
@@ -640,8 +612,6 @@
       </node>
     </node>
   </node>
-
-  <!-- ListType Textgen -->
   <node concept="WtQ9Q" id="TG_20098">
     <ref role="WuzLi" to="k8se:7kypvuIwBDC" resolve="ListType" />
     <node concept="11bSqf" id="TG_20099" role="11c4hB">
@@ -654,8 +624,6 @@
       </node>
     </node>
   </node>
-
-  <!-- MapType Textgen -->
   <node concept="WtQ9Q" id="TG_20103">
     <ref role="WuzLi" to="k8se:7kypvuIwBEC" resolve="MapType" />
     <node concept="11bSqf" id="TG_20104" role="11c4hB">
@@ -668,8 +636,6 @@
       </node>
     </node>
   </node>
-
-  <!-- MemberAccess Textgen -->
   <node concept="WtQ9Q" id="TG_20108">
     <ref role="WuzLi" to="k8se:7kypvuIwCOC" resolve="MemberAccess" />
     <node concept="11bSqf" id="TG_20109" role="11c4hB">
@@ -682,86 +648,343 @@
       </node>
     </node>
   </node>
-
-  <!-- Module Textgen -->
   <node concept="WtQ9Q" id="TG_20113">
     <ref role="WuzLi" to="k8se:7kypvuIwECC" resolve="Module" />
+    <node concept="9MYSb" id="FTG_MEXT1" role="33IsuW">
+      <node concept="3clFbS" id="FTG_MEXT2" role="2VODD2">
+        <node concept="3clFbF" id="FTG_MEXT3" role="3cqZAp">
+          <node concept="Xl_RD" id="FTG_MEXT4" role="3clFbG">
+            <property role="Xl_RC" value="txt" />
+          </node>
+        </node>
+      </node>
+    </node>
     <node concept="11bSqf" id="TG_20114" role="11c4hB">
       <node concept="3clFbS" id="TG_20115" role="2VODD2">
-        <!-- Output "# Module: " -->
-        <node concept="lc7rE" id="FTG_M001" role="3cqZAp">
-          <node concept="la8eA" id="FTG_M002" role="lcghm">
-            <property role="lacIc" value="# Module: " />
-          </node>
-        </node>
-        <!-- Output module name -->
-        <node concept="lc7rE" id="FTG_M003" role="3cqZAp">
-          <node concept="l9hG8" id="FTG_M004" role="lcghm">
-            <node concept="2OqwBi" id="FTG_M005" role="lb14g">
-              <node concept="117lpO" id="FTG_M006" role="2Oq$k0" />
-              <node concept="3TrcHB" id="FTG_M007" role="2OqNvi">
-                <ref role="3TsBF5" to="tpck:h0TrG11" resolve="name" />
+        <node concept="3clFbJ" id="IF_PY001" role="3cqZAp">
+          <node concept="3clFbS" id="IF_PY002" role="3clFbx">
+            <node concept="lc7rE" id="FTG_M001" role="3cqZAp">
+              <node concept="la8eA" id="FTG_M002" role="lcghm">
+                <property role="lacIc" value="# Module: " />
               </node>
             </node>
-          </node>
-        </node>
-        <!-- Newline -->
-        <node concept="lc7rE" id="FTG_M008" role="3cqZAp">
-          <node concept="l8MVK" id="FTG_M009" role="lcghm" />
-        </node>
-        <!-- Iterate over variables -->
-        <node concept="2Gpval" id="FTG_M010" role="3cqZAp">
-          <node concept="2GrKxI" id="FTG_M011" role="2Gsz3X">
-            <property role="TrG5h" value="var" />
-          </node>
-          <node concept="2OqwBi" id="FTG_M012" role="2GsD0m">
-            <node concept="117lpO" id="FTG_M013" role="2Oq$k0" />
-            <node concept="3Tsc0h" id="FTG_M014" role="2OqNvi">
-              <ref role="3TtcxE" to="k8se:7kypvuIwECG" resolve="variables" />
-            </node>
-          </node>
-          <node concept="3clFbS" id="FTG_M015" role="2LFqv$">
-            <node concept="lc7rE" id="FTG_M016" role="3cqZAp">
-              <node concept="l9hG8" id="FTG_M017" role="lcghm">
-                <node concept="2GrUjf" id="FTG_M018" role="lb14g">
-                  <ref role="2Gs0qQ" node="FTG_M011" resolve="var" />
+            <node concept="lc7rE" id="FTG_M003" role="3cqZAp">
+              <node concept="l9hG8" id="FTG_M004" role="lcghm">
+                <node concept="2OqwBi" id="FTG_M005" role="lb14g">
+                  <node concept="117lpO" id="FTG_M006" role="2Oq$k0" />
+                  <node concept="3TrcHB" id="FTG_M007" role="2OqNvi">
+                    <ref role="3TsBF5" to="tpck:h0TrG11" resolve="name" />
+                  </node>
                 </node>
               </node>
             </node>
-            <node concept="lc7rE" id="FTG_M019" role="3cqZAp">
-              <node concept="l8MVK" id="FTG_M020" role="lcghm" />
+            <node concept="lc7rE" id="FTG_M008" role="3cqZAp">
+              <node concept="l8MVK" id="FTG_M009" role="lcghm" />
             </node>
-          </node>
-        </node>
-        <!-- Iterate over functions -->
-        <node concept="2Gpval" id="FTG_M021" role="3cqZAp">
-          <node concept="2GrKxI" id="FTG_M022" role="2Gsz3X">
-            <property role="TrG5h" value="func" />
-          </node>
-          <node concept="2OqwBi" id="FTG_M023" role="2GsD0m">
-            <node concept="117lpO" id="FTG_M024" role="2Oq$k0" />
-            <node concept="3Tsc0h" id="FTG_M025" role="2OqNvi">
-              <ref role="3TtcxE" to="k8se:7kypvuIwECF" resolve="functions" />
-            </node>
-          </node>
-          <node concept="3clFbS" id="FTG_M026" role="2LFqv$">
-            <node concept="lc7rE" id="FTG_M027" role="3cqZAp">
-              <node concept="l9hG8" id="FTG_M028" role="lcghm">
-                <node concept="2GrUjf" id="FTG_M029" role="lb14g">
-                  <ref role="2Gs0qQ" node="FTG_M022" resolve="func" />
+            <node concept="2Gpval" id="FTG_M010" role="3cqZAp">
+              <node concept="2GrKxI" id="FTG_M011" role="2Gsz3X">
+                <property role="TrG5h" value="pvar" />
+              </node>
+              <node concept="2OqwBi" id="FTG_M012" role="2GsD0m">
+                <node concept="117lpO" id="FTG_M013" role="2Oq$k0" />
+                <node concept="3Tsc0h" id="FTG_M014" role="2OqNvi">
+                  <ref role="3TtcxE" to="k8se:7kypvuIwECG" resolve="variables" />
+                </node>
+              </node>
+              <node concept="3clFbS" id="FTG_M015" role="2LFqv$">
+                <node concept="lc7rE" id="FTG_M016" role="3cqZAp">
+                  <node concept="l9hG8" id="FTG_M017" role="lcghm">
+                    <node concept="2GrUjf" id="FTG_M018" role="lb14g">
+                      <ref role="2Gs0qQ" node="FTG_M011" resolve="pvar" />
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_M019" role="3cqZAp">
+                  <node concept="l8MVK" id="FTG_M020" role="lcghm" />
                 </node>
               </node>
             </node>
-            <node concept="lc7rE" id="FTG_M030" role="3cqZAp">
-              <node concept="l8MVK" id="FTG_M031" role="lcghm" />
+            <node concept="lc7rE" id="FTG_M040" role="3cqZAp">
+              <node concept="l8MVK" id="FTG_M041" role="lcghm" />
+            </node>
+            <node concept="2Gpval" id="FTG_M021" role="3cqZAp">
+              <node concept="2GrKxI" id="FTG_M022" role="2Gsz3X">
+                <property role="TrG5h" value="pfunc" />
+              </node>
+              <node concept="2OqwBi" id="FTG_M023" role="2GsD0m">
+                <node concept="117lpO" id="FTG_M024" role="2Oq$k0" />
+                <node concept="3Tsc0h" id="FTG_M025" role="2OqNvi">
+                  <ref role="3TtcxE" to="k8se:7kypvuIwECF" resolve="functions" />
+                </node>
+              </node>
+              <node concept="3clFbS" id="FTG_M026" role="2LFqv$">
+                <node concept="lc7rE" id="FTG_M027" role="3cqZAp">
+                  <node concept="l9hG8" id="FTG_M028" role="lcghm">
+                    <node concept="2GrUjf" id="FTG_M029" role="lb14g">
+                      <ref role="2Gs0qQ" node="FTG_M022" resolve="pfunc" />
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_M030" role="3cqZAp">
+                  <node concept="l8MVK" id="FTG_M031" role="lcghm" />
+                </node>
+              </node>
+            </node>
+          </node>
+          <node concept="3y3z36" id="6LZhwXWa02p" role="3clFbw">
+            <node concept="2OqwBi" id="IF_PY004" role="3uHU7B">
+              <node concept="117lpO" id="IF_PY005" role="2Oq$k0" />
+              <node concept="3TrcHB" id="IF_PY006" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwECI" resolve="targetLanguage" />
+              </node>
+            </node>
+            <node concept="Xl_RD" id="6LZhwXWavEO" role="3uHU7w">
+              <property role="Xl_RC" value="cpp" />
+            </node>
+          </node>
+        </node>
+        <node concept="3clFbJ" id="IF_CPP001" role="3cqZAp">
+          <node concept="3clFbS" id="IF_CPP002" role="3clFbx">
+            <node concept="lc7rE" id="FTG_C000" role="3cqZAp">
+              <node concept="l8MVK" id="FTG_C000b" role="lcghm" />
+            </node>
+            <node concept="lc7rE" id="FTG_C001" role="3cqZAp">
+              <node concept="la8eA" id="FTG_C002" role="lcghm">
+                <property role="lacIc" value="// Module: " />
+              </node>
+            </node>
+            <node concept="lc7rE" id="FTG_C003" role="3cqZAp">
+              <node concept="l9hG8" id="FTG_C004" role="lcghm">
+                <node concept="2OqwBi" id="FTG_C005" role="lb14g">
+                  <node concept="117lpO" id="FTG_C006" role="2Oq$k0" />
+                  <node concept="3TrcHB" id="FTG_C007" role="2OqNvi">
+                    <ref role="3TsBF5" to="tpck:h0TrG11" resolve="name" />
+                  </node>
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="FTG_C008" role="3cqZAp">
+              <node concept="l8MVK" id="FTG_C009" role="lcghm" />
+            </node>
+            <node concept="2Gpval" id="FTG_C010" role="3cqZAp">
+              <node concept="2GrKxI" id="FTG_C011" role="2Gsz3X">
+                <property role="TrG5h" value="cvar" />
+              </node>
+              <node concept="2OqwBi" id="FTG_C012" role="2GsD0m">
+                <node concept="117lpO" id="FTG_C013" role="2Oq$k0" />
+                <node concept="3Tsc0h" id="FTG_C014" role="2OqNvi">
+                  <ref role="3TtcxE" to="k8se:7kypvuIwECG" resolve="variables" />
+                </node>
+              </node>
+              <node concept="3clFbS" id="FTG_C015" role="2LFqv$">
+                <node concept="lc7rE" id="FTG_C016" role="3cqZAp">
+                  <node concept="l9hG8" id="FTG_C017" role="lcghm">
+                    <node concept="2OqwBi" id="FTG_C018" role="lb14g">
+                      <node concept="2GrUjf" id="FTG_C019" role="2Oq$k0">
+                        <ref role="2Gs0qQ" node="FTG_C011" resolve="cvar" />
+                      </node>
+                      <node concept="3TrEf2" id="FTG_C020" role="2OqNvi">
+                        <ref role="3Tt5mk" to="k8se:7kypvuIwEFF" resolve="type" />
+                      </node>
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C021" role="3cqZAp">
+                  <node concept="la8eA" id="FTG_C022" role="lcghm">
+                    <property role="lacIc" value=" " />
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C023" role="3cqZAp">
+                  <node concept="l9hG8" id="FTG_C024" role="lcghm">
+                    <node concept="2OqwBi" id="FTG_C025" role="lb14g">
+                      <node concept="2GrUjf" id="FTG_C026" role="2Oq$k0">
+                        <ref role="2Gs0qQ" node="FTG_C011" resolve="cvar" />
+                      </node>
+                      <node concept="3TrcHB" id="FTG_C027" role="2OqNvi">
+                        <ref role="3TsBF5" to="tpck:h0TrG11" resolve="name" />
+                      </node>
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C028" role="3cqZAp">
+                  <node concept="la8eA" id="FTG_C029" role="lcghm">
+                    <property role="lacIc" value=";" />
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C030" role="3cqZAp">
+                  <node concept="l8MVK" id="FTG_C031" role="lcghm" />
+                </node>
+              </node>
+            </node>
+            <node concept="lc7rE" id="FTG_C040" role="3cqZAp">
+              <node concept="l8MVK" id="FTG_C041" role="lcghm" />
+            </node>
+            <node concept="2Gpval" id="FTG_C050" role="3cqZAp">
+              <node concept="2GrKxI" id="FTG_C051" role="2Gsz3X">
+                <property role="TrG5h" value="cfunc" />
+              </node>
+              <node concept="2OqwBi" id="FTG_C052" role="2GsD0m">
+                <node concept="117lpO" id="FTG_C053" role="2Oq$k0" />
+                <node concept="3Tsc0h" id="FTG_C054" role="2OqNvi">
+                  <ref role="3TtcxE" to="k8se:7kypvuIwECF" resolve="functions" />
+                </node>
+              </node>
+              <node concept="3clFbS" id="FTG_C055" role="2LFqv$">
+                <node concept="lc7rE" id="FTG_C056" role="3cqZAp">
+                  <node concept="l9hG8" id="FTG_C057" role="lcghm">
+                    <node concept="2OqwBi" id="FTG_C058" role="lb14g">
+                      <node concept="2GrUjf" id="FTG_C059" role="2Oq$k0">
+                        <ref role="2Gs0qQ" node="FTG_C051" resolve="cfunc" />
+                      </node>
+                      <node concept="3TrEf2" id="FTG_C060" role="2OqNvi">
+                        <ref role="3Tt5mk" to="k8se:7kypvuIwEDG" resolve="returnType" />
+                      </node>
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C061" role="3cqZAp">
+                  <node concept="la8eA" id="FTG_C062" role="lcghm">
+                    <property role="lacIc" value=" " />
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C063" role="3cqZAp">
+                  <node concept="l9hG8" id="FTG_C064" role="lcghm">
+                    <node concept="2OqwBi" id="FTG_C065" role="lb14g">
+                      <node concept="2GrUjf" id="FTG_C066" role="2Oq$k0">
+                        <ref role="2Gs0qQ" node="FTG_C051" resolve="cfunc" />
+                      </node>
+                      <node concept="3TrcHB" id="FTG_C067" role="2OqNvi">
+                        <ref role="3TsBF5" to="tpck:h0TrG11" resolve="name" />
+                      </node>
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C068" role="3cqZAp">
+                  <node concept="la8eA" id="FTG_C069" role="lcghm">
+                    <property role="lacIc" value="(" />
+                  </node>
+                </node>
+                <node concept="2Gpval" id="FTG_C070" role="3cqZAp">
+                  <node concept="2GrKxI" id="FTG_C071" role="2Gsz3X">
+                    <property role="TrG5h" value="cparam" />
+                  </node>
+                  <node concept="2OqwBi" id="FTG_C072" role="2GsD0m">
+                    <node concept="2GrUjf" id="FTG_C073" role="2Oq$k0">
+                      <ref role="2Gs0qQ" node="FTG_C051" resolve="cfunc" />
+                    </node>
+                    <node concept="3Tsc0h" id="FTG_C074" role="2OqNvi">
+                      <ref role="3TtcxE" to="k8se:7kypvuIwEDI" resolve="parameters" />
+                    </node>
+                  </node>
+                  <node concept="3clFbS" id="FTG_C075" role="2LFqv$">
+                    <node concept="lc7rE" id="FTG_C076" role="3cqZAp">
+                      <node concept="l9hG8" id="FTG_C077" role="lcghm">
+                        <node concept="2OqwBi" id="FTG_C078" role="lb14g">
+                          <node concept="2GrUjf" id="FTG_C079" role="2Oq$k0">
+                            <ref role="2Gs0qQ" node="FTG_C071" resolve="cparam" />
+                          </node>
+                          <node concept="3TrEf2" id="FTG_C080" role="2OqNvi">
+                            <ref role="3Tt5mk" to="k8se:7kypvuIwEEE" resolve="type" />
+                          </node>
+                        </node>
+                      </node>
+                    </node>
+                    <node concept="lc7rE" id="FTG_C081" role="3cqZAp">
+                      <node concept="la8eA" id="FTG_C082" role="lcghm">
+                        <property role="lacIc" value=" " />
+                      </node>
+                    </node>
+                    <node concept="lc7rE" id="FTG_C083" role="3cqZAp">
+                      <node concept="l9hG8" id="FTG_C084" role="lcghm">
+                        <node concept="2OqwBi" id="FTG_C085" role="lb14g">
+                          <node concept="2GrUjf" id="FTG_C086" role="2Oq$k0">
+                            <ref role="2Gs0qQ" node="FTG_C071" resolve="cparam" />
+                          </node>
+                          <node concept="3TrcHB" id="FTG_C087" role="2OqNvi">
+                            <ref role="3TsBF5" to="tpck:h0TrG11" resolve="name" />
+                          </node>
+                        </node>
+                      </node>
+                    </node>
+                    <node concept="lc7rE" id="FTG_C088" role="3cqZAp">
+                      <node concept="la8eA" id="FTG_C089" role="lcghm">
+                        <property role="lacIc" value=", " />
+                      </node>
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C090" role="3cqZAp">
+                  <node concept="la8eA" id="FTG_C091" role="lcghm">
+                    <property role="lacIc" value=") {" />
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C092" role="3cqZAp">
+                  <node concept="l8MVK" id="FTG_C093" role="lcghm" />
+                </node>
+                <node concept="2Gpval" id="FTG_C100" role="3cqZAp">
+                  <node concept="2GrKxI" id="FTG_C101" role="2Gsz3X">
+                    <property role="TrG5h" value="cstmt" />
+                  </node>
+                  <node concept="2OqwBi" id="FTG_C102" role="2GsD0m">
+                    <node concept="2GrUjf" id="FTG_C103" role="2Oq$k0">
+                      <ref role="2Gs0qQ" node="FTG_C051" resolve="cfunc" />
+                    </node>
+                    <node concept="3Tsc0h" id="FTG_C104" role="2OqNvi">
+                      <ref role="3TtcxE" to="k8se:7kypvuIwEDH" resolve="body" />
+                    </node>
+                  </node>
+                  <node concept="3clFbS" id="FTG_C105" role="2LFqv$">
+                    <node concept="lc7rE" id="FTG_C106" role="3cqZAp">
+                      <node concept="la8eA" id="FTG_C107" role="lcghm">
+                        <property role="lacIc" value="    " />
+                      </node>
+                    </node>
+                    <node concept="lc7rE" id="FTG_C108" role="3cqZAp">
+                      <node concept="l9hG8" id="FTG_C109" role="lcghm">
+                        <node concept="2GrUjf" id="FTG_C110" role="lb14g">
+                          <ref role="2Gs0qQ" node="FTG_C101" resolve="cstmt" />
+                        </node>
+                      </node>
+                    </node>
+                    <node concept="lc7rE" id="FTG_C111" role="3cqZAp">
+                      <node concept="la8eA" id="FTG_C112" role="lcghm">
+                        <property role="lacIc" value=";" />
+                      </node>
+                    </node>
+                    <node concept="lc7rE" id="FTG_C113" role="3cqZAp">
+                      <node concept="l8MVK" id="FTG_C114" role="lcghm" />
+                    </node>
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C120" role="3cqZAp">
+                  <node concept="la8eA" id="FTG_C121" role="lcghm">
+                    <property role="lacIc" value="}" />
+                  </node>
+                </node>
+                <node concept="lc7rE" id="FTG_C122" role="3cqZAp">
+                  <node concept="l8MVK" id="FTG_C123" role="lcghm" />
+                </node>
+                <node concept="lc7rE" id="FTG_C124" role="3cqZAp">
+                  <node concept="l8MVK" id="FTG_C125" role="lcghm" />
+                </node>
+              </node>
+            </node>
+          </node>
+          <node concept="3y3z36" id="IF_CPP003" role="3clFbw">
+            <node concept="2OqwBi" id="IF_CPP004" role="3uHU7B">
+              <node concept="117lpO" id="IF_CPP005" role="2Oq$k0" />
+              <node concept="3TrcHB" id="IF_CPP006" role="2OqNvi">
+                <ref role="3TsBF5" to="k8se:7kypvuIwECI" resolve="targetLanguage" />
+              </node>
+            </node>
+            <node concept="Xl_RD" id="IF_CPP007" role="3uHU7w">
+              <property role="Xl_RC" value="python" />
             </node>
           </node>
         </node>
       </node>
     </node>
   </node>
-
-  <!-- NullLiteral Textgen -->
   <node concept="WtQ9Q" id="TG_20118">
     <ref role="WuzLi" to="k8se:7kypvuIwCHC" resolve="NullLiteral" />
     <node concept="11bSqf" id="TG_20119" role="11c4hB">
@@ -774,8 +997,6 @@
       </node>
     </node>
   </node>
-
-  <!-- OptimizationLock Textgen -->
   <node concept="WtQ9Q" id="TG_20123">
     <ref role="WuzLi" to="k8se:7kypvuIwFDD" resolve="OptimizationLock" />
     <node concept="11bSqf" id="TG_20124" role="11c4hB">
@@ -788,8 +1009,6 @@
       </node>
     </node>
   </node>
-
-  <!-- OptionalType Textgen -->
   <node concept="WtQ9Q" id="TG_20128">
     <ref role="WuzLi" to="k8se:7kypvuIwBFC" resolve="OptionalType" />
     <node concept="11bSqf" id="TG_20129" role="11c4hB">
@@ -802,13 +1021,10 @@
       </node>
     </node>
   </node>
-
-  <!-- Parameter Textgen - simplified -->
   <node concept="WtQ9Q" id="TG_20133">
     <ref role="WuzLi" to="k8se:7kypvuIwEEC" resolve="Parameter" />
     <node concept="11bSqf" id="TG_20134" role="11c4hB">
       <node concept="3clFbS" id="TG_20135" role="2VODD2">
-        <!-- Output parameter name -->
         <node concept="lc7rE" id="FTG_P001" role="3cqZAp">
           <node concept="l9hG8" id="FTG_P002" role="lcghm">
             <node concept="2OqwBi" id="FTG_P003" role="lb14g">
@@ -822,13 +1038,10 @@
       </node>
     </node>
   </node>
-
-  <!-- PrimitiveType Textgen -->
   <node concept="WtQ9Q" id="TG_20138">
     <ref role="WuzLi" to="k8se:7kypvuIwBCC" resolve="PrimitiveType" />
     <node concept="11bSqf" id="TG_20139" role="11c4hB">
       <node concept="3clFbS" id="TG_20140" role="2VODD2">
-        <!-- Output kind property -->
         <node concept="lc7rE" id="FTG_PT001" role="3cqZAp">
           <node concept="l9hG8" id="FTG_PT002" role="lcghm">
             <node concept="2OqwBi" id="FTG_PT003" role="lb14g">
@@ -842,28 +1055,28 @@
       </node>
     </node>
   </node>
-
-  <!-- Return Textgen -->
-  <!-- Return Textgen - simplified -->
   <node concept="WtQ9Q" id="TG_20143">
     <ref role="WuzLi" to="k8se:7kypvuIwDIC" resolve="Return" />
     <node concept="11bSqf" id="TG_20144" role="11c4hB">
       <node concept="3clFbS" id="TG_20145" role="2VODD2">
-        <!-- Output "return <value>" -->
         <node concept="lc7rE" id="FTG_R001" role="3cqZAp">
           <node concept="la8eA" id="FTG_R002" role="lcghm">
-            <property role="lacIc" value="return &lt;value&gt;" />
+            <property role="lacIc" value="return " />
           </node>
         </node>
-        <!-- Newline -->
-        <node concept="lc7rE" id="FTG_R008" role="3cqZAp">
-          <node concept="l8MVK" id="FTG_R009" role="lcghm" />
+        <node concept="lc7rE" id="FTG2_R001" role="3cqZAp">
+          <node concept="l9hG8" id="FTG2_R002" role="lcghm">
+            <node concept="2OqwBi" id="FTG2_R003" role="lb14g">
+              <node concept="117lpO" id="FTG2_R004" role="2Oq$k0" />
+              <node concept="3TrEf2" id="FTG2_R005" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwDID" resolve="value" />
+              </node>
+            </node>
+          </node>
         </node>
       </node>
     </node>
   </node>
-
-  <!-- SetType Textgen -->
   <node concept="WtQ9Q" id="TG_20148">
     <ref role="WuzLi" to="k8se:7kypvuIwBGC" resolve="SetType" />
     <node concept="11bSqf" id="TG_20149" role="11c4hB">
@@ -876,22 +1089,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Statement Textgen -->
-  <node concept="WtQ9Q" id="TG_20153">
-    <ref role="WuzLi" to="k8se:7kypvuIwDDC" resolve="Statement" />
-    <node concept="11bSqf" id="TG_20154" role="11c4hB">
-      <node concept="3clFbS" id="TG_20155" role="2VODD2">
-        <node concept="lc7rE" id="TG_20156" role="3cqZAp">
-          <node concept="l9hG8" id="TG_20157" role="lcghm">
-            <node concept="117lpO" id="TG_20158" role="lb14g" />
-          </node>
-        </node>
-      </node>
-    </node>
-  </node>
-
-  <!-- StringLiteral Textgen -->
   <node concept="WtQ9Q" id="TG_20159">
     <ref role="WuzLi" to="k8se:7kypvuIwCFC" resolve="StringLiteral" />
     <node concept="11bSqf" id="TG_20160" role="11c4hB">
@@ -904,8 +1101,6 @@
       </node>
     </node>
   </node>
-
-  <!-- TupleType Textgen -->
   <node concept="WtQ9Q" id="TG_20164">
     <ref role="WuzLi" to="k8se:7kypvuIwBHC" resolve="TupleType" />
     <node concept="11bSqf" id="TG_20165" role="11c4hB">
@@ -918,22 +1113,6 @@
       </node>
     </node>
   </node>
-
-  <!-- Type Textgen -->
-  <node concept="WtQ9Q" id="TG_20169">
-    <ref role="WuzLi" to="k8se:7kypvuIwBBC" resolve="Type" />
-    <node concept="11bSqf" id="TG_20170" role="11c4hB">
-      <node concept="3clFbS" id="TG_20171" role="2VODD2">
-        <node concept="lc7rE" id="TG_20172" role="3cqZAp">
-          <node concept="l9hG8" id="TG_20173" role="lcghm">
-            <node concept="117lpO" id="TG_20174" role="lb14g" />
-          </node>
-        </node>
-      </node>
-    </node>
-  </node>
-
-  <!-- UnaryOperation Textgen -->
   <node concept="WtQ9Q" id="TG_20175">
     <ref role="WuzLi" to="k8se:7kypvuIwCJC" resolve="UnaryOperation" />
     <node concept="11bSqf" id="TG_20176" role="11c4hB">
@@ -946,13 +1125,10 @@
       </node>
     </node>
   </node>
-
-  <!-- Variable Textgen - simplified -->
   <node concept="WtQ9Q" id="TG_20180">
     <ref role="WuzLi" to="k8se:7kypvuIwEFC" resolve="Variable" />
     <node concept="11bSqf" id="TG_20181" role="11c4hB">
       <node concept="3clFbS" id="TG_20182" role="2VODD2">
-        <!-- Output variable name -->
         <node concept="lc7rE" id="FTG_V001" role="3cqZAp">
           <node concept="l9hG8" id="FTG_V002" role="lcghm">
             <node concept="2OqwBi" id="FTG_V003" role="lb14g">
@@ -963,16 +1139,28 @@
             </node>
           </node>
         </node>
+        <node concept="lc7rE" id="FTG_V006" role="3cqZAp">
+          <node concept="la8eA" id="FTG_V007" role="lcghm">
+            <property role="lacIc" value=": " />
+          </node>
+        </node>
+        <node concept="lc7rE" id="FTG_V008" role="3cqZAp">
+          <node concept="l9hG8" id="FTG_V009" role="lcghm">
+            <node concept="2OqwBi" id="FTG_V010" role="lb14g">
+              <node concept="117lpO" id="FTG_V011" role="2Oq$k0" />
+              <node concept="3TrEf2" id="FTG_V012" role="2OqNvi">
+                <ref role="3Tt5mk" to="k8se:7kypvuIwEFF" resolve="type" />
+              </node>
+            </node>
+          </node>
+        </node>
       </node>
     </node>
   </node>
-
-  <!-- VariableReference Textgen -->
   <node concept="WtQ9Q" id="TG_20185">
     <ref role="WuzLi" to="k8se:7kypvuIwCKC" resolve="VariableReference" />
     <node concept="11bSqf" id="TG_20186" role="11c4hB">
       <node concept="3clFbS" id="TG_20187" role="2VODD2">
-        <!-- Output variableName property -->
         <node concept="lc7rE" id="FTG_VR001" role="3cqZAp">
           <node concept="l9hG8" id="FTG_VR002" role="lcghm">
             <node concept="2OqwBi" id="FTG_VR003" role="lb14g">
@@ -986,8 +1174,6 @@
       </node>
     </node>
   </node>
-
-  <!-- WhileLoop Textgen -->
   <node concept="WtQ9Q" id="TG_20190">
     <ref role="WuzLi" to="k8se:7kypvuIwDGC" resolve="WhileLoop" />
     <node concept="11bSqf" id="TG_20191" role="11c4hB">
