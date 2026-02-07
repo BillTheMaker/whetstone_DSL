@@ -136,6 +136,9 @@ target_include_directories(step39_test PRIVATE src)
 add_executable(step40_test tests/step40_test.cpp)
 target_include_directories(step40_test PRIVATE src)
 
+add_executable(step41_test tests/step41_test.cpp)
+target_include_directories(step41_test PRIVATE src)
+
 add_executable(whetstone_editor src/main.cpp)
 target_include_directories(whetstone_editor PRIVATE src)
 # find_package(SDL2 REQUIRED)  # Commented out for now to avoid build issues
