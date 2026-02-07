@@ -299,13 +299,30 @@ int main(int, char**)
         
         ImGui::End();
 
-        // Add projection toggle buttons
+        // Add projection toggle buttons and mutation buttons
         static int projectionMode = 0; // 0 = Python, 1 = AST
         
         ImGui::Begin("Toolbar");
         if (ImGui::Button("Python")) projectionMode = 0;
         ImGui::SameLine();
         if (ImGui::Button("AST")) projectionMode = 1;
+        ImGui::SameLine();
+        
+        // Add parameter button - sends RPC to orchestrator to add a parameter
+        if (ImGui::Button("Add Parameter")) {
+            // Send RPC to orchestrator to insert a new parameter
+            json params = json::object({
+                {"parentId", "Calc_F001"},  // Example function ID
+                {"role", "parameters"},
+                {"concept", "Parameter"},
+                {"properties", json::object({
+                    {"name", "newParam"}
+                })}
+            });
+            
+            json result = g_rpc_client.call("insertNode", params);
+            // The result would contain the new parameter node that was inserted
+        }
         ImGui::End();
         
         // Show the editor area based on projection mode
