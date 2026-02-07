@@ -61,4 +61,11 @@ target_include_directories(step14_test PRIVATE src)
 add_executable(step15_test tests/step15_test.cpp)
 target_include_directories(step15_test PRIVATE src)
 
+add_executable(step16_test tests/step16_test.cpp)
+target_include_directories(step16_test PRIVATE src)
+
+add_executable(orchestrator src/orchestrator_main.cpp)
+target_include_directories(orchestrator PRIVATE src)
+target_link_libraries(orchestrator PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
