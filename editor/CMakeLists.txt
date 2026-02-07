@@ -9,3 +9,6 @@ target_include_directories(step1_test PRIVATE src)
 
 add_executable(step2_test tests/step2_test.cpp)
 target_include_directories(step2_test PRIVATE src)
+
+add_executable(step3_test tests/step3_test.cpp)
+target_include_directories(step3_test PRIVATE src)
