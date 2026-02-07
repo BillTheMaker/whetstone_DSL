@@ -10,6 +10,60 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <stdio.h>
+#include <string>
+#include <memory>
+#include <array>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
+// Simple JSON-RPC client to communicate with orchestrator
+class JsonRpcClient {
+private:
+    FILE* rpc_out;  // For sending requests to orchestrator
+    FILE* rpc_in;   // For receiving responses from orchestrator
+
+public:
+    JsonRpcClient() : rpc_out(stdout), rpc_in(stdin) {}
+    
+    // Constructor that could connect to orchestrator process (simplified for now)
+    JsonRpcClient(FILE* out, FILE* in) : rpc_out(out), rpc_in(in) {}
+    
+    json call(const std::string& method, const json& params = json::object()) {
+        // Create the JSON-RPC request
+        json request = json::object({
+            {"jsonrpc", "2.0"},
+            {"method", method},
+            {"params", params},
+            {"id", 1}  // Simple ID for this example
+        });
+        
+        // Send the request to the orchestrator
+        fprintf(rpc_out, "%s\n", request.dump().c_str());
+        fflush(rpc_out);
+        
+        // Read the response from the orchestrator
+        char buffer[4096];
+        if (fgets(buffer, sizeof(buffer), rpc_in)) {
+            try {
+                json response = json::parse(buffer);
+                if (response.contains("result")) {
+                    return response["result"];
+                } else if (response.contains("error")) {
+                    printf("RPC Error: %s\n", response["error"].dump().c_str());
+                    return json(nullptr);
+                }
+            } catch (...) {
+                printf("Failed to parse RPC response\n");
+                return json(nullptr);
+            }
+        }
+        
+        return json(nullptr);
+    }
+};
+
+static JsonRpcClient g_rpc_client;
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -170,30 +224,37 @@ int main(int, char**)
 
         ImGui::End();
 
-        // Load Calculator JSON, build AST, run Python generator, display in viewport
-        // For now, we'll simulate this with a hardcoded example
-        // In a real implementation, this would load from a file and process through the AST
-        
-        // Simulate loading Calculator AST and generating Python code
-        std::string generatedPythonCode = 
-            "\"\"\"Module: Calculator\"\"\"\n\n"
-            "PI = 3.14159\n\n"
-            "def add(x: int, y: int):\n"
-            "    result = x + y\n"
-            "    return result\n\n"
-            "def multiply(a: int, b: int):\n"
-            "    return a * b\n\n"
-            "# @deref(batched)\n"
-            "def calculate_sum(items: List[int]):\n"
-            "    total = 0\n"
-            "    for item in items:\n"
-            "        total += item\n"
-            "    return total\n";
-            
-        // Convert to static buffer for ImGui
-        static char textBuffer[4096];
-        strncpy(textBuffer, generatedPythonCode.c_str(), sizeof(textBuffer) - 1);
-        textBuffer[sizeof(textBuffer) - 1] = '\0';
+        // Connect to orchestrator and get AST content
+        // Request initial AST from orchestrator
+        static char textBuffer[4096] = "Loading from orchestrator...";
+        static bool initialized = false;
+        if (!initialized) {
+            json result = g_rpc_client.call("getAST");
+            if (!result.is_null()) {
+                std::string newText = result.dump(2);
+                strncpy(textBuffer, newText.c_str(), sizeof(textBuffer) - 1);
+                textBuffer[sizeof(textBuffer) - 1] = '\0';
+            } else {
+                // Fallback to default content if RPC fails
+                std::string defaultContent = 
+                    "\"\"\"Module: Calculator\"\"\"\n\n"
+                    "PI = 3.14159\n\n"
+                    "def add(x: int, y: int):\n"
+                    "    result = x + y\n"
+                    "    return result\n\n"
+                    "def multiply(a: int, b: int):\n"
+                    "    return a * b\n\n"
+                    "# @deref(batched)\n"
+                    "def calculate_sum(items: List[int]):\n"
+                    "    total = 0\n"
+                    "    for item in items:\n"
+                    "        total += item\n"
+                    "    return total\n";
+                strncpy(textBuffer, defaultContent.c_str(), sizeof(textBuffer) - 1);
+                textBuffer[sizeof(textBuffer) - 1] = '\0';
+            }
+            initialized = true;
+        }
 
         // Show the editor area - this will be docked by the docking system
         ImGui::Begin("Editor Area");
@@ -354,6 +415,23 @@ int main(int, char**)
             ImGui::Text("Projection: AST");
         }
         ImGui::End();
+        
+        // Update the text content from orchestrator periodically
+        static float lastUpdate = 0.0f;
+        if (io.DeltaTime > 0) {
+            lastUpdate += io.DeltaTime;
+            if (lastUpdate > 2.0f) {  // Update every 2 seconds
+                // Request AST from orchestrator
+                json result = g_rpc_client.call("getAST");
+                if (!result.is_null()) {
+                    // Update the text buffer with the result
+                    std::string newText = result.dump(2);
+                    strncpy(textBuffer, newText.c_str(), sizeof(textBuffer) - 1);
+                    textBuffer[sizeof(textBuffer) - 1] = '\0';
+                }
+                lastUpdate = 0.0f;
+            }
+        }
 
         // Rendering
         ImGui::Render();

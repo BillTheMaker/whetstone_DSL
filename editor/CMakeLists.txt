@@ -70,6 +70,16 @@ target_include_directories(step17_test PRIVATE src)
 add_executable(step18_test tests/step18_test.cpp)
 target_include_directories(step18_test PRIVATE src)
 
+add_executable(step19_test tests/step19_test.cpp)
+target_include_directories(step19_test PRIVATE src)
+
+add_executable(whetstone_editor src/main.cpp)
+target_include_directories(whetstone_editor PRIVATE src)
+# find_package(SDL2 REQUIRED)  # Commented out for now to avoid build issues
+# find_package(OpenGL REQUIRED)
+# find_package(glad REQUIRED)
+target_link_libraries(whetstone_editor PRIVATE nlohmann_json::nlohmann_json)  # Only link JSON library for now
+
 add_executable(orchestrator src/orchestrator_main.cpp)
 target_include_directories(orchestrator PRIVATE src)
 target_link_libraries(orchestrator PRIVATE nlohmann_json::nlohmann_json)
