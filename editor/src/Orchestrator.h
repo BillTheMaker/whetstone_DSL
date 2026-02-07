@@ -248,4 +248,20 @@ public:
         result.erase(result.find_last_not_of(" \t\n\r\f\v") + 1);
         return result.empty() ? "nil" : result;
     }
+    
+    // Method to load a file via Emacs
+    std::string loadFile(const std::string& path) {
+        // Send (find-file path) to Emacs to load the file
+        std::string command = "(progn (find-file \"" + path + "\") (buffer-string))";
+        return sendToEmacs(command);
+    }
+    
+    // Method to save content to a file via Emacs
+    bool saveFile(const std::string& path, const std::string& content) {
+        // Send (write-file path content) to Emacs to save content
+        std::string command = "(with-temp-buffer (insert \"" + content + "\") (write-file \"" + path + "\"))";
+        std::string result = sendToEmacs(command);
+        // If the result is not an error, assume success
+        return result.find("Error") == std::string::npos;
+    }
 };
