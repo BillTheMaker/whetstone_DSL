@@ -323,6 +323,20 @@ int main(int, char**)
             json result = g_rpc_client.call("insertNode", params);
             // The result would contain the new parameter node that was inserted
         }
+        ImGui::SameLine();
+        
+        // Undo button - sends RPC to orchestrator to undo last operation
+        if (ImGui::Button("Undo")) {
+            json result = g_rpc_client.call("undo");
+            // The result indicates whether the undo was successful
+        }
+        ImGui::SameLine();
+        
+        // Redo button - sends RPC to orchestrator to redo last undone operation
+        if (ImGui::Button("Redo")) {
+            json result = g_rpc_client.call("redo");
+            // The result indicates whether the redo was successful
+        }
         ImGui::End();
         
         // Show the editor area based on projection mode
