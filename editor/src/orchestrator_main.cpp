@@ -263,6 +263,38 @@ json processRequest(const json& request) {
                 });
             }
         }
+        else if (method == "loadFile") {
+            try {
+                std::string path = request.at("params").at("path");
+                std::string content = g_orchestrator->loadFile(path);
+                response["result"] = content;
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Invalid parameters for loadFile"}
+                });
+            }
+        }
+        else if (method == "saveFile") {
+            try {
+                std::string path = request.at("params").at("path");
+                std::string content = request.at("params").at("content");
+                bool success = g_orchestrator->saveFile(path, content);
+                if (success) {
+                    response["result"] = true;
+                } else {
+                    response["error"] = json::object({
+                        {"code", -32603},
+                        {"message", "Failed to save file: " + path}
+                    });
+                }
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Invalid parameters for saveFile"}
+                });
+            }
+        }
         else {
             response["error"] = json::object({
                 {"code", -32601},
