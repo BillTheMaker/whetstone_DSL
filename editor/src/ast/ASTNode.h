@@ -45,6 +45,15 @@ public:
         return it != children_.end() ? it->second : empty;
     }
 
+    // Get all child role names
+    std::vector<std::string> childRoles() const {
+        std::vector<std::string> roles;
+        for (const auto& [role, _] : children_) {
+            roles.push_back(role);
+        }
+        return roles;
+    }
+
     // Get all children across all roles
     std::vector<ASTNode*> allChildren() const {
         std::vector<ASTNode*> result;

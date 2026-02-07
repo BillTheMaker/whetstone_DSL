@@ -4,6 +4,16 @@ project(WhetstoneEditor LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# nlohmann/json (header-only, fetched once)
+include(FetchContent)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(json)
+
 add_executable(step1_test tests/step1_test.cpp)
 target_include_directories(step1_test PRIVATE src)
 
@@ -15,3 +25,7 @@ target_include_directories(step3_test PRIVATE src)
 
 add_executable(step4_test tests/step4_test.cpp)
 target_include_directories(step4_test PRIVATE src)
+
+add_executable(step5_test tests/step5_test.cpp)
+target_include_directories(step5_test PRIVATE src)
+target_link_libraries(step5_test PRIVATE nlohmann_json::nlohmann_json)
