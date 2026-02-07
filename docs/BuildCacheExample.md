@@ -2,7 +2,7 @@
 
 ```
 Function: getOrCreate
-  @deref(???)
+  @{MemoryAnnotation}  // One of: @Deallocate(Explicit), @Lifetime(RAII), @Reclaim(Tracing), @Owner(Single), etc.
   Parameter: cache -> Map<string, Widget>
   Parameter: key -> string
   Body:

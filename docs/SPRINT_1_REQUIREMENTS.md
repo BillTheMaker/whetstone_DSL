@@ -12,7 +12,7 @@ Enable a junior developer to write working logic in Python, a senior developer t
 |----------|--------------|
 | Python and C++ projections | Other languages |
 | Tree-sitter parsing for ingestion | Custom parser implementation |
-| Memory deref strategy annotations | Full SemAnno schema |
+| Memory strategy annotations (`@Deallocate`, `@Lifetime`, `@Reclaim`, `@Owner`, `@Allocate`) | Full SemAnno schema |
 | Warning system for locked nodes | Hard locks / approval workflows |
 | Basic AST nodes (functions, loops, variables, expressions) | Advanced nodes (generics, macros, templates) |
 | MPS projectional editor | IDE plugins (VS Code, etc.) |
@@ -84,15 +84,24 @@ Expression (abstract)
 └── MemberAccess
 ```
 
-### TR-2: Memory Deref Strategy Annotation
+### TR-2: Memory Strategy Annotations
+
+The canonical memory annotation system (from `annotations/Memory strategy.md`) uses distinct annotation families:
 
 ```
-DerefStrategy
-├── strategy: enum {imperative, streamed, batched, content_addressed}
-├── derefTime: Expression? (required if imperative)
-├── derefLocation: string? (required if imperative)
+DeallocateAnnotation   — strategy: "Explicit"           (manual free/delete)
+LifetimeAnnotation     — strategy: "RAII"                (destructor-based cleanup)
+ReclaimAnnotation      — strategy: "Tracing"|"Cycle"|"Escape"  (GC variants)
+OwnerAnnotation        — strategy: "Single"|"Shared_ARC" (ownership/ARC)
+AllocateAnnotation     — strategy: "Static"|"Register"|"Allocator" (allocation)
+
+Common fields:
+├── deallocationTime: Expression? (required if @Deallocate(Explicit))
+├── deallocationLocation: string? (required if @Deallocate(Explicit))
 └── owner: AgentReference?
 ```
+
+> **Note:** Sprint 1 implemented this as a single `DerefStrategy` class with a `strategy` string field. Sprint 3 refactors into the canonical types above. See `SPRINT_3_PLAN.md` Migration Notes for the mapping.
 
 ### TR-3: Optimization Lock Annotation
 
@@ -181,16 +190,16 @@ int compute(int value) {
 
 ---
 
-## Memory Deref Strategy Examples
+## Memory Strategy Examples
 
-The following examples show the **same logical function** with different memory strategies, demonstrating how the C++ projection changes while Python remains constant.
+The following examples show the **same logical function** with different memory annotations (from `annotations/Memory strategy.md`), demonstrating how the C++ projection changes while Python remains constant.
 
 ### Example 1: Processing a List of Records
 
 #### Whetstone AST (Canonical Form)
 ```
 Function: processRecords
-  @deref(???)  // Strategy applied here
+  @{MemoryAnnotation}  // Strategy applied here — one of the canonical types
   Parameter: records -> List<Record>
   Body:
     ForLoop:
@@ -205,7 +214,7 @@ Function: processRecords
 ```python
 def process_records(records: list[Record]) -> list[Record]:
     """
-    @deref: {strategy}  # Annotation visible but doesn't affect code
+    # @Reclaim(Tracing)  — Annotation visible but doesn't affect Python code
     """
     for record in records:
         record.validate()
@@ -213,7 +222,7 @@ def process_records(records: list[Record]) -> list[Record]:
     return records
 ```
 
-#### C++ Projection: @deref(batched) - Garbage Collected
+#### C++ Projection: @Reclaim(Tracing) - Garbage Collected
 ```cpp
 // Memory managed by shared_ptr reference counting
 #include <memory>
@@ -230,7 +239,7 @@ std::vector<std::shared_ptr<Record>> process_records(
 }
 ```
 
-#### C++ Projection: @deref(streamed) - Ownership-Based (Rust-like)
+#### C++ Projection: @Owner(Single) - Ownership-Based (Rust-like)
 ```cpp
 // Ownership transferred, no copies, RAII cleanup
 #include <vector>
@@ -247,11 +256,11 @@ std::vector<std::unique_ptr<Record>> process_records(
 }
 ```
 
-#### C++ Projection: @deref(imperative) - Manual Control
+#### C++ Projection: @Deallocate(Explicit) - Manual Control
 ```cpp
 // Developer explicitly controls allocation and deallocation
-// @deref-time: end_of_function
-// @deref-location: caller_responsibility
+// @deallocation-time: end_of_function
+// @deallocation-location: caller_responsibility
 #include <vector>
 
 std::vector<Record*> process_records(
@@ -263,11 +272,11 @@ std::vector<Record*> process_records(
         records[i]->transform();
     }
     return records;
-    // NOTE: No deallocation here - @deref-location specifies caller handles it
+    // NOTE: No deallocation here - @deallocation-location specifies caller handles it
 }
 ```
 
-#### C++ Projection: @deref(content-addressed) - Immutable
+#### C++ Projection: @Allocate(Static) + @ConstExpr - Immutable
 ```cpp
 // Immutable data, identity by content hash, can be freely shared
 #include <vector>
@@ -303,7 +312,7 @@ std::vector<ImmutableRecord> process_records(
 #### Whetstone AST (Canonical Form)
 ```
 Function: getOrCreate
-  @deref(???)
+  @{MemoryAnnotation}  // One of the canonical types
   Parameter: cache -> Map<string, Widget>
   Parameter: key -> string
   Body:
@@ -320,7 +329,7 @@ Function: getOrCreate
 ```python
 def get_or_create(cache: dict[str, Widget], key: str) -> Widget:
     """
-    @deref: {strategy}
+    # @Reclaim(Tracing)  — Annotation visible but doesn't affect Python code
     """
     if key in cache:
         return cache[key]
@@ -330,7 +339,7 @@ def get_or_create(cache: dict[str, Widget], key: str) -> Widget:
         return widget
 ```
 
-#### C++ Projection: @deref(batched)
+#### C++ Projection: @Reclaim(Tracing)
 ```cpp
 std::shared_ptr<Widget> get_or_create(
     std::unordered_map<std::string, std::shared_ptr<Widget>>& cache,
@@ -346,7 +355,7 @@ std::shared_ptr<Widget> get_or_create(
 }
 ```
 
-#### C++ Projection: @deref(streamed)
+#### C++ Projection: @Owner(Single)
 ```cpp
 // Note: Unique ownership makes caching tricky - must use reference
 Widget& get_or_create(
@@ -365,10 +374,10 @@ Widget& get_or_create(
 }
 ```
 
-#### C++ Projection: @deref(imperative)
+#### C++ Projection: @Deallocate(Explicit)
 ```cpp
-// @deref-time: cache_destruction
-// @deref-location: CacheManager::cleanup()
+// @deallocation-time: cache_destruction
+// @deallocation-location: CacheManager::cleanup()
 Widget* get_or_create(
     std::unordered_map<std::string, Widget*>& cache,
     const std::string& key
@@ -397,7 +406,7 @@ A warning appears when a node has an `OptimizationLock` annotation and the curre
 │ ⚠ OPTIMIZATION WARNING                                      │
 ├─────────────────────────────────────────────────────────────┤
 │ This node was optimized by: senior_dev_alice                │
-│ Optimization: @deref(imperative) with SIMD vectorization    │
+│ Optimization: @Deallocate(Explicit) with SIMD vectorization  │
 │                                                             │
 │ Modifying this code will:                                   │
 │   • Invalidate the manual memory management strategy        │
@@ -444,11 +453,11 @@ languages/
 - [ ] Generate Python from AST that is functionally equivalent
 - [ ] Generate C++ from AST that compiles and runs
 
-### AC-2: Deref Strategy Application
-- [ ] Apply `@deref(batched)` to a function → C++ uses shared_ptr
-- [ ] Apply `@deref(streamed)` to a function → C++ uses unique_ptr
-- [ ] Apply `@deref(imperative)` to a function → C++ uses raw pointers
-- [ ] Python projection shows annotation but code unchanged
+### AC-2: Memory Strategy Application
+- [ ] Apply `@Reclaim(Tracing)` to a function → C++ uses shared_ptr
+- [ ] Apply `@Owner(Single)` or `@Lifetime(RAII)` to a function → C++ uses unique_ptr
+- [ ] Apply `@Deallocate(Explicit)` to a function → C++ uses raw pointers
+- [ ] Python projection shows annotation as comment but code unchanged
 
 ### AC-3: Warning System
 - [ ] Add optimization lock to node
@@ -492,8 +501,8 @@ Build SemAnno incrementally, testing each phase before moving forward:
 3. **C++ Projection & Generator**
    - Extend SemAnno.editor.mps with C++ syntax projections
    - Implement C++ generator in SemAnno.textGen.mps
-   - Add deref strategy translation to generator
-   - Test: Generate valid, compilable C++ code for each deref strategy
+   - Add memory annotation translation to generator
+   - Test: Generate valid, compilable C++ code for each memory annotation type
 
 4. **Tree-sitter Import**
    - Add import behavior to SemAnno.behavior.mps
@@ -502,7 +511,7 @@ Build SemAnno incrementally, testing each phase before moving forward:
    - Test: Parse Python/C++ files → populate SemAnno AST
 
 5. **Warning System & Annotations**
-   - Add OptimizationLock and DerefStrategy annotations to SemAnno.structure.mps
+   - Add OptimizationLock and memory strategy annotations to SemAnno.structure.mps
    - Implement warning logic in SemAnno.behavior.mps
    - Add warning UI to SemAnno.editor.mps
    - Implement provenance tracking
@@ -512,9 +521,9 @@ Build SemAnno incrementally, testing each phase before moving forward:
 
 ## Open Questions
 
-1. **Deref inference:** Should the system suggest deref strategies based on usage patterns, or always require explicit annotation?
+1. **Strategy inference:** Should the system suggest memory annotations based on usage patterns, or always require explicit annotation?
 
-2. **Partial optimization:** Can a senior optimize just one function while leaving others with default `@deref(batched)`?
+2. **Partial optimization:** Can a senior optimize just one function while leaving others with default `@Reclaim(Tracing)`?
 
 3. **Conflict granularity:** If a junior modifies a loop inside an optimized function, does that invalidate the whole function or just the loop?
 

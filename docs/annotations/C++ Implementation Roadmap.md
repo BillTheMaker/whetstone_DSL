@@ -22,7 +22,7 @@ The 33 SemAnno concepts currently live in MPS XML. They need to become a C++ obj
   - `Expression` (abstract) → `BinaryOperation`, `UnaryOperation`, `FunctionCall`, `VariableReference`, `IndexAccess`, `MemberAccess`, `ListLiteral`
   - Literals: `IntegerLiteral`, `FloatLiteral`, `StringLiteral`, `BooleanLiteral`
   - Types: `PrimitiveType`, `ListType`, `SetType`, `MapType`, `TupleType`, `ArrayType`, `OptionalType`, `CustomType`
-  - Annotations: `DerefStrategy`, `OptimizationLock`, `LangSpecific`
+  - Annotations: Memory strategy annotations (`DeallocateAnnotation`, `LifetimeAnnotation`, `ReclaimAnnotation`, `OwnerAnnotation`, `AllocateAnnotation` — initially implemented as `DerefStrategy`), `OptimizationLock`, `LangSpecific`
 - Child links as `std::vector<std::unique_ptr<ASTNode>>` for 0..n, `std::unique_ptr<ASTNode>` for 1
 - Properties as typed fields (string, int, enum)
 
@@ -40,10 +40,15 @@ The 33 SemAnno concepts currently live in MPS XML. They need to become a C++ obj
 
 ### 1d. Annotation System
 - Annotations attach to any node via the `annotations` child link
-- `DerefStrategy`: strategy enum (manual, gc, ownership, content-addressed) + derefLocation, derefTime
+- Memory strategy annotations (canonical system from `Memory strategy.md`):
+  - `DeallocateAnnotation`: strategy="Explicit" + deallocationLocation, deallocationTime
+  - `LifetimeAnnotation`: strategy="RAII"
+  - `ReclaimAnnotation`: strategy="Tracing"|"Cycle"|"Escape"
+  - `OwnerAnnotation`: strategy="Single"|"Shared_ARC"
+  - `AllocateAnnotation`: strategy="Static"|"Register"|"Allocator"
+  - (Initially implemented as single `DerefStrategy` class — refactored in Sprint 3 Step 43)
 - `OptimizationLock`: lockedBy, lockReason, lockLevel (warning/soft/hard), affectedStrategies, timestamp
 - `LangSpecific`: language, idiomType, rawSyntax, semanticHint, position
-- Rename consideration: `@deref` → `@dealloc` for accuracy (update all references)
 - Annotations are metadata — they affect projection output, not the AST structure itself
 
 ---
@@ -61,17 +66,18 @@ Sprint 1's MPS textGen rules proved the projection model. Sprint 2 needs equival
 ### 2b. Python Generator (port from MPS)
 - Direct port of the working MPS textGen rules into C++ visitor methods
 - Module → `def`-based output with Python syntax
-- Memory annotations ignored (Python is GC — `@dealloc` has no effect on output)
+- Memory annotations ignored (Python is GC — `@Reclaim(Tracing)` is the default, has no effect on output)
 - `LangSpecific(python)` annotations emit their `rawSyntax` inline
 
 ### 2c. C++ Generator
 - Module → `#include`-guarded output with C++ syntax
 - Functions → typed signatures with `auto` where appropriate
-- Memory strategy application:
-  - `@dealloc(manual)` → raw pointers, explicit `new`/`delete`
-  - `@dealloc(gc)` → `std::shared_ptr` / `std::weak_ptr`
-  - `@dealloc(ownership)` → `std::unique_ptr`, move semantics
-  - `@dealloc(content-addressed)` → `const` types, content-hash identity
+- Memory strategy application (canonical annotations from `Memory strategy.md`):
+  - `@Deallocate(Explicit)` → raw pointers, explicit `new`/`delete`
+  - `@Reclaim(Tracing)` → `std::shared_ptr` / `std::weak_ptr`
+  - `@Lifetime(RAII)` / `@Owner(Single)` → `std::unique_ptr`, move semantics
+  - `@Owner(Shared_ARC)` → `std::shared_ptr` with deterministic ref-counting
+  - `@Allocate(Static)` + `@ConstExpr` → `const` types, content-hash identity
 - Type mapping: `list[T]` → `std::vector<T>`, `map[K,V]` → `std::unordered_map<K,V>`, `optional[T]` → `std::optional<T>`
 - `LangSpecific(cpp)` annotations emit their `rawSyntax` inline
 - Optimization hints: `@Inline` → `[[gnu::always_inline]]`, `@Pure` → `[[nodiscard]]` + `const`, `@Loop(Unroll)` → `#pragma unroll`
@@ -289,9 +295,9 @@ Each step is small enough to build, test, and verify before moving on. If a step
 - Test: build the Calculator example as a C++ object graph
 
 **Step 4: Annotation concepts**
-- Add `DerefStrategy`, `OptimizationLock`, `LangSpecific`
+- Add memory strategy annotations (initially as `DerefStrategy`), `OptimizationLock`, `LangSpecific`
 - Attach to Module/Function/Variable via annotations link
-- Test: build SimpleFunctionExample with @deref(batched), verify annotation reads back
+- Test: build SimpleFunctionExample with `@Reclaim(Tracing)`, verify annotation reads back
 
 **Step 5: JSON serialization (save)**
 - Serialize the C++ AST graph to JSON
@@ -324,7 +330,7 @@ Each step is small enough to build, test, and verify before moving on. If a step
 - Test: ConditionalExample AST → correct Python with if/else
 
 **Step 11: Annotation output**
-- DerefStrategy → `# @deref(strategy)` comment in Python
+- Memory annotations → `# @Reclaim(Tracing)` etc. comment in Python (initially emits as `# @deref(strategy)`)
 - OptimizationLock → `# @lock(...)` comment
 - Test: SimpleFunctionExample with annotations → comments appear in output
 
@@ -455,8 +461,8 @@ Each step is small enough to build, test, and verify before moving on. If a step
 - Test: Calculator AST → compilable C++ with g++
 
 **Step 35: C++ generator — memory strategies**
-- `@dealloc(manual)` → raw pointers, `@dealloc(gc)` → shared_ptr, `@dealloc(ownership)` → unique_ptr
-- Test: same AST with different @dealloc values → different C++ output, all compile
+- `@Deallocate(Explicit)` → raw pointers, `@Reclaim(Tracing)` → shared_ptr, `@Lifetime(RAII)` / `@Owner(Single)` → unique_ptr
+- Test: same AST with different memory annotations → different C++ output, all compile
 
 **Step 36: Agent API**
 - Orchestrator accepts JSON-RPC from external clients (same protocol as ImGui)

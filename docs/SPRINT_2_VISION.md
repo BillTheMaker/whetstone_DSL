@@ -201,7 +201,7 @@ Benefits:
 │                                                                 │
 │  Annotations:                                                   │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │ [@deref: batched ▼]  [@complexity: ___]  [+ Add]        │   │
+│  │ [@Reclaim(Tracing) ▼]  [@complexity: ___]  [+ Add]       │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 │  [Continue to Body →]                                          │
@@ -271,7 +271,7 @@ Benefits:
 │  Function: process_data                                         │
 │  ├── params: [(items, List[int]), (threshold, int, default=10)]│
 │  ├── returns: List[int]                                        │
-│  ├── @deref: batched                                           │
+│  ├── @Reclaim(Tracing)                                         │
 │  └── body:                                                      │
 │       └── Return                                                │
 │            └── Call: list                                       │
@@ -651,7 +651,7 @@ Sprint 1 (MPS) provides:
 - Core AST node definitions
 - SemAnno annotation schema
 - Python ↔ C++ projection patterns
-- Memory deref strategy examples
+- Memory strategy annotation examples (canonical system: `@Deallocate`, `@Lifetime`, `@Reclaim`, `@Owner`, `@Allocate`)
 
 Sprint 2 consumes Sprint 1 by:
 - Porting AST definitions from MPS to C++ classes (initially)

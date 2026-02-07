@@ -2,7 +2,7 @@
 
 ```
 Function: processRecords
-  @deref(???)  // Strategy applied here
+  @{MemoryAnnotation}  // One of: @Deallocate(Explicit), @Lifetime(RAII), @Reclaim(Tracing), @Owner(Single), etc.
   Parameter: records -> List<Record>
   Body:
     ForLoop:

@@ -66,7 +66,7 @@ This generates correct Java: `SEnumOperations.isMember(SPropertyOperations.getEn
 - All Literals: IntegerLiteral, FloatLiteral, StringLiteral, BooleanLiteral, NullLiteral, ListLiteral
 - IndexAccess, MemberAccess
 - Type nodes: ListType, SetType, MapType, TupleType, ArrayType, OptionalType, CustomType
-- Annotations: DerefStrategy, OptimizationLock, LangSpecific
+- Annotations: Memory strategy (initially `DerefStrategy`, canonical: `DeallocateAnnotation`/`LifetimeAnnotation`/`ReclaimAnnotation`/`OwnerAnnotation`/`AllocateAnnotation`), OptimizationLock, LangSpecific
 - TargetLanguage enum (python, cpp, both)
 
 **Status:** All TR-1 core AST nodes are defined. Annotation structures (TR-2, TR-3, TR-4) exist but may need property refinement.
@@ -101,7 +101,7 @@ This generates correct Java: `SEnumOperations.isMember(SPropertyOperations.getEn
 - `IndexAccess_TextGen` — outputs `[target][[index]]`
 - `MemberAccess_TextGen` — outputs `[target].[memberName]`
 - All Type TextGens (List, Set, Map, Tuple, Array, Optional, Custom) — placeholders
-- `DerefStrategy_TextGen` — outputs `@deref([strategy])`
+- `DerefStrategy_TextGen` — outputs `@deref([strategy])` (to be updated to canonical annotation names like `@Reclaim(Tracing)`, `@Deallocate(Explicit)`, etc.)
 - `OptimizationLock_TextGen` — outputs `@lock([lockedBy], [lockReason])`
 - `LangSpecific_TextGen` — outputs `@lang([language]:[idiomType])`
 

@@ -28,9 +28,9 @@ Port the 33 SemAnno concepts from MPS XML into C++ data structures.
 - **Test:** build the Calculator example as a C++ object graph
 
 ### Step 4: Annotation concepts
-- Add `DerefStrategy`, `OptimizationLock`, `LangSpecific`
+- Add memory strategy annotations (`DerefStrategy` as initial implementation), `OptimizationLock`, `LangSpecific`
 - Attach to Module/Function/Variable via annotations link
-- **Test:** build SimpleFunctionExample with @deref(batched), verify annotation reads back
+- **Test:** build SimpleFunctionExample with `@Reclaim(Tracing)` (initially stored as `DerefStrategy("batched")`), verify annotation reads back
 
 ### Step 5: JSON serialization (save)
 - Serialize the C++ AST graph to JSON
@@ -71,7 +71,7 @@ Python generator — port of the working MPS textGen rules into C++ visitor meth
 - **Test:** ConditionalExample AST → correct Python with if/else
 
 ### Step 11: Annotation output
-- DerefStrategy → `# @deref(strategy)` comment in Python
+- Memory annotations → `# @Reclaim(Tracing)` / `# @Deallocate(Explicit)` / etc. comment in Python (initially emits as `# @deref(strategy)` — Sprint 3 updates to canonical names)
 - OptimizationLock → `# @lock(...)` comment
 - **Test:** SimpleFunctionExample with annotations → comments appear in output
 
@@ -236,8 +236,8 @@ The final projection and the external agent interface.
 - **Test:** Calculator AST → compilable C++ with g++
 
 ### Step 35: C++ generator — memory strategies
-- `@dealloc(manual)` → raw pointers, `@dealloc(gc)` → shared_ptr, `@dealloc(ownership)` → unique_ptr
-- **Test:** same AST with different @dealloc values → different C++ output, all compile
+- `@Deallocate(Explicit)` → raw pointers, `@Reclaim(Tracing)` → shared_ptr, `@Lifetime(RAII)` / `@Owner(Single)` → unique_ptr
+- **Test:** same AST with different memory annotations → different C++ output, all compile
 
 > **CHECKPOINT:** C++ compiles from AST. Generated C++ compiles with g++ for all 3 example models. Stop here until this passes.
 

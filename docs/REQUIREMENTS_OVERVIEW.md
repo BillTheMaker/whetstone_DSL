@@ -80,15 +80,17 @@ Calculates the "blast radius" of changes.
 | `@fragility` | low/high | Load-bearing legacy code flag |
 
 ### 3. Performance & Resource ("Machinist" System)
-Low-level optimization metadata.
+Low-level optimization metadata. See `annotations/6 optimization and intent.md` for full details.
 
 | Annotation | Type | Purpose |
 |------------|------|---------|
-| `@optimization-priority` | low/mid/high | Generator focus for SIMD/unrolling |
-| `@latency-critical` | bool | Real-time execution requirement |
-| `@memory-footprint` | estimate | Heap/stack allocation intent |
-| `@execution-mode` | deterministic/probabilistic | Formal verification hint |
-| `@deref-explicit` | bool | Every pointer touch must be accounted |
+| `@Hot` / `@Cold` | hint | Profile-guided branch prediction → C++ `[[likely]]`/`[[unlikely]]` |
+| `@Inline(Always\|Never\|Hint)` | mode | Function inlining control |
+| `@Pure` | flag | No side effects (referential transparency) |
+| `@Loop(Unroll,N)` / `@Loop(Vectorize)` / `@Loop(Fuse)` | transform | Loop transformation hints |
+| `@Data(Prefetch)` / `@Data(Restrict)` | hint | Memory locality / alias analysis |
+| `@Align(N)` / `@Pack` / `@ConstExpr` | layout | Hardware alignment, packing, compile-time evaluation |
+| `@Policy(Perf: Critical)` | guardrail | Prioritizes zero-cost abstractions over safety wrappers |
 
 ### 4. Architectural Intent ("Paradigm" System)
 Defines behavioral contracts.
@@ -139,19 +141,31 @@ Preserves language-specific features that don't map directly to other languages.
 
 ---
 
-## Memory Dereferencing Strategies
+## Memory Management Annotations
 
-Memory management is decoupled from logic as a first-class AST field.
+Memory management is decoupled from logic as a first-class AST field. The canonical annotation system (defined in `annotations/Memory strategy.md`) uses distinct annotation families, each targeting a specific memory paradigm:
 
-| Strategy | Description | Generator Responsibility |
-|----------|-------------|-------------------------|
-| `@deref(imperative)` | Manual control - developer defines time/location | Whetstone Generator / Substrate |
-| `@deref(streamed)` | Ownership-based - lifetime tracked at declaration (Rust-like) | Whetstone Generator |
-| `@deref(batched)` | Garbage collected - background process or ref-counting | Whetstone Generator |
-| `@deref(content-addressed)` | Immutable - identity by hash, location irrelevant | Whetstone Generator |
+| Annotation | Paradigm | Description | Key Languages |
+|---|---|---|---|
+| `@Deallocate(Explicit)` | Manual (MM) | Explicit allocation/deallocation, direct `free()`/`delete` | C, C++ (manual mode), Zig |
+| `@Lifetime(RAII)` | RAII | Destructor-based cleanup at scope end | C++ |
+| `@Reclaim(Tracing)` | GC | Automatic runtime reclamation via tracing/mark-sweep | Python, Java, JS, Go, C#, Ruby |
+| `@Reclaim(Cycle)` | GC | Cycle-detection garbage collection | PHP |
+| `@Reclaim(Escape)` | GC | Escape-analysis-based heap vs stack decision | Go |
+| `@Owner(Single)` | Ownership | Compile-time single-owner lifetime tracking (Rust-like) | Rust |
+| `@Owner(Shared_ARC)` | ARC | Deterministic reference counting | Swift, Objective-C |
+| `@Allocate(Static)` | Static | Fixed memory buffers, no dynamic allocation | Fortran |
+| `@Allocate(Register)` | Register | Direct register mapping or stack spill | Assembly |
+| `@Allocate(Allocator)` | Allocator | Explicit allocator parameter threading | Zig |
 
 ### The "Unfilled Node Constraint"
-In `@deref(imperative)` mode, the AST requires an explicit **Dereference Time Field**. If empty, the editor flags it as a "Missing Intent" error. This makes it impossible to forget a dereference.
+In `@Deallocate(Explicit)` mode, the AST requires an explicit **Deallocation Time Field**. If empty, the editor flags it as a "Missing Intent" error. This makes it impossible to forget a deallocation point.
+
+### Lossless Projection Logic
+When the transpiler encounters a memory annotation that the target language cannot express natively (see `annotations/Memory strategy.md` Section 3):
+- **High-Level → Low-Level** (e.g., Python → C): `@Reclaim(Tracing)` → inject `INC_REF`/`DEC_REF` shim with `free()` on zero
+- **Low-Level → High-Level** (e.g., C → Java): `@Deallocate(Explicit)` → wrap in `try-with-resources` or `Cleaner` API
+- **Strict → Permissive** (e.g., Rust → Python): `@Owner(Single)` → preserve in AST metadata, no enforcement in generated code
 
 ---
 
@@ -238,8 +252,8 @@ Tasks can be projected in:
 | Tier | Capabilities |
 |------|--------------|
 | Junior | Basic logic, no memory management, no high-risk annotations |
-| Mid | Standard logic, `@deref(streamed)` and `@deref(batched)` |
-| Senior | `@deref(imperative)`, hardware optimization, high-risk refactoring |
+| Mid | Standard logic, `@Lifetime(RAII)`, `@Reclaim(Tracing)`, `@Owner(Shared_ARC)` |
+| Senior | `@Deallocate(Explicit)`, `@Owner(Single)`, hardware optimization, high-risk refactoring |
 
 ---
 
