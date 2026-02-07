@@ -227,28 +227,25 @@ public:
     // Method to send a command to Emacs
     std::string sendToEmacs(const std::string& command) {
         // In a real implementation, this would send the command to Emacs via emacsclient
-        // For this implementation, we'll simulate the response
-        // This would typically execute: emacsclient -e "command" and return the result
+        // This executes: emacsclient -s whetstone -e "command" and returns the result
         std::cout << "Sending to Emacs: " << command << std::endl;
         
-        // Simulate Emacs response for the test case
-        if (command == "(+ 1 2)") {
-            return "3";
-        }
-        
         // In a real implementation:
-        // std::string cmd = "emacsclient -e \"" + command + "\"";
-        // FILE* pipe = _popen(cmd.c_str(), "r");
-        // if (!pipe) return "";
-        // char buffer[128];
-        // std::string result = "";
-        // while (!feof(pipe)) {
-        //     if (fgets(buffer, 128, pipe) != NULL)
-        //         result += buffer;
-        // }
-        // _pclose(pipe);
-        // return result;
+        std::string cmd = "emacsclient -s whetstone -e \"" + command + "\"";
+        FILE* pipe = _popen(cmd.c_str(), "r");
+        if (!pipe) return "nil";  // Return nil if we can't open the pipe
         
-        return "nil"; // Default response
+        char buffer[4096];
+        std::string result = "";
+        while (!feof(pipe)) {
+            if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+                result += buffer;
+            }
+        }
+        _pclose(pipe);
+        
+        // Trim whitespace from the result
+        result.erase(result.find_last_not_of(" \t\n\r\f\v") + 1);
+        return result.empty() ? "nil" : result;
     }
 };
