@@ -67,6 +67,9 @@ target_include_directories(step16_test PRIVATE src)
 add_executable(step17_test tests/step17_test.cpp)
 target_include_directories(step17_test PRIVATE src)
 
+add_executable(step18_test tests/step18_test.cpp)
+target_include_directories(step18_test PRIVATE src)
+
 add_executable(orchestrator src/orchestrator_main.cpp)
 target_include_directories(orchestrator PRIVATE src)
 target_link_libraries(orchestrator PRIVATE nlohmann_json::nlohmann_json)

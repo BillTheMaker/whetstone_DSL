@@ -17,6 +17,14 @@
 
 using json = nlohmann::json;
 
+// Forward declarations for helper functions
+ASTNode* findNodeById(ASTNode* root, const std::string& id);
+bool setNodeProperty(ASTNode* node, const std::string& property, const json& value);
+void setNodeProperties(ASTNode* node, const json& properties);
+ASTNode* createASTNode(const std::string& conceptType);
+bool isRoleValid(ASTNode* parent, const std::string& role, ASTNode* child);
+std::string generateUniqueId();
+
 // Global orchestrator instance
 std::unique_ptr<Orchestrator> g_orchestrator;
 
@@ -57,6 +65,86 @@ json processRequest(const json& request) {
                 });
             }
         }
+        else if (method == "setNodeProperty") {
+            try {
+                std::string nodeId = request.at("params").at("nodeId");
+                std::string property = request.at("params").at("property");
+                json value = request.at("params").at("value");
+                
+                // Find the node by ID in the AST
+                ASTNode* node = findNodeById(g_orchestrator->getAST(), nodeId);
+                if (!node) {
+                    response["error"] = json::object({
+                        {"code", -32602},
+                        {"message", "Node not found: " + nodeId}
+                    });
+                } else {
+                    // Set the property on the node
+                    bool success = setNodeProperty(node, property, value);
+                    if (success) {
+                        response["result"] = true;
+                    } else {
+                        response["error"] = json::object({
+                            {"code", -32603},
+                            {"message", "Cannot set property '" + property + "' on node type '" + node->conceptType + "'"}
+                        });
+                    }
+                }
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Invalid parameters for setNodeProperty"}
+                });
+            }
+        }
+        else if (method == "insertNode") {
+            try {
+                std::string parentId = request.at("params").at("parentId");
+                std::string role = request.at("params").at("role");
+                std::string conceptType = request.at("params").at("concept");
+                json properties = request.at("params").at("properties");
+                
+                // Find the parent node by ID in the AST
+                ASTNode* parentNode = findNodeById(g_orchestrator->getAST(), parentId);
+                if (!parentNode) {
+                    response["error"] = json::object({
+                        {"code", -32602},
+                        {"message", "Parent node not found: " + parentId}
+                    });
+                } else {
+                    // Create and insert the new node
+                    ASTNode* newNode = createASTNode(conceptType);
+                    if (!newNode) {
+                        response["error"] = json::object({
+                            {"code", -32603},
+                            {"message", "Unknown concept: " + conceptType}
+                        });
+                    } else {
+                        // Set the node ID and properties
+                        newNode->id = generateUniqueId(); // Generate a unique ID
+                        setNodeProperties(newNode, properties);
+                        
+                        // Add to parent in the specified role
+                        if (isRoleValid(parentNode, role, newNode)) {
+                            parentNode->addChild(role, newNode);
+                            response["result"] = toJson(newNode); // Return the inserted node as JSON
+                        } else {
+                            delete newNode; // Clean up the node if insertion failed
+                            response["error"] = json::object({
+                                {"code", -32603},
+                                {"message", "Invalid role '" + role + "' for concept '" + parentNode->conceptType + 
+                                           "' with child concept '" + newNode->conceptType + "'"}
+                            });
+                        }
+                    }
+                }
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Invalid parameters for insertNode"}
+                });
+            }
+        }
         else {
             response["error"] = json::object({
                 {"code", -32601},
@@ -76,6 +164,119 @@ json processRequest(const json& request) {
     }
     
     return response;
+}
+
+// Helper function to find a node by ID in the AST
+ASTNode* findNodeById(ASTNode* root, const std::string& id) {
+    if (!root) return nullptr;
+    if (root->id == id) return root;
+    
+    // Recursively search in children
+    for (auto* child : root->allChildren()) {
+        ASTNode* found = findNodeById(child, id);
+        if (found) return found;
+    }
+    
+    return nullptr;
+}
+
+// Helper function to set a property on a node
+bool setNodeProperty(ASTNode* node, const std::string& property, const json& value) {
+    // This is a simplified implementation - in a real system, we'd have specific setters for each concept
+    // For now, we'll handle a few common properties
+    if (node->conceptType == "Function" && property == "name") {
+        if (value.is_string()) {
+            static_cast<Function*>(node)->name = value.get<std::string>();
+            return true;
+        }
+    } else if (node->conceptType == "Variable" && property == "name") {
+        if (value.is_string()) {
+            static_cast<Variable*>(node)->name = value.get<std::string>();
+            return true;
+        }
+    } else if (node->conceptType == "Parameter" && property == "name") {
+        if (value.is_string()) {
+            static_cast<Parameter*>(node)->name = value.get<std::string>();
+            return true;
+        }
+    }
+    // Add more property setters as needed
+    
+    return false; // Property not supported
+}
+
+// Helper function to set multiple properties on a node
+void setNodeProperties(ASTNode* node, const json& properties) {
+    for (auto& [propName, propValue] : properties.items()) {
+        setNodeProperty(node, propName, propValue);
+    }
+}
+
+// Helper function to set a single property on a node (separate implementation to avoid recursion)
+bool setNodePropertyDirect(ASTNode* node, const std::string& property, const json& value) {
+    // This is a simplified implementation - in a real system, we'd have specific setters for each concept
+    // For now, we'll handle a few common properties
+    if (node->conceptType == "Function" && property == "name") {
+        if (value.is_string()) {
+            static_cast<Function*>(node)->name = value.get<std::string>();
+            return true;
+        }
+    } else if (node->conceptType == "Variable" && property == "name") {
+        if (value.is_string()) {
+            static_cast<Variable*>(node)->name = value.get<std::string>();
+            return true;
+        }
+    } else if (node->conceptType == "Parameter" && property == "name") {
+        if (value.is_string()) {
+            static_cast<Parameter*>(node)->name = value.get<std::string>();
+            return true;
+        }
+    }
+    // Add more property setters as needed
+    
+    return false; // Property not supported
+}
+
+// Helper function to create a new node of the specified concept
+ASTNode* createASTNode(const std::string& conceptType) {
+    if (conceptType == "Function") return new Function();
+    if (conceptType == "Variable") return new Variable();
+    if (conceptType == "Parameter") return new Parameter();
+    if (conceptType == "Assignment") return new Assignment();
+    if (conceptType == "Return") return new Return();
+    if (conceptType == "BinaryOperation") return new BinaryOperation();
+    if (conceptType == "VariableReference") return new VariableReference();
+    if (conceptType == "IntegerLiteral") return new IntegerLiteral();
+    if (conceptType == "StringLiteral") return new StringLiteral();
+    if (conceptType == "BooleanLiteral") return new BooleanLiteral();
+    if (conceptType == "PrimitiveType") return new PrimitiveType();
+    // Add more concepts as needed
+    
+    return nullptr;
+}
+
+// Helper function to check if a role is valid for a parent-child relationship
+bool isRoleValid(ASTNode* parent, const std::string& role, ASTNode* child) {
+    // This is a simplified implementation - in a real system, we'd have a schema to check validity
+    // For now, we'll allow common roles based on parent concept
+    if (parent->conceptType == "Module") {
+        return (role == "functions" || role == "variables" || role == "annotations");
+    } else if (parent->conceptType == "Function") {
+        return (role == "parameters" || role == "body" || role == "annotations" || role == "returnType");
+    } else if (parent->conceptType == "Assignment") {
+        return (role == "target" || role == "value");
+    } else if (parent->conceptType == "BinaryOperation") {
+        return (role == "left" || role == "right");
+    }
+    // Add more role validations as needed
+    
+    return false; // Role not supported
+}
+
+// Helper function to generate a unique ID
+std::string generateUniqueId() {
+    static int counter = 0;
+    return "RPC_" + std::to_string(++counter);
 }
 
 int main(int argc, char* argv[]) {
