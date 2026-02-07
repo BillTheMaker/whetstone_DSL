@@ -1,8 +1,8 @@
-// Step 16: Orchestrator process - AST ownership.
+// Step 17: JSON-RPC server - Ping and getAST methods.
 //
-// Separate C++ process that owns the AST in memory.
-// Exposes nothing yet — just loads, holds, saves on exit.
-// Test: start orchestrator with Calculator.json, kill it, verify JSON saved back.
+// Orchestrator listens on stdin/stdout for JSON-RPC.
+// Responds to `ping` and `getAST` methods.
+// Test: send JSON-RPC from Python script, get response.
 
 #include "Orchestrator.h"
 #include <iostream>
@@ -11,6 +11,11 @@
 #include <cstdlib>
 #include <thread>
 #include <chrono>
+#include <string>
+#include <sstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 // Global orchestrator instance
 std::unique_ptr<Orchestrator> g_orchestrator;
@@ -26,6 +31,51 @@ void signalHandler(int signal) {
         }
     }
     exit(0);
+}
+
+// Process a JSON-RPC request
+json processRequest(const json& request) {
+    json response = json::object();
+    response["jsonrpc"] = "2.0";
+    response["id"] = request.contains("id") ? request["id"] : json(nullptr);
+    
+    try {
+        std::string method = request.at("method");
+        
+        if (method == "ping") {
+            response["result"] = "pong";
+        }
+        else if (method == "getAST") {
+            if (g_orchestrator && g_orchestrator->getAST()) {
+                // Serialize the AST to JSON
+                json astJson = toJson(g_orchestrator->getAST());
+                response["result"] = astJson;
+            } else {
+                response["error"] = json::object({
+                    {"code", -32603},
+                    {"message", "No AST loaded"}
+                });
+            }
+        }
+        else {
+            response["error"] = json::object({
+                {"code", -32601},
+                {"message", "Method not found: " + method}
+            });
+        }
+    } catch (const std::exception& e) {
+        response["error"] = json::object({
+            {"code", -32600},
+            {"message", "Invalid Request: " + std::string(e.what())}
+        });
+    } catch (...) {
+        response["error"] = json::object({
+            {"code", -32600},
+            {"message", "Invalid Request"}
+        });
+    }
+    
+    return response;
 }
 
 int main(int argc, char* argv[]) {
@@ -50,17 +100,35 @@ int main(int argc, char* argv[]) {
     }
     
     std::cout << "Loaded AST from: " << filePath << std::endl;
-    std::cout << "Orchestrator running, holding AST in memory..." << std::endl;
-    std::cout << "Press Ctrl+C to terminate and save" << std::endl;
+    std::cout << "Orchestrator running with JSON-RPC server..." << std::endl;
+    std::cout << "Listening for JSON-RPC requests on stdin..." << std::endl;
     
-    // Simple loop to keep the process alive
-    // In a real implementation, this would be replaced with a proper RPC server
-    while (true) {
-        // Sleep briefly to avoid busy-waiting
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        
-        // In a real implementation, this would handle RPC requests
-        // For now, we just keep the process alive to hold the AST
+    // Main loop to handle JSON-RPC requests from stdin
+    std::string line;
+    while (std::getline(std::cin, line)) {
+        try {
+            // Parse the incoming JSON-RPC request
+            json request = json::parse(line);
+            
+            // Process the request
+            json response = processRequest(request);
+            
+            // Send the response to stdout
+            std::cout << response.dump() << std::endl;
+            std::cout.flush();
+        } catch (const std::exception& e) {
+            // Send error response if request parsing fails
+            json errorResponse = json::object({
+                {"jsonrpc", "2.0"},
+                {"id", json(nullptr)}, // Use null if we couldn't parse the original id
+                {"error", json::object({
+                    {"code", -32700},
+                    {"message", "Parse error: " + std::string(e.what())}
+                })}
+            });
+            std::cout << errorResponse.dump() << std::endl;
+            std::cout.flush();
+        }
     }
     
     return 0;
