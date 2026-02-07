@@ -36,3 +36,6 @@ target_link_libraries(step6_test PRIVATE nlohmann_json::nlohmann_json)
 
 add_executable(step7_test tests/step7_test.cpp)
 target_include_directories(step7_test PRIVATE src)
+
+add_executable(step8_test tests/step8_test.cpp)
+target_include_directories(step8_test PRIVATE src)
