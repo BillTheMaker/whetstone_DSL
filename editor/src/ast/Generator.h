@@ -161,6 +161,12 @@ public:
     std::string visitFunction(const Function* function) override {
         std::ostringstream oss;
         
+        // Process annotations first (these are in the "annotations" role)
+        auto annotations = function->getChildren("annotations");
+        for (const auto* annotation : annotations) {
+            oss << generate(annotation) << "\n";
+        }
+        
         // Generate function signature
         oss << "def " << function->name << "(";
         
