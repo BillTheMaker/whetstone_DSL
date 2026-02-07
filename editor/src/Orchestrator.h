@@ -135,6 +135,30 @@ public:
         return getNodeLock(node->parent);
     }
     
+    // Get all locks on a node and its ancestors
+    std::vector<const OptimizationLock*> getLocks(const std::string& nodeId) const {
+        std::vector<const OptimizationLock*> locks;
+        
+        // Find the node by ID
+        ASTNode* node = findNodeById(currentAST.get(), nodeId);
+        if (!node) return locks;
+        
+        // Collect all locks from the node and up the ancestry
+        const ASTNode* current = node;
+        while (current) {
+            // Check if this node has any optimization lock annotations
+            auto annotations = current->getChildren("annotations");
+            for (const auto* annotation : annotations) {
+                if (annotation->conceptType == "OptimizationLock") {
+                    locks.push_back(static_cast<const OptimizationLock*>(annotation));
+                }
+            }
+            current = current->parent;
+        }
+        
+        return locks;
+    }
+    
     // Record an operation for undo/redo
     void recordOperation(const json& operation) {
         // Clear any operations after the current position (if we're in the middle of the undo stack)

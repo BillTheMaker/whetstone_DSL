@@ -370,14 +370,14 @@ int main(int, char**)
         
         // Show the editor area based on projection mode
         ImGui::Begin("Editor Area");
-        
+
         if (projectionMode == 0) {
             // Python projection - show generated Python code
-            
+
             // Add line numbers in the left margin
             ImGui::BeginChild("LineNumberArea", ImVec2(50, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));  // Gray color for line numbers
-            
+
             // Count lines in the Python code
             int lineCount = 1;
             const char* ptr = textBuffer;
@@ -387,27 +387,57 @@ int main(int, char**)
                 }
                 ptr++;
             }
-            
+
             for (int i = 1; i <= lineCount; i++) {
-                ImGui::Text("%4d", i);
+                // Check if this line corresponds to a locked node
+                // For now, we'll just show a simple example - in a real implementation,
+                // we'd check if the current line contains code from a locked node
+                bool isLocked = false;  // Placeholder - would check actual AST
+                
+                if (isLocked) {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));  // Red for locked
+                    ImGui::Text("⚠");  // Warning icon
+                    ImGui::PopStyleColor();
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("LOCKED: This code is locked by Alice for optimization");
+                        ImGui::EndTooltip();
+                    }
+                } else {
+                    ImGui::Text(" ");  // Space for alignment when not locked
+                }
+                
+                ImGui::SameLine();
+                ImGui::Text("%3d", i);
                 ImGui::Spacing();
             }
-            
+
             ImGui::PopStyleColor();
             ImGui::EndChild();
             ImGui::SameLine();
-            
+
             // Text display area with scrolling
             ImGui::BeginChild("TextEditArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-            
+
             // Display the Python text content
             ImGui::TextUnformatted(textBuffer);
-            
+
+            // In a real implementation, we would highlight locked regions
+            // and show warning icons next to locked nodes
+            // For now, we'll just add a general warning if there are any locks
+            json locks = g_rpc_client.call("getLocks", json::object({{"nodeId", "Calc_M001"}}));
+            if (!locks.is_null() && locks.is_array() && !locks.empty()) {
+                ImGui::Separator();
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.7f, 0.0f, 1.0f));  // Orange warning color
+                ImGui::Text("⚠ WARNING: This module contains locked nodes that cannot be modified");
+                ImGui::PopStyleColor();
+            }
+
             ImGui::EndChild();
         } else {
             // AST projection - show JSON representation of the AST
             ImGui::BeginChild("ASTViewArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-            
+
             // Show a sample AST JSON representation
             static const char astJson[] = 
                 "{\n"
@@ -455,10 +485,10 @@ int main(int, char**)
                 "}";
             
             ImGui::TextUnformatted(astJson);
-            
+
             ImGui::EndChild();
         }
-        
+
         ImGui::End();
 
         // Also create file tree and bottom panel for completeness

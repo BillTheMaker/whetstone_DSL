@@ -317,6 +317,35 @@ json processRequest(const json& request) {
                 });
             }
         }
+        else if (method == "getLocks") {
+            try {
+                std::string nodeId = request.at("params").at("nodeId");
+                std::vector<const OptimizationLock*> locks = g_orchestrator->getLocks(nodeId);
+                
+                // Convert the locks to JSON
+                json locksJson = json::array();
+                for (const auto* lock : locks) {
+                    json lockJson = json::object();
+                    lockJson["lockedBy"] = lock->lockedBy;
+                    lockJson["lockReason"] = lock->lockReason;
+                    lockJson["lockLevel"] = lock->lockLevel;
+                    if (!lock->affectedStrategies.empty()) {
+                        lockJson["affectedStrategies"] = lock->affectedStrategies;
+                    }
+                    if (!lock->timestamp.empty()) {
+                        lockJson["timestamp"] = lock->timestamp;
+                    }
+                    locksJson.push_back(lockJson);
+                }
+                
+                response["result"] = locksJson;
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Invalid parameters for getLocks"}
+                });
+            }
+        }
         else {
             response["error"] = json::object({
                 {"code", -32601},
