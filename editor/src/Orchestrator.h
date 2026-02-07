@@ -10,6 +10,7 @@
 #include <deque>
 #include <cstdio>  // For system() and popen() functions
 #include "ast/Generator.h"  // For the code generators
+#include "ast/Parser.h"  // For tree-sitter parser integration
 
 class Orchestrator {
 private:
@@ -250,26 +251,36 @@ public:
         return result.empty() ? "nil" : result;
     }
     
-    // Method to load a file via Emacs and parse to AST
+    // Method to load a file via Emacs and parse to AST using tree-sitter
     std::unique_ptr<Module> loadFile(const std::string& path) {
         // First, get the file content from Emacs
         std::string command = "(with-current-buffer (find-file-noselect \"" + path + "\") (buffer-string))";
         std::string content = sendToEmacs(command);
         
-        // Then, if it's a Python file, we might want to parse it using tree-sitter
-        // For now, we'll return a simple module representation
-        // In a real implementation, this would parse the content and build an AST
+        // Determine the language based on file extension
+        std::string targetLanguage = "python";  // Default
+        if (path.substr(path.find_last_of(".") + 1) == "cpp" || path.substr(path.find_last_of(".") + 1) == "hpp") {
+            targetLanguage = "cpp";
+        } else if (path.substr(path.find_last_of(".") + 1) == "py") {
+            targetLanguage = "python";
+        }
         
-        // For demonstration purposes, we'll create a simple module
-        auto module = std::make_unique<Module>();
-        module->id = "LoadedModule_" + std::to_string(reinterpret_cast<uintptr_t>(module.get()));
-        module->name = path;  // Use filename as module name
-        module->targetLanguage = "python";  // Assume Python for .py files
+        // Parse the content using the appropriate tree-sitter parser
+        std::unique_ptr<Module> module;
+        if (targetLanguage == "python") {
+            module = TreeSitterParser::parsePython(content);
+        } else if (targetLanguage == "cpp") {
+            module = TreeSitterParser::parseCpp(content);
+        } else {
+            // For unknown languages, create a basic module with the content
+            module = std::make_unique<Module>();
+            module->id = "LoadedModule_" + std::to_string(reinterpret_cast<uintptr_t>(module.get()));
+            module->name = path;
+            module->targetLanguage = targetLanguage;
+        }
         
-        // In a real implementation, we would:
-        // 1. Parse the content using appropriate parser (tree-sitter)
-        // 2. Build the AST from the parsed content
-        // 3. Return the resulting AST
+        // Set the module name to match the file path
+        module->name = path;
         
         return module;
     }
