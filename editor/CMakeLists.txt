@@ -58,4 +58,7 @@ target_include_directories(step13_test PRIVATE src)
 add_executable(step14_test tests/step14_test.cpp)
 target_include_directories(step14_test PRIVATE src)
 
+add_executable(step15_test tests/step15_test.cpp)
+target_include_directories(step15_test PRIVATE src)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

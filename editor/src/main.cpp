@@ -238,6 +238,108 @@ int main(int, char**)
         
         ImGui::End();
 
+        // Add projection toggle buttons
+        static int projectionMode = 0; // 0 = Python, 1 = AST
+        
+        ImGui::Begin("Toolbar");
+        if (ImGui::Button("Python")) projectionMode = 0;
+        ImGui::SameLine();
+        if (ImGui::Button("AST")) projectionMode = 1;
+        ImGui::End();
+        
+        // Show the editor area based on projection mode
+        ImGui::Begin("Editor Area");
+        
+        if (projectionMode == 0) {
+            // Python projection - show generated Python code
+            
+            // Add line numbers in the left margin
+            ImGui::BeginChild("LineNumberArea", ImVec2(50, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));  // Gray color for line numbers
+            
+            // Count lines in the Python code
+            int lineCount = 1;
+            const char* ptr = textBuffer;
+            while (*ptr) {
+                if (*ptr == '\n') {
+                    lineCount++;
+                }
+                ptr++;
+            }
+            
+            for (int i = 1; i <= lineCount; i++) {
+                ImGui::Text("%4d", i);
+                ImGui::Spacing();
+            }
+            
+            ImGui::PopStyleColor();
+            ImGui::EndChild();
+            ImGui::SameLine();
+            
+            // Text display area with scrolling
+            ImGui::BeginChild("TextEditArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+            
+            // Display the Python text content
+            ImGui::TextUnformatted(textBuffer);
+            
+            ImGui::EndChild();
+        } else {
+            // AST projection - show JSON representation of the AST
+            ImGui::BeginChild("ASTViewArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+            
+            // Show a sample AST JSON representation
+            static const char astJson[] = 
+                "{\n"
+                "  \"id\": \"Calc_M001\",\n"
+                "  \"concept\": \"Module\",\n"
+                "  \"properties\": {\n"
+                "    \"name\": \"Calculator\",\n"
+                "    \"targetLanguage\": \"python\"\n"
+                "  },\n"
+                "  \"children\": {\n"
+                "    \"functions\": [\n"
+                "      {\n"
+                "        \"id\": \"Calc_F001\",\n"
+                "        \"concept\": \"Function\",\n"
+                "        \"properties\": { \"name\": \"add\" },\n"
+                "        \"children\": {\n"
+                "          \"parameters\": [\n"
+                "            {\n"
+                "              \"id\": \"Calc_P001\",\n"
+                "              \"concept\": \"Parameter\",\n"
+                "              \"properties\": { \"name\": \"x\" },\n"
+                "              \"children\": {\n"
+                "                \"type\": [{\n"
+                "                  \"id\": \"Calc_PT001\",\n"
+                "                  \"concept\": \"PrimitiveType\",\n"
+                "                  \"properties\": { \"kind\": \"int\" }\n"
+                "                }]\n"
+                "              }\n"
+                "            }\n"
+                "          ],\n"
+                "          \"body\": [\n"
+                "            {\n"
+                "              \"id\": \"Calc_A001\",\n"
+                "              \"concept\": \"Assignment\",\n"
+                "              \"children\": {\n"
+                "                \"target\": [...],\n"
+                "                \"value\": [...]\n"
+                "              }\n"
+                "            }\n"
+                "          ]\n"
+                "        }\n"
+                "      }\n"
+                "    ]\n"
+                "  }\n"
+                "}";
+            
+            ImGui::TextUnformatted(astJson);
+            
+            ImGui::EndChild();
+        }
+        
+        ImGui::End();
+
         // Also create file tree and bottom panel for completeness
         ImGui::Begin("File Tree");
         ImGui::Text("Calculator.py");
@@ -246,8 +348,11 @@ int main(int, char**)
         ImGui::End();
 
         ImGui::Begin("Panel");
-        ImGui::Text("Status: Ready");
-        ImGui::Text("Lines: %d", lineCount);
+        if (projectionMode == 0) {
+            ImGui::Text("Projection: Python");
+        } else {
+            ImGui::Text("Projection: AST");
+        }
         ImGui::End();
 
         // Rendering
