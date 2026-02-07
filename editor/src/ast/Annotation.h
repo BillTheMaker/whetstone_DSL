@@ -39,3 +39,81 @@ public:
     std::string position;
     LangSpecific() { conceptType = "LangSpecific"; }
 };
+
+// New canonical memory annotations replacing the old DerefStrategy
+
+class DeallocateAnnotation : public Annotation {
+public:
+    std::string strategy;  // "Explicit" for manual allocation/deallocation
+    std::string deallocateLocation;
+    std::string owner;
+    DeallocateAnnotation() { 
+        conceptType = "DeallocateAnnotation"; 
+        strategy = "Explicit";
+    }
+    DeallocateAnnotation(const std::string& id, const std::string& strategy_val)
+        : strategy(strategy_val) {
+        this->id = id;
+        this->conceptType = "DeallocateAnnotation";
+    }
+};
+
+class LifetimeAnnotation : public Annotation {
+public:
+    std::string strategy;  // "RAII" for destructor-based cleanup
+    std::string lifetimeScope;
+    LifetimeAnnotation() { 
+        conceptType = "LifetimeAnnotation"; 
+        strategy = "RAII";
+    }
+    LifetimeAnnotation(const std::string& id, const std::string& strategy_val)
+        : strategy(strategy_val) {
+        this->id = id;
+        this->conceptType = "LifetimeAnnotation";
+    }
+};
+
+class ReclaimAnnotation : public Annotation {
+public:
+    std::string strategy;  // "Tracing", "Cycle", "Escape" for different GC strategies
+    std::string reclaimPattern;
+    ReclaimAnnotation() { 
+        conceptType = "ReclaimAnnotation"; 
+        strategy = "Tracing";
+    }
+    ReclaimAnnotation(const std::string& id, const std::string& strategy_val)
+        : strategy(strategy_val) {
+        this->id = id;
+        this->conceptType = "ReclaimAnnotation";
+    }
+};
+
+class OwnerAnnotation : public Annotation {
+public:
+    std::string strategy;  // "Single", "Shared_ARC" for ownership strategies
+    std::string ownerType;
+    OwnerAnnotation() { 
+        conceptType = "OwnerAnnotation"; 
+        strategy = "Single";
+    }
+    OwnerAnnotation(const std::string& id, const std::string& strategy_val)
+        : strategy(strategy_val) {
+        this->id = id;
+        this->conceptType = "OwnerAnnotation";
+    }
+};
+
+class AllocateAnnotation : public Annotation {
+public:
+    std::string strategy;  // "Static", "Register", "Allocator" for allocation strategies
+    std::string allocationPattern;
+    AllocateAnnotation() { 
+        conceptType = "AllocateAnnotation"; 
+        strategy = "Static";
+    }
+    AllocateAnnotation(const std::string& id, const std::string& strategy_val)
+        : strategy(strategy_val) {
+        this->id = id;
+        this->conceptType = "AllocateAnnotation";
+    }
+};
