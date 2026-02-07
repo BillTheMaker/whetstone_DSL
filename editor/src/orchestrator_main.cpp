@@ -127,6 +127,18 @@ json processRequest(const json& request) {
                         // Add to parent in the specified role
                         if (isRoleValid(parentNode, role, newNode)) {
                             parentNode->addChild(role, newNode);
+                            
+                            // Record the operation in the journal for undo/redo
+                            json operation = json::object({
+                                {"type", "insertNode"},
+                                {"nodeId", newNode->id},
+                                {"parentId", parentId},
+                                {"role", role},
+                                {"concept", conceptType},
+                                {"properties", properties}
+                            });
+                            g_orchestrator->recordOperation(operation);
+                            
                             response["result"] = toJson(newNode); // Return the inserted node as JSON
                         } else {
                             delete newNode; // Clean up the node if insertion failed
@@ -142,6 +154,100 @@ json processRequest(const json& request) {
                 response["error"] = json::object({
                     {"code", -32600},
                     {"message", "Invalid parameters for insertNode"}
+                });
+            }
+        }
+        else if (method == "setNodeProperty") {
+            try {
+                std::string nodeId = request.at("params").at("nodeId");
+                std::string property = request.at("params").at("property");
+                json value = request.at("params").at("value");
+                
+                // Get the old value for undo
+                ASTNode* node = findNodeById(g_orchestrator->getAST(), nodeId);
+                if (!node) {
+                    response["error"] = json::object({
+                        {"code", -32602},
+                        {"message", "Node not found: " + nodeId}
+                    });
+                } else {
+                    // Store old value for undo
+                    json oldValue;
+                    if (node->conceptType == "Function" && property == "name") {
+                        oldValue = static_cast<Function*>(node)->name;
+                    } else if (node->conceptType == "Variable" && property == "name") {
+                        oldValue = static_cast<Variable*>(node)->name;
+                    } else if (node->conceptType == "Parameter" && property == "name") {
+                        oldValue = static_cast<Parameter*>(node)->name;
+                    } else {
+                        response["error"] = json::object({
+                            {"code", -32603},
+                            {"message", "Cannot set property '" + property + "' on node type '" + node->conceptType + "'"}
+                        });
+                        return response;
+                    }
+                    
+                    // Set the property on the node
+                    bool success = setNodeProperty(node, property, value);
+                    if (success) {
+                        // Record the operation in the journal for undo/redo
+                        json operation = json::object({
+                            {"type", "setNodeProperty"},
+                            {"nodeId", nodeId},
+                            {"property", property},
+                            {"oldValue", oldValue},
+                            {"newValue", value}
+                        });
+                        g_orchestrator->recordOperation(operation);
+                        
+                        response["result"] = true;
+                    } else {
+                        response["error"] = json::object({
+                            {"code", -32603},
+                            {"message", "Cannot set property '" + property + "' on node type '" + node->conceptType + "'"}
+                        });
+                    }
+                }
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Invalid parameters for setNodeProperty"}
+                });
+            }
+        }
+        else if (method == "undo") {
+            try {
+                bool success = g_orchestrator->undoLastOperation();
+                if (success) {
+                    response["result"] = true;
+                } else {
+                    response["error"] = json::object({
+                        {"code", -32603},
+                        {"message", "No operations to undo"}
+                    });
+                }
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Error during undo operation"}
+                });
+            }
+        }
+        else if (method == "redo") {
+            try {
+                bool success = g_orchestrator->redoLastOperation();
+                if (success) {
+                    response["result"] = true;
+                } else {
+                    response["error"] = json::object({
+                        {"code", -32603},
+                        {"message", "No operations to redo"}
+                    });
+                }
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Error during redo operation"}
                 });
             }
         }
