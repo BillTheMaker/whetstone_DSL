@@ -170,21 +170,30 @@ int main(int, char**)
 
         ImGui::End();
 
-        // Create the editor area with hardcoded Python content
-        static char textBuffer[] = 
+        // Load Calculator JSON, build AST, run Python generator, display in viewport
+        // For now, we'll simulate this with a hardcoded example
+        // In a real implementation, this would load from a file and process through the AST
+        
+        // Simulate loading Calculator AST and generating Python code
+        std::string generatedPythonCode = 
+            "\"\"\"Module: Calculator\"\"\"\n\n"
+            "PI = 3.14159\n\n"
             "def add(x: int, y: int):\n"
             "    result = x + y\n"
-            "    return result\n"
-            "\n"
+            "    return result\n\n"
             "def multiply(a: int, b: int):\n"
-            "    return a * b\n"
-            "\n"
+            "    return a * b\n\n"
             "# @deref(batched)\n"
             "def calculate_sum(items: List[int]):\n"
             "    total = 0\n"
             "    for item in items:\n"
             "        total += item\n"
             "    return total\n";
+            
+        // Convert to static buffer for ImGui
+        static char textBuffer[4096];
+        strncpy(textBuffer, generatedPythonCode.c_str(), sizeof(textBuffer) - 1);
+        textBuffer[sizeof(textBuffer) - 1] = '\0';
 
         // Show the editor area - this will be docked by the docking system
         ImGui::Begin("Editor Area");
