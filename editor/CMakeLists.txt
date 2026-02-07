@@ -29,3 +29,7 @@ target_include_directories(step4_test PRIVATE src)
 add_executable(step5_test tests/step5_test.cpp)
 target_include_directories(step5_test PRIVATE src)
 target_link_libraries(step5_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step6_test tests/step6_test.cpp)
+target_include_directories(step6_test PRIVATE src)
+target_link_libraries(step6_test PRIVATE nlohmann_json::nlohmann_json)
