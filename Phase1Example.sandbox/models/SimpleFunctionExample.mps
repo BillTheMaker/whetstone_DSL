@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model ref="r:c1d2e3f4-a5b6-47c8-9d0e-f1a2b3c4d5e6(Phase1Test)">
+<model ref="r:a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6(SimpleFunctionExample)">
   <persistence version="9" />
   <languages>
     <use id="a452e1cf-6f8c-4bca-8447-fd4d6e4d0003" name="SemAnno" version="0" />
@@ -8,11 +8,11 @@
   <imports />
   <registry>
     <language id="a452e1cf-6f8c-4bca-8447-fd4d6e4d0003" name="SemAnno">
-      <concept id="8982541288447632700" name="SemAnno.structure.Variable" flags="ng" index="2EAK29">
-        <child id="8982541288447632702" name="type" index="2EAK2b" />
-      </concept>
       <concept id="8982541288447632652" name="SemAnno.structure.VariableReference" flags="ng" index="2EAK2T">
         <property id="8982541288447632654" name="variableName" index="2EAK2V" />
+      </concept>
+      <concept id="8982541288447632721" name="SemAnno.structure.DerefStrategy" flags="ng" index="2EAK3$">
+        <property id="8982541288447632722" name="strategy" index="2EAK3B" />
       </concept>
       <concept id="8982541288447632557" name="SemAnno.structure.BinaryOperation" flags="ng" index="2EAK4o">
         <property id="8982541288447632558" name="operator" index="2EAK4r" />
@@ -29,13 +29,13 @@
         <child id="8982541288447632653" name="type" index="2EAK2S" />
       </concept>
       <concept id="8440420766104857192" name="SemAnno.structure.Function" flags="ng" index="3rCcYv">
+        <child id="8982541288447632624" name="annotations" index="2EAK55" />
         <child id="8982541288447632621" name="returnType" index="2EAK5o" />
         <child id="8982541288447632623" name="parameters" index="2EAK5q" />
         <child id="8982541288447632622" name="body" index="2EAK5r" />
       </concept>
       <concept id="8440420766104857128" name="SemAnno.structure.Module" flags="ng" index="3rCcZv">
         <property id="8982541288447632592" name="targetLanguage" index="2EAK5_" />
-        <child id="8982541288447632592" name="variables" index="2EAK5_" />
         <child id="8982541288447632589" name="functions" index="2EAK5S" />
       </concept>
       <concept id="8440420766104853160" name="SemAnno.structure.Assignment" flags="ng" index="3rCfXv">
@@ -49,80 +49,47 @@
       </concept>
     </language>
   </registry>
-  <node concept="3rCcZv" id="Calc_M001">
-    <property role="TrG5h" value="Calculator" />
+  <node concept="3rCcZv" id="SFE_M001">
+    <property role="TrG5h" value="SimpleFunctionExample" />
     <property role="2EAK5_" value="6LZhwXW98Rc/cpp" />
-    <node concept="2EAK29" id="Calc_V001" role="2EAK5_">
-      <property role="TrG5h" value="PI" />
-      <node concept="3rC1Zv" id="Calc_VT001" role="2EAK2b">
-        <property role="2EAKpV" value="float" />
+    <node concept="3rCcYv" id="SFE_F001" role="2EAK5S">
+      <property role="TrG5h" value="calculate_sum" />
+      <node concept="2EAK3$" id="SFE_DR001" role="2EAK55">
+        <property role="2EAK3B" value="batched" />
       </node>
-    </node>
-    <node concept="3rCcYv" id="Calc_F001" role="2EAK5S">
-      <property role="TrG5h" value="add" />
-      <node concept="3rC1Zv" id="Calc_RT001" role="2EAK5o">
+      <node concept="3rCcXv" id="SFE_P001" role="2EAK5q">
+        <property role="TrG5h" value="a" />
+        <node concept="3rC1Zv" id="SFE_PT001" role="2EAK2S">
+          <property role="2EAKpV" value="int" />
+        </node>
+      </node>
+      <node concept="3rCcXv" id="SFE_P002" role="2EAK5q">
+        <property role="TrG5h" value="b" />
+        <node concept="3rC1Zv" id="SFE_PT002" role="2EAK2S">
+          <property role="2EAKpV" value="int" />
+        </node>
+      </node>
+      <node concept="3rC1Zv" id="SFE_RT001" role="2EAK5o">
         <property role="2EAKpV" value="int" />
       </node>
-      <node concept="3rCcXv" id="Calc_P001" role="2EAK5q">
-        <property role="TrG5h" value="x" />
-        <node concept="3rC1Zv" id="Calc_PT001" role="2EAK2S">
-          <property role="2EAKpV" value="int" />
-        </node>
-      </node>
-      <node concept="3rCcXv" id="Calc_P002" role="2EAK5q">
-        <property role="TrG5h" value="y" />
-        <node concept="3rC1Zv" id="Calc_PT002" role="2EAK2S">
-          <property role="2EAKpV" value="int" />
-        </node>
-      </node>
-      <node concept="3rCfXv" id="Calc_A001" role="2EAK5r">
-        <node concept="2EAK2T" id="c_VR_result" role="2EAKpo">
+      <node concept="3rCfXv" id="SFE_A001" role="2EAK5r">
+        <node concept="2EAK2T" id="SFE_VR001" role="2EAKpo">
           <property role="2EAK2V" value="result" />
         </node>
-        <node concept="2EAK4o" id="Calc_E001" role="2EAKpq">
+        <node concept="2EAK4o" id="SFE_BO001" role="2EAKpq">
           <property role="TrG5h" value="+" />
           <property role="2EAK4r" value="+" />
-          <node concept="2EAK2T" id="Calc_VR_x" role="2EAK4q">
-            <property role="2EAK2V" value="x" />
-          </node>
-          <node concept="2EAK2T" id="Calc_VR_y" role="2EAK45">
-            <property role="2EAK2V" value="y" />
-          </node>
-        </node>
-      </node>
-      <node concept="2EAK7p" id="Calc_R001" role="2EAK5r">
-        <node concept="2EAK2T" id="c_VR_return" role="2EAK7o">
-          <property role="2EAK2V" value="result" />
-        </node>
-      </node>
-    </node>
-    <node concept="3rCcYv" id="Calc_F002" role="2EAK5S">
-      <property role="TrG5h" value="multiply" />
-      <node concept="3rC1Zv" id="Calc_RT002" role="2EAK5o">
-        <property role="2EAKpV" value="int" />
-      </node>
-      <node concept="3rCcXv" id="Calc_P003" role="2EAK5q">
-        <property role="TrG5h" value="a" />
-        <node concept="3rC1Zv" id="Calc_PT003" role="2EAK2S">
-          <property role="2EAKpV" value="int" />
-        </node>
-      </node>
-      <node concept="3rCcXv" id="Calc_P004" role="2EAK5q">
-        <property role="TrG5h" value="b" />
-        <node concept="3rC1Zv" id="Calc_PT004" role="2EAK2S">
-          <property role="2EAKpV" value="int" />
-        </node>
-      </node>
-      <node concept="2EAK7p" id="Calc_R002" role="2EAK5r">
-        <node concept="2EAK4o" id="Calc_E005" role="2EAK7o">
-          <property role="TrG5h" value="*" />
-          <property role="2EAK4r" value="*" />
-          <node concept="2EAK2T" id="Calc_VR_a" role="2EAK4q">
+          <node concept="2EAK2T" id="SFE_VR_a" role="2EAK4q">
             <property role="2EAK2V" value="a" />
           </node>
-          <node concept="2EAK2T" id="Calc_VR_b" role="2EAK45">
+          <node concept="2EAK2T" id="SFE_VR_b" role="2EAK45">
             <property role="2EAK2V" value="b" />
           </node>
+        </node>
+      </node>
+      <node concept="2EAK7p" id="SFE_R001" role="2EAK5r">
+        <node concept="2EAK2T" id="SFE_VR_ret" role="2EAK7o">
+          <property role="2EAK2V" value="result" />
         </node>
       </node>
     </node>

@@ -477,31 +477,31 @@ languages/
 
 Build SemAnno incrementally, testing each phase before moving forward:
 
-1. **Week 1-2: Core AST Structure**
+1. **Core AST Structure**
    - Add core concepts to SemAnno.structure.mps (Module, Function, Variable, Statement, Expression, Type nodes)
    - Create basic editors in SemAnno.editor.mps for each node type
    - Manual AST creation works in MPS
    - Test: Create a simple function with statements and expressions
 
-2. **Week 3-4: Python Projection & Generator**
+2. **Python Projection & Generator**
    - Extend SemAnno.editor.mps with Python-syntax projections
    - Implement Python generator in SemAnno.textGen.mps
    - Manual round-trip: type Python-like code → see generated .py file
    - Test: Generate valid, runnable Python code
 
-3. **Week 5-6: C++ Projection & Generator**
+3. **C++ Projection & Generator**
    - Extend SemAnno.editor.mps with C++ syntax projections
    - Implement C++ generator in SemAnno.textGen.mps
    - Add deref strategy translation to generator
    - Test: Generate valid, compilable C++ code for each deref strategy
 
-4. **Week 7-8: Tree-sitter Import**
+4. **Tree-sitter Import**
    - Add import behavior to SemAnno.behavior.mps
    - Integrate tree-sitter-python for Python parsing
    - Integrate tree-sitter-cpp for C++ parsing
    - Test: Parse Python/C++ files → populate SemAnno AST
 
-5. **Week 9-10: Warning System & Annotations**
+5. **Warning System & Annotations**
    - Add OptimizationLock and DerefStrategy annotations to SemAnno.structure.mps
    - Implement warning logic in SemAnno.behavior.mps
    - Add warning UI to SemAnno.editor.mps

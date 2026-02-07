@@ -13,7 +13,16 @@
       "Bash(python3:*)",
       "Bash(python:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:java.hotexamples.com)"
+      "WebFetch(domain:java.hotexamples.com)",
+      "Bash(dir:*)",
+      "Bash(cmake:*)",
+      "Bash(\"E:\\\\Whetstone_DSL\\\\editor\\\\build\\\\Debug\\\\step1_test.exe\")",
+      "Bash(/e/Whetstone_DSL/editor/build/step1_test.exe)",
+      "Bash(/e/Whetstone_DSL/editor/build/step2_test.exe)",
+      "Bash(/e/Whetstone_DSL/editor/build/step3_test.exe)",
+      "Bash(build/step3_test.exe)",
+      "Bash(build/step4_test.exe)",
+      "Bash(/e/Whetstone_DSL/editor/build/step5_test.exe)"
     ]
   }
 }
