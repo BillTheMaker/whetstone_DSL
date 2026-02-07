@@ -112,41 +112,52 @@ json processRequest(const json& request) {
                         {"message", "Parent node not found: " + parentId}
                     });
                 } else {
-                    // Create and insert the new node
-                    ASTNode* newNode = createASTNode(conceptType);
-                    if (!newNode) {
+                    // Check if the parent node or any of its ancestors is locked
+                    if (g_orchestrator->isNodeLocked(parentNode)) {
+                        const OptimizationLock* lock = g_orchestrator->getNodeLock(parentNode);
+                        std::string lockOwner = lock ? lock->lockedBy : "unknown";
                         response["error"] = json::object({
-                            {"code", -32603},
-                            {"message", "Unknown concept: " + conceptType}
+                            {"code", -32604},
+                            {"message", "Cannot insert node: parent node is locked by " + lockOwner + 
+                                       ". Insertion blocked for optimization protection."}
                         });
                     } else {
-                        // Set the node ID and properties
-                        newNode->id = generateUniqueId(); // Generate a unique ID
-                        setNodeProperties(newNode, properties);
-                        
-                        // Add to parent in the specified role
-                        if (isRoleValid(parentNode, role, newNode)) {
-                            parentNode->addChild(role, newNode);
-                            
-                            // Record the operation in the journal for undo/redo
-                            json operation = json::object({
-                                {"type", "insertNode"},
-                                {"nodeId", newNode->id},
-                                {"parentId", parentId},
-                                {"role", role},
-                                {"concept", conceptType},
-                                {"properties", properties}
-                            });
-                            g_orchestrator->recordOperation(operation);
-                            
-                            response["result"] = toJson(newNode); // Return the inserted node as JSON
-                        } else {
-                            delete newNode; // Clean up the node if insertion failed
+                        // Create and insert the new node
+                        ASTNode* newNode = createASTNode(conceptType);
+                        if (!newNode) {
                             response["error"] = json::object({
                                 {"code", -32603},
-                                {"message", "Invalid role '" + role + "' for concept '" + parentNode->conceptType + 
-                                           "' with child concept '" + newNode->conceptType + "'"}
+                                {"message", "Unknown concept: " + conceptType}
                             });
+                        } else {
+                            // Set the node ID and properties
+                            newNode->id = generateUniqueId(); // Generate a unique ID
+                            setNodeProperties(newNode, properties);
+                            
+                            // Add to parent in the specified role
+                            if (isRoleValid(parentNode, role, newNode)) {
+                                parentNode->addChild(role, newNode);
+                                
+                                // Record the operation in the journal for undo/redo
+                                json operation = json::object({
+                                    {"type", "insertNode"},
+                                    {"nodeId", newNode->id},
+                                    {"parentId", parentId},
+                                    {"role", role},
+                                    {"concept", conceptType},
+                                    {"properties", properties}
+                                });
+                                g_orchestrator->recordOperation(operation);
+                                
+                                response["result"] = toJson(newNode); // Return the inserted node as JSON
+                            } else {
+                                delete newNode; // Clean up the node if insertion failed
+                                response["error"] = json::object({
+                                    {"code", -32603},
+                                    {"message", "Invalid role '" + role + "' for concept '" + parentNode->conceptType + 
+                                               "' with child concept '" + newNode->conceptType + "'"}
+                                });
+                            }
                         }
                     }
                 }
@@ -163,7 +174,7 @@ json processRequest(const json& request) {
                 std::string property = request.at("params").at("property");
                 json value = request.at("params").at("value");
                 
-                // Get the old value for undo
+                // Get the node by ID in the AST
                 ASTNode* node = findNodeById(g_orchestrator->getAST(), nodeId);
                 if (!node) {
                     response["error"] = json::object({
@@ -171,41 +182,52 @@ json processRequest(const json& request) {
                         {"message", "Node not found: " + nodeId}
                     });
                 } else {
-                    // Store old value for undo
-                    json oldValue;
-                    if (node->conceptType == "Function" && property == "name") {
-                        oldValue = static_cast<Function*>(node)->name;
-                    } else if (node->conceptType == "Variable" && property == "name") {
-                        oldValue = static_cast<Variable*>(node)->name;
-                    } else if (node->conceptType == "Parameter" && property == "name") {
-                        oldValue = static_cast<Parameter*>(node)->name;
-                    } else {
+                    // Check if the node or any of its ancestors is locked
+                    if (g_orchestrator->isNodeLocked(node)) {
+                        const OptimizationLock* lock = g_orchestrator->getNodeLock(node);
+                        std::string lockOwner = lock ? lock->lockedBy : "unknown";
                         response["error"] = json::object({
-                            {"code", -32603},
-                            {"message", "Cannot set property '" + property + "' on node type '" + node->conceptType + "'"}
+                            {"code", -32604},
+                            {"message", "Cannot modify property '" + property + "': node is locked by " + lockOwner + 
+                                       ". Modification blocked for optimization protection."}
                         });
-                        return response;
-                    }
-                    
-                    // Set the property on the node
-                    bool success = setNodeProperty(node, property, value);
-                    if (success) {
-                        // Record the operation in the journal for undo/redo
-                        json operation = json::object({
-                            {"type", "setNodeProperty"},
-                            {"nodeId", nodeId},
-                            {"property", property},
-                            {"oldValue", oldValue},
-                            {"newValue", value}
-                        });
-                        g_orchestrator->recordOperation(operation);
+                    } else {
+                        // Store old value for undo
+                        json oldValue;
+                        if (node->conceptType == "Function" && property == "name") {
+                            oldValue = static_cast<Function*>(node)->name;
+                        } else if (node->conceptType == "Variable" && property == "name") {
+                            oldValue = static_cast<Variable*>(node)->name;
+                        } else if (node->conceptType == "Parameter" && property == "name") {
+                            oldValue = static_cast<Parameter*>(node)->name;
+                        } else {
+                            response["error"] = json::object({
+                                {"code", -32603},
+                                {"message", "Cannot set property '" + property + "' on node type '" + node->conceptType + "'"}
+                            });
+                            return response;
+                        }
                         
-                        response["result"] = true;
-                    } else {
-                        response["error"] = json::object({
-                            {"code", -32603},
-                            {"message", "Cannot set property '" + property + "' on node type '" + node->conceptType + "'"}
-                        });
+                        // Set the property on the node
+                        bool success = setNodeProperty(node, property, value);
+                        if (success) {
+                            // Record the operation in the journal for undo/redo
+                            json operation = json::object({
+                                {"type", "setNodeProperty"},
+                                {"nodeId", nodeId},
+                                {"property", property},
+                                {"oldValue", oldValue},
+                                {"newValue", value}
+                            });
+                            g_orchestrator->recordOperation(operation);
+                            
+                            response["result"] = true;
+                        } else {
+                            response["error"] = json::object({
+                                {"code", -32603},
+                                {"message", "Cannot set property '" + property + "' on node type '" + node->conceptType + "'"}
+                            });
+                        }
                     }
                 }
             } catch (...) {

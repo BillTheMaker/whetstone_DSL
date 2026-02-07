@@ -11,6 +11,7 @@
 #include <cstdio>  // For system() and popen() functions
 #include "ast/Generator.h"  // For the code generators
 #include "ast/Parser.h"  // For tree-sitter parser integration
+#include "ast/Annotation.h"  // For annotation classes like OptimizationLock
 
 class Orchestrator {
 private:
@@ -96,6 +97,42 @@ public:
     // Get loaded file path
     std::string getLoadedFilePath() const {
         return loadedFilePath;
+    }
+    
+    // Check if a node or any of its ancestors has an optimization lock
+    bool isNodeLocked(const ASTNode* node) const {
+        if (!node) return false;
+        
+        // Check if this node has an optimization lock annotation
+        // In a real implementation, we'd check the annotations role for OptimizationLock nodes
+        // For now, we'll implement a basic check by looking for annotations
+        
+        // Check this node's annotations
+        auto annotations = node->getChildren("annotations");
+        for (const auto* annotation : annotations) {
+            if (annotation->conceptType == "OptimizationLock") {
+                return true;  // Found a lock annotation on this node
+            }
+        }
+        
+        // Recursively check parent nodes
+        return isNodeLocked(node->parent);
+    }
+    
+    // Get the lock annotation for a node (if any exists in the ancestry)
+    const OptimizationLock* getNodeLock(const ASTNode* node) const {
+        if (!node) return nullptr;
+        
+        // Check if this node has an optimization lock annotation
+        auto annotations = node->getChildren("annotations");
+        for (const auto* annotation : annotations) {
+            if (annotation->conceptType == "OptimizationLock") {
+                return static_cast<const OptimizationLock*>(annotation);
+            }
+        }
+        
+        // Recursively check parent nodes
+        return getNodeLock(node->parent);
     }
     
     // Record an operation for undo/redo
