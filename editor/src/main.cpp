@@ -337,6 +337,35 @@ int main(int, char**)
             json result = g_rpc_client.call("redo");
             // The result indicates whether the redo was successful
         }
+        ImGui::SameLine();
+        
+        // Load File button - sends RPC to orchestrator to load a file via Emacs
+        if (ImGui::Button("Load File")) {
+            // For now, we'll use a hardcoded path - in a real implementation, this would open a file dialog
+            json params = json::object({
+                {"path", "Calculator.py"}
+            });
+            json result = g_rpc_client.call("loadFile", params);
+            // The result would contain the file content loaded via Emacs
+            if (!result.is_null() && !result.is_discarded()) {
+                // Update the text buffer with the loaded content
+                std::string loadedContent = result.dump(2);
+                strncpy(textBuffer, loadedContent.c_str(), sizeof(textBuffer) - 1);
+                textBuffer[sizeof(textBuffer) - 1] = '\0';
+            }
+        }
+        ImGui::SameLine();
+        
+        // Save File button - sends RPC to orchestrator to save content to a file via Emacs
+        if (ImGui::Button("Save File")) {
+            // For now, we'll use a hardcoded path - in a real implementation, this would open a save dialog
+            json params = json::object({
+                {"path", "output.py"},
+                {"content", std::string(textBuffer)}
+            });
+            json result = g_rpc_client.call("saveFile", params);
+            // The result indicates whether the save was successful
+        }
         ImGui::End();
         
         // Show the editor area based on projection mode
