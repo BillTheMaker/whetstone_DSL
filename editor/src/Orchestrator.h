@@ -9,6 +9,7 @@
 
 #include <deque>
 #include <cstdio>  // For system() and popen() functions
+#include "ast/Generator.h"  // For the code generators
 
 class Orchestrator {
 private:
@@ -249,17 +250,58 @@ public:
         return result.empty() ? "nil" : result;
     }
     
-    // Method to load a file via Emacs
-    std::string loadFile(const std::string& path) {
-        // Send (find-file path) to Emacs to load the file
-        std::string command = "(progn (find-file \"" + path + "\") (buffer-string))";
-        return sendToEmacs(command);
+    // Method to load a file via Emacs and parse to AST
+    std::unique_ptr<Module> loadFile(const std::string& path) {
+        // First, get the file content from Emacs
+        std::string command = "(with-current-buffer (find-file-noselect \"" + path + "\") (buffer-string))";
+        std::string content = sendToEmacs(command);
+        
+        // Then, if it's a Python file, we might want to parse it using tree-sitter
+        // For now, we'll return a simple module representation
+        // In a real implementation, this would parse the content and build an AST
+        
+        // For demonstration purposes, we'll create a simple module
+        auto module = std::make_unique<Module>();
+        module->id = "LoadedModule_" + std::to_string(reinterpret_cast<uintptr_t>(module.get()));
+        module->name = path;  // Use filename as module name
+        module->targetLanguage = "python";  // Assume Python for .py files
+        
+        // In a real implementation, we would:
+        // 1. Parse the content using appropriate parser (tree-sitter)
+        // 2. Build the AST from the parsed content
+        // 3. Return the resulting AST
+        
+        return module;
     }
     
-    // Method to save content to a file via Emacs
-    bool saveFile(const std::string& path, const std::string& content) {
-        // Send (write-file path content) to Emacs to save content
-        std::string command = "(with-temp-buffer (insert \"" + content + "\") (write-file \"" + path + "\"))";
+    // Method to save AST to a file via Emacs
+    bool saveFile(const std::string& path, const ASTNode* ast) {
+        if (!ast) return false;
+        
+        // Generate code from the AST based on the target language
+        std::string content;
+        if (ast->conceptType == "Module") {
+            // Use the appropriate generator based on the target language
+            const Module* module = static_cast<const Module*>(ast);
+            if (module->targetLanguage == "python") {
+                PythonGenerator gen;
+                content = gen.generate(ast);
+            } else if (module->targetLanguage == "elisp") {
+                ElispGenerator elispGen;
+                content = elispGen.generate(ast);
+            } else {
+                // Default to Python generator
+                PythonGenerator gen;
+                content = gen.generate(ast);
+            }
+        } else {
+            // If it's not a module, wrap it in a temporary module for generation
+            PythonGenerator gen;
+            content = gen.generate(ast);
+        }
+        
+        // Send the content to Emacs to save to file
+        std::string command = "(with-temp-file \"" + path + "\" (insert \"" + content + "\"))";
         std::string result = sendToEmacs(command);
         // If the result is not an error, assume success
         return result.find("Error") == std::string::npos;
