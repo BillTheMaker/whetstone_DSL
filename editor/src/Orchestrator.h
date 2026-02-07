@@ -285,34 +285,51 @@ public:
         return module;
     }
     
-    // Method to save AST to a file via Emacs
+    // Method to save AST to a file via Emacs using appropriate generator
     bool saveFile(const std::string& path, const ASTNode* ast) {
         if (!ast) return false;
         
-        // Generate code from the AST based on the target language
-        std::string content;
+        // Determine target language from the AST or file extension
+        std::string targetLanguage = "python";  // Default
         if (ast->conceptType == "Module") {
-            // Use the appropriate generator based on the target language
             const Module* module = static_cast<const Module*>(ast);
-            if (module->targetLanguage == "python") {
-                PythonGenerator gen;
-                content = gen.generate(ast);
-            } else if (module->targetLanguage == "elisp") {
-                ElispGenerator elispGen;
-                content = elispGen.generate(ast);
-            } else {
-                // Default to Python generator
-                PythonGenerator gen;
-                content = gen.generate(ast);
-            }
+            targetLanguage = module->targetLanguage;
         } else {
-            // If it's not a module, wrap it in a temporary module for generation
+            // If not a module, try to determine from file extension
+            if (path.substr(path.find_last_of(".") + 1) == "cpp" || path.substr(path.find_last_of(".") + 1) == "hpp") {
+                targetLanguage = "cpp";
+            } else if (path.substr(path.find_last_of(".") + 1) == "py") {
+                targetLanguage = "python";
+            } else if (path.substr(path.find_last_of(".") + 1) == "el" || path.substr(path.find_last_of(".") + 1) == "elisp") {
+                targetLanguage = "elisp";
+            }
+        }
+        
+        // Generate code from the AST using the appropriate generator
+        std::string content;
+        if (targetLanguage == "python") {
+            PythonGenerator gen;
+            content = gen.generate(ast);
+        } else if (targetLanguage == "elisp") {
+            ElispGenerator elispGen;
+            content = elispGen.generate(ast);
+        } else if (targetLanguage == "cpp") {
+            // For C++ generation, we would use a CppGenerator when implemented
+            // For now, we'll use the Python generator as a placeholder
+            PythonGenerator gen;
+            content = gen.generate(ast);
+            // TODO: Implement CppGenerator when ready
+        } else {
+            // Default to Python generator for unknown languages
             PythonGenerator gen;
             content = gen.generate(ast);
         }
         
         // Send the content to Emacs to save to file
-        std::string command = "(with-temp-file \"" + path + "\" (insert \"" + content + "\"))";
+        std::string command = "(with-current-buffer (find-file-noselect \"" + path + "\")" +
+                             "(erase-buffer)" +
+                             "(insert \"" + content + "\")" +
+                             "(write-file \"" + path + "\"))";
         std::string result = sendToEmacs(command);
         // If the result is not an error, assume success
         return result.find("Error") == std::string::npos;
