@@ -251,6 +251,18 @@ json processRequest(const json& request) {
                 });
             }
         }
+        else if (method == "sendToEmacs") {
+            try {
+                std::string command = request.at("params").at("command");
+                std::string result = g_orchestrator->sendToEmacs(command);
+                response["result"] = result;
+            } catch (...) {
+                response["error"] = json::object({
+                    {"code", -32600},
+                    {"message", "Invalid parameters for sendToEmacs"}
+                });
+            }
+        }
         else {
             response["error"] = json::object({
                 {"code", -32601},
@@ -399,6 +411,9 @@ int main(int argc, char* argv[]) {
     
     // Create orchestrator
     g_orchestrator = std::make_unique<Orchestrator>();
+    
+    // Start the Emacs daemon
+    g_orchestrator->startEmacsDaemon();
     
     // Load the AST from the specified file
     if (!g_orchestrator->loadAST(filePath)) {
