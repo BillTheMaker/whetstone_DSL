@@ -170,6 +170,77 @@ int main(int, char**)
 
         ImGui::End();
 
+        // Create the editor area with hardcoded Python content
+        static char textBuffer[] = 
+            "def add(x: int, y: int):\n"
+            "    result = x + y\n"
+            "    return result\n"
+            "\n"
+            "def multiply(a: int, b: int):\n"
+            "    return a * b\n"
+            "\n"
+            "# @deref(batched)\n"
+            "def calculate_sum(items: List[int]):\n"
+            "    total = 0\n"
+            "    for item in items:\n"
+            "        total += item\n"
+            "    return total\n";
+
+        // Show the editor area - this will be docked by the docking system
+        ImGui::Begin("Editor Area");
+        
+        // Add line numbers in the left margin
+        ImGui::BeginChild("LineNumberArea", ImVec2(50, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));  // Gray color for line numbers
+        
+        int lineCount = 1;
+        const char* ptr = textBuffer;
+        while (*ptr) {
+            if (*ptr == '\n') {
+                lineCount++;
+            }
+            ptr++;
+        }
+        
+        for (int i = 1; i <= lineCount; i++) {
+            ImGui::Text("%4d", i);
+            ImGui::Spacing();
+        }
+        
+        ImGui::PopStyleColor();
+        ImGui::EndChild();
+        ImGui::SameLine();
+        
+        // Text display area with scrolling
+        ImGui::BeginChild("TextEditArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+        
+        // Use a monospace font if available
+        ImFont* font = nullptr;
+        // Try to find a monospace font - for now use default
+        // if (io.Fonts->Fonts.Size > 1) font = io.Fonts->Fonts[1];  // Use second font if available
+        
+        if (font) ImGui::PushFont(font);
+        
+        // Display the text content
+        ImGui::TextUnformatted(textBuffer);
+        
+        if (font) ImGui::PopFont();
+        ImGui::EndChild();
+        
+        ImGui::End();
+
+        // Also create file tree and bottom panel for completeness
+        ImGui::Begin("File Tree");
+        ImGui::Text("Calculator.py");
+        ImGui::Text("ConditionalExample.py");
+        ImGui::Text("SimpleFunctionExample.py");
+        ImGui::End();
+
+        ImGui::Begin("Panel");
+        ImGui::Text("Status: Ready");
+        ImGui::Text("Lines: %d", lineCount);
+        ImGui::End();
+
         // Rendering
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
