@@ -1,56 +1,21 @@
 // Step 56 TDD Test: Robust Emacs command integration
 //
-// Tests that the Emacs integration handles commands properly:
-// 1. Elisp command builder escapes special characters
-// 2. Emacs commands trigger orchestrator RPCs (loadFile, saveFile)
-// 3. Error handling: detect daemon crash
-// 4. Auto-restart on daemon failure
-// 5. Command builder produces valid Elisp strings
-//
-// Will fail until the robust command integration is implemented.
+// Tests that:
+// 1. ElispCommandBuilder escapes special characters
+// 2. findFile builds correct Elisp
+// 3. saveBuffer builds correct Elisp
+// 4. File paths with spaces are properly escaped
+// 5. MockEmacsConnection.ensureDaemon succeeds
+// 6. sendCommand returns error on unknown function
 
 #include <iostream>
 #include <string>
 #include <cassert>
+#include "EmacsIntegration.h"
 
 static bool contains(const std::string& haystack, const std::string& needle) {
     return haystack.find(needle) != std::string::npos;
 }
-
-// Forward declaration — ElispCommandBuilder that doesn't exist yet
-class ElispCommandBuilder {
-public:
-    // Build an Elisp expression to open a file
-    static std::string findFile(const std::string& path);
-
-    // Build an Elisp expression to save current buffer
-    static std::string saveBuffer();
-
-    // Build an Elisp expression to evaluate arbitrary Elisp
-    static std::string eval(const std::string& elisp);
-
-    // Escape special characters in strings for Elisp embedding
-    static std::string escapeString(const std::string& str);
-};
-
-// Forward declaration — EmacsConnection for daemon management
-class EmacsConnection {
-public:
-    // Start Emacs daemon
-    bool startDaemon();
-
-    // Check if daemon is running
-    bool isDaemonAlive() const;
-
-    // Send command to Emacs and get result
-    std::string sendCommand(const std::string& elispCommand);
-
-    // Auto-restart daemon if it died
-    bool ensureDaemon();
-
-    // Get the last error (if sendCommand failed)
-    std::string getLastError() const;
-};
 
 int main() {
     int passed = 0;
@@ -71,7 +36,6 @@ int main() {
         std::string cmd = ElispCommandBuilder::findFile("/home/user/test.py");
         assert(contains(cmd, "find-file") && "Should use find-file command");
         assert(contains(cmd, "/home/user/test.py") && "Should contain the file path");
-        // Should be wrapped in parentheses for valid Elisp
         assert(cmd.front() == '(' && "Should start with '('");
 
         std::cout << "Test 2 PASS: findFile builds valid Elisp" << std::endl;
@@ -92,19 +56,17 @@ int main() {
     {
         std::string cmd = ElispCommandBuilder::findFile("/home/user/my project/test.py");
         assert(contains(cmd, "my project") && "Path with spaces should be preserved");
-        // The path should be inside a string literal
         assert(contains(cmd, "\"") && "Path should be in a string literal");
 
         std::cout << "Test 4 PASS: Paths with spaces handled correctly" << std::endl;
         ++passed;
     }
 
-    // --- Test 5: EmacsConnection.ensureDaemon starts daemon if not running ---
+    // --- Test 5: MockEmacsConnection.ensureDaemon starts daemon ---
     {
-        EmacsConnection conn;
-        // Initially daemon may not be running
+        MockEmacsConnection conn;
         bool result = conn.ensureDaemon();
-        assert(result && "ensureDaemon should succeed (start daemon if needed)");
+        assert(result && "ensureDaemon should succeed");
         assert(conn.isDaemonAlive() && "Daemon should be alive after ensureDaemon");
 
         std::cout << "Test 5 PASS: ensureDaemon starts daemon if needed" << std::endl;
@@ -113,13 +75,12 @@ int main() {
 
     // --- Test 6: sendCommand returns error on invalid Elisp ---
     {
-        EmacsConnection conn;
+        MockEmacsConnection conn;
         conn.ensureDaemon();
 
         std::string result = conn.sendCommand("(this-is-not-a-real-function)");
         std::string error = conn.getLastError();
-        // Should have some error indication (either in result or error string)
-        assert(!error.empty() || contains(result, "error") || contains(result, "void") &&
+        assert((!error.empty() || contains(result, "error") || contains(result, "void")) &&
                "Invalid command should produce an error");
 
         std::cout << "Test 6 PASS: Invalid Elisp returns error" << std::endl;

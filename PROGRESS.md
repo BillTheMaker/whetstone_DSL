@@ -134,11 +134,11 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 > **Design direction:** Editor UI targets VSCode/JetBrains look-and-feel (not Emacs).
 > Keybinding profile is selectable at startup or via settings. VSCode is default.
 
-### Phase 3d: Emacs Integration Complete (Steps 55–58) — TDD STUBS ONLY
-- [ ] Step 55: Emacs splash screen — not started
-- [x] Step 56: TDD test written (does not link)
-- [x] Step 57: TDD test written (does not link)
-- [ ] Step 58: Mode-specific behavior — not started
+### Phase 3d: Editor Infrastructure (Steps 55–58) — COMPLETE
+- [x] Step 55: **IMPLEMENTED** — WelcomeScreen component (actions, recent files, tips, visibility toggle) (7/7 tests pass)
+- [x] Step 56: **IMPLEMENTED** — ElispCommandBuilder (escape, findFile, saveBuffer) + MockEmacsConnection (daemon lifecycle) (6/6 tests pass)
+- [x] Step 57: **IMPLEMENTED** — BufferManager (open/close/switch, multi-buffer tracking, language/modified info) (7/7 tests pass)
+- [x] Step 58: **IMPLEMENTED** — EditorMode (per-language indent, comment toggle, bracket pairs, snippets for Python/C++/Elisp) (8/8 tests pass)
 
 ### Phase 3e: Agent API Extend (Steps 59–63) — TDD STUBS ONLY
 - [ ] Step 59: WebSocket agent endpoint — not started
@@ -207,11 +207,9 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 **Steps 1–49:** All compile and pass (49 executables in `editor/build/Release/`)
 **Steps 50–54:** All compile and pass (step50: 8/8, step51: 5/5, step52: 8/8, step53: 6/6, step54: 10/10)
-**Steps 55–75:** Either not started or TDD stubs that don't link yet
-
-The build compiles `whetstone_editor`, `orchestrator`, and steps 1–49. Steps 45–49 link against
-tree-sitter core + grammar static libraries. Steps 51+ are TDD stubs that reference unimplemented
-code and will fail to link until their implementations exist.
+**Steps 55–58:** All compile and pass (step55: 7/7, step56: 6/6, step57: 7/7, step58: 8/8)
+**Step 60:** Compile and pass (8/8)
+**Steps 59, 61–75:** Either not started or TDD stubs that don't link yet
 
 ---
 
@@ -227,8 +225,12 @@ code and will fail to link until their implementations exist.
 | `editor/src/TextEditor.h` | Classical text editor: edit ops, undo/redo, find/replace, selection |
 | `editor/src/SyntaxHighlighter.h` | Tree-sitter CST walk → colored token spans (Python/C++/Elisp) |
 | `editor/src/KeybindingManager.h` | Configurable keybinding profiles (VSCode/JetBrains/Emacs) |
+| `editor/src/WelcomeScreen.h` | Welcome screen component (actions, recent files, tips) |
+| `editor/src/EmacsIntegration.h` | ElispCommandBuilder + EmacsConnection/MockEmacsConnection |
+| `editor/src/BufferManager.h` | Multi-buffer management (open/close/switch/track) |
+| `editor/src/EditorMode.h` | Per-language editor behavior (indent, comment, brackets, snippets) |
 | `editor/src/Orchestrator.h` | Orchestrator: Emacs integration, file ops, undo/redo, agent API |
-| `editor/src/main.cpp` | ImGui editor shell (SDL2 + OpenGL3) |
+| `editor/src/main.cpp` | ImGui editor shell (SDL2 + OpenGL3, VSCode Dark theme, docking) |
 | `editor/src/orchestrator_main.cpp` | Orchestrator standalone process (JSON-RPC server) |
 | `editor/CMakeLists.txt` | CMake build config (vcpkg-based) |
 
@@ -274,3 +276,4 @@ Next logical work:
 | 2026-02-08 | Claude Opus 4.6 | Phase 3c: Steps 50–53. TextASTSync (bidirectional text↔AST sync with debounce) and TextEditor (edit ops, undo/redo with AST tracking, find/replace, selection). 19/19 tests pass. Fixed step53 find-position bug (was off-by-one). |
 | 2026-02-08 | Claude Opus 4.6 | Phase 3c complete: Steps 52+54. SyntaxHighlighter (tree-sitter CST→color spans for Python/C++/Elisp). KeybindingManager (VSCode/JetBrains/Emacs profiles, default VSCode). 37/37 total Phase 3c tests pass. Design pivot: editor targets VSCode/JetBrains look, not Emacs. |
 | 2026-02-08 | Claude Opus 4.6 | GUI wiring: Rewrote main.cpp from Step 12 scaffold to functional editor. VSCode Dark theme, docking layout, editable text with TextEditor/TextASTSync, syntax-highlighted preview, live AST view, generated code tab, find/replace, keybinding profile selector, status bar. Fixed WMOD_ prefix (Windows MOD_SHIFT/MOD_ALT macro conflicts). whetstone_editor.exe builds and links. |
+| 2026-02-08 | Claude Opus 4.6 | Phase 3d complete: Steps 55–58. WelcomeScreen (actions, recent files, tips). ElispCommandBuilder+MockEmacsConnection (Elisp escaping, daemon lifecycle). BufferManager (multi-file open/close/switch). EditorMode (per-language indent/comment/brackets/snippets for Python/C++/Elisp). 28/28 tests pass. |

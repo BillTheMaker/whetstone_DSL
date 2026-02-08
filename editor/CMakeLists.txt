@@ -253,11 +253,17 @@ target_link_libraries(step53_test PRIVATE unofficial::tree-sitter::tree-sitter t
 add_executable(step54_test tests/step54_test.cpp)
 target_include_directories(step54_test PRIVATE src)
 
+add_executable(step55_test tests/step55_test.cpp)
+target_include_directories(step55_test PRIVATE src)
+
 add_executable(step56_test tests/step56_test.cpp)
 target_include_directories(step56_test PRIVATE src)
 
 add_executable(step57_test tests/step57_test.cpp)
 target_include_directories(step57_test PRIVATE src)
+
+add_executable(step58_test tests/step58_test.cpp)
+target_include_directories(step58_test PRIVATE src)
 
 add_executable(step60_test tests/step60_test.cpp)
 target_include_directories(step60_test PRIVATE src)

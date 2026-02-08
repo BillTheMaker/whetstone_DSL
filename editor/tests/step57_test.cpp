@@ -1,61 +1,19 @@
 // Step 57 TDD Test: Buffer management
 //
-// Tests orchestrator buffer management:
-// 1. Open files → tracked in buffer map
-// 2. Close buffer → removed from map
-// 3. Switch between buffers → correct content
-// 4. Multiple buffers tracked simultaneously
-// 5. Buffer state includes file path and modification flag
-//
-// Will fail until buffer management is implemented.
+// Tests that BufferManager:
+// 1. Opens buffers and tracks them
+// 2. Gets buffer content
+// 3. Closes buffers
+// 4. Tracks multiple buffers simultaneously
+// 5. Switches between buffers
+// 6. Closing one buffer leaves others intact
+// 7. Buffer info includes language and modified flag
 
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <vector>
-#include <map>
-
-static bool contains(const std::string& haystack, const std::string& needle) {
-    return haystack.find(needle) != std::string::npos;
-}
-
-// Forward declaration — BufferManager class
-class BufferManager {
-public:
-    struct BufferInfo {
-        std::string path;
-        std::string content;
-        std::string language;
-        bool modified;
-    };
-
-    // Open a file into a buffer
-    bool openBuffer(const std::string& path, const std::string& content, const std::string& language);
-
-    // Close a buffer by path
-    bool closeBuffer(const std::string& path);
-
-    // Get current active buffer path
-    std::string getActiveBufferPath() const;
-
-    // Switch to a different buffer
-    bool switchToBuffer(const std::string& path);
-
-    // Get buffer content
-    std::string getBufferContent(const std::string& path) const;
-
-    // Get list of all open buffer paths
-    std::vector<std::string> getOpenBuffers() const;
-
-    // Check if a buffer exists
-    bool hasBuffer(const std::string& path) const;
-
-    // Get buffer info
-    BufferInfo getBufferInfo(const std::string& path) const;
-
-    // Mark buffer as modified
-    void setModified(const std::string& path, bool modified);
-};
+#include "BufferManager.h"
 
 int main() {
     int passed = 0;
