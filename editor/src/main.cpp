@@ -24,24 +24,30 @@ private:
     FILE* rpc_in;   // For receiving responses from orchestrator
 
 public:
-    JsonRpcClient() : rpc_out(stdout), rpc_in(stdin) {}
-    
-    // Constructor that could connect to orchestrator process (simplified for now)
-    JsonRpcClient(FILE* out, FILE* in) : rpc_out(out), rpc_in(in) {}
-    
+    bool connected;
+
+    JsonRpcClient() : rpc_out(nullptr), rpc_in(nullptr), connected(false) {}
+
+    // Constructor that connects to orchestrator process
+    JsonRpcClient(FILE* out, FILE* in) : rpc_out(out), rpc_in(in), connected(out && in) {}
+
+    bool isConnected() const { return connected; }
+
     json call(const std::string& method, const json& params = json::object()) {
+        if (!connected) return json(nullptr);
+
         // Create the JSON-RPC request
         json request = json::object({
             {"jsonrpc", "2.0"},
             {"method", method},
             {"params", params},
-            {"id", 1}  // Simple ID for this example
+            {"id", 1}
         });
-        
+
         // Send the request to the orchestrator
         fprintf(rpc_out, "%s\n", request.dump().c_str());
         fflush(rpc_out);
-        
+
         // Read the response from the orchestrator
         char buffer[4096];
         if (fgets(buffer, sizeof(buffer), rpc_in)) {
@@ -58,7 +64,7 @@ public:
                 return json(nullptr);
             }
         }
-        
+
         return json(nullptr);
     }
 };
