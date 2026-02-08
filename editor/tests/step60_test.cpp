@@ -6,8 +6,6 @@
 // 3. findNodes by property value returns matching nodes
 // 4. getSubtree with depth limit
 // 5. findNodes with annotation presence filter
-//
-// Will fail until the AST query API is implemented.
 
 #include <iostream>
 #include <string>
@@ -21,32 +19,130 @@
 #include "ast/Statement.h"
 #include "ast/Expression.h"
 #include "ast/Annotation.h"
+#include "ast/Serialization.h"
 
 static bool contains(const std::string& haystack, const std::string& needle) {
     return haystack.find(needle) != std::string::npos;
 }
 
-// Forward declaration — ASTQueryAPI
+// --- ASTQueryAPI implementation for Step 60 ---
+
 class ASTQueryAPI {
+    ASTNode* root_ = nullptr;
+
+    // Recursive helper: find node by ID
+    ASTNode* findById(ASTNode* node, const std::string& nodeId) const {
+        if (!node) return nullptr;
+        if (node->id == nodeId) return node;
+        for (auto* child : node->allChildren()) {
+            auto* found = findById(child, nodeId);
+            if (found) return found;
+        }
+        return nullptr;
+    }
+
+    // Recursive helper: collect all nodes into a flat list
+    void collectAll(ASTNode* node, std::vector<ASTNode*>& out) const {
+        if (!node) return;
+        out.push_back(node);
+        for (auto* child : node->allChildren()) {
+            collectAll(child, out);
+        }
+    }
+
+    // Get a named string property from a node (by property name)
+    static std::string getStringProperty(const ASTNode* node, const std::string& prop) {
+        const auto& ct = node->conceptType;
+        if (prop == "name") {
+            if (ct == "Module") return static_cast<const Module*>(node)->name;
+            if (ct == "Function") return static_cast<const Function*>(node)->name;
+            if (ct == "Variable") return static_cast<const Variable*>(node)->name;
+            if (ct == "Parameter") return static_cast<const Parameter*>(node)->name;
+        }
+        if (prop == "op") {
+            if (ct == "BinaryOperation") return static_cast<const BinaryOperation*>(node)->op;
+            if (ct == "UnaryOperation") return static_cast<const UnaryOperation*>(node)->op;
+        }
+        if (prop == "variableName" && ct == "VariableReference")
+            return static_cast<const VariableReference*>(node)->variableName;
+        if (prop == "strategy") {
+            if (ct == "DerefStrategy") return static_cast<const DerefStrategy*>(node)->strategy;
+            if (ct == "DeallocateAnnotation") return static_cast<const DeallocateAnnotation*>(node)->strategy;
+            if (ct == "LifetimeAnnotation") return static_cast<const LifetimeAnnotation*>(node)->strategy;
+            if (ct == "ReclaimAnnotation") return static_cast<const ReclaimAnnotation*>(node)->strategy;
+            if (ct == "OwnerAnnotation") return static_cast<const OwnerAnnotation*>(node)->strategy;
+            if (ct == "AllocateAnnotation") return static_cast<const AllocateAnnotation*>(node)->strategy;
+        }
+        return "";
+    }
+
+    // JSON with depth limit
+    json toJsonDepth(const ASTNode* node, int depth) const {
+        json j;
+        j["id"] = node->id;
+        j["concept"] = node->conceptType;
+        j["properties"] = propertiesToJson(node);
+        if (depth > 0) {
+            json children = json::object();
+            for (const auto& role : node->childRoles()) {
+                json arr = json::array();
+                for (const auto* child : node->getChildren(role)) {
+                    arr.push_back(toJsonDepth(child, depth - 1));
+                }
+                children[role] = arr;
+            }
+            j["children"] = children;
+        }
+        return j;
+    }
+
 public:
-    // Set the root AST to query against
-    void setRoot(ASTNode* root);
+    void setRoot(ASTNode* root) { root_ = root; }
 
-    // Get subtree as JSON string
-    std::string getAST(const std::string& nodeId) const;
+    std::string getAST(const std::string& nodeId) const {
+        ASTNode* node = findById(root_, nodeId);
+        if (!node) return "";
+        return toJson(node).dump();
+    }
 
-    // Get subtree with depth limit
-    std::string getSubtree(const std::string& nodeId, int depth) const;
+    std::string getSubtree(const std::string& nodeId, int depth) const {
+        ASTNode* node = findById(root_, nodeId);
+        if (!node) return "";
+        return toJsonDepth(node, depth).dump();
+    }
 
-    // Find nodes by concept type
-    std::vector<ASTNode*> findNodesByType(const std::string& conceptType) const;
+    std::vector<ASTNode*> findNodesByType(const std::string& conceptType) const {
+        std::vector<ASTNode*> all, result;
+        collectAll(root_, all);
+        for (auto* n : all) {
+            if (n->conceptType == conceptType) result.push_back(n);
+        }
+        return result;
+    }
 
-    // Find nodes where a string property matches
     std::vector<ASTNode*> findNodesByProperty(const std::string& propertyName,
-                                               const std::string& value) const;
+                                               const std::string& value) const {
+        std::vector<ASTNode*> all, result;
+        collectAll(root_, all);
+        for (auto* n : all) {
+            if (getStringProperty(n, propertyName) == value) result.push_back(n);
+        }
+        return result;
+    }
 
-    // Find nodes that have a specific annotation type
-    std::vector<ASTNode*> findNodesWithAnnotation(const std::string& annotationType) const;
+    std::vector<ASTNode*> findNodesWithAnnotation(const std::string& annotationType) const {
+        std::vector<ASTNode*> all, result;
+        collectAll(root_, all);
+        for (auto* n : all) {
+            for (auto* anno : n->getChildren("annotations")) {
+                if (anno->conceptType == annotationType) {
+                    result.push_back(n);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
 };
 
 int main() {
