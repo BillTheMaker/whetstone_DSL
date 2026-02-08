@@ -4,53 +4,20 @@
 // 1. Undo in text mode undoes both text and AST changes
 // 2. Redo restores both text and AST
 // 3. Find text in the text buffer
-// 4. Replace text → AST updates accordingly
+// 4. Replace text -> AST updates accordingly
 // 5. Copy/paste operations work in text mode
 // 6. Text undo/redo integrates with orchestrator's operation journal
 //
-// Will fail until classical editing operations are implemented.
+// Depends on: TextEditor, TreeSitterParser, PythonGenerator
 
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "ast/ASTNode.h"
-#include "ast/Module.h"
-#include "ast/Function.h"
+#include "TextEditor.h"
 
 static bool contains(const std::string& haystack, const std::string& needle) {
     return haystack.find(needle) != std::string::npos;
 }
-
-// Forward declaration — TextEditor class that wraps text ops + AST sync
-class TextEditor {
-public:
-    // Set initial content
-    void setContent(const std::string& text, const std::string& language);
-
-    // Get current text
-    std::string getContent() const;
-
-    // Get current AST
-    Module* getAST() const;
-
-    // Edit operations
-    void insertText(int position, const std::string& text);
-    void deleteText(int position, int length);
-    void replaceText(int position, int length, const std::string& replacement);
-
-    // Undo/redo (must also undo/redo AST changes)
-    void undo();
-    void redo();
-    bool canUndo() const;
-    bool canRedo() const;
-
-    // Find/replace
-    int find(const std::string& query, int startPos = 0) const;
-    int replaceAll(const std::string& query, const std::string& replacement);
-
-    // Clipboard
-    std::string getSelection(int start, int length) const;
-};
 
 int main() {
     int passed = 0;
@@ -112,7 +79,7 @@ int main() {
 
         editor.replaceText(4, 5, "world");
         editor.undo();
-        assert(!editor.canRedo() == false && "Should be able to redo after undo");
+        assert(editor.canRedo() && "Should be able to redo after undo");
 
         editor.redo();
         std::string text = editor.getContent();
@@ -134,7 +101,9 @@ int main() {
 
         int pos = editor.find("return");
         assert(pos >= 0 && "Should find 'return' in text");
-        assert(pos == 18 && "Position of 'return' should be at column after indent");
+        // "def hello():\n    return 42\n"
+        //  0123456789012 34567...  -> 'r' of "return" is at index 17
+        assert(pos == 17 && "Position of 'return' should be at index 17");
 
         int notFound = editor.find("nonexistent");
         assert(notFound == -1 && "Should return -1 for not found");
