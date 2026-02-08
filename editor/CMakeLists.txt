@@ -4,15 +4,8 @@ project(WhetstoneEditor LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# nlohmann/json (header-only, fetched once)
-include(FetchContent)
-FetchContent_Declare(
-    json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG        v3.11.3
-    GIT_SHALLOW    TRUE
-)
-FetchContent_MakeAvailable(json)
+# Use vcpkg-installed nlohmann_json instead of FetchContent
+find_package(nlohmann_json CONFIG REQUIRED)
 
 add_executable(step1_test tests/step1_test.cpp)
 target_include_directories(step1_test PRIVATE src)
@@ -205,12 +198,57 @@ target_include_directories(step70_test PRIVATE src)
 add_executable(step71_test tests/step71_test.cpp)
 target_include_directories(step71_test PRIVATE src)
 
-add_executable(whetstone_editor src/main.cpp)
-target_include_directories(whetstone_editor PRIVATE src)
-# find_package(SDL2 REQUIRED)  # Commented out for now to avoid build issues
-# find_package(OpenGL REQUIRED)
-# find_package(glad REQUIRED)
-target_link_libraries(whetstone_editor PRIVATE nlohmann_json::nlohmann_json)  # Only link JSON library for now
+find_package(SDL2 CONFIG REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(glad CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+
+# imgui SDL2 backend: vcpkg removed the sdl2-binding feature in imgui 1.91+.
+# We compile the backend sources directly from imgui's source tree.
+set(IMGUI_BACKENDS_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include")
+set(IMGUI_SDL2_BACKEND "")
+if(EXISTS "${IMGUI_BACKENDS_DIR}/imgui_impl_sdl2.h")
+    # vcpkg installed the SDL2 backend (older vcpkg or feature restored)
+    message(STATUS "Using vcpkg-installed imgui SDL2 backend")
+else()
+    # Compile SDL2 backend from imgui source (shipped in backends/ of the port)
+    file(GLOB _imgui_sdl2_src
+        "${_VCPKG_INSTALLED_DIR}/../buildtrees/imgui/src/*/backends/imgui_impl_sdl2.cpp"
+    )
+    if(NOT _imgui_sdl2_src)
+        # Fallback: look for the backend in a local copy
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_backends/imgui_impl_sdl2.cpp")
+            set(_imgui_sdl2_src "${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_backends/imgui_impl_sdl2.cpp")
+        endif()
+    endif()
+    if(_imgui_sdl2_src)
+        list(GET _imgui_sdl2_src 0 _imgui_sdl2_src)
+        get_filename_component(_imgui_sdl2_dir "${_imgui_sdl2_src}" DIRECTORY)
+        message(STATUS "Compiling imgui SDL2 backend from: ${_imgui_sdl2_dir}")
+        set(IMGUI_SDL2_BACKEND "${_imgui_sdl2_src}")
+    else()
+        message(WARNING "imgui SDL2 backend not found. Editor will not compile. "
+            "Copy imgui_impl_sdl2.cpp/.h into editor/src/imgui_backends/")
+    endif()
+endif()
+
+add_executable(whetstone_editor src/main.cpp ${IMGUI_SDL2_BACKEND})
+target_include_directories(whetstone_editor PRIVATE
+    src
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/imgui
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include
+)
+if(IMGUI_SDL2_BACKEND)
+    get_filename_component(_sdl2_backend_dir "${IMGUI_SDL2_BACKEND}" DIRECTORY)
+    target_include_directories(whetstone_editor PRIVATE "${_sdl2_backend_dir}")
+endif()
+target_link_libraries(whetstone_editor PRIVATE
+    SDL2::SDL2
+    SDL2::SDL2main
+    OpenGL::GL
+    glad::glad
+    imgui::imgui
+    nlohmann_json::nlohmann_json)
 
 add_executable(orchestrator src/orchestrator_main.cpp)
 target_include_directories(orchestrator PRIVATE src)

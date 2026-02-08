@@ -1,0 +1,15 @@
+{
+  "name": "whetstone-editor",
+  "version": "0.1.0",
+  "dependencies": [
+    "nlohmann-json",
+    "sdl2",
+    {
+      "name": "imgui",
+      "features": ["docking-experimental", "opengl3-binding"],
+      "$comment": "SDL2 backend compiled locally (sdl2-binding removed from vcpkg imgui 1.91+)"
+    },
+    "glad",
+    "opengl"
+  ]
+}

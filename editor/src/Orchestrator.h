@@ -238,8 +238,8 @@ public:
         return true;
     }
     
-    // Helper function to find a node by ID in the AST (needs to be implemented)
-    ASTNode* findNodeById(ASTNode* root, const std::string& id) {
+    // Helper function to find a node by ID in the AST
+    ASTNode* findNodeById(ASTNode* root, const std::string& id) const {
         if (!root) return nullptr;
         if (root->id == id) return root;
         
@@ -393,6 +393,16 @@ public:
                              "(write-file \"" + path + "\"))";
         std::string result = sendToEmacs(command);
         // If the result is not an error, assume success
+        return result.find("Error") == std::string::npos;
+    }
+
+    // Overload: save raw content string to a file via Emacs
+    bool saveContent(const std::string& path, const std::string& content) {
+        std::string command = "(with-current-buffer (find-file-noselect \"" + path + "\")" +
+                             "(erase-buffer)" +
+                             "(insert \"" + content + "\")" +
+                             "(write-file \"" + path + "\"))";
+        std::string result = sendToEmacs(command);
         return result.find("Error") == std::string::npos;
     }
 };

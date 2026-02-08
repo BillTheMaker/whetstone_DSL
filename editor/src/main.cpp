@@ -542,7 +542,7 @@ int main(int, char**)
             SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
         }
 
-        SDL_GL_SwapBuffers(window);
+        SDL_GL_SwapWindow(window);
     }
 
     // Cleanup

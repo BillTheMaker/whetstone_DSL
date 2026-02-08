@@ -1276,6 +1276,26 @@ public:
     std::string visitLangSpecific(const LangSpecific* annotation) override {
         return "; @lang_specific(" + annotation->language + ", " + annotation->idiomType + ")";
     }
+
+    std::string visitDeallocateAnnotation(const DeallocateAnnotation* annotation) override {
+        return "; @dealloc(" + annotation->strategy + ")";
+    }
+
+    std::string visitLifetimeAnnotation(const LifetimeAnnotation* annotation) override {
+        return "; @lifetime(" + annotation->strategy + ")";
+    }
+
+    std::string visitReclaimAnnotation(const ReclaimAnnotation* annotation) override {
+        return "; @reclaim(" + annotation->strategy + ")";
+    }
+
+    std::string visitOwnerAnnotation(const OwnerAnnotation* annotation) override {
+        return "; @owner(" + annotation->strategy + ")";
+    }
+
+    std::string visitAllocateAnnotation(const AllocateAnnotation* annotation) override {
+        return "; @allocate(" + annotation->strategy + ")";
+    }
 };
 
 class CppGenerator : public ProjectionGenerator {

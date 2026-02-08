@@ -288,8 +288,13 @@ json processRequest(const json& request) {
         else if (method == "loadFile") {
             try {
                 std::string path = request.at("params").at("path");
-                std::string content = g_orchestrator->loadFile(path);
-                response["result"] = content;
+                auto module = g_orchestrator->loadFile(path);
+                if (module) {
+                    PythonGenerator gen;
+                    response["result"] = gen.generate(module.get());
+                } else {
+                    response["result"] = "";
+                }
             } catch (...) {
                 response["error"] = json::object({
                     {"code", -32600},
@@ -301,7 +306,7 @@ json processRequest(const json& request) {
             try {
                 std::string path = request.at("params").at("path");
                 std::string content = request.at("params").at("content");
-                bool success = g_orchestrator->saveFile(path, content);
+                bool success = g_orchestrator->saveContent(path, content);
                 if (success) {
                     response["result"] = true;
                 } else {
