@@ -346,7 +346,11 @@ target_link_libraries(whetstone_editor PRIVATE
     OpenGL::GL
     glad::glad
     imgui::imgui
-    nlohmann_json::nlohmann_json)
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp)
 
 add_executable(orchestrator src/orchestrator_main.cpp)
 target_include_directories(orchestrator PRIVATE src)

@@ -236,7 +236,7 @@ code and will fail to link until their implementations exist.
 
 ## Architecture Notes
 
-- **Editor** (`whetstone_editor.exe`): ImGui-based GUI. Renders AST as structured editor panels with file tree, toolbar, projection toggles. Currently a Step 12 scaffold — functional but minimal.
+- **Editor** (`whetstone_editor.exe`): ImGui-based GUI with VSCode Dark theme. Docking layout: Explorer (left), Editor with tabs (center), Panel with Output/AST/Highlighted/Generated tabs (bottom), blue status bar. Editable text via InputTextMultiline backed by TextEditor + TextASTSync. Syntax-highlighted preview, live AST view, generated code preview. Configurable keybinding profiles (VSCode/JetBrains/Emacs). Find/Replace dialog. File open/save with language auto-detection.
 - **Orchestrator** (`orchestrator.exe`): Standalone JSON-RPC server. Manages AST state, undo/redo journal, file I/O, Emacs daemon integration, agent API.
 - **Communication**: Editor ↔ Orchestrator via JSON-RPC over stdin/stdout pipes. When launched standalone (no pipe), the editor runs in disconnected mode.
 - **Generators**: AST → Python, C++, Elisp text output. C++ generator handles canonical memory annotations.
@@ -248,10 +248,10 @@ code and will fail to link until their implementations exist.
 
 Phase 3c (Classical Editing Mode) is complete. All backend components exist:
 text editing, AST sync, syntax highlighting, and configurable keybindings.
+GUI is fully wired — editor is functional and can be launched.
 Next logical work:
 - **Phase 3d** (Steps 55–58): Emacs integration completion (splash screen, mode-specific behavior)
 - **Phase 3e** (Steps 59–63): WebSocket agent API (Step 60 already done, remaining: WebSocket endpoint, agent protocol)
-- **GUI wiring**: Connect TextEditor, SyntaxHighlighter, KeybindingManager into main.cpp ImGui shell
 
 ---
 
@@ -273,3 +273,4 @@ Next logical work:
 | 2026-02-08 | Claude Opus 4.6 | Phase 3b: Real tree-sitter integration (Steps 45–49). Replaced Parser.h stubs with real tree-sitter C bindings. Python/C++/Elisp CST-to-AST conversion, memory pattern detection, error recovery. 34/34 tests pass. |
 | 2026-02-08 | Claude Opus 4.6 | Phase 3c: Steps 50–53. TextASTSync (bidirectional text↔AST sync with debounce) and TextEditor (edit ops, undo/redo with AST tracking, find/replace, selection). 19/19 tests pass. Fixed step53 find-position bug (was off-by-one). |
 | 2026-02-08 | Claude Opus 4.6 | Phase 3c complete: Steps 52+54. SyntaxHighlighter (tree-sitter CST→color spans for Python/C++/Elisp). KeybindingManager (VSCode/JetBrains/Emacs profiles, default VSCode). 37/37 total Phase 3c tests pass. Design pivot: editor targets VSCode/JetBrains look, not Emacs. |
+| 2026-02-08 | Claude Opus 4.6 | GUI wiring: Rewrote main.cpp from Step 12 scaffold to functional editor. VSCode Dark theme, docking layout, editable text with TextEditor/TextASTSync, syntax-highlighted preview, live AST view, generated code tab, find/replace, keybinding profile selector, status bar. Fixed WMOD_ prefix (Windows MOD_SHIFT/MOD_ALT macro conflicts). whetstone_editor.exe builds and links. |

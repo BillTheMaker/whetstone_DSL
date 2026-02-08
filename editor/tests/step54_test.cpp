@@ -33,15 +33,15 @@ int main() {
     {
         KeybindingManager mgr;
         KeyCombo save = mgr.getBinding("file.save");
-        assert(save.key == 'S' && save.modifiers == MOD_CTRL &&
+        assert(save.key == 'S' && save.modifiers == WMOD_CTRL &&
                "VSCode: file.save should be Ctrl+S");
 
         KeyCombo undo = mgr.getBinding("edit.undo");
-        assert(undo.key == 'Z' && undo.modifiers == MOD_CTRL &&
+        assert(undo.key == 'Z' && undo.modifiers == WMOD_CTRL &&
                "VSCode: edit.undo should be Ctrl+Z");
 
         KeyCombo redo = mgr.getBinding("edit.redo");
-        assert(redo.key == 'Y' && redo.modifiers == MOD_CTRL &&
+        assert(redo.key == 'Y' && redo.modifiers == WMOD_CTRL &&
                "VSCode: edit.redo should be Ctrl+Y");
 
         std::cout << "Test 2 PASS: VSCode bindings correct" << std::endl;
@@ -55,12 +55,12 @@ int main() {
         assert(mgr.getProfile() == KeybindingProfile::JetBrains);
 
         KeyCombo redo = mgr.getBinding("edit.redo");
-        assert(redo.key == 'Z' && redo.modifiers == (MOD_CTRL | MOD_SHIFT) &&
+        assert(redo.key == 'Z' && redo.modifiers == (WMOD_CTRL | WMOD_SHIFT) &&
                "JetBrains: edit.redo should be Ctrl+Shift+Z");
 
         // But save is still Ctrl+S
         KeyCombo save = mgr.getBinding("file.save");
-        assert(save.key == 'S' && save.modifiers == MOD_CTRL &&
+        assert(save.key == 'S' && save.modifiers == WMOD_CTRL &&
                "JetBrains: file.save should still be Ctrl+S");
 
         std::cout << "Test 3 PASS: JetBrains profile has different redo" << std::endl;
@@ -75,7 +75,7 @@ int main() {
 
         // Emacs uses Ctrl+Y for paste
         KeyCombo paste = mgr.getBinding("edit.paste");
-        assert(paste.key == 'Y' && paste.modifiers == MOD_CTRL &&
+        assert(paste.key == 'Y' && paste.modifiers == WMOD_CTRL &&
                "Emacs: edit.paste should be Ctrl+Y");
 
         std::cout << "Test 4 PASS: Emacs profile loads with correct bindings" << std::endl;
@@ -85,11 +85,11 @@ int main() {
     // --- Test 5: Reverse lookup (combo -> action) ---
     {
         KeybindingManager mgr;  // VSCode
-        KeyCombo ctrlS = {'S', MOD_CTRL};
+        KeyCombo ctrlS = {'S', WMOD_CTRL};
         std::string action = mgr.getAction(ctrlS);
         assert(action == "file.save" && "Ctrl+S should map to file.save");
 
-        KeyCombo unknown = {'Q', MOD_CTRL | MOD_ALT | MOD_SHIFT};
+        KeyCombo unknown = {'Q', WMOD_CTRL | WMOD_ALT | WMOD_SHIFT};
         std::string none = mgr.getAction(unknown);
         assert(none.empty() && "Unknown combo should return empty string");
 
@@ -100,10 +100,10 @@ int main() {
     // --- Test 6: Custom binding override ---
     {
         KeybindingManager mgr;
-        mgr.setBinding("file.save", {'S', MOD_CTRL | MOD_ALT});
+        mgr.setBinding("file.save", {'S', WMOD_CTRL | WMOD_ALT});
 
         KeyCombo save = mgr.getBinding("file.save");
-        assert(save.key == 'S' && save.modifiers == (MOD_CTRL | MOD_ALT) &&
+        assert(save.key == 'S' && save.modifiers == (WMOD_CTRL | WMOD_ALT) &&
                "Custom override should change binding");
 
         std::cout << "Test 6 PASS: Custom binding override" << std::endl;
@@ -151,10 +151,10 @@ int main() {
 
     // --- Test 9: KeyCombo toString ---
     {
-        KeyCombo ctrlS = {'S', MOD_CTRL};
+        KeyCombo ctrlS = {'S', WMOD_CTRL};
         assert(ctrlS.toString() == "Ctrl+S" && "Ctrl+S toString");
 
-        KeyCombo ctrlShiftZ = {'Z', MOD_CTRL | MOD_SHIFT};
+        KeyCombo ctrlShiftZ = {'Z', WMOD_CTRL | WMOD_SHIFT};
         assert(ctrlShiftZ.toString() == "Ctrl+Shift+Z" && "Ctrl+Shift+Z toString");
 
         std::cout << "Test 9 PASS: KeyCombo toString" << std::endl;

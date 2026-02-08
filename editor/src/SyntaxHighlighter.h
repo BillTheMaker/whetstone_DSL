@@ -11,6 +11,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <cstring>
 #include <tree_sitter/api.h>
 

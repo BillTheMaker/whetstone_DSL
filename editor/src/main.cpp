@@ -1,552 +1,817 @@
-// Step 12: Dear ImGui shell - Window + empty layout
+// Whetstone Editor — ImGui-based structured code editor
 //
-// Dear ImGui + SDL2 scaffold: opens a window with docking enabled.
-// Empty panes: file tree (left), editor area (center), panel (bottom).
-// Test: app launches, window renders, panes are resizable.
+// VSCode/JetBrains-inspired layout with docking:
+//   - File tree (left)
+//   - Editable text area (center) backed by TextEditor + TextASTSync
+//   - Syntax-highlighted preview / AST view (bottom)
+//   - Toolbar + status bar
+//   - Configurable keybinding profiles (VSCode default)
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <stdio.h>
+
+#include "TextEditor.h"
+#include "TextASTSync.h"
+#include "SyntaxHighlighter.h"
+#include "KeybindingManager.h"
+#include "ast/Generator.h"
+
+#include <cstdio>
 #include <string>
-#include <memory>
-#include <array>
-#include <nlohmann/json.hpp>
+#include <vector>
+#include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <cstring>
 
-using json = nlohmann::json;
+// ---------------------------------------------------------------------------
+//  Editor application state
+// ---------------------------------------------------------------------------
+struct EditorState {
+    TextEditor        editor;
+    TextASTSync       sync;
+    KeybindingManager keys;
+    std::string       language    = "python";
+    std::string       filePath    = "(untitled)";
+    bool              modified    = false;
+    int               cursorLine  = 1;
+    int               cursorCol   = 1;
 
-// Simple JSON-RPC client to communicate with orchestrator
-class JsonRpcClient {
-private:
-    FILE* rpc_out;  // For sending requests to orchestrator
-    FILE* rpc_in;   // For receiving responses from orchestrator
+    // Edit buffer for ImGui InputTextMultiline — kept in sync with TextEditor
+    std::string       editBuf;
+    bool              bufDirty    = true;  // true = need to push editBuf → editor
 
-public:
-    bool connected;
+    // Find/Replace state
+    bool              showFind    = false;
+    char              findBuf[256]    = {};
+    char              replaceBuf[256] = {};
+    int               lastFindPos     = 0;
 
-    JsonRpcClient() : rpc_out(nullptr), rpc_in(nullptr), connected(false) {}
+    // Bottom panel
+    int               bottomTab   = 0;  // 0=Output, 1=AST, 2=Highlighted
+    std::string       outputLog;
 
-    // Constructor that connects to orchestrator process
-    JsonRpcClient(FILE* out, FILE* in) : rpc_out(out), rpc_in(in), connected(out && in) {}
+    // Highlight cache (recomputed on text change)
+    std::vector<HighlightSpan> highlights;
+    bool              highlightsDirty = true;
 
-    bool isConnected() const { return connected; }
+    void init() {
+        std::string defaultContent =
+            "def add(x, y):\n"
+            "    \"\"\"Add two numbers.\"\"\"\n"
+            "    result = x + y\n"
+            "    return result\n"
+            "\n"
+            "def multiply(a, b):\n"
+            "    return a * b\n"
+            "\n"
+            "# Calculate the sum of a list\n"
+            "def calculate_sum(items):\n"
+            "    total = 0\n"
+            "    for item in items:\n"
+            "        total = total + item\n"
+            "    return total\n";
 
-    json call(const std::string& method, const json& params = json::object()) {
-        if (!connected) return json(nullptr);
+        editor.setContent(defaultContent, language);
+        sync.setText(defaultContent, language);
+        sync.syncNow();
+        editBuf = defaultContent;
+        highlightsDirty = true;
+        outputLog = "Whetstone Editor ready.\n";
+    }
 
-        // Create the JSON-RPC request
-        json request = json::object({
-            {"jsonrpc", "2.0"},
-            {"method", method},
-            {"params", params},
-            {"id", 1}
-        });
+    void setLanguage(const std::string& lang) {
+        language = lang;
+        editor.setContent(editBuf, lang);
+        sync.setText(editBuf, lang);
+        sync.syncNow();
+        highlightsDirty = true;
+    }
 
-        // Send the request to the orchestrator
-        fprintf(rpc_out, "%s\n", request.dump().c_str());
-        fflush(rpc_out);
+    // Called after editBuf changes (from ImGui input)
+    void onTextChanged() {
+        editor.setContent(editBuf, language);
+        sync.setText(editBuf, language);
+        sync.syncNow();
+        highlightsDirty = true;
+        modified = true;
+    }
 
-        // Read the response from the orchestrator
-        char buffer[4096];
-        if (fgets(buffer, sizeof(buffer), rpc_in)) {
-            try {
-                json response = json::parse(buffer);
-                if (response.contains("result")) {
-                    return response["result"];
-                } else if (response.contains("error")) {
-                    printf("RPC Error: %s\n", response["error"].dump().c_str());
-                    return json(nullptr);
-                }
-            } catch (...) {
-                printf("Failed to parse RPC response\n");
-                return json(nullptr);
+    void doUndo() {
+        editor.undo();
+        editBuf = editor.getContent();
+        sync.setText(editBuf, language);
+        sync.syncNow();
+        highlightsDirty = true;
+    }
+
+    void doRedo() {
+        editor.redo();
+        editBuf = editor.getContent();
+        sync.setText(editBuf, language);
+        sync.syncNow();
+        highlightsDirty = true;
+    }
+
+    void doFind() {
+        if (strlen(findBuf) == 0) return;
+        int pos = editor.find(findBuf, lastFindPos);
+        if (pos >= 0) {
+            lastFindPos = pos + 1;
+            // Calculate line/col from position
+            int line = 1, col = 1;
+            for (int i = 0; i < pos && i < (int)editBuf.size(); ++i) {
+                if (editBuf[i] == '\n') { ++line; col = 1; } else { ++col; }
             }
+            cursorLine = line;
+            cursorCol = col;
+            outputLog += "Found \"" + std::string(findBuf) + "\" at line " +
+                         std::to_string(line) + ", col " + std::to_string(col) + "\n";
+        } else {
+            lastFindPos = 0;
+            outputLog += "\"" + std::string(findBuf) + "\" not found.\n";
         }
+    }
 
-        return json(nullptr);
+    void doReplaceAll() {
+        if (strlen(findBuf) == 0) return;
+        int count = editor.replaceAll(findBuf, replaceBuf);
+        if (count > 0) {
+            editBuf = editor.getContent();
+            sync.setText(editBuf, language);
+            sync.syncNow();
+            highlightsDirty = true;
+            modified = true;
+        }
+        outputLog += "Replaced " + std::to_string(count) + " occurrence(s).\n";
+    }
+
+    void doSave() {
+        if (filePath == "(untitled)") return;
+        std::ofstream out(filePath);
+        if (out.is_open()) {
+            out << editBuf;
+            out.close();
+            modified = false;
+            outputLog += "Saved: " + filePath + "\n";
+        } else {
+            outputLog += "Error saving: " + filePath + "\n";
+        }
+    }
+
+    void doOpen(const std::string& path) {
+        std::ifstream in(path);
+        if (in.is_open()) {
+            std::ostringstream ss;
+            ss << in.rdbuf();
+            editBuf = ss.str();
+            filePath = path;
+            // Detect language from extension
+            if (path.size() > 3 && path.substr(path.size() - 3) == ".py")
+                language = "python";
+            else if (path.size() > 4 && path.substr(path.size() - 4) == ".cpp")
+                language = "cpp";
+            else if (path.size() > 2 && path.substr(path.size() - 2) == ".h")
+                language = "cpp";
+            else if (path.size() > 3 && path.substr(path.size() - 3) == ".el")
+                language = "elisp";
+            editor.setContent(editBuf, language);
+            sync.setText(editBuf, language);
+            sync.syncNow();
+            highlightsDirty = true;
+            modified = false;
+            outputLog += "Opened: " + path + "\n";
+        } else {
+            outputLog += "Error opening: " + path + "\n";
+        }
+    }
+
+    void updateHighlights() {
+        if (!highlightsDirty) return;
+        highlights = SyntaxHighlighter::highlight(editBuf, language);
+        highlightsDirty = false;
+    }
+
+    void updateCursorPos(int bytePos) {
+        cursorLine = 1;
+        cursorCol = 1;
+        for (int i = 0; i < bytePos && i < (int)editBuf.size(); ++i) {
+            if (editBuf[i] == '\n') { ++cursorLine; cursorCol = 1; }
+            else { ++cursorCol; }
+        }
     }
 };
 
-static JsonRpcClient g_rpc_client;
+// ---------------------------------------------------------------------------
+//  ImGui InputTextMultiline with std::string resize callback
+// ---------------------------------------------------------------------------
+struct InputTextCallbackData {
+    std::string* str;
+};
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
+static int InputTextCallback(ImGuiInputTextCallbackData* data) {
+    auto* userData = static_cast<InputTextCallbackData*>(data->UserData);
+    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
+        userData->str->resize(data->BufTextLen);
+        data->Buf = userData->str->data();
+    }
+    return 0;
+}
 
-// Main code
-int main(int, char**)
-{
-    // Setup SDL
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
-    {
-        printf("Error: %s\n", SDL_GetError());
+static bool InputTextMultilineStr(const char* label, std::string* str,
+                                   const ImVec2& size, ImGuiInputTextFlags flags = 0) {
+    flags |= ImGuiInputTextFlags_CallbackResize;
+    InputTextCallbackData cbData{str};
+    // Ensure buffer has room
+    if (str->capacity() < str->size() + 256)
+        str->reserve(str->size() + 4096);
+    return ImGui::InputTextMultiline(label, str->data(), str->capacity() + 1,
+                                      size, flags, InputTextCallback, &cbData);
+}
+
+// ---------------------------------------------------------------------------
+//  Theme setup — VSCode Dark-inspired
+// ---------------------------------------------------------------------------
+static void SetupVSCodeDarkTheme() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    // Window
+    colors[ImGuiCol_WindowBg]           = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_ChildBg]            = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_PopupBg]            = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+
+    // Borders
+    colors[ImGuiCol_Border]             = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_BorderShadow]       = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+
+    // Frame (input fields, checkboxes)
+    colors[ImGuiCol_FrameBg]            = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]     = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]      = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+
+    // Title bar
+    colors[ImGuiCol_TitleBg]            = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    colors[ImGuiCol_TitleBgActive]      = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed]   = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+
+    // Menu bar
+    colors[ImGuiCol_MenuBarBg]          = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+
+    // Scrollbar
+    colors[ImGuiCol_ScrollbarBg]        = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrab]      = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+
+    // Buttons
+    colors[ImGuiCol_Button]             = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_ButtonHovered]      = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+    colors[ImGuiCol_ButtonActive]       = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+
+    // Headers (collapsing headers, tree nodes)
+    colors[ImGuiCol_Header]             = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+    colors[ImGuiCol_HeaderHovered]      = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
+    colors[ImGuiCol_HeaderActive]       = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+
+    // Separator
+    colors[ImGuiCol_Separator]          = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_SeparatorHovered]   = ImVec4(0.28f, 0.56f, 0.89f, 1.00f);
+    colors[ImGuiCol_SeparatorActive]    = ImVec4(0.28f, 0.56f, 0.89f, 1.00f);
+
+    // Tabs
+    colors[ImGuiCol_Tab]               = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_TabHovered]        = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_TabActive]         = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+    colors[ImGuiCol_TabUnfocused]      = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+
+    // Docking
+    colors[ImGuiCol_DockingPreview]    = ImVec4(0.28f, 0.56f, 0.89f, 0.70f);
+    colors[ImGuiCol_DockingEmptyBg]    = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+
+    // Text
+    colors[ImGuiCol_Text]              = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
+    colors[ImGuiCol_TextDisabled]      = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+
+    // Selection / highlight
+    colors[ImGuiCol_TextSelectedBg]    = ImVec4(0.17f, 0.40f, 0.64f, 0.60f);
+
+    // Style tweaks
+    style.WindowRounding    = 0.0f;
+    style.FrameRounding     = 2.0f;
+    style.ScrollbarRounding = 2.0f;
+    style.GrabRounding      = 2.0f;
+    style.TabRounding       = 0.0f;
+    style.WindowBorderSize  = 1.0f;
+    style.FrameBorderSize   = 0.0f;
+    style.WindowPadding     = ImVec2(8, 8);
+    style.FramePadding      = ImVec2(6, 3);
+    style.ItemSpacing       = ImVec2(6, 4);
+}
+
+// ---------------------------------------------------------------------------
+//  Syntax highlight color map
+// ---------------------------------------------------------------------------
+static ImVec4 tokenColor(TokenCategory cat) {
+    switch (cat) {
+        case TokenCategory::Keyword:     return ImVec4(0.77f, 0.49f, 0.86f, 1.0f); // purple
+        case TokenCategory::String:      return ImVec4(0.81f, 0.54f, 0.37f, 1.0f); // orange
+        case TokenCategory::Comment:     return ImVec4(0.42f, 0.52f, 0.35f, 1.0f); // green
+        case TokenCategory::Number:      return ImVec4(0.71f, 0.80f, 0.55f, 1.0f); // light green
+        case TokenCategory::Function:    return ImVec4(0.86f, 0.86f, 0.55f, 1.0f); // yellow
+        case TokenCategory::Parameter:   return ImVec4(0.60f, 0.78f, 0.90f, 1.0f); // light blue
+        case TokenCategory::Type:        return ImVec4(0.30f, 0.70f, 0.68f, 1.0f); // teal
+        case TokenCategory::Operator:    return ImVec4(0.86f, 0.86f, 0.86f, 1.0f); // white
+        case TokenCategory::Punctuation: return ImVec4(0.60f, 0.60f, 0.60f, 1.0f); // gray
+        case TokenCategory::Builtin:     return ImVec4(0.30f, 0.70f, 0.90f, 1.0f); // blue
+        case TokenCategory::Identifier:  return ImVec4(0.60f, 0.78f, 0.90f, 1.0f); // light blue
+        default:                         return ImVec4(0.86f, 0.86f, 0.86f, 1.0f); // white
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Render syntax-highlighted text (read-only preview)
+// ---------------------------------------------------------------------------
+static void RenderHighlightedText(const std::string& text,
+                                   const std::vector<HighlightSpan>& spans) {
+    if (text.empty()) return;
+
+    // Build a color for each byte position
+    // Default = plain text color
+    std::vector<TokenCategory> charCats(text.size(), TokenCategory::Plain);
+    for (const auto& span : spans) {
+        for (uint32_t i = span.start; i < span.end && i < charCats.size(); ++i) {
+            charCats[i] = span.category;
+        }
+    }
+
+    // Render line by line, span by span
+    size_t pos = 0;
+    int lineNum = 1;
+    while (pos < text.size()) {
+        // Find end of line
+        size_t eol = text.find('\n', pos);
+        if (eol == std::string::npos) eol = text.size();
+
+        // Line number
+        ImGui::TextColored(ImVec4(0.45f, 0.45f, 0.45f, 1.0f), "%4d ", lineNum);
+        ImGui::SameLine(0.0f, 0.0f);
+
+        // Render spans within this line
+        size_t linePos = pos;
+        while (linePos < eol) {
+            // Find the extent of the current color
+            TokenCategory cat = charCats[linePos];
+            size_t spanEnd = linePos + 1;
+            while (spanEnd < eol && charCats[spanEnd] == cat) ++spanEnd;
+
+            std::string chunk = text.substr(linePos, spanEnd - linePos);
+            ImGui::TextColored(tokenColor(cat), "%s", chunk.c_str());
+            if (spanEnd < eol) ImGui::SameLine(0.0f, 0.0f);
+
+            linePos = spanEnd;
+        }
+
+        if (linePos == pos) {
+            // Empty line
+            ImGui::TextUnformatted("");
+        }
+
+        pos = eol + 1;
+        ++lineNum;
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Main
+// ---------------------------------------------------------------------------
+int main(int, char**) {
+    // SDL init
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+        printf("SDL Error: %s\n", SDL_GetError());
         return -1;
     }
 
-    // Decide GL+GLSL versions
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-    // GL ES 2.0 + GLSL 100
-    const char* glsl_version = "#version 100";
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#elif defined(__APPLE__)
-    // GL 3.2 Core + GLSL 150
-    const char* glsl_version = "#version 150";
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#else
-    // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#endif
-
-    // Create window with graphics context
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("Whetstone Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+
+    auto winFlags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+                                       SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
+    SDL_Window* window = SDL_CreateWindow("Whetstone Editor",
+                                           SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                           1440, 900, winFlags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    SDL_GL_SetSwapInterval(1);
 
-    // Setup Dear ImGui context
+    // ImGui init
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    // Load a monospace font (Consolas on Windows, fallback to default)
+    ImFont* monoFont = nullptr;
+    monoFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\consola.ttf", 15.0f);
+    if (!monoFont) {
+        monoFont = io.Fonts->AddFontDefault();
+    }
+    // Also keep default font for UI elements
+    ImFont* uiFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 15.0f);
+    if (!uiFont) {
+        uiFont = io.Fonts->AddFontDefault();
     }
 
-    // Setup Platform/Renderer backends
+    SetupVSCodeDarkTheme();
+
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return a nullptr. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use Freetype for higher quality font rendering.
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != nullptr);
+    // Editor state
+    EditorState state;
+    state.init();
+
+    // File open dialog state
+    static char openPathBuf[512] = {};
 
     bool done = false;
-    while (!done)
-    {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+    while (!done) {
         SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
+        while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
                 done = true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+            if (event.type == SDL_WINDOWEVENT &&
+                event.window.event == SDL_WINDOWEVENT_CLOSE &&
+                event.window.windowID == SDL_GetWindowID(window))
                 done = true;
+
+            // Handle keyboard shortcuts via KeybindingManager
+            if (event.type == SDL_KEYDOWN && !io.WantTextInput) {
+                int key = 0;
+                auto sym = event.key.keysym.sym;
+                if (sym >= SDLK_a && sym <= SDLK_z) key = 'A' + (sym - SDLK_a);
+                else if (sym >= SDLK_0 && sym <= SDLK_9) key = '0' + (sym - SDLK_0);
+                else if (sym == SDLK_EQUALS) key = '=';
+                else if (sym == SDLK_MINUS) key = '-';
+                else if (sym == SDLK_SLASH) key = '/';
+                else if (sym == SDLK_SEMICOLON) key = ';';
+                else if (sym == SDLK_PERIOD) key = '.';
+                else if (sym == SDLK_BACKQUOTE) key = '`';
+
+                int mods = WMOD_NONE;
+                auto sdlMod = event.key.keysym.mod;
+                if (sdlMod & KMOD_CTRL)  mods |= WMOD_CTRL;
+                if (sdlMod & KMOD_SHIFT) mods |= WMOD_SHIFT;
+                if (sdlMod & KMOD_ALT)   mods |= WMOD_ALT;
+
+                if (key != 0 && mods != WMOD_NONE) {
+                    KeyCombo combo{key, mods};
+                    std::string action = state.keys.getAction(combo);
+                    if (action == "edit.undo")       state.doUndo();
+                    else if (action == "edit.redo")   state.doRedo();
+                    else if (action == "search.find") state.showFind = !state.showFind;
+                    else if (action == "file.save")   state.doSave();
+                    else if (action == "file.new") {
+                        state.editBuf.clear();
+                        state.onTextChanged();
+                        state.filePath = "(untitled)";
+                        state.modified = false;
+                    }
+                }
+            }
         }
 
-        // Start the Dear ImGui frame
+        // Start frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        // Create docking environment
-        static bool dockspace_open = true;
-        static bool opt_fullscreen = true;
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-        if (opt_fullscreen)
-        {
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-
-        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-        // and handle the pass-thru hole, so we ask Begin() to not render a background.
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
-
-        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-        // all active windows docked into it will lose their parent and become undocked.
-        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+        // Full-window dockspace
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", &dockspace_open, window_flags);
-        ImGui::PopStyleVar();
-
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
-
-        // Submit the DockSpace
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        }
-
+        ImGuiWindowFlags dockFlags = ImGuiWindowFlags_NoDocking |
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+        ImGui::Begin("##DockHost", nullptr, dockFlags);
+        ImGui::PopStyleVar(3);
+        ImGuiID dockId = ImGui::GetID("WhetstoneDS");
+        ImGui::DockSpace(dockId, ImVec2(0, 0), ImGuiDockNodeFlags_None);
         ImGui::End();
 
-        // Connect to orchestrator and get AST content
-        // Request initial AST from orchestrator
-        static char textBuffer[4096] = "Loading from orchestrator...";
-        static bool initialized = false;
-        if (!initialized) {
-            json result = g_rpc_client.call("getAST");
-            if (!result.is_null()) {
-                std::string newText = result.dump(2);
-                strncpy(textBuffer, newText.c_str(), sizeof(textBuffer) - 1);
-                textBuffer[sizeof(textBuffer) - 1] = '\0';
-            } else {
-                // Fallback to default content if RPC fails
-                std::string defaultContent = 
-                    "\"\"\"Module: Calculator\"\"\"\n\n"
-                    "PI = 3.14159\n\n"
-                    "def add(x: int, y: int):\n"
-                    "    result = x + y\n"
-                    "    return result\n\n"
-                    "def multiply(a: int, b: int):\n"
-                    "    return a * b\n\n"
-                    "# @deref(batched)\n"
-                    "def calculate_sum(items: List[int]):\n"
-                    "    total = 0\n"
-                    "    for item in items:\n"
-                    "        total += item\n"
-                    "    return total\n";
-                strncpy(textBuffer, defaultContent.c_str(), sizeof(textBuffer) - 1);
-                textBuffer[sizeof(textBuffer) - 1] = '\0';
-            }
-            initialized = true;
-        }
-
-        // Show the editor area - this will be docked by the docking system
-        ImGui::Begin("Editor Area");
-        
-        // Add line numbers in the left margin
-        ImGui::BeginChild("LineNumberArea", ImVec2(50, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));  // Gray color for line numbers
-        
-        int lineCount = 1;
-        const char* ptr = textBuffer;
-        while (*ptr) {
-            if (*ptr == '\n') {
-                lineCount++;
-            }
-            ptr++;
-        }
-        
-        for (int i = 1; i <= lineCount; i++) {
-            ImGui::Text("%4d", i);
-            ImGui::Spacing();
-        }
-        
-        ImGui::PopStyleColor();
-        ImGui::EndChild();
-        ImGui::SameLine();
-        
-        // Text display area with scrolling
-        ImGui::BeginChild("TextEditArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        
-        // Use a monospace font if available
-        ImFont* font = nullptr;
-        // Try to find a monospace font - for now use default
-        // if (io.Fonts->Fonts.Size > 1) font = io.Fonts->Fonts[1];  // Use second font if available
-        
-        if (font) ImGui::PushFont(font);
-        
-        // Display the text content
-        ImGui::TextUnformatted(textBuffer);
-        
-        if (font) ImGui::PopFont();
-        ImGui::EndChild();
-        
-        ImGui::End();
-
-        // Add projection toggle buttons and mutation buttons
-        static int projectionMode = 0; // 0 = Python, 1 = AST
-        
-        ImGui::Begin("Toolbar");
-        if (ImGui::Button("Python")) projectionMode = 0;
-        ImGui::SameLine();
-        if (ImGui::Button("AST")) projectionMode = 1;
-        ImGui::SameLine();
-        
-        // Add parameter button - sends RPC to orchestrator to add a parameter
-        if (ImGui::Button("Add Parameter")) {
-            // Send RPC to orchestrator to insert a new parameter
-            json params = json::object({
-                {"parentId", "Calc_F001"},  // Example function ID
-                {"role", "parameters"},
-                {"concept", "Parameter"},
-                {"properties", json::object({
-                    {"name", "newParam"}
-                })}
-            });
-            
-            json result = g_rpc_client.call("insertNode", params);
-            // The result would contain the new parameter node that was inserted
-        }
-        ImGui::SameLine();
-        
-        // Undo button - sends RPC to orchestrator to undo last operation
-        if (ImGui::Button("Undo")) {
-            json result = g_rpc_client.call("undo");
-            // The result indicates whether the undo was successful
-        }
-        ImGui::SameLine();
-        
-        // Redo button - sends RPC to orchestrator to redo last undone operation
-        if (ImGui::Button("Redo")) {
-            json result = g_rpc_client.call("redo");
-            // The result indicates whether the redo was successful
-        }
-        ImGui::SameLine();
-        
-        // Load File button - sends RPC to orchestrator to load a file via Emacs
-        if (ImGui::Button("Load File")) {
-            // For now, we'll use a hardcoded path - in a real implementation, this would open a file dialog
-            json params = json::object({
-                {"path", "Calculator.py"}
-            });
-            json result = g_rpc_client.call("loadFile", params);
-            // The result would contain the file content loaded via Emacs
-            if (!result.is_null() && !result.is_discarded()) {
-                // Update the text buffer with the loaded content
-                std::string loadedContent = result.dump(2);
-                strncpy(textBuffer, loadedContent.c_str(), sizeof(textBuffer) - 1);
-                textBuffer[sizeof(textBuffer) - 1] = '\0';
-            }
-        }
-        ImGui::SameLine();
-        
-        // Save File button - sends RPC to orchestrator to save content to a file via Emacs
-        if (ImGui::Button("Save File")) {
-            // For now, we'll use a hardcoded path - in a real implementation, this would open a save dialog
-            json params = json::object({
-                {"path", "output.py"},
-                {"content", std::string(textBuffer)}
-            });
-            json result = g_rpc_client.call("saveFile", params);
-            // The result indicates whether the save was successful
-        }
-        ImGui::End();
-        
-        // Show the editor area based on projection mode
-        ImGui::Begin("Editor Area");
-
-        if (projectionMode == 0) {
-            // Python projection - show generated Python code
-
-            // Add line numbers in the left margin
-            ImGui::BeginChild("LineNumberArea", ImVec2(50, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));  // Gray color for line numbers
-
-            // Count lines in the Python code
-            int lineCount = 1;
-            const char* ptr = textBuffer;
-            while (*ptr) {
-                if (*ptr == '\n') {
-                    lineCount++;
+        // ---------------------------------------------------------------
+        //  Menu bar (as a window docked to the top)
+        // ---------------------------------------------------------------
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("New", state.keys.getBinding("file.new").toString().c_str()))
+                {
+                    state.editBuf.clear();
+                    state.onTextChanged();
+                    state.filePath = "(untitled)";
+                    state.modified = false;
                 }
-                ptr++;
+                if (ImGui::MenuItem("Open...", state.keys.getBinding("file.open").toString().c_str()))
+                {
+                    ImGui::OpenPopup("OpenFilePopup");
+                }
+                if (ImGui::MenuItem("Save", state.keys.getBinding("file.save").toString().c_str()))
+                {
+                    state.doSave();
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit")) done = true;
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Edit")) {
+                if (ImGui::MenuItem("Undo", state.keys.getBinding("edit.undo").toString().c_str(),
+                                    false, state.editor.canUndo()))
+                    state.doUndo();
+                if (ImGui::MenuItem("Redo", state.keys.getBinding("edit.redo").toString().c_str(),
+                                    false, state.editor.canRedo()))
+                    state.doRedo();
+                ImGui::Separator();
+                if (ImGui::MenuItem("Find/Replace", state.keys.getBinding("search.find").toString().c_str()))
+                    state.showFind = !state.showFind;
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Language")) {
+                if (ImGui::MenuItem("Python", nullptr, state.language == "python"))
+                    state.setLanguage("python");
+                if (ImGui::MenuItem("C++", nullptr, state.language == "cpp"))
+                    state.setLanguage("cpp");
+                if (ImGui::MenuItem("Elisp", nullptr, state.language == "elisp"))
+                    state.setLanguage("elisp");
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Keybindings")) {
+                for (auto p : KeybindingManager::availableProfiles()) {
+                    if (ImGui::MenuItem(KeybindingManager::profileName(p), nullptr,
+                                        state.keys.getProfile() == p))
+                        state.keys.setProfile(p);
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+
+        // Open file popup
+        if (ImGui::BeginPopupModal("OpenFilePopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Enter file path:");
+            ImGui::InputText("##path", openPathBuf, sizeof(openPathBuf));
+            if (ImGui::Button("Open", ImVec2(120, 0))) {
+                state.doOpen(openPathBuf);
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+
+        // ---------------------------------------------------------------
+        //  File Explorer (left panel)
+        // ---------------------------------------------------------------
+        ImGui::Begin("Explorer");
+        ImGui::PushFont(uiFont);
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "OPEN EDITORS");
+        ImGui::Separator();
+        // Show current file as a selectable
+        {
+            std::string label = state.filePath;
+            if (state.modified) label += " *";
+            ImGui::Selectable(label.c_str(), true);
+        }
+        ImGui::Spacing();
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "FILES");
+        ImGui::Separator();
+        // Placeholder files
+        const char* files[] = {"Calculator.py", "ConditionalExample.py", "main.cpp", "test.el"};
+        for (auto f : files) {
+            if (ImGui::Selectable(f)) {
+                state.doOpen(f);
+            }
+        }
+        ImGui::PopFont();
+        ImGui::End();
+
+        // ---------------------------------------------------------------
+        //  Find / Replace bar (floating at top of editor)
+        // ---------------------------------------------------------------
+        if (state.showFind) {
+            ImGui::Begin("Find & Replace", &state.showFind, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::PushFont(uiFont);
+            ImGui::SetNextItemWidth(300);
+            if (ImGui::InputText("Find", state.findBuf, sizeof(state.findBuf),
+                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
+                state.doFind();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Find Next")) state.doFind();
+
+            ImGui::SetNextItemWidth(300);
+            ImGui::InputText("Replace", state.replaceBuf, sizeof(state.replaceBuf));
+            ImGui::SameLine();
+            if (ImGui::Button("Replace All")) state.doReplaceAll();
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        // ---------------------------------------------------------------
+        //  Editor (center) — editable text area
+        // ---------------------------------------------------------------
+        ImGui::Begin("Editor");
+        ImGui::PushFont(monoFont);
+
+        // Tab bar for the file
+        if (ImGui::BeginTabBar("EditorTabs")) {
+            std::string tabLabel = state.filePath;
+            if (state.modified) tabLabel += " *";
+            if (ImGui::BeginTabItem(tabLabel.c_str())) {
+                // Editable text area fills available space
+                ImVec2 avail = ImGui::GetContentRegionAvail();
+                avail.y -= 4; // small margin
+
+                bool changed = InputTextMultilineStr("##editor", &state.editBuf,
+                    avail, ImGuiInputTextFlags_AllowTabInput);
+                if (changed) {
+                    state.onTextChanged();
+                }
+
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+
+        ImGui::PopFont();
+        ImGui::End();
+
+        // ---------------------------------------------------------------
+        //  Bottom panel — Output / AST / Highlighted Preview
+        // ---------------------------------------------------------------
+        ImGui::Begin("Panel");
+
+        if (ImGui::BeginTabBar("PanelTabs")) {
+            // Output log
+            if (ImGui::BeginTabItem("Output")) {
+                ImGui::PushFont(monoFont);
+                ImGui::BeginChild("##outputScroll", ImVec2(0, 0), false);
+                ImGui::TextUnformatted(state.outputLog.c_str());
+                // Auto-scroll to bottom
+                if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 20)
+                    ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::PopFont();
+                ImGui::EndTabItem();
             }
 
-            for (int i = 1; i <= lineCount; i++) {
-                // Check if this line corresponds to a locked node
-                // For now, we'll just show a simple example - in a real implementation,
-                // we'd check if the current line contains code from a locked node
-                bool isLocked = false;  // Placeholder - would check actual AST
-                
-                if (isLocked) {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));  // Red for locked
-                    ImGui::Text("⚠");  // Warning icon
-                    ImGui::PopStyleColor();
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::BeginTooltip();
-                        ImGui::Text("LOCKED: This code is locked by Alice for optimization");
-                        ImGui::EndTooltip();
+            // AST view
+            if (ImGui::BeginTabItem("AST")) {
+                ImGui::PushFont(monoFont);
+                ImGui::BeginChild("##astScroll", ImVec2(0, 0), false);
+                Module* ast = state.sync.getAST();
+                if (ast) {
+                    // Show basic AST info
+                    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
+                                       "Module: %s  [%s]",
+                                       ast->name.c_str(), ast->targetLanguage.c_str());
+                    ImGui::Separator();
+                    auto functions = ast->getChildren("functions");
+                    for (size_t i = 0; i < functions.size(); ++i) {
+                        auto* fn = static_cast<Function*>(functions[i]);
+                        ImGui::TextColored(ImVec4(0.86f, 0.86f, 0.55f, 1.0f),
+                                           "  Function: %s", fn->name.c_str());
+                        auto params = fn->getChildren("parameters");
+                        for (auto* p : params) {
+                            auto* param = static_cast<Parameter*>(p);
+                            ImGui::TextColored(ImVec4(0.6f, 0.78f, 0.9f, 1.0f),
+                                               "    param: %s", param->name.c_str());
+                        }
+                        auto body = fn->getChildren("body");
+                        ImGui::Text("    body: %d statement(s)", (int)body.size());
+                        auto annos = fn->getChildren("annotations");
+                        for (auto* a : annos) {
+                            ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+                                               "    @%s", a->conceptType.c_str());
+                        }
                     }
                 } else {
-                    ImGui::Text(" ");  // Space for alignment when not locked
+                    ImGui::TextDisabled("(no AST — enter some code)");
                 }
-                
-                ImGui::SameLine();
-                ImGui::Text("%3d", i);
-                ImGui::Spacing();
+                ImGui::EndChild();
+                ImGui::PopFont();
+                ImGui::EndTabItem();
             }
 
+            // Syntax-highlighted preview
+            if (ImGui::BeginTabItem("Highlighted")) {
+                ImGui::PushFont(monoFont);
+                ImGui::BeginChild("##hlScroll", ImVec2(0, 0), false);
+                state.updateHighlights();
+                RenderHighlightedText(state.editBuf, state.highlights);
+                ImGui::EndChild();
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            // Generated code preview
+            if (ImGui::BeginTabItem("Generated")) {
+                ImGui::PushFont(monoFont);
+                ImGui::BeginChild("##genScroll", ImVec2(0, 0), false);
+                Module* ast = state.sync.getAST();
+                if (ast) {
+                    std::string generated;
+                    if (state.language == "python") {
+                        PythonGenerator gen;
+                        generated = gen.generate(ast);
+                    } else if (state.language == "cpp") {
+                        CppGenerator gen;
+                        generated = gen.generate(ast);
+                    } else if (state.language == "elisp") {
+                        ElispGenerator gen;
+                        generated = gen.generate(ast);
+                    }
+                    ImGui::TextUnformatted(generated.c_str());
+                } else {
+                    ImGui::TextDisabled("(no AST)");
+                }
+                ImGui::EndChild();
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
+        }
+
+        ImGui::End();
+
+        // ---------------------------------------------------------------
+        //  Status bar
+        // ---------------------------------------------------------------
+        {
+            ImGuiWindowFlags sbFlags = ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoSavedSettings;
+            float sbHeight = ImGui::GetFrameHeight() + 2;
+            ImVec2 sbPos(viewport->WorkPos.x, viewport->WorkPos.y + viewport->WorkSize.y - sbHeight);
+            ImVec2 sbSize(viewport->WorkSize.x, sbHeight);
+            ImGui::SetNextWindowPos(sbPos);
+            ImGui::SetNextWindowSize(sbSize);
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.00f, 0.47f, 0.84f, 1.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 2));
+            ImGui::Begin("##StatusBar", nullptr, sbFlags);
+            ImGui::PushFont(uiFont);
+
+            // Left side: line/col
+            ImGui::Text("Ln %d, Col %d", state.cursorLine, state.cursorCol);
+            ImGui::SameLine(0, 30);
+
+            // Language
+            ImGui::Text("%s", state.language.c_str());
+            ImGui::SameLine(0, 30);
+
+            // Keybinding profile
+            ImGui::Text("Keys: %s", KeybindingManager::profileName(state.keys.getProfile()));
+            ImGui::SameLine(0, 30);
+
+            // Modified indicator
+            if (state.modified)
+                ImGui::Text("Modified");
+            else
+                ImGui::Text("Saved");
+
+            ImGui::SameLine(0, 30);
+            ImGui::Text("UTF-8");
+
+            ImGui::PopFont();
+            ImGui::End();
+            ImGui::PopStyleVar();
             ImGui::PopStyleColor();
-            ImGui::EndChild();
-            ImGui::SameLine();
-
-            // Text display area with scrolling
-            ImGui::BeginChild("TextEditArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-
-            // Display the Python text content
-            ImGui::TextUnformatted(textBuffer);
-
-            // In a real implementation, we would highlight locked regions
-            // and show warning icons next to locked nodes
-            // For now, we'll just add a general warning if there are any locks
-            json locks = g_rpc_client.call("getLocks", json::object({{"nodeId", "Calc_M001"}}));
-            if (!locks.is_null() && locks.is_array() && !locks.empty()) {
-                ImGui::Separator();
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.7f, 0.0f, 1.0f));  // Orange warning color
-                ImGui::Text("⚠ WARNING: This module contains locked nodes that cannot be modified");
-                ImGui::PopStyleColor();
-            }
-
-            ImGui::EndChild();
-        } else {
-            // AST projection - show JSON representation of the AST
-            ImGui::BeginChild("ASTViewArea", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-
-            // Show a sample AST JSON representation
-            static const char astJson[] = 
-                "{\n"
-                "  \"id\": \"Calc_M001\",\n"
-                "  \"concept\": \"Module\",\n"
-                "  \"properties\": {\n"
-                "    \"name\": \"Calculator\",\n"
-                "    \"targetLanguage\": \"python\"\n"
-                "  },\n"
-                "  \"children\": {\n"
-                "    \"functions\": [\n"
-                "      {\n"
-                "        \"id\": \"Calc_F001\",\n"
-                "        \"concept\": \"Function\",\n"
-                "        \"properties\": { \"name\": \"add\" },\n"
-                "        \"children\": {\n"
-                "          \"parameters\": [\n"
-                "            {\n"
-                "              \"id\": \"Calc_P001\",\n"
-                "              \"concept\": \"Parameter\",\n"
-                "              \"properties\": { \"name\": \"x\" },\n"
-                "              \"children\": {\n"
-                "                \"type\": [{\n"
-                "                  \"id\": \"Calc_PT001\",\n"
-                "                  \"concept\": \"PrimitiveType\",\n"
-                "                  \"properties\": { \"kind\": \"int\" }\n"
-                "                }]\n"
-                "              }\n"
-                "            }\n"
-                "          ],\n"
-                "          \"body\": [\n"
-                "            {\n"
-                "              \"id\": \"Calc_A001\",\n"
-                "              \"concept\": \"Assignment\",\n"
-                "              \"children\": {\n"
-                "                \"target\": [...],\n"
-                "                \"value\": [...]\n"
-                "              }\n"
-                "            }\n"
-                "          ]\n"
-                "        }\n"
-                "      }\n"
-                "    ]\n"
-                "  }\n"
-                "}";
-            
-            ImGui::TextUnformatted(astJson);
-
-            ImGui::EndChild();
         }
 
-        ImGui::End();
-
-        // Also create file tree and bottom panel for completeness
-        ImGui::Begin("File Tree");
-        ImGui::Text("Calculator.py");
-        ImGui::Text("ConditionalExample.py");
-        ImGui::Text("SimpleFunctionExample.py");
-        ImGui::End();
-
-        ImGui::Begin("Panel");
-        if (projectionMode == 0) {
-            ImGui::Text("Projection: Python");
-        } else {
-            ImGui::Text("Projection: AST");
-        }
-        ImGui::End();
-        
-        // Update the text content from orchestrator periodically
-        static float lastUpdate = 0.0f;
-        if (io.DeltaTime > 0) {
-            lastUpdate += io.DeltaTime;
-            if (lastUpdate > 2.0f) {  // Update every 2 seconds
-                // Request AST from orchestrator
-                json result = g_rpc_client.call("getAST");
-                if (!result.is_null()) {
-                    // Update the text buffer with the result
-                    std::string newText = result.dump(2);
-                    strncpy(textBuffer, newText.c_str(), sizeof(textBuffer) - 1);
-                    textBuffer[sizeof(textBuffer) - 1] = '\0';
-                }
-                lastUpdate = 0.0f;
-            }
-        }
-
-        // Rendering
+        // Render
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClearColor(0.12f, 0.12f, 0.12f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // Update and Render additional Platform Windows
-        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-        }
 
         SDL_GL_SwapWindow(window);
     }
@@ -555,7 +820,6 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     SDL_Quit();
