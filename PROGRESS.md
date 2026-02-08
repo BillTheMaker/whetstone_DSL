@@ -118,18 +118,21 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 > `TreeSitterParser` in `Parser.h` implements full CST-to-AST conversion for all three languages
 > with auto-annotation (Python/Elisp → @Reclaim(Tracing), C++ → memory pattern detection).
 
-### Phase 3c: Classical Editing Mode (Steps 50–54) — IN PROGRESS
+### Phase 3c: Classical Editing Mode (Steps 50–54) — COMPLETE
 - [x] Step 50: **IMPLEMENTED** — TextEditor component + TextASTSync (8/8 tests pass)
 - [x] Step 51: **IMPLEMENTED** — Text↔AST bidirectional sync with debounce (5/5 tests pass)
-- [ ] Step 52: Syntax highlighting — not started
+- [x] Step 52: **IMPLEMENTED** — Syntax highlighting via tree-sitter CST walk (8/8 tests pass)
 - [x] Step 53: **IMPLEMENTED** — Classical editing ops: undo/redo, find/replace, selection (6/6 tests pass)
-- [ ] Step 54: Emacs-style keybindings — not started
+- [x] Step 54: **IMPLEMENTED** — Configurable keybinding profiles: VSCode (default), JetBrains, Emacs (10/10 tests pass)
 
-> Steps 50–53: `TextASTSync` in `editor/src/TextASTSync.h` provides bidirectional
-> text↔AST sync with debounce. `TextEditor` in `editor/src/TextEditor.h` wraps text
-> buffer with edit operations (insert/delete/replace), undo/redo that tracks AST state,
-> find/replace, and selection. Both use TreeSitterParser for text→AST and
-> PythonGenerator/CppGenerator/ElispGenerator for AST→text. 19/19 tests pass.
+> Phase 3c complete (37/37 tests pass). Backend components:
+> - `TextASTSync.h`: bidirectional text↔AST sync with debounce
+> - `TextEditor.h`: edit ops, undo/redo with AST tracking, find/replace, selection
+> - `SyntaxHighlighter.h`: tree-sitter CST walk → colored spans (keyword, string, comment, etc.)
+> - `KeybindingManager.h`: swappable profiles (VSCode/JetBrains/Emacs), custom overrides
+>
+> **Design direction:** Editor UI targets VSCode/JetBrains look-and-feel (not Emacs).
+> Keybinding profile is selectable at startup or via settings. VSCode is default.
 
 ### Phase 3d: Emacs Integration Complete (Steps 55–58) — TDD STUBS ONLY
 - [ ] Step 55: Emacs splash screen — not started
@@ -203,8 +206,8 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 ## Test Results (Last Verified)
 
 **Steps 1–49:** All compile and pass (49 executables in `editor/build/Release/`)
-**Steps 50, 51, 53:** All compile and pass (step50: 8/8, step51: 5/5, step53: 6/6)
-**Steps 52, 54–75:** Either not started or TDD stubs that don't link yet
+**Steps 50–54:** All compile and pass (step50: 8/8, step51: 5/5, step52: 8/8, step53: 6/6, step54: 10/10)
+**Steps 55–75:** Either not started or TDD stubs that don't link yet
 
 The build compiles `whetstone_editor`, `orchestrator`, and steps 1–49. Steps 45–49 link against
 tree-sitter core + grammar static libraries. Steps 51+ are TDD stubs that reference unimplemented
@@ -222,6 +225,8 @@ code and will fail to link until their implementations exist.
 | `editor/src/ast/Parser.h` | TreeSitterParser (real tree-sitter CST-to-AST for Python/C++/Elisp) |
 | `editor/src/TextASTSync.h` | Bidirectional text↔AST synchronization with debounce |
 | `editor/src/TextEditor.h` | Classical text editor: edit ops, undo/redo, find/replace, selection |
+| `editor/src/SyntaxHighlighter.h` | Tree-sitter CST walk → colored token spans (Python/C++/Elisp) |
+| `editor/src/KeybindingManager.h` | Configurable keybinding profiles (VSCode/JetBrains/Emacs) |
 | `editor/src/Orchestrator.h` | Orchestrator: Emacs integration, file ops, undo/redo, agent API |
 | `editor/src/main.cpp` | ImGui editor shell (SDL2 + OpenGL3) |
 | `editor/src/orchestrator_main.cpp` | Orchestrator standalone process (JSON-RPC server) |
@@ -241,11 +246,12 @@ code and will fail to link until their implementations exist.
 
 ## What's Next
 
-Phase 3c steps 50–53 (text editing core) are complete. Next logical work:
-- **Step 52** (Phase 3c): Syntax highlighting via tree-sitter color spans
-- **Step 54** (Phase 3c): Emacs-style keybindings
+Phase 3c (Classical Editing Mode) is complete. All backend components exist:
+text editing, AST sync, syntax highlighting, and configurable keybindings.
+Next logical work:
 - **Phase 3d** (Steps 55–58): Emacs integration completion (splash screen, mode-specific behavior)
 - **Phase 3e** (Steps 59–63): WebSocket agent API (Step 60 already done, remaining: WebSocket endpoint, agent protocol)
+- **GUI wiring**: Connect TextEditor, SyntaxHighlighter, KeybindingManager into main.cpp ImGui shell
 
 ---
 
@@ -266,3 +272,4 @@ Phase 3c steps 50–53 (text editing core) are complete. Next logical work:
 | 2026-02-07 | Claude Opus 4.6 | Step 60: Implemented ASTQueryAPI (tree walk, JSON output, find by type/property/annotation). 8/8 tests pass. Added PROGRESS.md. |
 | 2026-02-08 | Claude Opus 4.6 | Phase 3b: Real tree-sitter integration (Steps 45–49). Replaced Parser.h stubs with real tree-sitter C bindings. Python/C++/Elisp CST-to-AST conversion, memory pattern detection, error recovery. 34/34 tests pass. |
 | 2026-02-08 | Claude Opus 4.6 | Phase 3c: Steps 50–53. TextASTSync (bidirectional text↔AST sync with debounce) and TextEditor (edit ops, undo/redo with AST tracking, find/replace, selection). 19/19 tests pass. Fixed step53 find-position bug (was off-by-one). |
+| 2026-02-08 | Claude Opus 4.6 | Phase 3c complete: Steps 52+54. SyntaxHighlighter (tree-sitter CST→color spans for Python/C++/Elisp). KeybindingManager (VSCode/JetBrains/Emacs profiles, default VSCode). 37/37 total Phase 3c tests pass. Design pivot: editor targets VSCode/JetBrains look, not Emacs. |

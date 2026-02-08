@@ -242,9 +242,16 @@ add_executable(step51_test tests/step51_test.cpp)
 target_include_directories(step51_test PRIVATE src)
 target_link_libraries(step51_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
 
+add_executable(step52_test tests/step52_test.cpp)
+target_include_directories(step52_test PRIVATE src)
+target_link_libraries(step52_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+
 add_executable(step53_test tests/step53_test.cpp)
 target_include_directories(step53_test PRIVATE src)
 target_link_libraries(step53_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+
+add_executable(step54_test tests/step54_test.cpp)
+target_include_directories(step54_test PRIVATE src)
 
 add_executable(step56_test tests/step56_test.cpp)
 target_include_directories(step56_test PRIVATE src)
