@@ -10,6 +10,7 @@
       "$comment": "SDL2 backend compiled locally (sdl2-binding removed from vcpkg imgui 1.91+)"
     },
     "glad",
-    "opengl"
+    "opengl",
+    "tree-sitter"
   ]
 }

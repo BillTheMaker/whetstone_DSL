@@ -1,11 +1,84 @@
 cmake_minimum_required(VERSION 3.20)
-project(WhetstoneEditor LANGUAGES CXX)
+project(WhetstoneEditor LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Use vcpkg-installed nlohmann_json instead of FetchContent
 find_package(nlohmann_json CONFIG REQUIRED)
+
+# Tree-sitter core (from vcpkg)
+find_package(unofficial-tree-sitter CONFIG REQUIRED)
+
+# Tree-sitter grammar libraries (not available in vcpkg, fetched from GitHub)
+include(FetchContent)
+
+FetchContent_Declare(
+    tree-sitter-python
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-python.git
+    GIT_TAG        v0.23.6
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
+    tree-sitter-cpp
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-cpp.git
+    GIT_TAG        v0.23.4
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
+    tree-sitter-elisp
+    GIT_REPOSITORY https://github.com/Wilfred/tree-sitter-elisp.git
+    GIT_TAG        1.3.0
+    GIT_SHALLOW    TRUE
+)
+
+# Populate without add_subdirectory (grammars have their own CMakeLists with conflicting targets)
+FetchContent_GetProperties(tree-sitter-python)
+if(NOT tree-sitter-python_POPULATED)
+    FetchContent_Populate(tree-sitter-python)
+endif()
+
+FetchContent_GetProperties(tree-sitter-cpp)
+if(NOT tree-sitter-cpp_POPULATED)
+    FetchContent_Populate(tree-sitter-cpp)
+endif()
+
+FetchContent_GetProperties(tree-sitter-elisp)
+if(NOT tree-sitter-elisp_POPULATED)
+    FetchContent_Populate(tree-sitter-elisp)
+endif()
+
+# Build tree-sitter-python grammar as a static C library
+add_library(tree_sitter_python STATIC
+    ${tree-sitter-python_SOURCE_DIR}/src/parser.c
+    ${tree-sitter-python_SOURCE_DIR}/src/scanner.c
+)
+target_include_directories(tree_sitter_python PUBLIC
+    ${tree-sitter-python_SOURCE_DIR}/src
+)
+target_link_libraries(tree_sitter_python PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-cpp grammar as a static C library
+# Note: tree-sitter-cpp scanner is C++ (.cc)
+add_library(tree_sitter_cpp STATIC
+    ${tree-sitter-cpp_SOURCE_DIR}/src/parser.c
+    ${tree-sitter-cpp_SOURCE_DIR}/src/scanner.c
+)
+target_include_directories(tree_sitter_cpp PUBLIC
+    ${tree-sitter-cpp_SOURCE_DIR}/src
+)
+target_link_libraries(tree_sitter_cpp PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-elisp grammar as a static C library
+add_library(tree_sitter_elisp STATIC
+    ${tree-sitter-elisp_SOURCE_DIR}/src/parser.c
+)
+target_include_directories(tree_sitter_elisp PUBLIC
+    ${tree-sitter-elisp_SOURCE_DIR}/src
+)
+target_link_libraries(tree_sitter_elisp PUBLIC unofficial::tree-sitter::tree-sitter)
 
 add_executable(step1_test tests/step1_test.cpp)
 target_include_directories(step1_test PRIVATE src)
@@ -143,12 +216,23 @@ target_include_directories(step44_test PRIVATE src)
 
 add_executable(step45_test tests/step45_test.cpp)
 target_include_directories(step45_test PRIVATE src)
+target_link_libraries(step45_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python)
 
 add_executable(step46_test tests/step46_test.cpp)
 target_include_directories(step46_test PRIVATE src)
+target_link_libraries(step46_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_cpp)
 
 add_executable(step47_test tests/step47_test.cpp)
 target_include_directories(step47_test PRIVATE src)
+target_link_libraries(step47_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_elisp)
+
+add_executable(step48_test tests/step48_test.cpp)
+target_include_directories(step48_test PRIVATE src)
+target_link_libraries(step48_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+
+add_executable(step49_test tests/step49_test.cpp)
+target_include_directories(step49_test PRIVATE src)
+target_link_libraries(step49_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
 
 add_executable(step51_test tests/step51_test.cpp)
 target_include_directories(step51_test PRIVATE src)

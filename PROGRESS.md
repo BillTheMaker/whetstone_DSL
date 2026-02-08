@@ -106,16 +106,17 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 > `ReclaimAnnotation`, `OwnerAnnotation`, `AllocateAnnotation`) are implemented in
 > `editor/src/ast/Generator.h`.
 
-### Phase 3b: Tree-sitter Integration (Steps 45–49) — TDD STUBS ONLY
-- [x] Step 45: TDD test written (compiles, passes basic assertions)
-- [x] Step 46: TDD test written (compiles, passes basic assertions)
-- [x] Step 47: TDD test written (compiles, passes basic assertions)
-- [ ] Step 48: CST-to-AST mapping refinement — not started
-- [ ] Step 49: Error recovery and diagnostics — not started
+### Phase 3b: Tree-sitter Integration (Steps 45–49) — COMPLETE
+- [x] Step 45: Real tree-sitter Python parsing (6/6 tests pass)
+- [x] Step 46: Real tree-sitter C++ parsing with memory pattern detection (7/7 tests pass)
+- [x] Step 47: Real tree-sitter Elisp parsing + cross-language equivalence (6/6 tests pass)
+- [x] Step 48: CST-to-AST mapping refinement — default params, if/for, multi-statement, void, multi-function, string literals (8/8 tests pass)
+- [x] Step 49: Error recovery and diagnostics — ParseResult/ParseDiagnostic types, partial parse, hasErrors() (7/7 tests pass)
 
-> Steps 45–47 have TDD test stubs that compile and pass placeholder assertions.
-> Real tree-sitter C bindings are NOT yet linked. The `TreeSitterParser` in
-> `Parser.h` uses stub implementations from Sprint 2 Step 31.
+> Tree-sitter core via vcpkg (`tree-sitter` 0.26.5). Language grammars via FetchContent:
+> `tree-sitter-python` v0.23.6, `tree-sitter-cpp` v0.23.4, `tree-sitter-elisp` 1.3.0.
+> `TreeSitterParser` in `Parser.h` implements full CST-to-AST conversion for all three languages
+> with auto-annotation (Python/Elisp → @Reclaim(Tracing), C++ → memory pattern detection).
 
 ### Phase 3c: Classical Editing Mode (Steps 50–54) — TDD STUBS ONLY
 - [ ] Step 50: Text editor component — not started
@@ -132,7 +133,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 
 ### Phase 3e: Agent API Extend (Steps 59–63) — TDD STUBS ONLY
 - [ ] Step 59: WebSocket agent endpoint — not started
-- [x] Step 60: TDD test written (does not link)
+- [x] Step 60: **IMPLEMENTED** — ASTQueryAPI with getAST, findNodesByType/Property/Annotation, getSubtree (8/8 tests pass)
 - [x] Step 61: TDD test written (does not link)
 - [x] Step 62: TDD test written (does not link)
 - [x] Step 63: TDD test written (does not link)
@@ -186,6 +187,7 @@ cd E:\Whetstone_DSL\installer\windows
 - `sdl2:x64-windows`
 - `imgui[docking-experimental,opengl3-binding]:x64-windows`
 - `glad:x64-windows`
+- `tree-sitter:x64-windows`
 
 ### Known Issue: imgui SDL2 Backend
 vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exists). The SDL2 backend files are vendored locally in `editor/src/imgui_backends/` and compiled directly by CMake.
@@ -194,10 +196,12 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## Test Results (Last Verified)
 
-**Steps 1–47:** All compile and pass (47 executables in `editor/build/Release/`)
-**Steps 48–75:** Either not started or TDD stubs that don't link yet
+**Steps 1–49:** All compile and pass (49 executables in `editor/build/Release/`)
+**Steps 50–75:** Either not started or TDD stubs that don't link yet
 
-The build only compiles `whetstone_editor` and `orchestrator` targets plus steps 1–47. Steps 51+ are TDD stubs that reference unimplemented code and will fail to link until their implementations exist.
+The build compiles `whetstone_editor`, `orchestrator`, and steps 1–49. Steps 45–49 link against
+tree-sitter core + grammar static libraries. Steps 51+ are TDD stubs that reference unimplemented
+code and will fail to link until their implementations exist.
 
 ---
 
@@ -228,12 +232,10 @@ The build only compiles `whetstone_editor` and `orchestrator` targets plus steps
 
 ## What's Next
 
-The next logical work is **Phase 3b real implementation** (Steps 45–49): replace tree-sitter stubs with real C bindings. This requires:
-1. Add `tree-sitter`, `tree-sitter-python`, `tree-sitter-cpp`, `tree-sitter-elisp` as CMake FetchContent dependencies
-2. Replace `TreeSitterParser` stubs in `Parser.h` with real CST-to-AST mapping
-3. Ensure the existing TDD tests for steps 45–47 pass with real implementations
-
-Alternatively, jump to **Phase 3c** (Steps 50–54) for classical text editing mode, or **Phase 3e** (Steps 59–63) for WebSocket agent API — these are independent of tree-sitter.
+Phase 3b (tree-sitter integration) is complete. Next logical work:
+- **Phase 3c** (Steps 50–54): Classical text editing mode (text editor component, syntax highlighting, keybindings)
+- **Phase 3e** (Steps 59–63): WebSocket agent API (Step 60 already done, remaining: WebSocket endpoint, agent protocol)
+- **Phase 3d** (Steps 55–58): Emacs integration completion (splash screen, mode-specific behavior)
 
 ---
 
@@ -251,3 +253,5 @@ Alternatively, jump to **Phase 3c** (Steps 50–54) for classical text editing m
 | 2025-latest | Claude | Vendored imgui SDL2 backend (vcpkg removed sdl2-binding feature) |
 | 2025-latest | Claude | Created Windows installer (Inno Setup), verified it installs and runs |
 | 2025-latest | Claude | Fixed editor hang when launched without orchestrator pipe |
+| 2026-02-07 | Claude Opus 4.6 | Step 60: Implemented ASTQueryAPI (tree walk, JSON output, find by type/property/annotation). 8/8 tests pass. Added PROGRESS.md. |
+| 2026-02-08 | Claude Opus 4.6 | Phase 3b: Real tree-sitter integration (Steps 45–49). Replaced Parser.h stubs with real tree-sitter C bindings. Python/C++/Elisp CST-to-AST conversion, memory pattern detection, error recovery. 34/34 tests pass. |
