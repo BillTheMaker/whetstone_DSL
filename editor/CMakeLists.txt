@@ -38,28 +38,28 @@ FetchContent_Declare(
 FetchContent_Declare(
     tree-sitter-javascript
     GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-javascript.git
-    GIT_TAG        master
+    GIT_TAG        v0.23.1
     GIT_SHALLOW    TRUE
 )
 
 FetchContent_Declare(
     tree-sitter-typescript
     GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-typescript.git
-    GIT_TAG        master
+    GIT_TAG        v0.23.2
     GIT_SHALLOW    TRUE
 )
 
 FetchContent_Declare(
     tree-sitter-java
     GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-java.git
-    GIT_TAG        master
+    GIT_TAG        v0.23.5
     GIT_SHALLOW    TRUE
 )
 
 FetchContent_Declare(
     tree-sitter-rust
     GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-rust.git
-    GIT_TAG        master
+    GIT_TAG        v0.23.3
     GIT_SHALLOW    TRUE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/_deps/tree-sitter-rust-src2
     BINARY_DIR     ${CMAKE_BINARY_DIR}/_deps/tree-sitter-rust-build2
@@ -68,14 +68,14 @@ FetchContent_Declare(
 FetchContent_Declare(
     tree-sitter-go
     GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-go.git
-    GIT_TAG        master
+    GIT_TAG        v0.23.4
     GIT_SHALLOW    TRUE
 )
 
 FetchContent_Declare(
     tinyfiledialogs
     GIT_REPOSITORY https://github.com/native-toolkit/tinyfiledialogs.git
-    GIT_TAG        master
+    GIT_TAG        2.9.3
     GIT_SHALLOW    TRUE
 )
 

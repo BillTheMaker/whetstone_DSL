@@ -20,7 +20,7 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 | Sprint 1 | — | Complete | MPS-based prototype (JetBrains MPS language plugin) |
 | Sprint 2 | 1–38 | **Complete** | C++ editor stack: AST, serialization, generators, ImGui shell, orchestrator, agents |
 | Sprint 3 | 39–75 | **Complete** | Core functionality: C++ generator, tree-sitter, classical editing, optimization |
-| Sprint 4 | 76–126 | **In Progress** | Professional editor: layout presets, code editor, LSP, annotation UI |
+| Sprint 4 | 76–120 | **Complete** | Professional editor: layout presets, code editor, LSP, annotation UI (Steps 121–126 deferred) |
 
 ---
 
@@ -168,7 +168,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 
 ---
 
-## Sprint 4: Professional Editor (Steps 76–126) — In Progress
+## Sprint 4: Professional Editor (Steps 76–120) — Complete (Steps 121–126 deferred to Sprint 5)
 
 ### Phase 4a: Layout & Code Editor Core (Steps 76–83) — In Progress
 - [x] Step 76: **IMPLEMENTED** — LayoutManager: 3 preset docking layouts (VSCode/Emacs/JetBrains), panel visibility/ratio queries, dirty flag for rebuild, save/load persistence, preset name round-trip (10/10 tests pass)
@@ -333,7 +333,13 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | File | Contents |
 |------|----------|
 | `editor/src/ast/ASTNode.h` | All 33+ AST node classes, JSON serialization |
-| `editor/src/ast/Generator.h` | PythonGenerator, CppGenerator, ElispGenerator, all canonical annotation classes |
+| `editor/src/ast/Generator.h` | Convenience include for all generators |
+| `editor/src/ast/ProjectionGenerator.h` | Base class + shared dispatch helper |
+| `editor/src/ast/PythonGenerator.h` | Python code generator |
+| `editor/src/ast/ElispGenerator.h` | Elisp code generator |
+| `editor/src/ast/CppGenerator.h` | C++ code generator with memory annotations |
+| `editor/src/EditorState.h` | BufferState + EditorState structs (extracted from main.cpp) |
+| `editor/src/EditorUtils.h` | Utility functions: themes, highlight rendering, outline, file tree |
 | `editor/src/ast/Schema.h` | AST schema validation |
 | `editor/src/ast/Parser.h` | TreeSitterParser (real tree-sitter CST-to-AST for Python/C++/Elisp) |
 | `editor/src/TextASTSync.h` | Bidirectional text↔AST synchronization with debounce |
@@ -376,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 120 (undo/redo rework) done. Next: Step 121 (AST import/external module concepts).
+Sprint 5: Deferred Steps 121–126 (AST import, external modules, dependency browser, library browser, advanced search, final integration). New panels (Dependencies, Library Browser) will be added following the panel extraction pattern in `editor/src/panels/`.
 
 ---
 
@@ -458,3 +464,4 @@ Sprint 4 in progress. Step 120 (undo/redo rework) done. Next: Step 121 (AST impo
 | 2026-02-09 | Codex | Step 118: Settings panel + persistence. 11/11 tests pass. |
 | 2026-02-09 | Codex | Step 119: Zoom controls and status bar indicator. 5/5 tests pass. |
 | 2026-02-09 | Codex | Step 120: Unified undo/redo via orchestrator snapshots (per-buffer), status bar undo depth, snapshot-based undo/redo wiring. 4/4 tests pass. |
+| 2026-02-09 | Claude Opus 4.6 | Pre-Sprint 5 refactoring: Created ARCHITECTURE.md (coding standards). Split Generator.h (2150→4 files, shared dispatch eliminates 279 lines duplication). Extracted EditorState.h and EditorUtils.h from main.cpp (4102→~2235 lines). Pinned 6 FetchContent deps to release tags. Orchestrator.h cleanup: wired CppGenerator, added platform guards, fixed shell injection, replaced stale TODOs with STUB markers. Sprint 4 marked complete (Steps 121–126 deferred to Sprint 5). |

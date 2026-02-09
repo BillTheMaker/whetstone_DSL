@@ -190,9 +190,7 @@ public:
                 // Find the parent and remove the child
                 ASTNode* parent = node->parent;
                 if (parent) {
-                    // This is a simplified implementation - in reality, we'd need to track
-                    // which role the node was added to and remove it from that role
-                    // For now, we'll just mark this as a TODO in a real implementation
+                    // STUB: insertNode undo not implemented — requires role tracking per mutation
                 }
             }
         } else if (operation["type"] == "setNodeProperty") {
@@ -344,10 +342,20 @@ public:
         std::cout << "Sending to Emacs: " << command << std::endl;
         
         // In a real implementation:
-        std::string cmd = "emacsclient -s whetstone -e \"" + command + "\"";
+        // Escape command to prevent shell injection
+        std::string escaped;
+        for (char c : command) {
+            if (c == '"' || c == '\\') escaped += '\\';
+            escaped += c;
+        }
+        std::string cmd = "emacsclient -s whetstone -e \"" + escaped + "\"";
+#ifdef _WIN32
         FILE* pipe = _popen(cmd.c_str(), "r");
-        if (!pipe) return "nil";  // Return nil if we can't open the pipe
-        
+#else
+        FILE* pipe = popen(cmd.c_str(), "r");
+#endif
+        if (!pipe) return "nil";
+
         char buffer[4096];
         std::string result = "";
         while (!feof(pipe)) {
@@ -355,17 +363,31 @@ public:
                 result += buffer;
             }
         }
+#ifdef _WIN32
         _pclose(pipe);
+#else
+        pclose(pipe);
+#endif
         
         // Trim whitespace from the result
         result.erase(result.find_last_not_of(" \t\n\r\f\v") + 1);
         return result.empty() ? "nil" : result;
     }
     
+    // Escape a string for embedding in Elisp double-quoted strings
+    static std::string escapeElispString(const std::string& s) {
+        std::string out;
+        for (char c : s) {
+            if (c == '"' || c == '\\') out += '\\';
+            out += c;
+        }
+        return out;
+    }
+
     // Method to load a file via Emacs and parse to AST using tree-sitter
     std::unique_ptr<Module> loadFile(const std::string& path) {
         // First, get the file content from Emacs
-        std::string command = "(with-current-buffer (find-file-noselect \"" + path + "\") (buffer-string))";
+        std::string command = "(with-current-buffer (find-file-noselect \"" + escapeElispString(path) + "\") (buffer-string))";
         std::string content = sendToEmacs(command);
         
         // Determine the language based on file extension
@@ -424,12 +446,9 @@ public:
         } else if (targetLanguage == "elisp") {
             ElispGenerator elispGen;
             content = elispGen.generate(ast);
-        } else if (targetLanguage == "cpp") {
-            // For C++ generation, we would use a CppGenerator when implemented
-            // For now, we'll use the Python generator as a placeholder
-            PythonGenerator gen;
+        } else if (targetLanguage == "cpp" || targetLanguage == "c++") {
+            CppGenerator gen;
             content = gen.generate(ast);
-            // TODO: Implement CppGenerator when ready
         } else {
             // Default to Python generator for unknown languages
             PythonGenerator gen;
@@ -437,21 +456,24 @@ public:
         }
         
         // Send the content to Emacs to save to file
-        std::string command = "(with-current-buffer (find-file-noselect \"" + path + "\")" +
+        std::string ePath = escapeElispString(path);
+        std::string eContent = escapeElispString(content);
+        std::string command = "(with-current-buffer (find-file-noselect \"" + ePath + "\")" +
                              "(erase-buffer)" +
-                             "(insert \"" + content + "\")" +
-                             "(write-file \"" + path + "\"))";
+                             "(insert \"" + eContent + "\")" +
+                             "(write-file \"" + ePath + "\"))";
         std::string result = sendToEmacs(command);
-        // If the result is not an error, assume success
         return result.find("Error") == std::string::npos;
     }
 
     // Overload: save raw content string to a file via Emacs
     bool saveContent(const std::string& path, const std::string& content) {
-        std::string command = "(with-current-buffer (find-file-noselect \"" + path + "\")" +
+        std::string ePath = escapeElispString(path);
+        std::string eContent = escapeElispString(content);
+        std::string command = "(with-current-buffer (find-file-noselect \"" + ePath + "\")" +
                              "(erase-buffer)" +
-                             "(insert \"" + content + "\")" +
-                             "(write-file \"" + path + "\"))";
+                             "(insert \"" + eContent + "\")" +
+                             "(write-file \"" + ePath + "\"))";
         std::string result = sendToEmacs(command);
         return result.find("Error") == std::string::npos;
     }
