@@ -60,6 +60,7 @@ If a struct exceeds 50 fields, group related fields into sub-structs (e.g., `Dif
 - **No print-only tests:** `std::cout << "PASS"` without a preceding assertion is forbidden.
 - **Test pattern:** Use the standard `expect()` helper, `int passed/failed` counters, `return failed ? 1 : 0`.
 - **Edge cases:** At least 1 edge case test per step (empty input, null, boundary).
+- **Coverage continuity:** If a test is removed or simplified, add equivalent coverage in a new unit or integration test and note the replacement in the commit/progress log.
 
 ---
 
