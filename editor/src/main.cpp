@@ -39,6 +39,7 @@
 #include "CrossLanguageProjector.h"
 #include "DiffUtils.h"
 #include "EditorModePolicy.h"
+#include "RefactorActions.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -139,13 +140,20 @@ struct EditorState {
     std::string       optimizeDeadCodeSummary;
     std::string       optimizeApplySummary;
     bool              optimizePreview = false;
+    bool              showRefactorPopup = false;
+    int               refactorAction = 0; // 1=rename,2=extract,3=inline
+    char              refactorNameA[128] = {};
+    char              refactorNameB[128] = {};
+    std::string       refactorError;
     struct DiffState {
         bool active = false;
         bool preview = false;
         int action = 0; // 1=constant-fold, 2=dead-code-elim, 3=apply-all
+        bool batch = false;
         std::string beforeText;
         std::string afterText;
         std::vector<std::string> transformIds;
+        std::vector<BatchMutationAPI::Mutation> batchMutations;
         std::vector<int> beforeLines;
         std::vector<int> afterLines;
     } diff;
@@ -602,13 +610,16 @@ struct EditorState {
                   const std::string& afterText,
                   bool preview,
                   int action,
-                  const std::vector<std::string>& transformIds) {
+                  const std::vector<std::string>& transformIds,
+                  const std::vector<BatchMutationAPI::Mutation>& batchMutations = {}) {
         diff.active = true;
         diff.preview = preview;
         diff.action = action;
+        diff.batch = !batchMutations.empty();
         diff.beforeText = beforeText;
         diff.afterText = afterText;
         diff.transformIds = transformIds;
+        diff.batchMutations = batchMutations;
         LineDiff lineDiff = buildLineDiff(beforeText, afterText);
         diff.beforeLines = std::move(lineDiff.beforeLines);
         diff.afterLines = std::move(lineDiff.afterLines);
@@ -1419,6 +1430,33 @@ int main(int, char**) {
                     state.setLanguage("go");
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Refactor")) {
+                bool canRefactor = state.isStructured() && state.active() && !state.active()->readOnly;
+                if (!canRefactor) ImGui::BeginDisabled();
+                if (ImGui::MenuItem("Rename Variable")) {
+                    state.refactorAction = 1;
+                    state.showRefactorPopup = true;
+                    state.refactorNameA[0] = '\0';
+                    state.refactorNameB[0] = '\0';
+                    ImGui::OpenPopup("RefactorPopup");
+                }
+                if (ImGui::MenuItem("Extract Function")) {
+                    state.refactorAction = 2;
+                    state.showRefactorPopup = true;
+                    state.refactorNameA[0] = '\0';
+                    state.refactorNameB[0] = '\0';
+                    ImGui::OpenPopup("RefactorPopup");
+                }
+                if (ImGui::MenuItem("Inline Variable")) {
+                    state.refactorAction = 3;
+                    state.showRefactorPopup = true;
+                    state.refactorNameA[0] = '\0';
+                    state.refactorNameB[0] = '\0';
+                    ImGui::OpenPopup("RefactorPopup");
+                }
+                if (!canRefactor) ImGui::EndDisabled();
+                ImGui::EndMenu();
+            }
             if (ImGui::BeginMenu("Keybindings")) {
                 for (auto p : KeybindingManager::availableProfiles()) {
                     if (ImGui::MenuItem(KeybindingManager::profileName(p), nullptr,
@@ -1525,6 +1563,105 @@ int main(int, char**) {
             }
             ImGui::PopFont();
             ImGui::End();
+        }
+
+        // ---------------------------------------------------------------
+        //  Refactor popup
+        // ---------------------------------------------------------------
+        if (state.showRefactorPopup) {
+            ImGui::OpenPopup("RefactorPopup");
+        }
+        if (ImGui::BeginPopupModal("RefactorPopup", &state.showRefactorPopup,
+                                   ImGuiWindowFlags_AlwaysAutoResize)) {
+            const char* title = "";
+            if (state.refactorAction == 1) title = "Rename Variable";
+            else if (state.refactorAction == 2) title = "Extract Function";
+            else if (state.refactorAction == 3) title = "Inline Variable";
+            ImGui::TextUnformatted(title);
+            ImGui::Separator();
+
+            if (state.refactorAction == 1) {
+                ImGui::InputText("Old Name", state.refactorNameA, sizeof(state.refactorNameA));
+                ImGui::InputText("New Name", state.refactorNameB, sizeof(state.refactorNameB));
+            } else if (state.refactorAction == 2) {
+                ImGui::InputText("New Function Name", state.refactorNameA, sizeof(state.refactorNameA));
+                ImGui::TextDisabled("Extracts the first statement of the first function.");
+            } else if (state.refactorAction == 3) {
+                ImGui::InputText("Variable Name", state.refactorNameA, sizeof(state.refactorNameA));
+                ImGui::TextDisabled("Removes the first matching variable declaration.");
+            }
+
+            if (!state.refactorError.empty()) {
+                ImGui::TextColored(ImVec4(0.9f, 0.4f, 0.4f, 1.0f),
+                                   "%s", state.refactorError.c_str());
+            }
+
+            bool canRun = state.isStructured() && state.active() && !state.active()->readOnly;
+            if (!canRun) ImGui::BeginDisabled();
+            if (ImGui::Button("Preview")) {
+                state.refactorError.clear();
+                Module* ast = state.activeAST();
+                RefactorPlan plan;
+                if (state.refactorAction == 1) {
+                    plan = buildRenameVariablePlan(ast, state.refactorNameA, state.refactorNameB);
+                } else if (state.refactorAction == 2) {
+                    plan = buildExtractFunctionPlan(ast, state.refactorNameA);
+                } else if (state.refactorAction == 3) {
+                    plan = buildInlineVariablePlan(ast, state.refactorNameA);
+                }
+                if (!plan.success) {
+                    state.refactorError = plan.error;
+                } else {
+                    auto previewAst = cloneModule(ast);
+                    BatchMutationAPI batch;
+                    batch.setRoot(previewAst.get());
+                    auto res = batch.applySequence(plan.mutations);
+                    if (!res.success) {
+                        state.refactorError = res.error;
+                    } else {
+                        std::string beforeText = state.active()->editBuf;
+                        std::string afterText =
+                            generateForLanguage(previewAst.get(), state.active()->language);
+                        state.openDiff(beforeText, afterText, true, 0, {}, plan.mutations);
+                        state.showRefactorPopup = false;
+                    }
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Apply")) {
+                state.refactorError.clear();
+                Module* ast = state.activeAST();
+                RefactorPlan plan;
+                if (state.refactorAction == 1) {
+                    plan = buildRenameVariablePlan(ast, state.refactorNameA, state.refactorNameB);
+                } else if (state.refactorAction == 2) {
+                    plan = buildExtractFunctionPlan(ast, state.refactorNameA);
+                } else if (state.refactorAction == 3) {
+                    plan = buildInlineVariablePlan(ast, state.refactorNameA);
+                }
+                if (!plan.success) {
+                    state.refactorError = plan.error;
+                } else {
+                    BatchMutationAPI batch;
+                    batch.setRoot(ast);
+                    auto res = batch.applySequence(plan.mutations);
+                    if (!res.success) {
+                        state.refactorError = res.error;
+                    } else {
+                        state.outputLog += "Refactor applied (" +
+                                           std::to_string(res.appliedCount) + " mutations).\n";
+                        state.refreshActiveTextFromAST();
+                        state.showRefactorPopup = false;
+                    }
+                }
+            }
+            if (!canRun) ImGui::EndDisabled();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                state.showRefactorPopup = false;
+            }
+
+            ImGui::EndPopup();
         }
 
         // ---------------------------------------------------------------
@@ -2395,17 +2532,29 @@ int main(int, char**) {
                     if (state.diff.preview) {
                         if (ImGui::Button("Apply")) {
                             if (ast && !buf->readOnly) {
-                                buf->incrementalOptimizer.setRoot(ast);
-                                std::vector<std::string> ids;
-                                if (state.diff.action == 1) {
-                                    ids.push_back(buf->incrementalOptimizer.applyTransform("constant-fold"));
-                                } else if (state.diff.action == 2) {
-                                    ids.push_back(buf->incrementalOptimizer.applyTransform("dead-code-elim"));
-                                } else if (state.diff.action == 3) {
-                                    ids.push_back(buf->incrementalOptimizer.applyTransform("constant-fold"));
-                                    ids.push_back(buf->incrementalOptimizer.applyTransform("dead-code-elim"));
+                                if (state.diff.batch) {
+                                    BatchMutationAPI batch;
+                                    batch.setRoot(ast);
+                                    auto res = batch.applySequence(state.diff.batchMutations);
+                                    if (!res.success) {
+                                        state.outputLog += res.error + "\n";
+                                    } else {
+                                        state.outputLog += "Refactor applied (" +
+                                                           std::to_string(res.appliedCount) + " mutations).\n";
+                                        state.refreshActiveTextFromAST();
+                                    }
+                                } else {
+                                    buf->incrementalOptimizer.setRoot(ast);
+                                    if (state.diff.action == 1) {
+                                        buf->incrementalOptimizer.applyTransform("constant-fold");
+                                    } else if (state.diff.action == 2) {
+                                        buf->incrementalOptimizer.applyTransform("dead-code-elim");
+                                    } else if (state.diff.action == 3) {
+                                        buf->incrementalOptimizer.applyTransform("constant-fold");
+                                        buf->incrementalOptimizer.applyTransform("dead-code-elim");
+                                    }
+                                    state.refreshActiveTextFromAST();
                                 }
-                                state.refreshActiveTextFromAST();
                             }
                             state.diff.active = false;
                         }

@@ -211,6 +211,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 107a: **IMPLEMENTED** — Text-Editor Mode toggle and per-buffer mode tracking (2/2 tests pass)
 - [x] Step 107b: **IMPLEMENTED** — Mode-specific UI behavior and feature gating (2/2 tests pass)
 - [x] Step 107c: **IMPLEMENTED** — Per-buffer mode persistence in recent files (2/2 tests pass)
+- [x] Step 108: **IMPLEMENTED** — Batch mutation UI with refactor actions and diff preview (3/3 tests pass)
 
 ---
 
@@ -301,6 +302,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 107a:** Compile and pass (2/2)
 **Step 107b:** Compile and pass (2/2)
 **Step 107c:** Compile and pass (2/2)
+**Step 108:** Compile and pass (3/3)
 
 ---
 
@@ -421,3 +423,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 107a: Text-Editor Mode toggle and per-buffer mode tracking. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 107b: Mode-specific UI behavior and feature gating. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 107c: Per-buffer mode persistence in recent files. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 108: Batch mutation UI with refactor actions and diff preview. 3/3 tests pass. |
