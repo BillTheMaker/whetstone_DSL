@@ -38,6 +38,7 @@
 #include "StrategyAwareOptimizer.h"
 #include "CrossLanguageProjector.h"
 #include "DiffUtils.h"
+#include "EditorModePolicy.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -71,7 +72,7 @@ struct BufferState {
     std::string       generatedLanguage = "python";
     std::string       path        = "(untitled)";
     bool              readOnly    = false;
-    BufferManager::BufferMode mode = BufferManager::BufferMode::Structured;
+    BufferManager::BufferMode bufferMode = BufferManager::BufferMode::Structured;
     bool              modified    = false;
     int               cursorLine  = 1;
     int               cursorCol   = 1;
@@ -154,6 +155,14 @@ struct EditorState {
     float             diffScrollY = 0.0f;
 
     BufferState* active() { return activeBuffer; }
+    bool isStructured() const {
+        return activeBuffer && allowStructuredFeatures(activeBuffer->bufferMode);
+    }
+    Module* activeAST() {
+        if (!activeBuffer) return nullptr;
+        if (!allowStructuredFeatures(activeBuffer->bufferMode)) return nullptr;
+        return activeBuffer->sync.getAST();
+    }
 
     static std::string toFileUri(const std::string& path) {
         std::filesystem::path p(path);
@@ -254,7 +263,7 @@ struct EditorState {
         state->modified = false;
         state->lspVersion = 1;
         buffers.openBuffer(path, content, language, BufferManager::BufferMode::Structured);
-        state->mode = BufferManager::BufferMode::Structured;
+        state->bufferMode = BufferManager::BufferMode::Structured;
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
@@ -325,9 +334,11 @@ struct EditorState {
             active()->generatedHighlightsDirty = true;
         }
         active()->editor.setContent(active()->editBuf, lang);
-        active()->sync.setText(active()->editBuf, lang);
-        active()->sync.syncNow();
-        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
+            active()->sync.setText(active()->editBuf, lang);
+            active()->sync.syncNow();
+            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        }
         active()->highlightsDirty = true;
     }
 
@@ -335,9 +346,11 @@ struct EditorState {
     void onTextChanged() {
         if (!active()) return;
         active()->editor.setContent(active()->editBuf, active()->language);
-        active()->sync.setText(active()->editBuf, active()->language);
-        active()->sync.syncNow();
-        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
+            active()->sync.setText(active()->editBuf, active()->language);
+            active()->sync.syncNow();
+            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        }
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
@@ -351,9 +364,11 @@ struct EditorState {
         if (!active()) return;
         active()->editor.undo();
         active()->editBuf = active()->editor.getContent();
-        active()->sync.setText(active()->editBuf, active()->language);
-        active()->sync.syncNow();
-        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
+            active()->sync.setText(active()->editBuf, active()->language);
+            active()->sync.syncNow();
+            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        }
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
     }
@@ -362,9 +377,11 @@ struct EditorState {
         if (!active()) return;
         active()->editor.redo();
         active()->editBuf = active()->editor.getContent();
-        active()->sync.setText(active()->editBuf, active()->language);
-        active()->sync.syncNow();
-        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
+            active()->sync.setText(active()->editBuf, active()->language);
+            active()->sync.syncNow();
+            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        }
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
     }
@@ -395,9 +412,11 @@ struct EditorState {
         int count = active()->editor.replaceAll(findBuf, replaceBuf);
         if (count > 0) {
             active()->editBuf = active()->editor.getContent();
-            active()->sync.setText(active()->editBuf, active()->language);
-            active()->sync.syncNow();
-            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+            if (active()->bufferMode == BufferManager::BufferMode::Structured) {
+                active()->sync.setText(active()->editBuf, active()->language);
+                active()->sync.syncNow();
+                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+            }
             active()->highlightsDirty = true;
             active()->generatedHighlightsDirty = true;
             active()->modified = true;
@@ -464,9 +483,11 @@ struct EditorState {
         auto* buf = it->second.get();
         buf->editBuf = ss.str();
         buf->editor.setContent(buf->editBuf, buf->language);
-        buf->sync.setText(buf->editBuf, buf->language);
-        buf->sync.syncNow();
-        buf->incrementalOptimizer.setRoot(buf->sync.getAST());
+        if (buf->bufferMode == BufferManager::BufferMode::Structured) {
+            buf->sync.setText(buf->editBuf, buf->language);
+            buf->sync.syncNow();
+            buf->incrementalOptimizer.setRoot(buf->sync.getAST());
+        }
         buf->highlightsDirty = true;
         buf->generatedHighlightsDirty = true;
         buf->modified = false;
@@ -495,6 +516,7 @@ struct EditorState {
 
     void updateGenerated() {
         if (!active()) return;
+        if (active()->bufferMode == BufferManager::BufferMode::Text) return;
         Module* ast = active()->sync.getAST();
         std::string generated = generateForLanguage(ast, active()->generatedLanguage);
         if (generated != active()->generatedBuf) {
@@ -510,7 +532,7 @@ struct EditorState {
 
     void projectToLanguage(const std::string& targetLanguage) {
         if (!active()) return;
-        Module* ast = active()->sync.getAST();
+        Module* ast = activeAST();
         if (!ast) {
             outputLog += "Project to " + targetLanguage + ": no AST available.\n";
             return;
@@ -559,6 +581,7 @@ struct EditorState {
 
     void refreshActiveTextFromAST() {
         if (!active()) return;
+        if (!isStructured()) return;
         active()->editBuf = active()->sync.getText();
         active()->editor.setContent(active()->editBuf, active()->language);
         active()->highlightsDirty = true;
@@ -1332,12 +1355,19 @@ int main(int, char**) {
                 ImGui::MenuItem("Show Annotations", nullptr, &state.showAnnotations);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
-                    bool textMode = state.active()->mode == BufferManager::BufferMode::Text;
+                    bool textMode = state.active()->bufferMode == BufferManager::BufferMode::Text;
                     if (ImGui::MenuItem("Text-Editor Mode", nullptr, textMode)) {
-                        state.active()->mode = textMode ?
+                        state.active()->bufferMode = textMode ?
                             BufferManager::BufferMode::Structured :
                             BufferManager::BufferMode::Text;
-                        state.buffers.setBufferMode(state.active()->path, state.active()->mode);
+                        state.buffers.setBufferMode(state.active()->path, state.active()->bufferMode);
+                        if (state.active()->bufferMode == BufferManager::BufferMode::Text) {
+                            state.suggestions.clear();
+                            state.whetstoneDiagnostics.clear();
+                            state.analysisPending = false;
+                        } else {
+                            state.onTextChanged();
+                        }
                     }
                 }
                 if (ImGui::BeginMenu("Layout")) {
@@ -1379,7 +1409,7 @@ int main(int, char**) {
                 ImGui::EndMenu();
             }
 
-            const bool canProject = state.active() && state.active()->sync.getAST();
+            const bool canProject = state.activeAST() != nullptr;
             ImGui::SameLine();
             ImGui::Dummy(ImVec2(12.0f, 0.0f));
             ImGui::SameLine();
@@ -1508,7 +1538,9 @@ int main(int, char**) {
                         avail.y -= 4; // small margin
 
                         state.updateHighlights();
-                        state.updateGenerated();
+                        if (buf->bufferMode == BufferManager::BufferMode::Structured) {
+                            state.updateGenerated();
+                        }
                         std::vector<int> errorLines;
                         std::vector<int> warningLines;
                         std::vector<DiagnosticRange> diagRanges;
@@ -1544,8 +1576,8 @@ int main(int, char**) {
                             dr.message = d.message;
                             diagRanges.push_back(std::move(dr));
                         }
-                        if (state.active()) {
-                            Module* ast = state.active()->sync.getAST();
+                        if (state.isStructured()) {
+                            Module* ast = state.activeAST();
                             if (ast) {
                                 collectAnnotationMarkers(ast, annoMarkers);
                                 std::vector<AnnotationConflict> conflicts;
@@ -1594,60 +1626,67 @@ int main(int, char**) {
                         opts.annotations = &annoMarkers;
                         opts.suggestions = &suggestionMarkers;
                         opts.conflicts = &conflictMarkers;
-                        opts.syncScrollX = &buf->splitScrollX;
-                        opts.syncScrollY = &buf->splitScrollY;
-                        opts.scrollMaster = true;
 
-                        ImGui::BeginTable("##editorSplit", 2,
-                                          ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp);
-                        ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_WidthStretch, 0.55f);
-                        ImGui::TableSetupColumn("Generated", ImGuiTableColumnFlags_WidthStretch, 0.45f);
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        CodeEditorResult res = buf->widget.render("##editor",
-                            buf->editBuf, buf->highlights, opts, ImVec2(0, avail.y), monoFont);
+                        CodeEditorResult res;
+                        if (buf->bufferMode == BufferManager::BufferMode::Structured) {
+                            opts.syncScrollX = &buf->splitScrollX;
+                            opts.syncScrollY = &buf->splitScrollY;
+                            opts.scrollMaster = true;
 
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::BeginGroup();
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::TextUnformatted("Generated");
-                        ImGui::SameLine();
-                        const char* targetLabels[] = {"Python", "C++", "Elisp"};
-                        const char* targetValues[] = {"python", "cpp", "elisp"};
-                        int targetIndex = 0;
-                        for (int i = 0; i < IM_ARRAYSIZE(targetValues); ++i) {
-                            if (buf->generatedLanguage == targetValues[i]) {
-                                targetIndex = i;
-                                break;
+                            ImGui::BeginTable("##editorSplit", 2,
+                                              ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp);
+                            ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_WidthStretch, 0.55f);
+                            ImGui::TableSetupColumn("Generated", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            res = buf->widget.render("##editor",
+                                buf->editBuf, buf->highlights, opts, ImVec2(0, avail.y), monoFont);
+
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::BeginGroup();
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::TextUnformatted("Generated");
+                            ImGui::SameLine();
+                            const char* targetLabels[] = {"Python", "C++", "Elisp"};
+                            const char* targetValues[] = {"python", "cpp", "elisp"};
+                            int targetIndex = 0;
+                            for (int i = 0; i < IM_ARRAYSIZE(targetValues); ++i) {
+                                if (buf->generatedLanguage == targetValues[i]) {
+                                    targetIndex = i;
+                                    break;
+                                }
                             }
+                            ImGui::SetNextItemWidth(120.0f);
+                            if (ImGui::Combo("##targetLang", &targetIndex,
+                                             targetLabels, IM_ARRAYSIZE(targetLabels))) {
+                                buf->generatedLanguage = targetValues[targetIndex];
+                                buf->generatedMode.setLanguage(buf->generatedLanguage);
+                                buf->generatedHighlightsDirty = true;
+                                state.updateGenerated();
+                            }
+                            ImVec2 genAvail = ImGui::GetContentRegionAvail();
+                            CodeEditorOptions genOpts;
+                            genOpts.readOnly = true;
+                            genOpts.showWhitespace = state.showWhitespace;
+                            genOpts.mode = &buf->generatedMode;
+                            genOpts.showCurrentLine = false;
+                            genOpts.highlightLine = buf->generatedHighlightLine;
+                            genOpts.syncScrollX = &buf->splitScrollX;
+                            genOpts.syncScrollY = &buf->splitScrollY;
+                            genOpts.scrollMaster = false;
+                            buf->generatedWidget.render("##generated",
+                                buf->generatedBuf, buf->generatedHighlights, genOpts,
+                                ImVec2(0, genAvail.y), monoFont);
+                            ImGui::EndGroup();
+                            ImGui::EndTable();
+                        } else {
+                            res = buf->widget.render("##editor",
+                                buf->editBuf, buf->highlights, opts, avail, monoFont);
                         }
-                        ImGui::SetNextItemWidth(120.0f);
-                        if (ImGui::Combo("##targetLang", &targetIndex,
-                                         targetLabels, IM_ARRAYSIZE(targetLabels))) {
-                            buf->generatedLanguage = targetValues[targetIndex];
-                            buf->generatedMode.setLanguage(buf->generatedLanguage);
-                            buf->generatedHighlightsDirty = true;
-                            state.updateGenerated();
-                        }
-                        ImVec2 genAvail = ImGui::GetContentRegionAvail();
-                        CodeEditorOptions genOpts;
-                        genOpts.readOnly = true;
-                        genOpts.showWhitespace = state.showWhitespace;
-                        genOpts.mode = &buf->generatedMode;
-                        genOpts.showCurrentLine = false;
-                        genOpts.highlightLine = buf->generatedHighlightLine;
-                        genOpts.syncScrollX = &buf->splitScrollX;
-                        genOpts.syncScrollY = &buf->splitScrollY;
-                        genOpts.scrollMaster = false;
-                        buf->generatedWidget.render("##generated",
-                            buf->generatedBuf, buf->generatedHighlights, genOpts,
-                            ImVec2(0, genAvail.y), monoFont);
-                        ImGui::EndGroup();
-                        ImGui::EndTable();
 
                         state.updateCursorPos(res.cursorByte);
-                        if (res.lineClicked) {
-                            Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                        if (res.lineClicked && buf->bufferMode == BufferManager::BufferMode::Structured) {
+                            Module* ast = state.activeAST();
                             if (ast) {
                                 int genLines = countLines(buf->generatedBuf);
                                 int targetLine = std::max(0, std::min(res.clickedLine, genLines - 1));
@@ -1674,8 +1713,10 @@ int main(int, char**) {
                                     state.lsp->clearSignatureHelp();
                                 }
                             }
-                            state.analysisPending = true;
-                            state.analysisLastChange = ImGui::GetTime();
+                            if (buf->bufferMode == BufferManager::BufferMode::Structured) {
+                                state.analysisPending = true;
+                                state.analysisLastChange = ImGui::GetTime();
+                            }
                         }
 
                         if (res.suggestionClicked) {
@@ -1700,7 +1741,7 @@ int main(int, char**) {
                         }
 
                         if (state.analysisPending && (now - state.analysisLastChange) > 0.5) {
-                            if (state.active()) {
+                            if (state.isStructured()) {
                                 auto result = state.pipeline.run(state.active()->editBuf,
                                                                  state.active()->language,
                                                                  state.active()->language);
@@ -1712,13 +1753,16 @@ int main(int, char**) {
                                 } else {
                                     state.whetstoneDiagnostics.clear();
                                 }
-                                Module* ast = state.active()->sync.getAST();
+                                Module* ast = state.activeAST();
                                 if (ast) {
                                     MemoryStrategyInference inf;
                                     state.suggestions = inf.inferAnnotations(ast);
                                 } else {
                                     state.suggestions.clear();
                                 }
+                            } else {
+                                state.whetstoneDiagnostics.clear();
+                                state.suggestions.clear();
                             }
                             state.analysisPending = false;
                         }
@@ -2092,6 +2136,8 @@ int main(int, char**) {
                 Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
                 if (!state.active()) {
                     ImGui::TextDisabled("(no active buffer)");
+                } else if (state.active()->bufferMode == BufferManager::BufferMode::Text) {
+                    ImGui::TextDisabled("(disabled in Text mode)");
                 } else if (!ast) {
                     ImGui::TextDisabled("(no AST)");
                 } else if (state.active()->readOnly) {
@@ -2261,6 +2307,8 @@ int main(int, char**) {
                 Module* ast = buf ? buf->sync.getAST() : nullptr;
                 if (!buf) {
                     ImGui::TextDisabled("(no active buffer)");
+                } else if (buf->bufferMode == BufferManager::BufferMode::Text) {
+                    ImGui::TextDisabled("(disabled in Text mode)");
                 } else if (!ast) {
                     ImGui::TextDisabled("(no AST)");
                 } else {
@@ -2320,6 +2368,8 @@ int main(int, char**) {
                 Module* ast = buf ? buf->sync.getAST() : nullptr;
                 if (!buf) {
                     ImGui::TextDisabled("(no active buffer)");
+                } else if (buf->bufferMode == BufferManager::BufferMode::Text) {
+                    ImGui::TextDisabled("(diff view disabled in Text mode)");
                 } else if (!state.diff.active) {
                     ImGui::TextDisabled("(no diff)");
                 } else {
@@ -2406,7 +2456,9 @@ int main(int, char**) {
                 ImGui::PushFont(monoFont);
                 ImGui::BeginChild("##astScroll", ImVec2(0, 0), false);
                 Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
-                if (ast) {
+                if (state.active() && state.active()->bufferMode == BufferManager::BufferMode::Text) {
+                    ImGui::TextDisabled("(disabled in Text mode)");
+                } else if (ast) {
                     std::map<std::string, std::string> transformNames;
                     if (state.active()) {
                         auto history = state.active()->incrementalOptimizer.getTransformHistory();
@@ -2491,11 +2543,15 @@ int main(int, char**) {
                 ImGui::PushFont(monoFont);
                 ImGui::BeginChild("##genScroll", ImVec2(0, 0), false);
                 Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
-                state.updateGenerated();
-                if (ast && state.active()) {
-                    ImGui::TextUnformatted(state.active()->generatedBuf.c_str());
+                if (state.active() && state.active()->bufferMode == BufferManager::BufferMode::Text) {
+                    ImGui::TextDisabled("(disabled in Text mode)");
                 } else {
-                    ImGui::TextDisabled("(no AST)");
+                    state.updateGenerated();
+                    if (ast && state.active()) {
+                        ImGui::TextUnformatted(state.active()->generatedBuf.c_str());
+                    } else {
+                        ImGui::TextDisabled("(no AST)");
+                    }
                 }
                 ImGui::EndChild();
                 ImGui::PopFont();
@@ -2513,7 +2569,9 @@ int main(int, char**) {
         ImGui::Begin("Memory Strategies");
         ImGui::PushFont(uiFont);
         Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
-        if (!ast) {
+        if (state.active() && state.active()->bufferMode == BufferManager::BufferMode::Text) {
+            ImGui::TextDisabled("(disabled in Text mode)");
+        } else if (!ast) {
             ImGui::TextDisabled("(no AST)");
         } else {
             std::vector<AnnotationEntry> entries;
@@ -2590,7 +2648,7 @@ int main(int, char**) {
             // Mode
             if (state.active()) {
                 const char* modeLabel =
-                    state.active()->mode == BufferManager::BufferMode::Text ? "Text" : "Structured";
+                    state.active()->bufferMode == BufferManager::BufferMode::Text ? "Text" : "Structured";
                 ImGui::Text("Mode: %s", modeLabel);
             } else {
                 ImGui::Text("Mode: -");
