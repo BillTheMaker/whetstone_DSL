@@ -58,16 +58,25 @@ struct BufferState {
     TextEditor        editor;
     TextASTSync       sync;
     CodeEditorWidget  widget;
+    CodeEditorWidget  generatedWidget;
     EditorMode        mode;
+    EditorMode        generatedMode;
     std::string       language    = "python";
+    std::string       generatedLanguage = "python";
     std::string       path        = "(untitled)";
     bool              modified    = false;
     int               cursorLine  = 1;
     int               cursorCol   = 1;
     int               lspVersion  = 1;
     std::string       editBuf;
+    std::string       generatedBuf;
     std::vector<HighlightSpan> highlights;
+    std::vector<HighlightSpan> generatedHighlights;
     bool              highlightsDirty = true;
+    bool              generatedHighlightsDirty = true;
+    int               generatedHighlightLine = -1;
+    float             splitScrollX = 0.0f;
+    float             splitScrollY = 0.0f;
 };
 
 struct EditorState {
@@ -205,12 +214,15 @@ struct EditorState {
         auto state = std::make_unique<BufferState>();
         state->path = path;
         state->language = language;
+        state->generatedLanguage = language;
         state->mode.setLanguage(language);
+        state->generatedMode.setLanguage(language);
         state->editor.setContent(content, language);
         state->sync.setText(content, language);
         state->sync.syncNow();
         state->editBuf = content;
         state->highlightsDirty = true;
+        state->generatedHighlightsDirty = true;
         state->modified = false;
         state->lspVersion = 1;
         buffers.openBuffer(path, content, language);
@@ -275,8 +287,14 @@ struct EditorState {
 
     void setLanguage(const std::string& lang) {
         if (!active()) return;
+        std::string prevLang = active()->language;
         active()->language = lang;
         active()->mode.setLanguage(lang);
+        if (active()->generatedLanguage == prevLang) {
+            active()->generatedLanguage = lang;
+            active()->generatedMode.setLanguage(lang);
+            active()->generatedHighlightsDirty = true;
+        }
         active()->editor.setContent(active()->editBuf, lang);
         active()->sync.setText(active()->editBuf, lang);
         active()->sync.syncNow();
@@ -290,6 +308,7 @@ struct EditorState {
         active()->sync.setText(active()->editBuf, active()->language);
         active()->sync.syncNow();
         active()->highlightsDirty = true;
+        active()->generatedHighlightsDirty = true;
         active()->modified = true;
         if (lsp && active()->path.rfind("(untitled", 0) != 0) {
             active()->lspVersion += 1;
@@ -304,6 +323,7 @@ struct EditorState {
         active()->sync.setText(active()->editBuf, active()->language);
         active()->sync.syncNow();
         active()->highlightsDirty = true;
+        active()->generatedHighlightsDirty = true;
     }
 
     void doRedo() {
@@ -313,6 +333,7 @@ struct EditorState {
         active()->sync.setText(active()->editBuf, active()->language);
         active()->sync.syncNow();
         active()->highlightsDirty = true;
+        active()->generatedHighlightsDirty = true;
     }
 
     void doFind() {
@@ -344,6 +365,7 @@ struct EditorState {
             active()->sync.setText(active()->editBuf, active()->language);
             active()->sync.syncNow();
             active()->highlightsDirty = true;
+            active()->generatedHighlightsDirty = true;
             active()->modified = true;
         }
         outputLog += "Replaced " + std::to_string(count) + " occurrence(s).\n";
@@ -411,6 +433,7 @@ struct EditorState {
         buf->sync.setText(buf->editBuf, buf->language);
         buf->sync.syncNow();
         buf->highlightsDirty = true;
+        buf->generatedHighlightsDirty = true;
         buf->modified = false;
         outputLog += "Reloaded: " + path + "\n";
     }
@@ -433,6 +456,36 @@ struct EditorState {
         if (!active()->highlightsDirty) return;
         active()->highlights = SyntaxHighlighter::highlight(active()->editBuf, active()->language);
         active()->highlightsDirty = false;
+    }
+
+    void updateGenerated() {
+        if (!active()) return;
+        Module* ast = active()->sync.getAST();
+        std::string generated;
+        if (ast) {
+            if (active()->generatedLanguage == "python") {
+                PythonGenerator gen;
+                generated = gen.generate(ast);
+            } else if (active()->generatedLanguage == "cpp") {
+                CppGenerator gen;
+                generated = gen.generate(ast);
+            } else if (active()->generatedLanguage == "elisp") {
+                ElispGenerator gen;
+                generated = gen.generate(ast);
+            } else {
+                PythonGenerator gen;
+                generated = gen.generate(ast);
+            }
+        }
+        if (generated != active()->generatedBuf) {
+            active()->generatedBuf = generated;
+            active()->generatedHighlightsDirty = true;
+        }
+        if (active()->generatedHighlightsDirty) {
+            active()->generatedHighlights =
+                SyntaxHighlighter::highlight(active()->generatedBuf, active()->generatedLanguage);
+            active()->generatedHighlightsDirty = false;
+        }
     }
 
     void updateCursorPos(int bytePos) {
@@ -458,6 +511,14 @@ struct NullLSPTransport : public LSPTransport {
     bool isOpen() const override { return false; }
     void close() override {}
 };
+
+static int countLines(const std::string& text) {
+    int lines = 1;
+    for (char c : text) {
+        if (c == '\n') ++lines;
+    }
+    return lines;
+}
 
 
 // ---------------------------------------------------------------------------
@@ -1228,6 +1289,7 @@ int main(int, char**) {
                         avail.y -= 4; // small margin
 
                         state.updateHighlights();
+                        state.updateGenerated();
                         std::vector<int> errorLines;
                         std::vector<int> warningLines;
                         std::vector<DiagnosticRange> diagRanges;
@@ -1312,10 +1374,68 @@ int main(int, char**) {
                         opts.annotations = &annoMarkers;
                         opts.suggestions = &suggestionMarkers;
                         opts.conflicts = &conflictMarkers;
+                        opts.syncScrollX = &buf->splitScrollX;
+                        opts.syncScrollY = &buf->splitScrollY;
+                        opts.scrollMaster = true;
 
+                        ImGui::BeginTable("##editorSplit", 2,
+                                          ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp);
+                        ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_WidthStretch, 0.55f);
+                        ImGui::TableSetupColumn("Generated", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
                         CodeEditorResult res = buf->widget.render("##editor",
-                            buf->editBuf, buf->highlights, opts, avail, monoFont);
+                            buf->editBuf, buf->highlights, opts, ImVec2(0, avail.y), monoFont);
+
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::BeginGroup();
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::TextUnformatted("Generated");
+                        ImGui::SameLine();
+                        const char* targetLabels[] = {"Python", "C++", "Elisp"};
+                        const char* targetValues[] = {"python", "cpp", "elisp"};
+                        int targetIndex = 0;
+                        for (int i = 0; i < IM_ARRAYSIZE(targetValues); ++i) {
+                            if (buf->generatedLanguage == targetValues[i]) {
+                                targetIndex = i;
+                                break;
+                            }
+                        }
+                        ImGui::SetNextItemWidth(120.0f);
+                        if (ImGui::Combo("##targetLang", &targetIndex,
+                                         targetLabels, IM_ARRAYSIZE(targetLabels))) {
+                            buf->generatedLanguage = targetValues[targetIndex];
+                            buf->generatedMode.setLanguage(buf->generatedLanguage);
+                            buf->generatedHighlightsDirty = true;
+                            state.updateGenerated();
+                        }
+                        ImVec2 genAvail = ImGui::GetContentRegionAvail();
+                        CodeEditorOptions genOpts;
+                        genOpts.readOnly = true;
+                        genOpts.showWhitespace = state.showWhitespace;
+                        genOpts.mode = &buf->generatedMode;
+                        genOpts.showCurrentLine = false;
+                        genOpts.highlightLine = buf->generatedHighlightLine;
+                        genOpts.syncScrollX = &buf->splitScrollX;
+                        genOpts.syncScrollY = &buf->splitScrollY;
+                        genOpts.scrollMaster = false;
+                        buf->generatedWidget.render("##generated",
+                            buf->generatedBuf, buf->generatedHighlights, genOpts,
+                            ImVec2(0, genAvail.y), monoFont);
+                        ImGui::EndGroup();
+                        ImGui::EndTable();
+
                         state.updateCursorPos(res.cursorByte);
+                        if (res.lineClicked) {
+                            Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                            if (ast) {
+                                int genLines = countLines(buf->generatedBuf);
+                                int targetLine = std::max(0, std::min(res.clickedLine, genLines - 1));
+                                buf->generatedHighlightLine = targetLine;
+                            } else {
+                                buf->generatedHighlightLine = -1;
+                            }
+                        }
                         if (res.changed) {
                             state.onTextChanged();
                             state.completionPending = true;
@@ -1801,19 +1921,9 @@ int main(int, char**) {
                 ImGui::PushFont(monoFont);
                 ImGui::BeginChild("##genScroll", ImVec2(0, 0), false);
                 Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
-                if (ast) {
-                    std::string generated;
-                    if (state.active()->language == "python") {
-                        PythonGenerator gen;
-                        generated = gen.generate(ast);
-                    } else if (state.active()->language == "cpp") {
-                        CppGenerator gen;
-                        generated = gen.generate(ast);
-                    } else if (state.active()->language == "elisp") {
-                        ElispGenerator gen;
-                        generated = gen.generate(ast);
-                    }
-                    ImGui::TextUnformatted(generated.c_str());
+                state.updateGenerated();
+                if (ast && state.active()) {
+                    ImGui::TextUnformatted(state.active()->generatedBuf.c_str());
                 } else {
                     ImGui::TextDisabled("(no AST)");
                 }

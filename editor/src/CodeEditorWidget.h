@@ -22,6 +22,7 @@ struct CodeEditorOptions {
     bool enableFolding = false;
     bool showMinimap = false;
     bool showAnnotations = false;
+    bool showCurrentLine = true;
     int annotationLayout = 0; // 0=above, 1=margin, 2=beside
     const std::vector<int>* errorLines = nullptr;
     const std::vector<int>* warningLines = nullptr;
@@ -29,6 +30,10 @@ struct CodeEditorOptions {
     const std::vector<struct AnnotationMarker>* annotations = nullptr;
     const std::vector<struct SuggestionMarker>* suggestions = nullptr;
     const std::vector<struct AnnotationConflictMarker>* conflicts = nullptr;
+    int highlightLine = -1;
+    float* syncScrollX = nullptr;
+    float* syncScrollY = nullptr;
+    bool scrollMaster = false;
 };
 
 struct CodeEditorResult {
@@ -45,6 +50,8 @@ struct CodeEditorResult {
     float minimapViewportEnd = 0.0f;
     bool suggestionClicked = false;
     struct SuggestionMarker clickedSuggestion;
+    bool lineClicked = false;
+    int clickedLine = -1;
 };
 
 struct DiagnosticRange {
@@ -144,6 +151,12 @@ public:
                            lineCount * lineHeight + 4.0f);
 
         ImGui::BeginChild(id, size, false, ImGuiWindowFlags_HorizontalScrollbar);
+        if (options.syncScrollX && !options.scrollMaster) {
+            ImGui::SetScrollX(*options.syncScrollX);
+        }
+        if (options.syncScrollY && !options.scrollMaster) {
+            ImGui::SetScrollY(*options.syncScrollY);
+        }
         std::string annoPopupId = std::string(id) + "_AnnoPopup";
         ImVec2 origin = ImGui::GetCursorScreenPos();
 
@@ -153,6 +166,12 @@ public:
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         const float scrollX = ImGui::GetScrollX();
         const float scrollY = ImGui::GetScrollY();
+        if (options.syncScrollX && options.scrollMaster) {
+            *options.syncScrollX = scrollX;
+        }
+        if (options.syncScrollY && options.scrollMaster) {
+            *options.syncScrollY = scrollY;
+        }
         ImVec2 gutterBase(origin.x, origin.y - scrollY);
         ImVec2 textBase(origin.x + gutterWidth - scrollX, origin.y - scrollY);
         const float windowWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
@@ -181,6 +200,8 @@ public:
             int clickCount = ImGui::GetIO().MouseClickedCount[0];
             if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
                 int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
+                result.lineClicked = true;
+                result.clickedLine = line;
                 const FoldRegion* fold = findFoldAtLine(line);
                 if (fold && mouse.x < origin.x + 12.0f) {
                     toggleFoldAtLine(line);
@@ -192,6 +213,8 @@ public:
                 selEnd_ = lineEnd;
             } else {
                 int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
+                result.lineClicked = true;
+                result.clickedLine = lineFromPos(pos, lineStarts);
                 if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
                     selectWordAt(text, pos);
                 } else if (ImGui::GetIO().KeyShift) {
@@ -357,10 +380,15 @@ public:
             }
 
             // Current line highlight (text area only)
-            if (ln == currentLine) {
+            if (options.showCurrentLine && ln == currentLine) {
                 ImVec2 hlA(textBase.x, y);
                 ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
                 drawList->AddRectFilled(hlA, hlB, IM_COL32(40, 40, 40, 120));
+            }
+            if (options.highlightLine >= 0 && ln == options.highlightLine) {
+                ImVec2 hlA(textBase.x, y);
+                ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
+                drawList->AddRectFilled(hlA, hlB, IM_COL32(90, 70, 30, 120));
             }
 
             // Selection background
