@@ -21,6 +21,7 @@
 #include "EditorMode.h"
 #include "FileDialog.h"
 #include "FileTree.h"
+#include "WelcomeScreen.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -33,6 +34,8 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <cstdlib>
+#include <nlohmann/json.hpp>
 
 // ---------------------------------------------------------------------------
 //  Editor application state
@@ -71,6 +74,7 @@ struct EditorState {
     // Custom editor widget state
     bool              showWhitespace = false;
     bool              showMinimap = false;
+    WelcomeScreen     welcome;
     std::string       workspaceRoot;
     FileTree          fileTree;
     FileNode          fileTreeRoot;
@@ -115,27 +119,49 @@ struct EditorState {
         activeBuffer = bufferStates[path].get();
     }
 
-    void init() {
-        std::string defaultContent =
-            "def add(x, y):\n"
-            "    \"\"\"Add two numbers.\"\"\"\n"
-            "    result = x + y\n"
-            "    return result\n"
-            "\n"
-            "def multiply(a, b):\n"
-            "    return a * b\n"
-            "\n"
-            "# Calculate the sum of a list\n"
-            "def calculate_sum(items):\n"
-            "    total = 0\n"
-            "    for item in items:\n"
-            "        total = total + item\n"
-            "    return total\n";
+    std::filesystem::path configDir() const {
+        const char* home = std::getenv("USERPROFILE");
+        if (!home) home = std::getenv("HOME");
+        std::filesystem::path base = home ? std::filesystem::path(home) : std::filesystem::current_path();
+        return base / ".whetstone";
+    }
 
-        createBuffer(makeUntitledName(), defaultContent, "python");
+    std::filesystem::path recentFilePath() const {
+        return configDir() / "recent.json";
+    }
+
+    void loadRecentFiles() {
+        std::filesystem::path p = recentFilePath();
+        if (!std::filesystem::exists(p)) return;
+        std::ifstream in(p.string());
+        if (!in.is_open()) return;
+        nlohmann::json j;
+        in >> j;
+        if (!j.is_array()) return;
+        for (const auto& item : j) {
+            if (!item.contains("path")) continue;
+            std::string path = item.value("path", "");
+            std::string lang = item.value("language", "");
+            if (!path.empty()) welcome.addRecentFile(path, lang);
+        }
+    }
+
+    void saveRecentFiles() {
+        std::filesystem::path p = recentFilePath();
+        std::filesystem::create_directories(p.parent_path());
+        nlohmann::json j = nlohmann::json::array();
+        for (const auto& rf : welcome.getRecentFiles()) {
+            j.push_back({{"path", rf.path}, {"language", rf.language}});
+        }
+        std::ofstream out(p.string(), std::ios::binary);
+        out << j.dump(2);
+    }
+
+    void init() {
         outputLog = "Whetstone Editor ready.\n";
         workspaceRoot = std::filesystem::current_path().string();
         fileTreeDirty = true;
+        loadRecentFiles();
     }
 
     void setLanguage(const std::string& lang) {
@@ -250,6 +276,8 @@ struct EditorState {
             else if (path.size() > 3 && path.substr(path.size() - 3) == ".go")
                 language = "go";
             createBuffer(path, content, language);
+            welcome.addRecentFile(path, language);
+            saveRecentFiles();
             outputLog += "Opened: " + path + "\n";
         } else {
             outputLog += "Error opening: " + path + "\n";
@@ -480,6 +508,50 @@ static void RenderFileTree(const FileNode& node, EditorState& state) {
         }
         ImGui::TreePop();
     }
+}
+
+// ---------------------------------------------------------------------------
+//  Welcome screen rendering
+// ---------------------------------------------------------------------------
+static void RenderWelcome(WelcomeScreen& welcome, EditorState& state, std::string& lastDialogPath) {
+    ImGui::Text("%s", welcome.getTitle().c_str());
+    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", welcome.getSubtitle().c_str());
+    ImGui::Separator();
+
+    ImGui::Text("Quick Actions");
+    if (ImGui::Button("New File")) {
+        std::string lang = state.active() ? state.active()->language : "python";
+        state.createBuffer(state.makeUntitledName(), "", lang);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Open File")) {
+        auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go"}, lastDialogPath});
+        if (!path.empty()) {
+            lastDialogPath = path;
+            state.doOpen(path);
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Open Folder")) {
+        auto path = FileDialog::openFolder({"Open Folder", state.workspaceRoot});
+        if (!path.empty()) {
+            state.workspaceRoot = path;
+            state.fileTreeDirty = true;
+            lastDialogPath = path;
+        }
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Recent Files");
+    for (const auto& rf : welcome.getRecentFiles()) {
+        if (ImGui::Selectable(rf.displayName.c_str())) {
+            state.doOpen(rf.path);
+        }
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Tip");
+    ImGui::TextWrapped("%s", welcome.getTip(0).c_str());
 }
 
 // ---------------------------------------------------------------------------
@@ -763,44 +835,51 @@ int main(int, char**) {
 
         // Tab bar for the file
         if (ImGui::BeginTabBar("EditorTabs")) {
-            auto openBuffers = state.buffers.getOpenBuffers();
-            for (const auto& path : openBuffers) {
-                auto* buf = state.bufferStates[path].get();
-                if (!buf) continue;
-                std::string tabLabel = path;
-                if (buf->modified) tabLabel += " *";
-                bool open = true;
-                if (ImGui::BeginTabItem(tabLabel.c_str(), &open)) {
-                    if (!state.active() || state.active()->path != path) {
-                        state.switchToBuffer(path);
-                    }
-                    // Editable text area fills available space
-                    ImVec2 avail = ImGui::GetContentRegionAvail();
-                    avail.y -= 4; // small margin
-
-                    state.updateHighlights();
-                    CodeEditorOptions opts;
-                    opts.showWhitespace = state.showWhitespace;
-                    opts.mode = &buf->mode;
-                    opts.enableFolding = true;
-                    opts.showMinimap = state.showMinimap;
-
-                    CodeEditorResult res = buf->widget.render("##editor",
-                        buf->editBuf, buf->highlights, opts, avail, monoFont);
-                    state.updateCursorPos(res.cursorByte);
-                    if (res.changed) {
-                        state.onTextChanged();
-                    }
-
+            if (state.buffers.bufferCount() == 0) {
+                if (ImGui::BeginTabItem("Welcome")) {
+                    RenderWelcome(state.welcome, state, lastDialogPath);
                     ImGui::EndTabItem();
                 }
-                if (!open) {
-                    state.buffers.closeBuffer(path);
-                    state.bufferStates.erase(path);
-                    if (state.buffers.bufferCount() > 0) {
-                        state.switchToBuffer(state.buffers.getOpenBuffers().front());
-                    } else {
-                        state.activeBuffer = nullptr;
+            } else {
+                auto openBuffers = state.buffers.getOpenBuffers();
+                for (const auto& path : openBuffers) {
+                    auto* buf = state.bufferStates[path].get();
+                    if (!buf) continue;
+                    std::string tabLabel = path;
+                    if (buf->modified) tabLabel += " *";
+                    bool open = true;
+                    if (ImGui::BeginTabItem(tabLabel.c_str(), &open)) {
+                        if (!state.active() || state.active()->path != path) {
+                            state.switchToBuffer(path);
+                        }
+                        // Editable text area fills available space
+                        ImVec2 avail = ImGui::GetContentRegionAvail();
+                        avail.y -= 4; // small margin
+
+                        state.updateHighlights();
+                        CodeEditorOptions opts;
+                        opts.showWhitespace = state.showWhitespace;
+                        opts.mode = &buf->mode;
+                        opts.enableFolding = true;
+                        opts.showMinimap = state.showMinimap;
+
+                        CodeEditorResult res = buf->widget.render("##editor",
+                            buf->editBuf, buf->highlights, opts, avail, monoFont);
+                        state.updateCursorPos(res.cursorByte);
+                        if (res.changed) {
+                            state.onTextChanged();
+                        }
+
+                        ImGui::EndTabItem();
+                    }
+                    if (!open) {
+                        state.buffers.closeBuffer(path);
+                        state.bufferStates.erase(path);
+                        if (state.buffers.bufferCount() > 0) {
+                            state.switchToBuffer(state.buffers.getOpenBuffers().front());
+                        } else {
+                            state.activeBuffer = nullptr;
+                        }
                     }
                 }
             }
