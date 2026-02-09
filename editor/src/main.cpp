@@ -29,6 +29,7 @@
 #include "Diagnostics.h"
 #include "SettingsManager.h"
 #include "LayoutManager.h"
+#include "ASTMutationAPI.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
 
@@ -40,6 +41,7 @@
 #include <sstream>
 #include <cstring>
 #include <cctype>
+#include <climits>
 #include <filesystem>
 #include <map>
 #include <memory>
@@ -107,6 +109,7 @@ struct EditorState {
     std::vector<EditorDiagnostic> whetstoneDiagnostics;
     SettingsManager   settings;
     bool              showLspSettings = false;
+    ASTMutationAPI    mutator;
 
     BufferState* active() { return activeBuffer; }
 
@@ -526,6 +529,91 @@ static bool annotationInfo(const ASTNode* anno, ImU32& color, std::string& label
         }
     }
     return false;
+}
+
+static std::string annotationLabel(const ASTNode* anno) {
+    if (!anno) return "";
+    if (anno->conceptType == "ReclaimAnnotation") {
+        auto* a = static_cast<const ReclaimAnnotation*>(anno);
+        return "@Reclaim(" + a->strategy + ")";
+    }
+    if (anno->conceptType == "OwnerAnnotation") {
+        auto* a = static_cast<const OwnerAnnotation*>(anno);
+        return "@Owner(" + a->strategy + ")";
+    }
+    if (anno->conceptType == "DeallocateAnnotation") {
+        auto* a = static_cast<const DeallocateAnnotation*>(anno);
+        return "@Deallocate(" + a->strategy + ")";
+    }
+    if (anno->conceptType == "LifetimeAnnotation") {
+        auto* a = static_cast<const LifetimeAnnotation*>(anno);
+        return "@Lifetime(" + a->strategy + ")";
+    }
+    if (anno->conceptType == "AllocateAnnotation") {
+        auto* a = static_cast<const AllocateAnnotation*>(anno);
+        return "@Allocate(" + a->strategy + ")";
+    }
+    return anno->conceptType;
+}
+
+static std::string nodeDisplayName(const ASTNode* node) {
+    if (!node) return "";
+    if (node->conceptType == "Function") return static_cast<const Function*>(node)->name;
+    if (node->conceptType == "Variable") return static_cast<const Variable*>(node)->name;
+    return node->conceptType;
+}
+
+static std::string nextAnnotationId() {
+    static int counter = 0;
+    return "anno_ui_" + std::to_string(counter++);
+}
+
+static Annotation* createAnnotationNode(const std::string& type, const std::string& strategy) {
+    if (type == "ReclaimAnnotation") {
+        auto* a = new ReclaimAnnotation(nextAnnotationId(), strategy);
+        return a;
+    }
+    if (type == "OwnerAnnotation") {
+        auto* a = new OwnerAnnotation(nextAnnotationId(), strategy);
+        return a;
+    }
+    if (type == "DeallocateAnnotation") {
+        auto* a = new DeallocateAnnotation(nextAnnotationId(), strategy);
+        return a;
+    }
+    if (type == "LifetimeAnnotation") {
+        auto* a = new LifetimeAnnotation(nextAnnotationId(), strategy);
+        return a;
+    }
+    if (type == "AllocateAnnotation") {
+        auto* a = new AllocateAnnotation(nextAnnotationId(), strategy);
+        return a;
+    }
+    return nullptr;
+}
+
+static int spanScore(const ASTNode* node) {
+    if (!node || !node->hasSpan()) return INT_MAX;
+    int lines = node->spanEndLine - node->spanStartLine;
+    int cols = node->spanEndCol - node->spanStartCol;
+    return lines * 10000 + cols;
+}
+
+static ASTNode* findAnnotationTarget(ASTNode* node, int line) {
+    if (!node) return nullptr;
+    ASTNode* best = nullptr;
+    if (node->hasSpan() && line >= node->spanStartLine && line <= node->spanEndLine) {
+        if (node->conceptType == "Function" || node->conceptType == "Variable") {
+            best = node;
+        }
+    }
+    for (auto* child : node->allChildren()) {
+        ASTNode* cand = findAnnotationTarget(child, line);
+        if (cand) {
+            if (!best || spanScore(cand) < spanScore(best)) best = cand;
+        }
+    }
+    return best;
 }
 
 static void collectAnnotationMarkers(const ASTNode* node, std::vector<AnnotationMarker>& out) {
@@ -1318,6 +1406,122 @@ int main(int, char**) {
                                 ImGui::TextUnformatted(sig.label.c_str());
                                 ImGui::EndChild();
                             }
+                        }
+
+                        if (ImGui::BeginPopupContextWindow("AnnotationContext", ImGuiPopupFlags_MouseButtonRight)) {
+                            Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                            int lineZero = state.active() ? std::max(0, state.active()->cursorLine - 1) : 0;
+                            ASTNode* target = ast ? findAnnotationTarget(ast, lineZero) : nullptr;
+                            if (!target) {
+                                ImGui::TextDisabled("No annotatable symbol on this line.");
+                            } else {
+                                ImGui::Text("Target: %s", nodeDisplayName(target).c_str());
+                                ImGui::Separator();
+
+                                if (ImGui::BeginMenu("Add Annotation")) {
+                                    if (ImGui::MenuItem("@Reclaim(Tracing)")) {
+                                        auto* anno = createAnnotationNode("ReclaimAnnotation", "Tracing");
+                                        if (anno) {
+                                            anno->setSpan(target->spanStartLine, target->spanStartCol,
+                                                          target->spanEndLine, target->spanEndCol);
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.insertNode(target->id, "annotations", anno);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                    }
+                                    if (ImGui::MenuItem("@Owner(Single)")) {
+                                        auto* anno = createAnnotationNode("OwnerAnnotation", "Single");
+                                        if (anno) {
+                                            anno->setSpan(target->spanStartLine, target->spanStartCol,
+                                                          target->spanEndLine, target->spanEndCol);
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.insertNode(target->id, "annotations", anno);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                    }
+                                    if (ImGui::MenuItem("@Deallocate(Explicit)")) {
+                                        auto* anno = createAnnotationNode("DeallocateAnnotation", "Explicit");
+                                        if (anno) {
+                                            anno->setSpan(target->spanStartLine, target->spanStartCol,
+                                                          target->spanEndLine, target->spanEndCol);
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.insertNode(target->id, "annotations", anno);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                    }
+                                    if (ImGui::MenuItem("@Lifetime(RAII)")) {
+                                        auto* anno = createAnnotationNode("LifetimeAnnotation", "RAII");
+                                        if (anno) {
+                                            anno->setSpan(target->spanStartLine, target->spanStartCol,
+                                                          target->spanEndLine, target->spanEndCol);
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.insertNode(target->id, "annotations", anno);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                    }
+                                    if (ImGui::MenuItem("@Allocate(Static)")) {
+                                        auto* anno = createAnnotationNode("AllocateAnnotation", "Static");
+                                        if (anno) {
+                                            anno->setSpan(target->spanStartLine, target->spanStartCol,
+                                                          target->spanEndLine, target->spanEndCol);
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.insertNode(target->id, "annotations", anno);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                    }
+                                    ImGui::EndMenu();
+                                }
+
+                                const auto& annos = target->getChildren("annotations");
+                                if (ImGui::BeginMenu("Edit Annotation", !annos.empty())) {
+                                    for (auto* anno : annos) {
+                                        std::string label = annotationLabel(anno);
+                                        if (ImGui::BeginMenu(label.c_str())) {
+                                            if (anno->conceptType == "ReclaimAnnotation") {
+                                                if (ImGui::MenuItem("Tracing")) {
+                                                    state.mutator.setRoot(ast);
+                                                    state.mutator.setProperty(anno->id, "strategy", "Tracing");
+                                                }
+                                            } else if (anno->conceptType == "OwnerAnnotation") {
+                                                if (ImGui::MenuItem("Single")) {
+                                                    state.mutator.setRoot(ast);
+                                                    state.mutator.setProperty(anno->id, "strategy", "Single");
+                                                }
+                                            } else if (anno->conceptType == "DeallocateAnnotation") {
+                                                if (ImGui::MenuItem("Explicit")) {
+                                                    state.mutator.setRoot(ast);
+                                                    state.mutator.setProperty(anno->id, "strategy", "Explicit");
+                                                }
+                                            } else if (anno->conceptType == "LifetimeAnnotation") {
+                                                if (ImGui::MenuItem("RAII")) {
+                                                    state.mutator.setRoot(ast);
+                                                    state.mutator.setProperty(anno->id, "strategy", "RAII");
+                                                }
+                                            } else if (anno->conceptType == "AllocateAnnotation") {
+                                                if (ImGui::MenuItem("Static")) {
+                                                    state.mutator.setRoot(ast);
+                                                    state.mutator.setProperty(anno->id, "strategy", "Static");
+                                                }
+                                            }
+                                            ImGui::EndMenu();
+                                        }
+                                    }
+                                    ImGui::EndMenu();
+                                }
+
+                                if (ImGui::BeginMenu("Remove Annotation", !annos.empty())) {
+                                    for (auto* anno : annos) {
+                                        std::string label = annotationLabel(anno);
+                                        if (ImGui::MenuItem(label.c_str())) {
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.deleteNode(anno->id);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                    }
+                                    ImGui::EndMenu();
+                                }
+                            }
+                            ImGui::EndPopup();
                         }
 
                         ImGui::EndTabItem();

@@ -199,6 +199,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 96: **IMPLEMENTED** — LSP server settings UI with defaults, auto-detect, and schema validation hook (2/2 tests pass)
 - [x] Step 97: **IMPLEMENTED** — Annotation gutter markers with hover details and click-to-open placeholder editor (1/1 tests pass)
 - [x] Step 98: **IMPLEMENTED** — Inline annotation tags with layout-aware placement and view toggle (1/1 tests pass)
+- [x] Step 99: **IMPLEMENTED** — Annotation context menu for add/edit/remove via ASTMutationAPI (2/2 tests pass)
 
 ---
 
@@ -277,6 +278,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 96:** Compile and pass (2/2)
 **Step 97:** Compile and pass (1/1)
 **Step 98:** Compile and pass (1/1)
+**Step 99:** Compile and pass (2/2)
 
 ---
 
@@ -384,3 +386,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 96: LSP server settings UI with defaults, auto-detect, and schema validation hook. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 97: Annotation gutter markers with hover details and click-to-open placeholder editor. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 98: Inline annotation tags with layout-aware placement and view toggle. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 99: Annotation context menu (add/edit/remove) via ASTMutationAPI. 2/2 tests pass. |
