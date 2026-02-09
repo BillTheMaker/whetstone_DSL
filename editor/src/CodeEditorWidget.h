@@ -21,6 +21,8 @@ struct CodeEditorOptions {
     EditorMode* mode = nullptr;
     bool enableFolding = false;
     bool showMinimap = false;
+    bool showAnnotations = false;
+    int annotationLayout = 0; // 0=above, 1=margin, 2=beside
     const std::vector<int>* errorLines = nullptr;
     const std::vector<int>* warningLines = nullptr;
     const std::vector<struct DiagnosticRange>* diagnostics = nullptr;
@@ -334,6 +336,27 @@ public:
                 drawList->AddText(font, font->FontSize, p, colorFor(cat), chunk.c_str());
 
                 pos = spanEnd;
+            }
+
+            // Inline annotation tag
+            if (options.showAnnotations && options.annotations) {
+                AnnotationMarker marker;
+                if (annotationAtLine(*options.annotations, ln, marker)) {
+                    ImVec2 tagPos;
+                    if (options.annotationLayout == 1) {
+                        tagPos = ImVec2(origin.x + 18.0f, y);
+                    } else if (options.annotationLayout == 2) {
+                        tagPos = ImVec2(textBase.x + len * charAdvance + 8.0f, y);
+                    } else {
+                        tagPos = ImVec2(textBase.x, y - lineHeight * 0.7f);
+                    }
+                    ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, marker.message.c_str());
+                    ImVec2 bgA(tagPos.x - 2.0f, tagPos.y);
+                    ImVec2 bgB(tagPos.x + textSize.x + 6.0f, tagPos.y + lineHeight * 0.8f);
+                    drawList->AddRectFilled(bgA, bgB, IM_COL32(30, 30, 30, 220), 2.0f);
+                    drawList->AddText(font, font->FontSize, ImVec2(tagPos.x + 2.0f, tagPos.y),
+                                      marker.color, marker.message.c_str());
+                }
             }
 
             // Folded placeholder

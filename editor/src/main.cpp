@@ -28,6 +28,7 @@
 #include "Pipeline.h"
 #include "Diagnostics.h"
 #include "SettingsManager.h"
+#include "LayoutManager.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
 
@@ -83,6 +84,8 @@ struct EditorState {
     // Custom editor widget state
     bool              showWhitespace = false;
     bool              showMinimap = false;
+    bool              showAnnotations = false;
+    LayoutPreset      layoutPreset = LayoutPreset::VSCode;
     WelcomeScreen     welcome;
     std::string       workspaceRoot;
     FileTree          fileTree;
@@ -968,7 +971,17 @@ int main(int, char**) {
             if (ImGui::BeginMenu("View")) {
                 ImGui::MenuItem("Show Whitespace", nullptr, &state.showWhitespace);
                 ImGui::MenuItem("Show Minimap", nullptr, &state.showMinimap);
+                ImGui::MenuItem("Show Annotations", nullptr, &state.showAnnotations);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
+                if (ImGui::BeginMenu("Layout")) {
+                    if (ImGui::MenuItem("VSCode", nullptr, state.layoutPreset == LayoutPreset::VSCode))
+                        state.layoutPreset = LayoutPreset::VSCode;
+                    if (ImGui::MenuItem("Emacs", nullptr, state.layoutPreset == LayoutPreset::Emacs))
+                        state.layoutPreset = LayoutPreset::Emacs;
+                    if (ImGui::MenuItem("JetBrains", nullptr, state.layoutPreset == LayoutPreset::JetBrains))
+                        state.layoutPreset = LayoutPreset::JetBrains;
+                    ImGui::EndMenu();
+                }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Language")) {
@@ -1155,6 +1168,10 @@ int main(int, char**) {
                         opts.mode = &buf->mode;
                         opts.enableFolding = true;
                         opts.showMinimap = state.showMinimap;
+                        opts.showAnnotations = state.showAnnotations;
+                        if (state.layoutPreset == LayoutPreset::Emacs) opts.annotationLayout = 1;
+                        else if (state.layoutPreset == LayoutPreset::JetBrains) opts.annotationLayout = 2;
+                        else opts.annotationLayout = 0;
                         opts.errorLines = &errorLines;
                         opts.warningLines = &warningLines;
                         opts.diagnostics = &diagRanges;

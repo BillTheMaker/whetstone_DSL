@@ -538,6 +538,10 @@ add_executable(step97_test tests/step97_test.cpp)
 target_include_directories(step97_test PRIVATE src)
 target_link_libraries(step97_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
 
+add_executable(step98_test tests/step98_test.cpp)
+target_include_directories(step98_test PRIVATE src)
+target_link_libraries(step98_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
