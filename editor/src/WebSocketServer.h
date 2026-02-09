@@ -36,9 +36,14 @@ struct AgentSession {
 };
 
 // Callback types
-using JsonRpcHandler = std::function<json(const json& request)>;
+using JsonRpcHandler =
+    std::function<json(const json& request, const std::string& sessionId)>;
 using SessionEventCallback =
     std::function<void(const AgentSession& session, const std::string& event)>;
+using RequestLogCallback =
+    std::function<void(const std::string& sessionId,
+                       const json& request,
+                       const json& response)>;
 
 // ---------------------------------------------------------------------------
 //  WebSocketTransport — abstract transport interface
@@ -119,6 +124,10 @@ public:
         sessionEventCallback_ = std::move(cb);
     }
 
+    void setRequestLogCallback(RequestLogCallback cb) {
+        requestLogCallback_ = std::move(cb);
+    }
+
     // --- session queries ---
 
     const AgentSession* getSession(const std::string& sessionId) const {
@@ -188,6 +197,13 @@ private:
             };
         }
 
+        if (requestLogCallback_) {
+            try {
+                requestLogCallback_(sessionId, json::parse(message), response);
+            } catch (...) {
+                // Ignore logging parse errors
+            }
+        }
         transport_->sendMessage(sessionId, response.dump());
     }
 
@@ -252,7 +268,7 @@ private:
             }
             else if (requestHandler_) {
                 // Delegate to the orchestrator's processRequest
-                response = requestHandler_(request);
+                response = requestHandler_(request, sessionId);
                 // Ensure jsonrpc and id are set
                 response["jsonrpc"] = "2.0";
                 if (!response.contains("id"))
@@ -287,6 +303,7 @@ private:
     std::map<std::string, AgentSession> sessions_;
     JsonRpcHandler requestHandler_;
     SessionEventCallback sessionEventCallback_;
+    RequestLogCallback requestLogCallback_;
     int port_ = 0;
 };
 

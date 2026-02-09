@@ -20,7 +20,7 @@ int main() {
     MockWebSocketTransport* raw = transport.get();
     WebSocketAgentServer server(std::move(transport));
 
-    server.setRequestHandler([](const json& req) {
+    server.setRequestHandler([](const json& req, const std::string&) {
         json res;
         res["result"] = {{"ok", true}, {"echo", req.value("method", "")}};
         return res;

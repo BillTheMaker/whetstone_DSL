@@ -1656,8 +1656,27 @@ int main(int, char**) {
                     for (const auto& s : state.agentServer->getActiveSessions()) {
                         std::string label = s.sessionId;
                         if (!s.agentName.empty()) label += " (" + s.agentName + ")";
-                        label += " - msgs: " + std::to_string(s.messageCount);
-                        ImGui::BulletText("%s", label.c_str());
+                        ImGui::TextUnformatted(label.c_str());
+                        ImGui::SameLine(260.0f);
+                        bool canMutate = state.agentMutationPermissions[s.sessionId];
+                        std::string checkId = "Can mutate##" + s.sessionId;
+                        if (ImGui::Checkbox(checkId.c_str(), &canMutate)) {
+                            state.agentMutationPermissions[s.sessionId] = canMutate;
+                        }
+                        ImGui::SameLine(420.0f);
+                        ImGui::Text("Msgs: %d", s.messageCount);
+                        ImGui::SameLine(520.0f);
+                        ImGui::Text("Last: %llu", (unsigned long long)s.lastMessageAtMs);
+                        ImGui::SameLine(680.0f);
+                        std::string btnId = "Disconnect##" + s.sessionId;
+                        if (ImGui::Button(btnId.c_str())) {
+                            if (state.agentTransport) {
+                                state.agentTransport->simulateDisconnect(s.sessionId);
+                            } else {
+                                state.logAgentEvent("STUB: disconnect not supported for real transport");
+                            }
+                        }
+                        ImGui::Separator();
                     }
                 }
 

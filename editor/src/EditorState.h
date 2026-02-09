@@ -157,6 +157,7 @@ struct EditorState {
     MockWebSocketTransport* agentTransport = nullptr;
     int               agentPort = 8765;
     std::vector<std::string> agentLog;
+    std::map<std::string, bool> agentMutationPermissions;
 
     // Custom editor widget state
     bool              showWhitespace = false;
@@ -713,12 +714,25 @@ struct EditorState {
         auto transport = std::make_unique<MockWebSocketTransport>();
         agentTransport = transport.get();
         agentServer = std::make_unique<WebSocketAgentServer>(std::move(transport));
-        agentServer->setRequestHandler([this](const json& request) {
-            return processAgentRequest(request);
+        agentServer->setRequestHandler([this](const json& request,
+                                              const std::string& sessionId) {
+            return processAgentRequest(request, sessionId);
         });
         agentServer->setSessionEventCallback([this](const AgentSession& s,
                                                    const std::string& event) {
             logAgentEvent("Agent " + s.sessionId + " " + event);
+            if (event == "connected") {
+                agentMutationPermissions[s.sessionId] = false;
+            } else if (event == "disconnected") {
+                agentMutationPermissions.erase(s.sessionId);
+            }
+        });
+        agentServer->setRequestLogCallback([this](const std::string& sid,
+                                                  const json& req,
+                                                  const json& res) {
+            std::string method = req.value("method", "");
+            bool ok = !res.contains("error");
+            logAgentEvent("RPC " + sid + " " + method + (ok ? " ok" : " error"));
         });
         if (agentServer->start(agentPort)) {
             logAgentEvent("Agent server started on port " + std::to_string(agentPort));
@@ -767,14 +781,12 @@ struct EditorState {
         return out;
     }
 
-    json processAgentRequest(const json& request) {
+    json processAgentRequest(const json& request, const std::string& sessionId) {
         json response;
         response["jsonrpc"] = "2.0";
         response["id"] = request.contains("id") ? request["id"] : json(nullptr);
 
         std::string method = request.value("method", "");
-        logAgentEvent("Agent RPC: " + method);
-
         if (method == "getAST") {
             if (!active() || !isStructured()) {
                 response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
@@ -794,6 +806,11 @@ struct EditorState {
         }
 
         if (method == "applyMutation") {
+            auto permIt = agentMutationPermissions.find(sessionId);
+            if (permIt == agentMutationPermissions.end() || !permIt->second) {
+                response["error"] = {{"code", -32030}, {"message", "Mutation not permitted"}};
+                return response;
+            }
             if (!active() || !isStructured()) {
                 response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
                 return response;

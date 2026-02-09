@@ -427,7 +427,7 @@ External tool integration and agent connectivity.
   Agents receive LSP diagnostics and Whetstone annotations as context.
   *Wires:* `WebSocketServer.h`
 
-- [ ] **Step 125: Connected agents panel**
+- [x] **Step 125: Connected agents panel**
   "Agents" tab shows currently connected agents: name, session ID, last activity.
   Manual disconnect button. Live activity log showing JSON-RPC method calls
   and results. Agents can be granted/revoked mutation permissions.
