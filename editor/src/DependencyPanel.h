@@ -29,6 +29,7 @@ struct DependencyPanelState {
     PackageEcosystem addEcosystem = PackageEcosystem::Python;
     PackageInfo lastLookup;
     std::string lastWorkspaceRoot;
+    bool needsIndex = false;
 };
 
 static std::vector<std::string> dependencyFileNames() {
@@ -311,6 +312,7 @@ static void refreshDependencies(DependencyPanelState& state,
     state.selected = -1;
     state.editVersionIndex = -1;
     state.lastWorkspaceRoot = workspaceRoot;
+    state.needsIndex = true;
     if (workspaceRoot.empty()) return;
     for (const auto& file : state.sources) {
         auto parsed = DependencyParser::parseFile(file.path);
@@ -408,6 +410,7 @@ static void renderDependencyPanel(DependencyPanelState& state,
                 state.deps.push_back(dep);
                 if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, logOut)) {
                     refreshDependencies(state, workspaceRoot, logOut);
+                    state.needsIndex = true;
                 }
             }
             ImGui::CloseCurrentPopup();
@@ -449,6 +452,7 @@ static void renderDependencyPanel(DependencyPanelState& state,
             dep.version = state.editVersionBuf;
             if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, logOut)) {
                 refreshDependencies(state, workspaceRoot, logOut);
+                state.needsIndex = true;
             }
         }
         ImGui::SameLine();
@@ -458,6 +462,7 @@ static void renderDependencyPanel(DependencyPanelState& state,
             state.selected = -1;
             if (writeDependenciesForSource(src, workspaceRoot, state.deps, logOut)) {
                 refreshDependencies(state, workspaceRoot, logOut);
+                state.needsIndex = true;
             }
         }
         ImGui::SameLine();
@@ -468,6 +473,7 @@ static void renderDependencyPanel(DependencyPanelState& state,
                 dep.version = info.versions.back();
                 if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, logOut)) {
                     refreshDependencies(state, workspaceRoot, logOut);
+                    state.needsIndex = true;
                 }
             } else {
                 logOut += "[deps] No version info for " + dep.name + "\n";

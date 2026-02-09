@@ -44,6 +44,7 @@
 #include "WebSocketServer.h"
 #include "BuildSystem.h"
 #include "DependencyPanel.h"
+#include "LibraryIndexer.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -166,6 +167,15 @@ struct EditorState {
     std::string lastBuildCommand;
     bool              showDependencyPanel = true;
     DependencyPanelState dependencyPanel;
+    struct LibraryIndexRequest {
+        std::string name;
+        std::string version;
+        std::string source;
+        int symbolsRequestId = -1;
+        int completionRequestId = -1;
+    };
+    std::vector<LibraryIndexRequest> libraryIndexRequests;
+    LibraryIndexData libraryIndex;
 
     // Custom editor widget state
     bool              showWhitespace = false;
@@ -773,6 +783,89 @@ struct EditorState {
         buildErrors = BuildSystem::parseErrors(lastBuildOutput);
         outputLog += "[build] " + cmd.label + " => exit " + std::to_string(code) + "\n";
         return code;
+    }
+
+    void pollLspMessages() {
+        if (!lsp || !lspTransport || !lspTransport->isOpen()) return;
+        std::string msg;
+        while (lspTransport->receive(msg)) {
+            lsp->handleMessage(msg);
+        }
+    }
+
+    void requestLibraryIndex() {
+        libraryIndex.symbolsByLibrary.clear();
+        libraryIndex.completionsByLibrary.clear();
+        libraryIndexRequests.clear();
+        if (!isStructured() || !activeAST()) {
+            outputLog += "[deps] Library index skipped: no structured AST.\n";
+            return;
+        }
+        if (!lsp || !lspTransport || !lspTransport->isOpen()) {
+            rebuildExternalModulesFromIndex();
+            outputLog += "[deps] Library index uses cached symbols (LSP offline).\n";
+            return;
+        }
+
+        for (const auto& dep : dependencyPanel.deps) {
+            if (dep.name.empty()) continue;
+            LibraryIndexRequest req;
+            req.name = dep.name;
+            req.version = dep.version;
+            req.source = dep.source;
+            req.symbolsRequestId = lsp->requestWorkspaceSymbols(dep.name);
+            if (active() && active()->path.rfind("(untitled", 0) != 0) {
+                int line = std::max(0, active()->cursorLine - 1);
+                int col = std::max(0, active()->cursorCol - 1);
+                req.completionRequestId = lsp->requestLibraryCompletion(
+                    toFileUri(active()->path), line, col, dep.name + ".");
+            }
+            libraryIndexRequests.push_back(req);
+        }
+        rebuildExternalModulesFromIndex();
+        outputLog += "[deps] Library index requests queued: " +
+                     std::to_string(libraryIndexRequests.size()) + "\n";
+    }
+
+    void processLibraryIndexResponses() {
+        if (!lsp) return;
+        bool updated = false;
+        for (auto& req : libraryIndexRequests) {
+            if (req.symbolsRequestId >= 0) {
+                std::vector<LSPClient::WorkspaceSymbol> symbols;
+                if (lsp->takeWorkspaceSymbols(req.symbolsRequestId, symbols)) {
+                    libraryIndex.symbolsByLibrary[req.name] = std::move(symbols);
+                    req.symbolsRequestId = -1;
+                    updated = true;
+                }
+            }
+            if (req.completionRequestId >= 0) {
+                std::vector<LSPClient::CompletionItem> items;
+                if (lsp->takeLibraryCompletions(req.completionRequestId, items)) {
+                    std::vector<std::string> labels;
+                    labels.reserve(items.size());
+                    for (const auto& item : items) {
+                        if (!item.label.empty()) labels.push_back(item.label);
+                    }
+                    if (!labels.empty()) {
+                        libraryIndex.completionsByLibrary[req.name] = std::move(labels);
+                    }
+                    req.completionRequestId = -1;
+                    updated = true;
+                }
+            }
+        }
+        if (updated) {
+            rebuildExternalModulesFromIndex();
+            outputLog += "[deps] Library index updated.\n";
+        }
+    }
+
+    void rebuildExternalModulesFromIndex() {
+        Module* ast = activeAST();
+        if (!ast) return;
+        rebuildExternalModules(ast, dependencyPanel.deps, libraryIndex);
+        if (active()) active()->orchestratorDirty = true;
     }
 
     json buildDiagnosticsJson() const {

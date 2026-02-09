@@ -190,6 +190,8 @@ int main(int, char**) {
                 state.lastAutoSave = now;
             }
         }
+        state.pollLspMessages();
+        state.processLibraryIndexResponses();
 
         // Start frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -560,6 +562,10 @@ int main(int, char**) {
             renderDependencyPanel(state.dependencyPanel, state.workspaceRoot, state.outputLog);
             ImGui::PopFont();
             ImGui::End();
+            if (state.dependencyPanel.needsIndex) {
+                state.requestLibraryIndex();
+                state.dependencyPanel.needsIndex = false;
+            }
         }
 
         // ---------------------------------------------------------------

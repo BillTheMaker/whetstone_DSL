@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <nlohmann/json.hpp>
 
 class LSPTransport {
@@ -67,6 +68,13 @@ public:
         Range range;
         Range selectionRange;
         std::vector<DocumentSymbol> children;
+    };
+
+    struct WorkspaceSymbol {
+        std::string name;
+        std::string containerName;
+        std::string detail;
+        int kind = 0;
     };
 
     void initialize(const std::string& rootUri,
@@ -163,6 +171,28 @@ public:
         params["textDocument"] = {{"uri", uri}};
         int id = sendRequest("textDocument/documentSymbol", params);
         lastDocumentSymbolRequestId_ = id;
+        return id;
+    }
+
+    int requestWorkspaceSymbols(const std::string& query) {
+        nlohmann::json params;
+        params["query"] = query;
+        int id = sendRequest("workspace/symbol", params);
+        workspaceSymbolRequestIds_.insert(id);
+        return id;
+    }
+
+    int requestLibraryCompletion(const std::string& uri,
+                                 int line,
+                                 int character,
+                                 const std::string& prefixHint) {
+        nlohmann::json params;
+        params["textDocument"] = {{"uri", uri}};
+        params["position"] = {{"line", line}, {"character", character}};
+        params["context"] = {{"triggerKind", 2}, {"triggerCharacter", "."}};
+        params["whetstonePrefix"] = prefixHint; // STUB: non-standard hint
+        int id = sendRequest("textDocument/completion", params);
+        libraryCompletionRequestIds_.insert(id);
         return id;
     }
 
@@ -281,6 +311,43 @@ public:
                 documentSymbols_ = std::move(parsed);
                 return;
             }
+
+            if (workspaceSymbolRequestIds_.count(id)) {
+                std::vector<WorkspaceSymbol> parsed;
+                if (result.is_array()) {
+                    for (const auto& item : result) {
+                        WorkspaceSymbol sym;
+                        if (parseWorkspaceSymbol(item, sym)) parsed.push_back(std::move(sym));
+                    }
+                }
+                workspaceSymbolsByRequestId_[id] = std::move(parsed);
+                workspaceSymbolRequestIds_.erase(id);
+                return;
+            }
+
+            if (libraryCompletionRequestIds_.count(id)) {
+                const nlohmann::json* items = nullptr;
+                if (result.is_array()) {
+                    items = &result;
+                } else if (result.is_object() && result.contains("items")) {
+                    items = &result["items"];
+                }
+                if (items && items->is_array()) {
+                    std::vector<CompletionItem> parsed;
+                    for (const auto& item : *items) {
+                        CompletionItem ci;
+                        ci.label = item.value("label", "");
+                        ci.kind = item.value("kind", 0);
+                        ci.detail = item.value("detail", "");
+                        ci.insertText = item.value("insertText", ci.label);
+                        ci.filterText = item.value("filterText", "");
+                        parsed.push_back(std::move(ci));
+                    }
+                    libraryCompletionsByRequestId_[id] = std::move(parsed);
+                }
+                libraryCompletionRequestIds_.erase(id);
+                return;
+            }
         }
     }
 
@@ -338,6 +405,22 @@ public:
         documentSymbols_.clear();
     }
 
+    bool takeWorkspaceSymbols(int requestId, std::vector<WorkspaceSymbol>& out) {
+        auto it = workspaceSymbolsByRequestId_.find(requestId);
+        if (it == workspaceSymbolsByRequestId_.end()) return false;
+        out = std::move(it->second);
+        workspaceSymbolsByRequestId_.erase(it);
+        return true;
+    }
+
+    bool takeLibraryCompletions(int requestId, std::vector<CompletionItem>& out) {
+        auto it = libraryCompletionsByRequestId_.find(requestId);
+        if (it == libraryCompletionsByRequestId_.end()) return false;
+        out = std::move(it->second);
+        libraryCompletionsByRequestId_.erase(it);
+        return true;
+    }
+
     void sendNotification(const std::string& method, const nlohmann::json& params) {
         nlohmann::json msg;
         msg["jsonrpc"] = "2.0";
@@ -377,6 +460,10 @@ private:
     SignatureHelp signatureHelp_;
     std::vector<DefinitionLocation> definitionLocations_;
     std::vector<DocumentSymbol> documentSymbols_;
+    std::unordered_set<int> workspaceSymbolRequestIds_;
+    std::unordered_map<int, std::vector<WorkspaceSymbol>> workspaceSymbolsByRequestId_;
+    std::unordered_set<int> libraryCompletionRequestIds_;
+    std::unordered_map<int, std::vector<CompletionItem>> libraryCompletionsByRequestId_;
 
     static Range parseRange(const nlohmann::json& range) {
         Range out;
@@ -441,6 +528,15 @@ private:
             out.range = parseRange(loc["range"]);
             out.selectionRange = out.range;
         }
+        return !out.name.empty();
+    }
+
+    static bool parseWorkspaceSymbol(const nlohmann::json& item, WorkspaceSymbol& out) {
+        if (!item.contains("name")) return false;
+        out.name = item.value("name", "");
+        out.detail = item.value("detail", "");
+        out.kind = item.value("kind", 0);
+        out.containerName = item.value("containerName", "");
         return !out.name.empty();
     }
 

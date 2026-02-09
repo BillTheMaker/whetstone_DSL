@@ -382,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 5 in progress. Step 129 (dependency management UI) done. Next: Step 130 (library API indexing via LSP).
+Sprint 5 in progress. Step 130 (library API indexing via LSP) done. Next: Step 131 (library API indexing via type stubs).
 
 ---
 
@@ -475,3 +475,4 @@ Sprint 5 in progress. Step 129 (dependency management UI) done. Next: Step 130 (
 | 2026-02-09 | Codex | Step 127: Package registry abstraction stubs for major ecosystems. 4/4 tests pass. |
 | 2026-02-09 | Codex | Step 128: Dependency file parsing with Import population. 6/6 tests pass. |
 | 2026-02-09 | Codex | Step 129: Dependency management UI panel with add/remove/update, source targeting, and writeback support for requirements.txt/package.json/Cargo.toml/go.mod/vcpkg.json. 8/8 tests pass. |
+| 2026-02-09 | Codex | Step 130: LSP workspace symbol + completion indexing for dependencies with ExternalModule population and library index polling. 7/7 tests pass. |

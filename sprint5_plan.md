@@ -54,7 +54,7 @@ The foundation: import libraries, parse their APIs, index their symbols.
   Changes write back to the appropriate dependency file.
   *New:* `DependencyPanel` in `main.cpp`
 
-- [ ] **Step 130: Library API indexing via LSP**
+- [x] **Step 130: Library API indexing via LSP**
   When a package is imported, leverage the LSP server to extract its public API
   surface. Send `workspace/symbol` queries and `textDocument/completion` with
   library prefix to discover available functions, classes, constants.
