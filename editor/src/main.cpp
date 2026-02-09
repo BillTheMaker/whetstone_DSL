@@ -29,6 +29,7 @@
 #include "Diagnostics.h"
 #include "SettingsManager.h"
 #include "ast/Generator.h"
+#include "ast/Annotation.h"
 
 #include <cstdio>
 #include <string>
@@ -481,6 +482,67 @@ static bool InputTextStr(const char* label, std::string* str, ImGuiInputTextFlag
         str->reserve(str->size() + 256);
     return ImGui::InputText(label, str->data(), str->capacity() + 1,
                             flags, InputTextCallback, &cbData);
+}
+
+static bool annotationInfo(const ASTNode* anno, ImU32& color, std::string& label) {
+    if (!anno) return false;
+    if (anno->conceptType == "ReclaimAnnotation") {
+        auto* a = static_cast<const ReclaimAnnotation*>(anno);
+        if (a->strategy == "Tracing") {
+            color = IM_COL32(80, 140, 220, 255);
+            label = "@Reclaim(Tracing)";
+            return true;
+        }
+    } else if (anno->conceptType == "OwnerAnnotation") {
+        auto* a = static_cast<const OwnerAnnotation*>(anno);
+        if (a->strategy == "Single") {
+            color = IM_COL32(220, 160, 60, 255);
+            label = "@Owner(Single)";
+            return true;
+        }
+    } else if (anno->conceptType == "DeallocateAnnotation") {
+        auto* a = static_cast<const DeallocateAnnotation*>(anno);
+        if (a->strategy == "Explicit") {
+            color = IM_COL32(220, 80, 80, 255);
+            label = "@Deallocate(Explicit)";
+            return true;
+        }
+    } else if (anno->conceptType == "LifetimeAnnotation") {
+        auto* a = static_cast<const LifetimeAnnotation*>(anno);
+        if (a->strategy == "RAII") {
+            color = IM_COL32(80, 180, 100, 255);
+            label = "@Lifetime(RAII)";
+            return true;
+        }
+    } else if (anno->conceptType == "AllocateAnnotation") {
+        auto* a = static_cast<const AllocateAnnotation*>(anno);
+        if (a->strategy == "Static") {
+            color = IM_COL32(160, 160, 160, 255);
+            label = "@Allocate(Static)";
+            return true;
+        }
+    }
+    return false;
+}
+
+static void collectAnnotationMarkers(const ASTNode* node, std::vector<AnnotationMarker>& out) {
+    if (!node) return;
+    if (node->hasSpan()) {
+        for (const auto* anno : node->getChildren("annotations")) {
+            ImU32 color = 0;
+            std::string label;
+            if (annotationInfo(anno, color, label)) {
+                AnnotationMarker marker;
+                marker.line = node->spanStartLine;
+                marker.color = color;
+                marker.message = label;
+                out.push_back(std::move(marker));
+            }
+        }
+    }
+    for (auto* child : node->allChildren()) {
+        collectAnnotationMarkers(child, out);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1053,6 +1115,7 @@ int main(int, char**) {
                         std::vector<int> errorLines;
                         std::vector<int> warningLines;
                         std::vector<DiagnosticRange> diagRanges;
+                        std::vector<AnnotationMarker> annoMarkers;
                         std::string activeUri = EditorState::toFileUri(buf->path);
                         if (state.lsp) {
                             auto lspDiags = state.lsp->getDiagnosticsForUri(activeUri);
@@ -1082,6 +1145,10 @@ int main(int, char**) {
                             dr.message = d.message;
                             diagRanges.push_back(std::move(dr));
                         }
+                        if (state.active()) {
+                            Module* ast = state.active()->sync.getAST();
+                            if (ast) collectAnnotationMarkers(ast, annoMarkers);
+                        }
 
                         CodeEditorOptions opts;
                         opts.showWhitespace = state.showWhitespace;
@@ -1091,6 +1158,7 @@ int main(int, char**) {
                         opts.errorLines = &errorLines;
                         opts.warningLines = &warningLines;
                         opts.diagnostics = &diagRanges;
+                        opts.annotations = &annoMarkers;
 
                         CodeEditorResult res = buf->widget.render("##editor",
                             buf->editBuf, buf->highlights, opts, avail, monoFont);

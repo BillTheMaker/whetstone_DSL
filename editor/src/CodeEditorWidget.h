@@ -24,6 +24,7 @@ struct CodeEditorOptions {
     const std::vector<int>* errorLines = nullptr;
     const std::vector<int>* warningLines = nullptr;
     const std::vector<struct DiagnosticRange>* diagnostics = nullptr;
+    const std::vector<struct AnnotationMarker>* annotations = nullptr;
 };
 
 struct CodeEditorResult {
@@ -46,6 +47,12 @@ struct DiagnosticRange {
     int endLine = 0;
     int endCol = 0;
     int severity = 0; // 1=error, 2=warning
+    std::string message;
+};
+
+struct AnnotationMarker {
+    int line = 0;
+    ImU32 color = 0;
     std::string message;
 };
 
@@ -112,6 +119,7 @@ public:
                            lineCount * lineHeight + 4.0f);
 
         ImGui::BeginChild(id, size, false, ImGuiWindowFlags_HorizontalScrollbar);
+        std::string annoPopupId = std::string(id) + "_AnnoPopup";
         ImVec2 origin = ImGui::GetCursorScreenPos();
 
         // Dummy to set scroll extents
@@ -245,6 +253,26 @@ public:
                 }
             }
 
+            // Annotation marker
+            if (options.annotations) {
+                AnnotationMarker marker;
+                if (annotationAtLine(*options.annotations, ln, marker)) {
+                    ImVec2 center(origin.x + 12.0f, y + lineHeight * 0.5f);
+                    drawList->AddCircleFilled(center, 3.0f, marker.color);
+                    ImVec2 a(center.x - 4.0f, center.y - 4.0f);
+                    ImVec2 b(center.x + 4.0f, center.y + 4.0f);
+                    if (ImGui::IsMouseHoveringRect(a, b)) {
+                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                            annotationPopupMessage_ = marker.message;
+                            ImGui::OpenPopup(annoPopupId.c_str());
+                        }
+                        ImGui::BeginTooltip();
+                        ImGui::TextUnformatted(marker.message.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+
             // Fold indicator
             const FoldRegion* fold = findFoldAtLine(ln);
             if (fold) {
@@ -330,6 +358,13 @@ public:
             }
         }
 
+        if (ImGui::BeginPopup(annoPopupId.c_str())) {
+            ImGui::TextUnformatted("Annotation Editor (TODO)");
+            ImGui::Separator();
+            ImGui::TextUnformatted(annotationPopupMessage_.c_str());
+            ImGui::EndPopup();
+        }
+
         // Cursor
         if (focused) {
             const double t = ImGui::GetTime();
@@ -408,6 +443,7 @@ private:
     std::vector<FoldRegion> folds_;
     std::string lastFoldText_;
     std::string lastFoldLang_;
+    std::string annotationPopupMessage_;
 
     bool hasSelection() const {
         return selStart_ >= 0 && selEnd_ >= 0 && selStart_ != selEnd_;
@@ -502,6 +538,18 @@ private:
     static bool lineIn(const std::vector<int>* lines, int line) {
         if (!lines) return false;
         return std::find(lines->begin(), lines->end(), line) != lines->end();
+    }
+
+    static bool annotationAtLine(const std::vector<AnnotationMarker>& markers,
+                                 int line,
+                                 AnnotationMarker& out) {
+        for (const auto& m : markers) {
+            if (m.line == line) {
+                out = m;
+                return true;
+            }
+        }
+        return false;
     }
 
     static std::string diagnosticMessageAtLine(const std::vector<DiagnosticRange>& diags, int line) {

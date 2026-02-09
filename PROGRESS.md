@@ -197,6 +197,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 94a: **IMPLEMENTED** — AST source span tracking via tree-sitter, serialized in JSON (2/2 tests pass)
 - [x] Step 95: **IMPLEMENTED** — Diagnostic gutter markers with tooltips and inline squiggles (1/1 tests pass)
 - [x] Step 96: **IMPLEMENTED** — LSP server settings UI with defaults, auto-detect, and schema validation hook (2/2 tests pass)
+- [x] Step 97: **IMPLEMENTED** — Annotation gutter markers with hover details and click-to-open placeholder editor (1/1 tests pass)
 
 ---
 
@@ -273,6 +274,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 94a:** Compile and pass (2/2)
 **Step 95:** Compile and pass (1/1)
 **Step 96:** Compile and pass (2/2)
+**Step 97:** Compile and pass (1/1)
 
 ---
 
@@ -378,3 +380,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 94a: AST source span tracking (tree-sitter) with JSON serialization. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 95: Diagnostic gutter markers with tooltips and inline squiggles. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 96: LSP server settings UI with defaults, auto-detect, and schema validation hook. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 97: Annotation gutter markers with hover details and click-to-open placeholder editor. 1/1 tests pass. |
