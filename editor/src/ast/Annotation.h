@@ -107,8 +107,8 @@ class AllocateAnnotation : public Annotation {
 public:
     std::string strategy;  // "Static", "Register", "Allocator" for allocation strategies
     std::string allocationPattern;
-    AllocateAnnotation() { 
-        conceptType = "AllocateAnnotation"; 
+    AllocateAnnotation() {
+        conceptType = "AllocateAnnotation";
         strategy = "Static";
     }
     AllocateAnnotation(const std::string& id, const std::string& strategy_val)
@@ -116,4 +116,28 @@ public:
         this->id = id;
         this->conceptType = "AllocateAnnotation";
     }
+};
+
+// Optimization annotations (Step 67)
+
+class HotColdAnnotation : public Annotation {
+public:
+    std::string hint;  // "Hot" or "Cold"
+    HotColdAnnotation() { conceptType = "HotColdAnnotation"; }
+};
+
+class InlineAnnotation : public Annotation {
+public:
+    std::string mode;  // "Always", "Never", "Hint"
+    InlineAnnotation() { conceptType = "InlineAnnotation"; }
+};
+
+class PureAnnotation : public Annotation {
+public:
+    PureAnnotation() { conceptType = "PureAnnotation"; }
+};
+
+class ConstExprAnnotation : public Annotation {
+public:
+    ConstExprAnnotation() { conceptType = "ConstExprAnnotation"; }
 };

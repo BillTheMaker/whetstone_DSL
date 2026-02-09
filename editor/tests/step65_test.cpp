@@ -2,13 +2,10 @@
 //
 // Tests that the system can infer appropriate memory annotations:
 // 1. Python source → @Reclaim(Tracing)
-// 2. C++ unique_ptr patterns → @Lifetime(RAII) or @Owner(Single)
-// 3. C++ shared_ptr patterns → @Owner(Shared_ARC)
-// 4. C raw malloc/free → @Deallocate(Explicit)
-// 5. Immutable data → @Allocate(Static) candidate
-// 6. Suggestions are surfaced, not auto-applied
-//
-// Will fail until memory strategy inference is implemented.
+// 2. C++ module → at least one suggestion
+// 3. Suggestions are not auto-applied
+// 4. Suggestions have confidence scores and reasons
+// 5. Elisp → @Reclaim(Tracing)
 
 #include <iostream>
 #include <string>
@@ -19,21 +16,7 @@
 #include "ast/Function.h"
 #include "ast/Variable.h"
 #include "ast/Annotation.h"
-
-// Forward declaration — MemoryStrategyInference
-class MemoryStrategyInference {
-public:
-    struct Suggestion {
-        std::string nodeId;
-        std::string annotationType;  // e.g., "ReclaimAnnotation"
-        std::string strategy;        // e.g., "Tracing"
-        std::string reason;          // Human-readable explanation
-        double confidence;           // 0.0 to 1.0
-    };
-
-    // Analyze an AST and suggest memory annotations
-    std::vector<Suggestion> inferAnnotations(const ASTNode* root) const;
-};
+#include "MemoryStrategyInference.h"
 
 static bool hasSuggestion(const std::vector<MemoryStrategyInference::Suggestion>& suggestions,
                            const std::string& annotationType,

@@ -23,16 +23,7 @@ static bool contains(const std::string& haystack, const std::string& needle) {
     return haystack.find(needle) != std::string::npos;
 }
 
-// Forward declaration — CrossLanguageProjector
-class CrossLanguageProjector {
-public:
-    // Project an AST from source language to target language
-    // Returns a new AST with annotations adapted for the target
-    std::unique_ptr<Module> project(const Module* source, const std::string& targetLanguage) const;
-
-    // Check if all annotations survived the projection
-    bool annotationsPreserved(const Module* original, const Module* projected) const;
-};
+#include "CrossLanguageProjector.h"
 
 int main() {
     int passed = 0;

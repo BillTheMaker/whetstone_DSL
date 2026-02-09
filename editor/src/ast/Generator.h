@@ -57,6 +57,10 @@ public:
     virtual std::string visitReclaimAnnotation(const ReclaimAnnotation* annotation) = 0;
     virtual std::string visitOwnerAnnotation(const OwnerAnnotation* annotation) = 0;
     virtual std::string visitAllocateAnnotation(const AllocateAnnotation* annotation) = 0;
+    virtual std::string visitHotColdAnnotation(const HotColdAnnotation* annotation) = 0;
+    virtual std::string visitInlineAnnotation(const InlineAnnotation* annotation) = 0;
+    virtual std::string visitPureAnnotation(const PureAnnotation* annotation) = 0;
+    virtual std::string visitConstExprAnnotation(const ConstExprAnnotation* annotation) = 0;
 };
 
 class PythonGenerator : public ProjectionGenerator {
@@ -142,14 +146,22 @@ public:
             return visitOwnerAnnotation(static_cast<const OwnerAnnotation*>(node));
         } else if (node->conceptType == "AllocateAnnotation") {
             return visitAllocateAnnotation(static_cast<const AllocateAnnotation*>(node));
+        } else if (node->conceptType == "HotColdAnnotation") {
+            return visitHotColdAnnotation(static_cast<const HotColdAnnotation*>(node));
+        } else if (node->conceptType == "InlineAnnotation") {
+            return visitInlineAnnotation(static_cast<const InlineAnnotation*>(node));
+        } else if (node->conceptType == "PureAnnotation") {
+            return visitPureAnnotation(static_cast<const PureAnnotation*>(node));
+        } else if (node->conceptType == "ConstExprAnnotation") {
+            return visitConstExprAnnotation(static_cast<const ConstExprAnnotation*>(node));
         }
-        
+
         return "// Unknown concept: " + node->conceptType;
     }
 
     std::string visitModule(const Module* module) override {
         std::ostringstream oss;
-        
+
         // Add module docstring and basic info
         oss << "\"\"\"Module: " << module->name << "\"\"\"\n\n";
         
@@ -697,6 +709,22 @@ public:
     std::string visitAllocateAnnotation(const AllocateAnnotation* annotation) override {
         return "# @allocate(" + annotation->strategy + ") - Memory allocation strategy";
     }
+
+    std::string visitHotColdAnnotation(const HotColdAnnotation* annotation) override {
+        return "# @" + annotation->hint + " - Optimization hint";
+    }
+
+    std::string visitInlineAnnotation(const InlineAnnotation* annotation) override {
+        return "# @inline(" + annotation->mode + ")";
+    }
+
+    std::string visitPureAnnotation(const PureAnnotation*) override {
+        return "# @pure - No side effects";
+    }
+
+    std::string visitConstExprAnnotation(const ConstExprAnnotation*) override {
+        return "# @constexpr - Compile-time evaluable";
+    }
 };
 
 class ElispGenerator : public ProjectionGenerator {
@@ -772,8 +800,26 @@ public:
             return visitOptimizationLock(static_cast<const OptimizationLock*>(node));
         } else if (node->conceptType == "LangSpecific") {
             return visitLangSpecific(static_cast<const LangSpecific*>(node));
+        } else if (node->conceptType == "DeallocateAnnotation") {
+            return visitDeallocateAnnotation(static_cast<const DeallocateAnnotation*>(node));
+        } else if (node->conceptType == "LifetimeAnnotation") {
+            return visitLifetimeAnnotation(static_cast<const LifetimeAnnotation*>(node));
+        } else if (node->conceptType == "ReclaimAnnotation") {
+            return visitReclaimAnnotation(static_cast<const ReclaimAnnotation*>(node));
+        } else if (node->conceptType == "OwnerAnnotation") {
+            return visitOwnerAnnotation(static_cast<const OwnerAnnotation*>(node));
+        } else if (node->conceptType == "AllocateAnnotation") {
+            return visitAllocateAnnotation(static_cast<const AllocateAnnotation*>(node));
+        } else if (node->conceptType == "HotColdAnnotation") {
+            return visitHotColdAnnotation(static_cast<const HotColdAnnotation*>(node));
+        } else if (node->conceptType == "InlineAnnotation") {
+            return visitInlineAnnotation(static_cast<const InlineAnnotation*>(node));
+        } else if (node->conceptType == "PureAnnotation") {
+            return visitPureAnnotation(static_cast<const PureAnnotation*>(node));
+        } else if (node->conceptType == "ConstExprAnnotation") {
+            return visitConstExprAnnotation(static_cast<const ConstExprAnnotation*>(node));
         }
-        
+
         return "; Unknown concept: " + node->conceptType;
     }
 
@@ -1296,6 +1342,22 @@ public:
     std::string visitAllocateAnnotation(const AllocateAnnotation* annotation) override {
         return "; @allocate(" + annotation->strategy + ")";
     }
+
+    std::string visitHotColdAnnotation(const HotColdAnnotation* annotation) override {
+        return "; @" + annotation->hint + " - Optimization hint";
+    }
+
+    std::string visitInlineAnnotation(const InlineAnnotation* annotation) override {
+        return "; @inline(" + annotation->mode + ")";
+    }
+
+    std::string visitPureAnnotation(const PureAnnotation*) override {
+        return "; @pure - No side effects";
+    }
+
+    std::string visitConstExprAnnotation(const ConstExprAnnotation*) override {
+        return "; @constexpr - Compile-time evaluable";
+    }
 };
 
 class CppGenerator : public ProjectionGenerator {
@@ -1381,8 +1443,16 @@ public:
             return visitOwnerAnnotation(static_cast<const OwnerAnnotation*>(node));
         } else if (node->conceptType == "AllocateAnnotation") {
             return visitAllocateAnnotation(static_cast<const AllocateAnnotation*>(node));
+        } else if (node->conceptType == "HotColdAnnotation") {
+            return visitHotColdAnnotation(static_cast<const HotColdAnnotation*>(node));
+        } else if (node->conceptType == "InlineAnnotation") {
+            return visitInlineAnnotation(static_cast<const InlineAnnotation*>(node));
+        } else if (node->conceptType == "PureAnnotation") {
+            return visitPureAnnotation(static_cast<const PureAnnotation*>(node));
+        } else if (node->conceptType == "ConstExprAnnotation") {
+            return visitConstExprAnnotation(static_cast<const ConstExprAnnotation*>(node));
         }
-        
+
         return "// Unknown concept: " + node->conceptType;
     }
 
@@ -1478,42 +1548,48 @@ public:
 
     std::string visitVariable(const Variable* variable) override {
         std::ostringstream oss;
-        
+
         auto type = variable->getChild("type");
         std::string typeStr = "auto";  // Default
         if (type) {
             typeStr = generate(type);
         }
-        
-        oss << typeStr << " " << variable->name;
-        
+
+        // Check enclosing function for memory annotations that affect variable types
+        std::string wrapper = getMemoryTypeWrapper(variable);
+        if (!wrapper.empty()) {
+            oss << wrapper << "<" << typeStr << "> " << variable->name;
+        } else {
+            oss << typeStr << " " << variable->name;
+        }
+
         auto initializer = variable->getChild("initializer");
         if (initializer) {
             oss << " = " << generate(initializer);
         }
-        
+
         oss << ";";
-        
+
         return oss.str();
     }
 
     std::string visitParameter(const Parameter* parameter) override {
         std::ostringstream oss;
-        
+
         auto type = parameter->getChild("type");
         std::string typeStr = "auto";  // Default
         if (type) {
             typeStr = generate(type);
         }
-        
+
         oss << typeStr << " " << parameter->name;
-        
+
         // Add default value if present
         auto defaultValue = parameter->getChild("defaultValue");
         if (defaultValue) {
             oss << " = " << generate(defaultValue);
         }
-        
+
         return oss.str();
     }
 
@@ -2018,5 +2094,58 @@ public:
     
     std::string visitAllocateAnnotation(const AllocateAnnotation* annotation) override {
         return "// @allocate(" + annotation->strategy + ") - Memory allocation strategy";
+    }
+
+    std::string visitHotColdAnnotation(const HotColdAnnotation* annotation) override {
+        if (annotation->hint == "Hot")
+            return "__attribute__((hot))";
+        if (annotation->hint == "Cold")
+            return "__attribute__((cold))";
+        return "// @hotcold(" + annotation->hint + ")";
+    }
+
+    std::string visitInlineAnnotation(const InlineAnnotation* annotation) override {
+        if (annotation->mode == "Always")
+            return "[[gnu::always_inline]] inline";
+        if (annotation->mode == "Never")
+            return "__attribute__((noinline))";
+        return "inline";
+    }
+
+    std::string visitPureAnnotation(const PureAnnotation*) override {
+        return "[[nodiscard]]";
+    }
+
+    std::string visitConstExprAnnotation(const ConstExprAnnotation*) override {
+        return "constexpr";
+    }
+
+private:
+    // Check enclosing function's memory annotations to determine smart-pointer wrapper
+    std::string getMemoryTypeWrapper(const Variable* variable) const {
+        const ASTNode* cur = variable->parent;
+        while (cur && cur->conceptType != "Function") {
+            cur = cur->parent;
+        }
+        if (!cur) return "";
+
+        for (auto* anno : cur->getChildren("annotations")) {
+            if (anno->conceptType == "ReclaimAnnotation") {
+                auto* ra = static_cast<const ReclaimAnnotation*>(anno);
+                if (ra->strategy == "Tracing" || ra->strategy == "Cycle")
+                    return "std::shared_ptr";
+            }
+            if (anno->conceptType == "LifetimeAnnotation") {
+                auto* la = static_cast<const LifetimeAnnotation*>(anno);
+                if (la->strategy == "RAII")
+                    return "std::unique_ptr";
+            }
+            if (anno->conceptType == "OwnerAnnotation") {
+                auto* oa = static_cast<const OwnerAnnotation*>(anno);
+                if (oa->strategy == "Shared_ARC") return "std::shared_ptr";
+                if (oa->strategy == "Single") return "std::unique_ptr";
+            }
+        }
+        return "";
     }
 };

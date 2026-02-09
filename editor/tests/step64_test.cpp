@@ -1,13 +1,11 @@
 // Step 64 TDD Test: Memory annotation validation
 //
 // Tests validation of canonical memory annotations:
-// 1. @Owner(Single) on aliased variable → error
+// 1. Valid @Reclaim(Tracing) passes
 // 2. @Deallocate(Explicit) without deallocation point → "Missing Intent" error
-// 3. Conflicting parent/child annotations → error
-// 4. Valid annotations pass without errors
-// 5. @Reclaim(Tracing) on @Policy(Perf: Critical) → warning
-//
-// Will fail until memory annotation validation is implemented.
+// 3. @Owner(Single) on aliased variable → error
+// 4. Conflicting parent/child annotations → error
+// 5. Valid @Lifetime(RAII) passes
 
 #include <iostream>
 #include <string>
@@ -20,19 +18,7 @@
 #include "ast/Statement.h"
 #include "ast/Expression.h"
 #include "ast/Annotation.h"
-
-// Forward declaration — AnnotationValidator
-class AnnotationValidator {
-public:
-    struct Diagnostic {
-        std::string severity;  // "error" or "warning"
-        std::string message;
-        std::string nodeId;
-    };
-
-    // Validate all annotations in the AST tree
-    std::vector<Diagnostic> validate(const ASTNode* root) const;
-};
+#include "AnnotationValidator.h"
 
 static bool hasDiagnostic(const std::vector<AnnotationValidator::Diagnostic>& diags,
                            const std::string& severity,
