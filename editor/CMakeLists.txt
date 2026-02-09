@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 if(MSVC)
-    add_compile_options(/FS)
+    add_compile_options(/FS /bigobj)
 endif()
 
 # Use vcpkg-installed nlohmann_json instead of FetchContent
