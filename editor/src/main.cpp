@@ -81,6 +81,7 @@ struct BufferState {
     int               generatedHighlightLine = -1;
     float             splitScrollX = 0.0f;
     float             splitScrollY = 0.0f;
+    IncrementalOptimizer incrementalOptimizer;
 };
 
 struct EditorState {
@@ -227,6 +228,7 @@ struct EditorState {
         state->editor.setContent(content, language);
         state->sync.setText(content, language);
         state->sync.syncNow();
+        state->incrementalOptimizer.setRoot(state->sync.getAST());
         state->editBuf = content;
         state->highlightsDirty = true;
         state->generatedHighlightsDirty = true;
@@ -305,6 +307,7 @@ struct EditorState {
         active()->editor.setContent(active()->editBuf, lang);
         active()->sync.setText(active()->editBuf, lang);
         active()->sync.syncNow();
+        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         active()->highlightsDirty = true;
     }
 
@@ -314,6 +317,7 @@ struct EditorState {
         active()->editor.setContent(active()->editBuf, active()->language);
         active()->sync.setText(active()->editBuf, active()->language);
         active()->sync.syncNow();
+        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
@@ -329,6 +333,7 @@ struct EditorState {
         active()->editBuf = active()->editor.getContent();
         active()->sync.setText(active()->editBuf, active()->language);
         active()->sync.syncNow();
+        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
     }
@@ -339,6 +344,7 @@ struct EditorState {
         active()->editBuf = active()->editor.getContent();
         active()->sync.setText(active()->editBuf, active()->language);
         active()->sync.syncNow();
+        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
     }
@@ -371,6 +377,7 @@ struct EditorState {
             active()->editBuf = active()->editor.getContent();
             active()->sync.setText(active()->editBuf, active()->language);
             active()->sync.syncNow();
+            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
             active()->highlightsDirty = true;
             active()->generatedHighlightsDirty = true;
             active()->modified = true;
@@ -439,6 +446,7 @@ struct EditorState {
         buf->editor.setContent(buf->editBuf, buf->language);
         buf->sync.setText(buf->editBuf, buf->language);
         buf->sync.syncNow();
+        buf->incrementalOptimizer.setRoot(buf->sync.getAST());
         buf->highlightsDirty = true;
         buf->generatedHighlightsDirty = true;
         buf->modified = false;
@@ -512,6 +520,7 @@ struct EditorState {
             active()->readOnly = true;
             active()->sync.setText(generated, targetLanguage);
             active()->sync.setAST(std::move(projected));
+            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
             active()->editBuf = generated;
             active()->editor.setContent(active()->editBuf, targetLanguage);
             active()->mode.setLanguage(targetLanguage);
@@ -637,6 +646,28 @@ static std::string findOptimizationBlockReason(const ASTNode* node) {
         if (!found.empty()) return found;
     }
     return "";
+}
+
+static std::string findOptimizationLockWarning(const ASTNode* node) {
+    if (!node) return "";
+    if (node->conceptType == "OptimizationLock") {
+        auto* lock = static_cast<const OptimizationLock*>(node);
+        if (lock->lockLevel == "warning") {
+            return "OptimizationLock: " + lock->lockReason +
+                   " (locked by " + lock->lockedBy + ")";
+        }
+    }
+    for (auto* child : node->allChildren()) {
+        std::string found = findOptimizationLockWarning(child);
+        if (!found.empty()) return found;
+    }
+    return "";
+}
+
+static ImVec4 transformColorForName(const std::string& name) {
+    if (name == "constant-fold") return ImVec4(0.45f, 0.85f, 0.45f, 1.0f);
+    if (name == "dead-code-elim") return ImVec4(0.90f, 0.45f, 0.45f, 1.0f);
+    return ImVec4(0.75f, 0.75f, 0.75f, 1.0f);
 }
 
 
@@ -2027,22 +2058,31 @@ int main(int, char**) {
 
                     if (blocked) ImGui::BeginDisabled();
                     if (ImGui::Button("Constant Fold")) {
-                        TransformEngine engine;
-                        engine.setRoot(ast);
-                        auto res = engine.constantFolding();
+                        auto& inc = state.active()->incrementalOptimizer;
+                        inc.setRoot(ast);
+                        std::string tid = inc.applyTransform("constant-fold");
+                        auto history = inc.getTransformHistory();
+                        size_t nodes = 0;
+                        for (const auto& h : history) {
+                            if (h.transformId == tid) {
+                                nodes = h.affectedNodeIds.size();
+                                break;
+                            }
+                        }
+                        std::string warning = findOptimizationLockWarning(ast);
                         std::string summary = "Constant Fold: ";
-                        if (res.applied) {
-                            summary += "applied (" + std::to_string(res.nodesModified) + " nodes)";
+                        if (nodes > 0) {
+                            summary += "applied (" + std::to_string(nodes) + " nodes)";
                         } else {
                             summary += "no changes";
                         }
-                        if (!res.warning.empty()) {
-                            summary += " — warning: " + res.warning;
-                            state.outputLog += res.warning + "\n";
+                        if (!warning.empty()) {
+                            summary += " — warning: " + warning;
+                            state.outputLog += warning + "\n";
                         }
                         state.optimizeFoldSummary = summary;
                         state.outputLog += summary + "\n";
-                        if (res.applied) state.refreshActiveTextFromAST();
+                        if (nodes > 0) state.refreshActiveTextFromAST();
                     }
                     showBlockedTooltip(blockReason);
                     if (blocked) ImGui::EndDisabled();
@@ -2054,22 +2094,26 @@ int main(int, char**) {
 
                     if (blocked) ImGui::BeginDisabled();
                     if (ImGui::Button("Dead Code Elimination")) {
-                        TransformEngine engine;
-                        engine.setRoot(ast);
-                        auto res = engine.deadCodeElimination();
+                        auto& inc = state.active()->incrementalOptimizer;
+                        inc.setRoot(ast);
+                        std::string tid = inc.applyTransform("dead-code-elim");
+                        auto history = inc.getTransformHistory();
+                        size_t nodes = 0;
+                        for (const auto& h : history) {
+                            if (h.transformId == tid) {
+                                nodes = h.affectedNodeIds.size();
+                                break;
+                            }
+                        }
                         std::string summary = "Dead Code Elimination: ";
-                        if (res.applied) {
-                            summary += "applied (" + std::to_string(res.nodesModified) + " nodes)";
+                        if (nodes > 0) {
+                            summary += "applied (" + std::to_string(nodes) + " nodes)";
                         } else {
                             summary += "no changes";
                         }
-                        if (!res.warning.empty()) {
-                            summary += " — warning: " + res.warning;
-                            state.outputLog += res.warning + "\n";
-                        }
                         state.optimizeDeadCodeSummary = summary;
                         state.outputLog += summary + "\n";
-                        if (res.applied) state.refreshActiveTextFromAST();
+                        if (nodes > 0) state.refreshActiveTextFromAST();
                     }
                     showBlockedTooltip(blockReason);
                     if (blocked) ImGui::EndDisabled();
@@ -2081,38 +2125,95 @@ int main(int, char**) {
 
                     if (blocked) ImGui::BeginDisabled();
                     if (ImGui::Button("Apply All")) {
-                        TransformEngine engine;
-                        engine.setRoot(ast);
-                        auto results = engine.applyAll();
-                        int totalNodes = 0;
-                        bool applied = false;
-                        std::string warnings;
-                        for (const auto& res : results) {
-                            totalNodes += res.nodesModified;
-                            if (res.applied) applied = true;
-                            if (!res.warning.empty()) {
-                                if (!warnings.empty()) warnings += "; ";
-                                warnings += res.warning;
+                        auto& inc = state.active()->incrementalOptimizer;
+                        inc.setRoot(ast);
+                        std::string tidFold = inc.applyTransform("constant-fold");
+                        std::string tidDce = inc.applyTransform("dead-code-elim");
+                        auto history = inc.getTransformHistory();
+                        size_t totalNodes = 0;
+                        for (const auto& h : history) {
+                            if (h.transformId == tidFold || h.transformId == tidDce) {
+                                totalNodes += h.affectedNodeIds.size();
                             }
                         }
+                        std::string warning = findOptimizationLockWarning(ast);
                         std::string summary = "Apply All: ";
-                        if (applied) {
+                        if (totalNodes > 0) {
                             summary += "applied (" + std::to_string(totalNodes) + " nodes)";
                         } else {
                             summary += "no changes";
                         }
-                        if (!warnings.empty()) {
-                            summary += " — warning: " + warnings;
-                            state.outputLog += warnings + "\n";
+                        if (!warning.empty()) {
+                            summary += " — warning: " + warning;
+                            state.outputLog += warning + "\n";
                         }
                         state.optimizeApplySummary = summary;
                         state.outputLog += summary + "\n";
-                        if (applied) state.refreshActiveTextFromAST();
+                        if (totalNodes > 0) state.refreshActiveTextFromAST();
                     }
                     showBlockedTooltip(blockReason);
                     if (blocked) ImGui::EndDisabled();
                     if (!state.optimizeApplySummary.empty()) {
                         ImGui::TextWrapped("%s", state.optimizeApplySummary.c_str());
+                    }
+                }
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            // Transform history
+            if (ImGui::BeginTabItem("Transforms")) {
+                ImGui::PushFont(uiFont);
+                auto* buf = state.active();
+                Module* ast = buf ? buf->sync.getAST() : nullptr;
+                if (!buf) {
+                    ImGui::TextDisabled("(no active buffer)");
+                } else if (!ast) {
+                    ImGui::TextDisabled("(no AST)");
+                } else {
+                    auto& inc = buf->incrementalOptimizer;
+                    inc.setRoot(ast);
+                    auto history = inc.getTransformHistory();
+
+                    const bool hasHistory = !history.empty();
+                    if (!hasHistory) ImGui::BeginDisabled();
+                    if (ImGui::Button("Undo All")) {
+                        bool any = false;
+                        while (inc.undoLast()) {
+                            any = true;
+                        }
+                        if (any) state.refreshActiveTextFromAST();
+                    }
+                    if (!hasHistory) ImGui::EndDisabled();
+                    ImGui::Separator();
+
+                    if (!hasHistory) {
+                        ImGui::TextDisabled("(no transforms)");
+                    } else {
+                        for (const auto& h : history) {
+                            ImGui::PushID(h.transformId.c_str());
+                            ImVec4 color = transformColorForName(h.transformName);
+                            ImGui::TextColored(color, "%s", h.transformName.c_str());
+                            ImGui::SameLine();
+                            ImGui::TextDisabled("@ %s", h.timestamp.c_str());
+                            ImGui::SameLine();
+                            if (ImGui::Button("Undo")) {
+                                if (inc.undoTransform(h.transformId)) {
+                                    state.refreshActiveTextFromAST();
+                                }
+                            }
+                            ImGui::Text("Affected: %d", (int)h.affectedNodeIds.size());
+                            std::string nodeList;
+                            for (size_t i = 0; i < h.affectedNodeIds.size() && i < 5; ++i) {
+                                if (!nodeList.empty()) nodeList += ", ";
+                                nodeList += h.affectedNodeIds[i];
+                            }
+                            if (h.affectedNodeIds.size() > 5) nodeList += ", ...";
+                            if (nodeList.empty()) nodeList = "(none)";
+                            ImGui::TextWrapped("Nodes: %s", nodeList.c_str());
+                            ImGui::Separator();
+                            ImGui::PopID();
+                        }
                     }
                 }
                 ImGui::PopFont();
@@ -2125,6 +2226,13 @@ int main(int, char**) {
                 ImGui::BeginChild("##astScroll", ImVec2(0, 0), false);
                 Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
                 if (ast) {
+                    std::map<std::string, std::string> transformNames;
+                    if (state.active()) {
+                        auto history = state.active()->incrementalOptimizer.getTransformHistory();
+                        for (const auto& h : history) {
+                            transformNames[h.transformId] = h.transformName;
+                        }
+                    }
                     // Show basic AST info
                     ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
                                        "Module: %s  [%s]",
@@ -2133,13 +2241,41 @@ int main(int, char**) {
                     auto functions = ast->getChildren("functions");
                     for (size_t i = 0; i < functions.size(); ++i) {
                         auto* fn = static_cast<Function*>(functions[i]);
-                        ImGui::TextColored(ImVec4(0.86f, 0.86f, 0.55f, 1.0f),
-                                           "  Function: %s", fn->name.c_str());
+                        std::string tid;
+                        std::string tname;
+                        if (state.active()) {
+                            tid = state.active()->incrementalOptimizer.getProvenance(fn->id);
+                            auto it = transformNames.find(tid);
+                            if (it != transformNames.end()) tname = it->second;
+                        }
+                        ImVec4 fnColor = tname.empty() ?
+                            ImVec4(0.86f, 0.86f, 0.55f, 1.0f) :
+                            transformColorForName(tname);
+                        ImGui::TextColored(fnColor, "  Function: %s", fn->name.c_str());
+                        if (!tname.empty() && ImGui::IsItemHovered()) {
+                            ImGui::BeginTooltip();
+                            ImGui::Text("Transform: %s (%s)", tname.c_str(), tid.c_str());
+                            ImGui::EndTooltip();
+                        }
                         auto params = fn->getChildren("parameters");
                         for (auto* p : params) {
                             auto* param = static_cast<Parameter*>(p);
-                            ImGui::TextColored(ImVec4(0.6f, 0.78f, 0.9f, 1.0f),
-                                               "    param: %s", param->name.c_str());
+                            std::string pid;
+                            std::string pname;
+                            if (state.active()) {
+                                pid = state.active()->incrementalOptimizer.getProvenance(param->id);
+                                auto it = transformNames.find(pid);
+                                if (it != transformNames.end()) pname = it->second;
+                            }
+                            ImVec4 pColor = pname.empty() ?
+                                ImVec4(0.6f, 0.78f, 0.9f, 1.0f) :
+                                transformColorForName(pname);
+                            ImGui::TextColored(pColor, "    param: %s", param->name.c_str());
+                            if (!pname.empty() && ImGui::IsItemHovered()) {
+                                ImGui::BeginTooltip();
+                                ImGui::Text("Transform: %s (%s)", pname.c_str(), pid.c_str());
+                                ImGui::EndTooltip();
+                            }
                         }
                         auto body = fn->getChildren("body");
                         ImGui::Text("    body: %d statement(s)", (int)body.size());

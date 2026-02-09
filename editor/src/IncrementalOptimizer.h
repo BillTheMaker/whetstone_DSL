@@ -3,6 +3,10 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 #include "ast/ASTNode.h"
 #include "ast/Expression.h"
 #include "ast/Statement.h"
@@ -13,6 +17,7 @@ public:
         std::string transformId;
         std::string transformName;
         std::vector<std::string> affectedNodeIds;
+        std::string timestamp;
     };
 
     void setRoot(ASTNode* root) { root_ = root; }
@@ -23,6 +28,7 @@ public:
         InternalRecord record;
         record.info.transformId = tid;
         record.info.transformName = transformName;
+        record.info.timestamp = currentTimestamp();
 
         if (transformName == "constant-fold") {
             applyConstantFolding(root_, tid, record);
@@ -68,6 +74,20 @@ public:
     std::string getProvenance(const std::string& nodeId) const {
         auto it = provenance_.find(nodeId);
         return it != provenance_.end() ? it->second : "";
+    }
+
+    static std::string currentTimestamp() {
+        auto now = std::chrono::system_clock::now();
+        std::time_t tt = std::chrono::system_clock::to_time_t(now);
+        std::tm tm{};
+#ifdef _WIN32
+        localtime_s(&tm, &tt);
+#else
+        localtime_r(&tt, &tm);
+#endif
+        std::ostringstream oss;
+        oss << std::put_time(&tm, "%H:%M:%S");
+        return oss.str();
     }
 
 private:
