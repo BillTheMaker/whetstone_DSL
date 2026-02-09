@@ -47,7 +47,7 @@ The foundation: import libraries, parse their APIs, index their symbols.
   Populate `Import` AST nodes from parsed dependencies.
   *New:* `DependencyParser.h`, modifies `ast/ASTNode.h` (Import concept)
 
-- [ ] **Step 129: Dependency management UI**
+- [x] **Step 129: Dependency management UI**
   New dockable panel: "Dependencies". Lists all imported packages with version.
   "Add Package" button → search dialog (queries PackageRegistry). Version
   selector dropdown. "Remove" button. "Update" shows available newer versions.

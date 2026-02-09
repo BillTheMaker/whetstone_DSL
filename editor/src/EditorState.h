@@ -43,6 +43,7 @@
 #include "TerminalPanel.h"
 #include "WebSocketServer.h"
 #include "BuildSystem.h"
+#include "DependencyPanel.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -163,6 +164,8 @@ struct EditorState {
     std::vector<BuildError> buildErrors;
     std::string lastBuildOutput;
     std::string lastBuildCommand;
+    bool              showDependencyPanel = true;
+    DependencyPanelState dependencyPanel;
 
     // Custom editor widget state
     bool              showWhitespace = false;

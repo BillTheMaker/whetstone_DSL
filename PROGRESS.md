@@ -382,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 complete. Step 126 (build system integration) done.
+Sprint 5 in progress. Step 129 (dependency management UI) done. Next: Step 130 (library API indexing via LSP).
 
 ---
 
@@ -472,3 +472,6 @@ Sprint 4 complete. Step 126 (build system integration) done.
 | 2026-02-09 | Codex | Step 125: Agents panel enhancements (permissions, disconnect, request logging). 2/2 tests pass. |
 | 2026-02-09 | Codex | Added integration test for Step 125 agent mutation flow; updated testing policy in ARCHITECTURE.md. 3/3 integration tests pass. |
 | 2026-02-09 | Codex | Step 126: Build system detection, build commands, and error parsing/jump. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 127: Package registry abstraction stubs for major ecosystems. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 128: Dependency file parsing with Import population. 6/6 tests pass. |
+| 2026-02-09 | Codex | Step 129: Dependency management UI panel with add/remove/update, source targeting, and writeback support for requirements.txt/package.json/Cargo.toml/go.mod/vcpkg.json. 8/8 tests pass. |

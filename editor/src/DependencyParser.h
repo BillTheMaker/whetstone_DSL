@@ -84,18 +84,18 @@ private:
         if (!in.is_open()) return out;
         nlohmann::json j;
         try { in >> j; } catch (...) { return out; }
-        auto collect = [&](const std::string& key) {
+        auto collect = [&](const std::string& key, const std::string& sourceTag) {
             if (!j.contains(key)) return;
             for (auto it = j[key].begin(); it != j[key].end(); ++it) {
                 DependencySpec dep;
                 dep.name = it.key();
                 dep.version = it.value().get<std::string>();
-                dep.source = "package.json";
+                dep.source = sourceTag;
                 out.push_back(dep);
             }
         };
-        collect("dependencies");
-        collect("devDependencies");
+        collect("dependencies", "package.json:dependencies");
+        collect("devDependencies", "package.json:devDependencies");
         return out;
     }
 

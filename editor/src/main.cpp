@@ -302,6 +302,7 @@ int main(int, char**) {
                 ImGui::MenuItem("Show Outline", nullptr, &state.showOutline);
                 ImGui::MenuItem("Terminal", state.keys.getBinding("view.toggleTerminal").toString().c_str(),
                                 &state.showTerminalPanel);
+                ImGui::MenuItem("Dependencies", nullptr, &state.showDependencyPanel);
                 ImGui::MenuItem("Settings", nullptr, &state.showSettingsPanel);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
@@ -546,6 +547,17 @@ int main(int, char**) {
                     ImGui::TextDisabled("(no symbols)");
                 }
             }
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        // ---------------------------------------------------------------
+        //  Dependencies Panel
+        // ---------------------------------------------------------------
+        if (state.showDependencyPanel) {
+            ImGui::Begin("Dependencies", &state.showDependencyPanel);
+            ImGui::PushFont(uiFont);
+            renderDependencyPanel(state.dependencyPanel, state.workspaceRoot, state.outputLog);
             ImGui::PopFont();
             ImGui::End();
         }
