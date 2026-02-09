@@ -9,6 +9,9 @@
 #include "Expression.h"
 #include "Type.h"
 #include "Annotation.h"
+#include "Import.h"
+#include "ExternalModule.h"
+#include "TypeSignature.h"
 
 using json = nlohmann::json;
 
@@ -87,6 +90,24 @@ inline json propertiesToJson(const ASTNode* node) {
     else if (ct == "CustomType") {
         auto* n = static_cast<const CustomType*>(node);
         props["typeName"] = n->typeName;
+    }
+    // Imports / External modules
+    else if (ct == "Import") {
+        auto* n = static_cast<const Import*>(node);
+        props["moduleName"] = n->moduleName;
+        if (!n->alias.empty()) props["alias"] = n->alias;
+        if (!n->importKind.empty()) props["importKind"] = n->importKind;
+    }
+    else if (ct == "ExternalModule") {
+        auto* n = static_cast<const ExternalModule*>(node);
+        props["name"] = n->name;
+        if (!n->version.empty()) props["version"] = n->version;
+        if (!n->language.empty()) props["language"] = n->language;
+    }
+    else if (ct == "TypeSignature") {
+        auto* n = static_cast<const TypeSignature*>(node);
+        props["name"] = n->name;
+        props["variadic"] = n->variadic;
     }
     // Annotations
     else if (ct == "DerefStrategy") {
@@ -177,6 +198,9 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "ArrayType") return new ArrayType();
     if (conceptName == "OptionalType") return new OptionalType();
     if (conceptName == "CustomType") return new CustomType();
+    if (conceptName == "Import") return new Import();
+    if (conceptName == "ExternalModule") return new ExternalModule();
+    if (conceptName == "TypeSignature") return new TypeSignature();
     if (conceptName == "DerefStrategy") return new DerefStrategy();
     if (conceptName == "OptimizationLock") return new OptimizationLock();
     if (conceptName == "LangSpecific") return new LangSpecific();
@@ -250,6 +274,23 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
     else if (ct == "CustomType") {
         auto* n = static_cast<CustomType*>(node);
         if (props.contains("typeName")) n->typeName = props["typeName"].get<std::string>();
+    }
+    else if (ct == "Import") {
+        auto* n = static_cast<Import*>(node);
+        if (props.contains("moduleName")) n->moduleName = props["moduleName"].get<std::string>();
+        if (props.contains("alias")) n->alias = props["alias"].get<std::string>();
+        if (props.contains("importKind")) n->importKind = props["importKind"].get<std::string>();
+    }
+    else if (ct == "ExternalModule") {
+        auto* n = static_cast<ExternalModule*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("version")) n->version = props["version"].get<std::string>();
+        if (props.contains("language")) n->language = props["language"].get<std::string>();
+    }
+    else if (ct == "TypeSignature") {
+        auto* n = static_cast<TypeSignature*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("variadic")) n->variadic = props["variadic"].get<bool>();
     }
     else if (ct == "DerefStrategy") {
         auto* n = static_cast<DerefStrategy*>(node);

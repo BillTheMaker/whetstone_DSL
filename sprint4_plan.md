@@ -391,7 +391,7 @@ AST extensions for Sprint 5.
   AST atomically. Status bar shows undo depth.
   *Modifies:* `Orchestrator.h`, `main.cpp`
 
-- [ ] **Step 121: AST Import/ExternalModule concepts**
+- [x] **Step 121: AST Import/ExternalModule concepts**
   Extend `ASTNode.h` with new concept types: `Import` (represents `import numpy`,
   `#include <vector>`, `(require 'cl-lib)`), `ExternalModule` (represents an
   external library with its public API surface), `TypeSignature` (function

@@ -80,6 +80,8 @@ private:
         addRule("Module", "variables", {"Variable"}, false);  // multi-valued
         addRule("Module", "targetLanguage", {}, true);  // property, not used for AST nodes
         addRule("Module", "annotations", {"DerefStrategy", "OptimizationLock", "LangSpecific"}, false);  // multi-valued
+        addRule("Module", "imports", {"Import"}, false);  // multi-valued
+        addRule("Module", "externalModules", {"ExternalModule"}, false);  // multi-valued
 
         // Function concept rules
         addRule("Function", "parameters", {"Parameter"}, false);  // multi-valued
@@ -151,6 +153,17 @@ private:
         // Type concepts - no child rules needed as they're leaf nodes for types
 
         // Annotation concepts - no child rules needed as they're leaf nodes for annotations
+
+        // External module concepts
+        addRule("ExternalModule", "signatures", {"TypeSignature"}, false);  // multi-valued
+        addRule("TypeSignature", "returnType",
+                {"PrimitiveType", "ListType", "SetType", "MapType", "TupleType",
+                 "ArrayType", "OptionalType", "CustomType"},
+                true);
+        addRule("TypeSignature", "paramTypes",
+                {"PrimitiveType", "ListType", "SetType", "MapType", "TupleType",
+                 "ArrayType", "OptionalType", "CustomType"},
+                false);
     }
 
     void addRule(const std::string& parentConcept, const std::string& role, const std::vector<std::string>& allowedConcepts, bool isSingleValued) {
