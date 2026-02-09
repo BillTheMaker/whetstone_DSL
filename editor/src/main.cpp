@@ -17,6 +17,7 @@
 #include "TextASTSync.h"
 #include "SyntaxHighlighter.h"
 #include "KeybindingManager.h"
+#include "CodeEditorWidget.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -57,6 +58,10 @@ struct EditorState {
     // Highlight cache (recomputed on text change)
     std::vector<HighlightSpan> highlights;
     bool              highlightsDirty = true;
+
+    // Custom editor widget state
+    CodeEditorWidget  codeWidget;
+    bool              showWhitespace = false;
 
     void init() {
         std::string defaultContent =
@@ -552,6 +557,10 @@ int main(int, char**) {
                     state.showFind = !state.showFind;
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("View")) {
+                ImGui::MenuItem("Show Whitespace", nullptr, &state.showWhitespace);
+                ImGui::EndMenu();
+            }
             if (ImGui::BeginMenu("Language")) {
                 if (ImGui::MenuItem("Python", nullptr, state.language == "python"))
                     state.setLanguage("python");
@@ -649,9 +658,14 @@ int main(int, char**) {
                 ImVec2 avail = ImGui::GetContentRegionAvail();
                 avail.y -= 4; // small margin
 
-                bool changed = InputTextMultilineStr("##editor", &state.editBuf,
-                    avail, ImGuiInputTextFlags_AllowTabInput);
-                if (changed) {
+                state.updateHighlights();
+                CodeEditorOptions opts;
+                opts.showWhitespace = state.showWhitespace;
+
+                CodeEditorResult res = state.codeWidget.render("##editor",
+                    state.editBuf, state.highlights, opts, avail, monoFont);
+                state.updateCursorPos(res.cursorByte);
+                if (res.changed) {
                     state.onTextChanged();
                 }
 

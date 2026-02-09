@@ -172,6 +172,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 
 ### Phase 4a: Layout & Code Editor Core (Steps 76–83) — In Progress
 - [x] Step 76: **IMPLEMENTED** — LayoutManager: 3 preset docking layouts (VSCode/Emacs/JetBrains), panel visibility/ratio queries, dirty flag for rebuild, save/load persistence, preset name round-trip (10/10 tests pass)
+- [x] Step 77: **IMPLEMENTED** — Custom CodeEditorWidget renderer: per-token coloring, cursor/selection/input handling, monospace grid, blinking cursor, visible whitespace toggle (3/3 tests pass)
 
 ---
 
@@ -227,6 +228,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Steps 68–71:** All compile and pass (step68: 4/4, step69: 4/4, step70: 5/5, step71: 4/4)
 **Steps 72–75:** All compile and pass (step72: 6/6, step73: 8/8, step74: 6/6, step75: 6/6)
 **Step 76:** Compile and pass (10/10)
+**Step 77:** Compile and pass (3/3)
 
 ---
 
@@ -311,3 +313,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Claude Opus 4.6 | Phase 3g complete: Optimization Pipeline (Steps 68–71). TransformEngine (constant folding, DCE, OptimizationLock warning). StrategyAwareOptimizer (annotation-constrained: @Reclaim allows, @Owner blocks duplication, @Deallocate blocks reorder, @Allocate blocks dynamic). StrategyValidator (use-after-free, leak, aliasing detection). IncrementalOptimizer (journal, undo by ID, provenance). 17/17 tests pass. |
 | 2026-02-09 | Claude Opus 4.6 | Phase 3h complete: Integration & Validation (Steps 72–75). Pipeline (end-to-end parse→infer→validate→optimize→generate across Python/C++). Error handling (8 edge cases: null roots, empty ASTs, nonexistent IDs). Performance benchmarks (1000-fn AST in 1ms, JSON round-trip 4ms). APIDocGenerator (23 components, 6 categories, markdown output). 26/26 tests pass. **Sprint 3 complete: all 75 steps done.** |
 | 2026-02-09 | Claude Opus 4.6 | Step 76: LayoutManager with 3 preset docking layouts (VSCode/Emacs/JetBrains). Panel visibility/ratio queries, dirty flag, save/load persistence. 10/10 tests pass. Sprint 4 started. |
+| 2026-02-09 | Codex | Step 77: Custom code editor renderer (CodeEditorWidget). Per-token coloring, cursor/selection/input, blinking cursor, whitespace toggle. 3/3 tests pass. |
