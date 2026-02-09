@@ -23,6 +23,9 @@ public:
 
     const std::vector<LSPServerConfig>& getLSPServers() const { return lspServers_; }
     std::vector<LSPServerConfig>& getLSPServersMutable() { return lspServers_; }
+    const std::string& getEmacsConfigPath() const { return emacsConfigPath_; }
+    void setEmacsConfigPath(const std::string& path) { emacsConfigPath_ = path; }
+    std::string& getEmacsConfigPathMutable() { return emacsConfigPath_; }
 
     LSPServerConfig* getServer(const std::string& language) {
         for (auto& s : lspServers_) {
@@ -63,6 +66,7 @@ public:
 
 private:
     std::vector<LSPServerConfig> lspServers_;
+    std::string emacsConfigPath_;
 
     void loadDefaults() {
         lspServers_.push_back(makeConfig("python", "pylsp", {}));
@@ -72,6 +76,14 @@ private:
         lspServers_.push_back(makeConfig("javascript", "typescript-language-server", {"--stdio"}));
         lspServers_.push_back(makeConfig("typescript", "typescript-language-server", {"--stdio"}));
         lspServers_.push_back(makeConfig("java", "jdtls", {}));
+
+        const char* home = std::getenv("USERPROFILE");
+        if (!home) home = std::getenv("HOME");
+        if (home) {
+            emacsConfigPath_ = (std::filesystem::path(home) / ".emacs.d").string();
+        } else {
+            emacsConfigPath_ = ".emacs.d";
+        }
     }
 
     static LSPServerConfig makeConfig(const std::string& lang,

@@ -45,6 +45,7 @@
 #include "Breadcrumbs.h"
 #include "ProjectSearch.h"
 #include "GoToLine.h"
+#include "Orchestrator.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -160,6 +161,8 @@ struct EditorState {
     std::vector<EditorDiagnostic> whetstoneDiagnostics;
     SettingsManager   settings;
     bool              showLspSettings = false;
+    Orchestrator      orchestrator;
+    bool              orchestratorDirty = true;
     ASTMutationAPI    mutator;
     std::vector<MemoryStrategyInference::Suggestion> suggestions;
     bool              showSuggestionPopup = false;
@@ -334,6 +337,7 @@ struct EditorState {
         state->bufferMode = mode;
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
+        orchestratorDirty = true;
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
         if (lsp && path.rfind("(untitled", 0) != 0) {
             lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
@@ -420,6 +424,7 @@ struct EditorState {
         if (!buffers.hasBuffer(path)) return;
         buffers.switchToBuffer(path);
         activeBuffer = bufferStates[path].get();
+        orchestratorDirty = true;
         symbolsPending = true;
         symbolsLastChange = ImGui::GetTime();
         if (lsp) lsp->clearDocumentSymbols();
@@ -471,6 +476,35 @@ struct EditorState {
         fileTreeDirty = true;
         loadRecentFiles();
         registerCommands();
+    }
+
+    void syncOrchestratorFromActive() {
+        if (!active()) return;
+        if (!isStructured()) return;
+        Module* ast = active()->sync.getAST();
+        if (!ast) return;
+        orchestrator.setAST(cloneModule(ast));
+        orchestratorDirty = false;
+    }
+
+    void applyOrchestratorToActive() {
+        if (!active()) return;
+        if (!isStructured()) return;
+        Module* ast = orchestrator.getAST();
+        if (!ast) return;
+        active()->sync.setAST(cloneModule(ast));
+        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        refreshActiveTextFromAST();
+        orchestratorDirty = false;
+    }
+
+    Module* mutationAST() {
+        if (!active()) return nullptr;
+        if (!isStructured()) return nullptr;
+        if (orchestratorDirty || !orchestrator.getAST()) {
+            syncOrchestratorFromActive();
+        }
+        return orchestrator.getAST();
     }
 
     void registerCommand(const std::string& id,
@@ -591,6 +625,7 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
+        orchestratorDirty = true;
         active()->highlightsDirty = true;
     }
 
@@ -603,6 +638,7 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
+        orchestratorDirty = true;
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
@@ -624,6 +660,7 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
+        orchestratorDirty = true;
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
     }
@@ -637,6 +674,7 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
+        orchestratorDirty = true;
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
     }
@@ -2114,6 +2152,10 @@ int main(int, char**) {
         if (state.showLspSettings) {
             ImGui::Begin("LSP Servers", &state.showLspSettings);
             ImGui::PushFont(uiFont);
+            ImGui::TextUnformatted("Emacs Config");
+            ImGui::SetNextItemWidth(320);
+            InputTextStr("Config Path", &state.settings.getEmacsConfigPathMutable(), ImGuiInputTextFlags_None);
+            ImGui::Separator();
             if (ImGui::Button("Auto-Detect")) {
                 state.settings.autoDetect();
             }
@@ -2201,7 +2243,7 @@ int main(int, char**) {
             ImGui::SameLine();
             if (ImGui::Button("Apply")) {
                 state.refactorError.clear();
-                Module* ast = state.activeAST();
+                Module* ast = state.mutationAST();
                 RefactorPlan plan;
                 if (state.refactorAction == 1) {
                     plan = buildRenameVariablePlan(ast, state.refactorNameA, state.refactorNameB);
@@ -2221,7 +2263,7 @@ int main(int, char**) {
                     } else {
                         state.outputLog += "Refactor applied (" +
                                            std::to_string(res.appliedCount) + " mutations).\n";
-                        state.refreshActiveTextFromAST();
+                        state.applyOrchestratorToActive();
                         state.showRefactorPopup = false;
                     }
                 }
@@ -2651,7 +2693,7 @@ int main(int, char**) {
                                 ImGui::TextWrapped("%s", state.suggestionPopup.reason.c_str());
                                 ImGui::Text("Confidence: %.2f", state.suggestionPopup.confidence);
                                 if (ImGui::Button("Apply")) {
-                                    Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                                    Module* ast = state.mutationAST();
                                     if (ast) {
                                         ASTNode* target = findNodeById(ast, state.suggestionPopup.nodeId);
                                         if (target) {
@@ -2665,6 +2707,7 @@ int main(int, char**) {
                                                 state.mutator.setRoot(ast);
                                                 auto res2 = state.mutator.insertNode(target->id, "annotations", anno);
                                                 if (!res2.error.empty()) state.outputLog += res2.error + "\n";
+                                                state.applyOrchestratorToActive();
                                             }
                                         }
                                     }
@@ -2748,12 +2791,13 @@ int main(int, char**) {
                         }
 
                         if (ImGui::BeginPopupContextWindow("AnnotationContext", ImGuiPopupFlags_MouseButtonRight)) {
-                            Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                            Module* ast = state.mutationAST();
                             int lineZero = state.active() ? std::max(0, state.active()->cursorLine - 1) : 0;
                             ASTNode* target = ast ? findAnnotationTarget(ast, lineZero) : nullptr;
                             if (!target) {
                                 ImGui::TextDisabled("No annotatable symbol on this line.");
                             } else {
+                                bool mutated = false;
                                 ImGui::Text("Target: %s", nodeDisplayName(target).c_str());
                                 ImGui::Separator();
 
@@ -2766,6 +2810,7 @@ int main(int, char**) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                     }
                                     if (ImGui::MenuItem("@Owner(Single)")) {
@@ -2776,6 +2821,7 @@ int main(int, char**) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                     }
                                     if (ImGui::MenuItem("@Deallocate(Explicit)")) {
@@ -2786,6 +2832,7 @@ int main(int, char**) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                     }
                                     if (ImGui::MenuItem("@Lifetime(RAII)")) {
@@ -2796,6 +2843,7 @@ int main(int, char**) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                     }
                                     if (ImGui::MenuItem("@Allocate(Static)")) {
@@ -2806,6 +2854,7 @@ int main(int, char**) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                     }
                                     ImGui::EndMenu();
@@ -2819,27 +2868,37 @@ int main(int, char**) {
                                             if (anno->conceptType == "ReclaimAnnotation") {
                                                 if (ImGui::MenuItem("Tracing")) {
                                                     state.mutator.setRoot(ast);
-                                                    state.mutator.setProperty(anno->id, "strategy", "Tracing");
+                                                    auto res = state.mutator.setProperty(anno->id, "strategy", "Tracing");
+                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "OwnerAnnotation") {
                                                 if (ImGui::MenuItem("Single")) {
                                                     state.mutator.setRoot(ast);
-                                                    state.mutator.setProperty(anno->id, "strategy", "Single");
+                                                    auto res = state.mutator.setProperty(anno->id, "strategy", "Single");
+                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "DeallocateAnnotation") {
                                                 if (ImGui::MenuItem("Explicit")) {
                                                     state.mutator.setRoot(ast);
-                                                    state.mutator.setProperty(anno->id, "strategy", "Explicit");
+                                                    auto res = state.mutator.setProperty(anno->id, "strategy", "Explicit");
+                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "LifetimeAnnotation") {
                                                 if (ImGui::MenuItem("RAII")) {
                                                     state.mutator.setRoot(ast);
-                                                    state.mutator.setProperty(anno->id, "strategy", "RAII");
+                                                    auto res = state.mutator.setProperty(anno->id, "strategy", "RAII");
+                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "AllocateAnnotation") {
                                                 if (ImGui::MenuItem("Static")) {
                                                     state.mutator.setRoot(ast);
-                                                    state.mutator.setProperty(anno->id, "strategy", "Static");
+                                                    auto res = state.mutator.setProperty(anno->id, "strategy", "Static");
+                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (res.error.empty()) mutated = true;
                                                 }
                                             }
                                             ImGui::EndMenu();
@@ -2855,6 +2914,7 @@ int main(int, char**) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.deleteNode(anno->id);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                     }
                                     ImGui::EndMenu();
@@ -2877,6 +2937,7 @@ int main(int, char**) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.deleteNode(lineConflict.childAnnoId);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                         if (ImGui::MenuItem("Match parent strategy")) {
                                             state.mutator.setRoot(ast);
@@ -2884,9 +2945,13 @@ int main(int, char**) {
                                                                                 "strategy",
                                                                                 lineConflict.parentStrategy);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (res.error.empty()) mutated = true;
                                         }
                                     }
                                     ImGui::EndMenu();
+                                }
+                                if (mutated) {
+                                    state.applyOrchestratorToActive();
                                 }
                             }
                             ImGui::EndPopup();
@@ -2986,7 +3051,7 @@ int main(int, char**) {
             // Optimization controls
             if (ImGui::BeginTabItem("Optimize")) {
                 ImGui::PushFont(uiFont);
-                Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                Module* ast = state.mutationAST();
                 if (!state.active()) {
                     ImGui::TextDisabled("(no active buffer)");
                 } else if (state.active()->bufferMode == BufferManager::BufferMode::Text) {
@@ -3045,7 +3110,7 @@ int main(int, char**) {
                             }
                             state.optimizeFoldSummary = summary;
                             state.outputLog += summary + "\n";
-                            if (nodes > 0) state.refreshActiveTextFromAST();
+                            if (nodes > 0) state.applyOrchestratorToActive();
                             std::string afterText = state.active()->editBuf;
                             state.openDiff(beforeText, afterText, false, 1, {tid});
                         }
@@ -3089,7 +3154,7 @@ int main(int, char**) {
                             }
                             state.optimizeDeadCodeSummary = summary;
                             state.outputLog += summary + "\n";
-                            if (nodes > 0) state.refreshActiveTextFromAST();
+                            if (nodes > 0) state.applyOrchestratorToActive();
                             std::string afterText = state.active()->editBuf;
                             state.openDiff(beforeText, afterText, false, 2, {tid});
                         }
@@ -3138,7 +3203,7 @@ int main(int, char**) {
                             }
                             state.optimizeApplySummary = summary;
                             state.outputLog += summary + "\n";
-                            if (totalNodes > 0) state.refreshActiveTextFromAST();
+                            if (totalNodes > 0) state.applyOrchestratorToActive();
                             std::string afterText = state.active()->editBuf;
                             state.openDiff(beforeText, afterText, false, 3, {tidFold, tidDce});
                         }
@@ -3157,7 +3222,7 @@ int main(int, char**) {
             if (ImGui::BeginTabItem("Transforms")) {
                 ImGui::PushFont(uiFont);
                 auto* buf = state.active();
-                Module* ast = buf ? buf->sync.getAST() : nullptr;
+                Module* ast = state.mutationAST();
                 if (!buf) {
                     ImGui::TextDisabled("(no active buffer)");
                 } else if (buf->bufferMode == BufferManager::BufferMode::Text) {
@@ -3176,7 +3241,7 @@ int main(int, char**) {
                         while (inc.undoLast()) {
                             any = true;
                         }
-                        if (any) state.refreshActiveTextFromAST();
+                        if (any) state.applyOrchestratorToActive();
                     }
                     if (!hasHistory) ImGui::EndDisabled();
                     ImGui::Separator();
@@ -3193,7 +3258,7 @@ int main(int, char**) {
                             ImGui::SameLine();
                             if (ImGui::Button("Undo")) {
                                 if (inc.undoTransform(h.transformId)) {
-                                    state.refreshActiveTextFromAST();
+                                    state.applyOrchestratorToActive();
                                 }
                             }
                             ImGui::Text("Affected: %d", (int)h.affectedNodeIds.size());
@@ -3218,7 +3283,7 @@ int main(int, char**) {
             if (ImGui::BeginTabItem("Diff")) {
                 ImGui::PushFont(uiFont);
                 auto* buf = state.active();
-                Module* ast = buf ? buf->sync.getAST() : nullptr;
+                Module* ast = state.mutationAST();
                 if (!buf) {
                     ImGui::TextDisabled("(no active buffer)");
                 } else if (buf->bufferMode == BufferManager::BufferMode::Text) {
@@ -3238,7 +3303,7 @@ int main(int, char**) {
                                     } else {
                                         state.outputLog += "Refactor applied (" +
                                                            std::to_string(res.appliedCount) + " mutations).\n";
-                                        state.refreshActiveTextFromAST();
+                                        state.applyOrchestratorToActive();
                                     }
                                 } else {
                                     buf->incrementalOptimizer.setRoot(ast);
@@ -3250,7 +3315,7 @@ int main(int, char**) {
                                         buf->incrementalOptimizer.applyTransform("constant-fold");
                                         buf->incrementalOptimizer.applyTransform("dead-code-elim");
                                     }
-                                    state.refreshActiveTextFromAST();
+                                    state.applyOrchestratorToActive();
                                 }
                             }
                             state.diff.active = false;
@@ -3271,7 +3336,7 @@ int main(int, char**) {
                                      it != state.diff.transformIds.rend(); ++it) {
                                     buf->incrementalOptimizer.undoTransform(*it);
                                 }
-                                state.refreshActiveTextFromAST();
+                                state.applyOrchestratorToActive();
                             }
                             state.diff.active = false;
                         }

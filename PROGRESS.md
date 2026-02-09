@@ -218,6 +218,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 112: **IMPLEMENTED** — Breadcrumb navigation with scope roles (1/1 tests pass)
 - [x] Step 113: **IMPLEMENTED** — Project-wide search panel with regex and glob filters (3/3 tests pass)
 - [x] Step 114: **IMPLEMENTED** — Go-to-line popup with :line:col parsing (4/4 tests pass)
+- [x] Step 115: **IMPLEMENTED** — Orchestrator wired for structured mutations; Emacs config path setting (3/3 tests pass)
 
 ---
 
@@ -315,6 +316,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 112:** Compile and pass (1/1)
 **Step 113:** Compile and pass (3/3)
 **Step 114:** Compile and pass (4/4)
+**Step 115:** Compile and pass (3/3)
 
 ---
 
@@ -366,7 +368,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 114 (go-to-line) done. Next: Step 115 (wire orchestrator).
+Sprint 4 in progress. Step 115 (wire orchestrator) done. Next: Step 116 (project save/load).
 
 ---
 
@@ -442,3 +444,4 @@ Sprint 4 in progress. Step 114 (go-to-line) done. Next: Step 115 (wire orchestra
 | 2026-02-09 | Codex | Step 112: Breadcrumb navigation with scope roles. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 113: Project-wide search panel with regex and glob filters. 3/3 tests pass. |
 | 2026-02-09 | Codex | Step 114: Go-to-line popup with :line:col parsing. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 115: Orchestrator wired for structured mutations; Emacs config path setting. 3/3 tests pass. |

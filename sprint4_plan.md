@@ -352,7 +352,7 @@ Whetstone-specific AST navigation.
 Wire the orchestrator, serialization, session management, and prepare
 AST extensions for Sprint 5.
 
-- [ ] **Step 115: Wire Orchestrator**
+- [x] **Step 115: Wire Orchestrator**
   Connect `Orchestrator.h` to the GUI. All AST mutations go through the
   orchestrator's undo/redo journal (replacing TextEditor's simple stack).
   Orchestrator manages the canonical AST state. GUI reads from it.
