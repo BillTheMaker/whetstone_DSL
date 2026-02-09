@@ -433,7 +433,7 @@ External tool integration and agent connectivity.
   and results. Agents can be granted/revoked mutation permissions.
   *Modifies:* `main.cpp`
 
-- [ ] **Step 126: Build system integration**
+- [x] **Step 126: Build system integration**
   Detect project type (CMakeLists.txt, setup.py, Cargo.toml, package.json,
   Makefile, go.mod) and offer build commands. Build output in Terminal panel.
   Error parsing: click compiler errors to jump to source location.

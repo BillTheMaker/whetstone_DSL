@@ -111,6 +111,7 @@ int main(int, char**) {
                                 state.workspaceRoot = p;
                                 state.fileTreeDirty = true;
                                 state.projectSearch.setRoot(state.workspaceRoot);
+                                state.refreshBuildSystem();
                             });
                     SDL_free(droppedFile);
                 }
@@ -248,6 +249,7 @@ int main(int, char**) {
                         state.fileTreeDirty = true;
                         state.projectSearch.setRoot(state.workspaceRoot);
                         lastDialogPath = path;
+                        state.refreshBuildSystem();
                     }
                 }
                 if (ImGui::MenuItem("Save", state.keys.getBinding("file.save").toString().c_str()))
@@ -1689,6 +1691,51 @@ int main(int, char**) {
                 if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 20)
                     ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();
+
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Build")) {
+                ImGui::PushFont(uiFont);
+                ImGui::Text("Detected: %s", BuildSystem::typeName(state.buildType));
+                auto cmds = BuildSystem::commandsFor(state.buildType);
+                if (cmds.empty()) {
+                    ImGui::TextDisabled("(no build system detected)");
+                } else {
+                    for (const auto& cmd : cmds) {
+                        if (ImGui::Button(cmd.label.c_str())) {
+                            state.runBuildCommand(cmd);
+                        }
+                        ImGui::SameLine();
+                        ImGui::TextUnformatted(cmd.command.c_str());
+                    }
+                }
+
+                ImGui::Separator();
+                ImGui::TextUnformatted("Errors");
+                if (state.buildErrors.empty()) {
+                    ImGui::TextDisabled("(none)");
+                } else {
+                    for (const auto& err : state.buildErrors) {
+                        std::string label = err.file + ":" + std::to_string(err.line);
+                        if (err.col > 0) label += ":" + std::to_string(err.col);
+                        label += " " + err.message;
+                        if (ImGui::Selectable(label.c_str())) {
+                            std::filesystem::path p(err.file);
+                            std::string path = p.is_absolute()
+                                ? p.string()
+                                : (std::filesystem::path(state.workspaceRoot) / p).string();
+                            if (state.buffers.hasBuffer(path)) state.switchToBuffer(path);
+                            else state.doOpen(path);
+                            if (state.active()) {
+                                state.jumpTo(state.active(),
+                                             std::max(0, err.line - 1),
+                                             std::max(0, err.col - 1));
+                            }
+                        }
+                    }
+                }
 
                 ImGui::PopFont();
                 ImGui::EndTabItem();

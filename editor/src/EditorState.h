@@ -42,6 +42,7 @@
 #include "ZoomUtils.h"
 #include "TerminalPanel.h"
 #include "WebSocketServer.h"
+#include "BuildSystem.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -158,6 +159,10 @@ struct EditorState {
     int               agentPort = 8765;
     std::vector<std::string> agentLog;
     std::map<std::string, bool> agentMutationPermissions;
+    BuildSystem::Type buildType = BuildSystem::Type::None;
+    std::vector<BuildError> buildErrors;
+    std::string lastBuildOutput;
+    std::string lastBuildCommand;
 
     // Custom editor widget state
     bool              showWhitespace = false;
@@ -708,6 +713,7 @@ struct EditorState {
         loadSettingsFromDisk();
         registerCommands();
         initAgentServer();
+        refreshBuildSystem();
     }
 
     void initAgentServer() {
@@ -747,6 +753,23 @@ struct EditorState {
 
     void logAgentEvent(const std::string& msg) {
         agentLog.push_back(msg);
+    }
+
+    void refreshBuildSystem() {
+        buildType = BuildSystem::detect(workspaceRoot);
+    }
+
+    int runBuildCommand(const BuildCommand& cmd) {
+        if (workspaceRoot.empty()) {
+            terminal.append("[build] No workspace root set.\n");
+            return -1;
+        }
+        showTerminalPanel = true;
+        lastBuildCommand = cmd.command;
+        int code = terminal.runAndCapture(workspaceRoot, cmd.command, lastBuildOutput);
+        buildErrors = BuildSystem::parseErrors(lastBuildOutput);
+        outputLog += "[build] " + cmd.label + " => exit " + std::to_string(code) + "\n";
+        return code;
     }
 
     json buildDiagnosticsJson() const {

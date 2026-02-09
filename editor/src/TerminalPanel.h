@@ -62,6 +62,14 @@ public:
         return code;
     }
 
+    int runAndCapture(const std::string& cwd, const std::string& command, std::string& out) {
+        out.clear();
+        int code = runProcess(cwd, command, out);
+        output_ += "> " + command + "\n";
+        output_ += out;
+        return code;
+    }
+
     const std::string& getOutput() const {
         return output_;
     }
