@@ -215,6 +215,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 109: **IMPLEMENTED** — Command palette with fuzzy search and MRU ranking (2/2 tests pass)
 - [x] Step 110: **IMPLEMENTED** — Go-to-definition (LSP + Whetstone) with hover preview (2/2 tests pass)
 - [x] Step 111: **IMPLEMENTED** — Symbol outline panel with LSP + AST fallback (2/2 tests pass)
+- [x] Step 112: **IMPLEMENTED** — Breadcrumb navigation with scope roles (1/1 tests pass)
 
 ---
 
@@ -309,6 +310,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 109:** Compile and pass (2/2)
 **Step 110:** Compile and pass (2/2)
 **Step 111:** Compile and pass (2/2)
+**Step 112:** Compile and pass (1/1)
 
 ---
 
@@ -360,7 +362,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 111 (symbol outline panel) done. Next: Step 112 (breadcrumb navigation).
+Sprint 4 in progress. Step 112 (breadcrumb navigation) done. Next: Step 113 (project-wide search).
 
 ---
 
@@ -433,3 +435,4 @@ Sprint 4 in progress. Step 111 (symbol outline panel) done. Next: Step 112 (brea
 | 2026-02-09 | Codex | Step 109: Command palette with fuzzy search and MRU ranking. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 110: Go-to-definition (LSP + Whetstone) with hover preview. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 111: Symbol outline panel with LSP + AST fallback. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 112: Breadcrumb navigation with scope roles. 1/1 tests pass. |

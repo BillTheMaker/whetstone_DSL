@@ -42,6 +42,7 @@
 #include "RefactorActions.h"
 #include "CommandPalette.h"
 #include "ContextAPI.h"
+#include "Breadcrumbs.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -2140,6 +2141,45 @@ int main(int, char**) {
         //  Editor (center) — editable text area
         // ---------------------------------------------------------------
         ImGui::Begin("Editor");
+        ImGui::PushFont(uiFont);
+        ImGui::BeginChild("##breadcrumbs", ImVec2(0, 26.0f), false, ImGuiWindowFlags_NoScrollbar);
+        if (!state.active()) {
+            ImGui::TextDisabled("(no file)");
+        } else if (!state.isStructured()) {
+            ImGui::TextDisabled("Text mode");
+        } else {
+            Module* ast = state.activeAST();
+            int lineZero = std::max(0, state.active()->cursorLine - 1);
+            int colZero = std::max(0, state.active()->cursorCol - 1);
+            ASTNode* node = ast ? findNodeAtPosition(ast, lineZero, colZero) : nullptr;
+            if (!node) {
+                ImGui::TextDisabled("(no scope)");
+            } else {
+                auto crumbs = buildBreadcrumbTrail(node);
+                for (size_t i = 0; i < crumbs.size(); ++i) {
+                    if (i > 0) {
+                        ImGui::SameLine();
+                        ImGui::TextUnformatted(">");
+                        ImGui::SameLine();
+                    }
+                    ImGui::PushID((int)i);
+                    const auto& item = crumbs[i];
+                    if (item.isRole) {
+                        ImGui::TextDisabled("%s", item.label.c_str());
+                    } else if (item.node && item.node->hasSpan()) {
+                        if (ImGui::SmallButton(item.label.c_str())) {
+                            state.jumpTo(state.active(), item.node->spanStartLine, item.node->spanStartCol);
+                        }
+                    } else {
+                        ImGui::TextUnformatted(item.label.c_str());
+                    }
+                    ImGui::PopID();
+                }
+            }
+        }
+        ImGui::EndChild();
+        ImGui::PopFont();
+
         ImGui::PushFont(monoFont);
 
         // Tab bar for the file

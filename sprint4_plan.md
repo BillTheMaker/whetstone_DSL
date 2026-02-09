@@ -327,7 +327,7 @@ Whetstone-specific AST navigation.
   Click to navigate. Icons by symbol kind. Search/filter box.
   *Wires:* `ContextAPI.h`, `LSPClient.h`
 
-- [ ] **Step 112: Breadcrumb navigation**
+- [x] **Step 112: Breadcrumb navigation**
   Bar above the editor showing the current scope path:
   `Module > Function:add > body > Return`. Click any segment to jump.
   Updates as cursor moves. Uses Whetstone AST parent chain (our unique feature —
