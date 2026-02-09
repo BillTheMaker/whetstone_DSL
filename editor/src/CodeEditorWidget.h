@@ -28,6 +28,7 @@ struct CodeEditorOptions {
     const std::vector<struct DiagnosticRange>* diagnostics = nullptr;
     const std::vector<struct AnnotationMarker>* annotations = nullptr;
     const std::vector<struct SuggestionMarker>* suggestions = nullptr;
+    const std::vector<struct AnnotationConflictMarker>* conflicts = nullptr;
 };
 
 struct CodeEditorResult {
@@ -69,6 +70,15 @@ struct SuggestionMarker {
     std::string annotationType;
     std::string strategy;
     std::string nodeId;
+};
+
+struct AnnotationConflictMarker {
+    int childLine = -1;
+    int parentLine = -1;
+    std::string message;
+    std::string childAnnoId;
+    std::string parentAnnoId;
+    std::string parentStrategy;
 };
 
 struct FoldRegion {
@@ -306,6 +316,30 @@ public:
                         ImGui::Text("%s (%.2f)", suggestion.label.c_str(), suggestion.confidence);
                         ImGui::Separator();
                         ImGui::TextUnformatted(suggestion.reason.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+
+            // Conflict markers: highlight and connecting line
+            if (options.conflicts) {
+                AnnotationConflictMarker conflict;
+                if (conflictAtLine(*options.conflicts, ln, conflict)) {
+                    ImVec2 center(origin.x + 12.0f, y + lineHeight * 0.5f);
+                    drawList->AddCircle(center, 5.0f, IM_COL32(220, 80, 80, 255), 12, 1.5f);
+                    if (ln == std::min(conflict.childLine, conflict.parentLine) &&
+                        conflict.childLine >= 0 && conflict.parentLine >= 0) {
+                        float y1 = textBase.y + conflict.childLine * lineHeight + lineHeight * 0.5f;
+                        float y2 = textBase.y + conflict.parentLine * lineHeight + lineHeight * 0.5f;
+                        drawList->AddLine(ImVec2(origin.x + 12.0f, y1),
+                                          ImVec2(origin.x + 12.0f, y2),
+                                          IM_COL32(220, 80, 80, 180), 1.0f);
+                    }
+                    ImVec2 a(center.x - 5.0f, center.y - 5.0f);
+                    ImVec2 b(center.x + 5.0f, center.y + 5.0f);
+                    if (ImGui::IsMouseHoveringRect(a, b)) {
+                        ImGui::BeginTooltip();
+                        ImGui::TextUnformatted(conflict.message.c_str());
                         ImGui::EndTooltip();
                     }
                 }
@@ -616,6 +650,18 @@ private:
                                  SuggestionMarker& out) {
         for (const auto& m : markers) {
             if (m.line == line) {
+                out = m;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static bool conflictAtLine(const std::vector<AnnotationConflictMarker>& markers,
+                               int line,
+                               AnnotationConflictMarker& out) {
+        for (const auto& m : markers) {
+            if (m.childLine == line || m.parentLine == line) {
                 out = m;
                 return true;
             }

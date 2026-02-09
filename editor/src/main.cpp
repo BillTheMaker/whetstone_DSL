@@ -31,6 +31,7 @@
 #include "LayoutManager.h"
 #include "ASTMutationAPI.h"
 #include "MemoryStrategyInference.h"
+#include "AnnotationConflict.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
 
@@ -1231,6 +1232,7 @@ int main(int, char**) {
                         std::vector<DiagnosticRange> diagRanges;
                         std::vector<AnnotationMarker> annoMarkers;
                         std::vector<SuggestionMarker> suggestionMarkers;
+                        std::vector<AnnotationConflictMarker> conflictMarkers;
                         std::string activeUri = EditorState::toFileUri(buf->path);
                         if (state.lsp) {
                             auto lspDiags = state.lsp->getDiagnosticsForUri(activeUri);
@@ -1264,6 +1266,18 @@ int main(int, char**) {
                             Module* ast = state.active()->sync.getAST();
                             if (ast) {
                                 collectAnnotationMarkers(ast, annoMarkers);
+                                std::vector<AnnotationConflict> conflicts;
+                                collectAnnotationConflicts(ast, conflicts);
+                                for (const auto& c : conflicts) {
+                                    AnnotationConflictMarker m;
+                                    m.childLine = c.childLine;
+                                    m.parentLine = c.parentLine;
+                                    m.message = c.message;
+                                    m.childAnnoId = c.childAnnoId;
+                                    m.parentAnnoId = c.parentAnnoId;
+                                    m.parentStrategy = c.parentStrategy;
+                                    conflictMarkers.push_back(std::move(m));
+                                }
                                 for (const auto& s : state.suggestions) {
                                     if (s.confidence <= 0.5) continue;
                                     ASTNode* target = findNodeById(ast, s.nodeId);
@@ -1296,6 +1310,7 @@ int main(int, char**) {
                         opts.diagnostics = &diagRanges;
                         opts.annotations = &annoMarkers;
                         opts.suggestions = &suggestionMarkers;
+                        opts.conflicts = &conflictMarkers;
 
                         CodeEditorResult res = buf->widget.render("##editor",
                             buf->editBuf, buf->highlights, opts, avail, monoFont);
@@ -1601,6 +1616,35 @@ int main(int, char**) {
                                         if (ImGui::MenuItem(label.c_str())) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.deleteNode(anno->id);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                    }
+                                    ImGui::EndMenu();
+                                }
+
+                                std::vector<AnnotationConflict> conflicts;
+                                collectAnnotationConflicts(ast, conflicts);
+                                bool conflictOnLine = false;
+                                AnnotationConflict lineConflict;
+                                for (const auto& c : conflicts) {
+                                    if (c.childLine == lineZero || c.parentLine == lineZero) {
+                                        lineConflict = c;
+                                        conflictOnLine = true;
+                                        break;
+                                    }
+                                }
+                                if (ImGui::BeginMenu("Resolve Conflict", conflictOnLine)) {
+                                    if (conflictOnLine) {
+                                        if (ImGui::MenuItem("Remove child annotation")) {
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.deleteNode(lineConflict.childAnnoId);
+                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                        }
+                                        if (ImGui::MenuItem("Match parent strategy")) {
+                                            state.mutator.setRoot(ast);
+                                            auto res = state.mutator.setProperty(lineConflict.childAnnoId,
+                                                                                "strategy",
+                                                                                lineConflict.parentStrategy);
                                             if (!res.error.empty()) state.outputLog += res.error + "\n";
                                         }
                                     }
