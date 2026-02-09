@@ -22,6 +22,7 @@
 #include "FileDialog.h"
 #include "FileTree.h"
 #include "WelcomeScreen.h"
+#include "DragDropHandler.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -624,6 +625,18 @@ int main(int, char**) {
                 event.window.event == SDL_WINDOWEVENT_CLOSE &&
                 event.window.windowID == SDL_GetWindowID(window))
                 done = true;
+            if (event.type == SDL_DROPFILE) {
+                char* droppedFile = event.drop.file;
+                if (droppedFile) {
+                    DragDropHandler::handleDrop(droppedFile,
+                        [&](const std::string& p) { state.doOpen(p); },
+                        [&](const std::string& p) {
+                            state.workspaceRoot = p;
+                            state.fileTreeDirty = true;
+                        });
+                    SDL_free(droppedFile);
+                }
+            }
 
             // Handle keyboard shortcuts via KeybindingManager
             if (event.type == SDL_KEYDOWN && !io.WantTextInput) {

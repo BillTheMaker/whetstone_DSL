@@ -185,6 +185,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 85: **IMPLEMENTED** — Filesystem tree with .gitignore filtering, recursive Explorer rendering (1/1 tests pass)
 - [x] Step 86: **IMPLEMENTED** — Multi-tab editing with BufferManager and per-buffer editor state (3/3 tests pass)
 - [x] Step 87: **IMPLEMENTED** — Welcome screen wired with recent files persistence and quick actions (2/2 tests pass)
+- [x] Step 88: **IMPLEMENTED** — Drag-and-drop file/folder open via SDL_DROPFILE (2/2 tests pass)
 
 ---
 
@@ -251,6 +252,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 85:** Compile and pass (1/1)
 **Step 86:** Compile and pass (3/3)
 **Step 87:** Compile and pass (2/2)
+**Step 88:** Compile and pass (2/2)
 
 ---
 
@@ -346,3 +348,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 85: Filesystem tree with .gitignore filtering and Explorer rendering. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 86: Multi-tab editing wired via BufferManager with per-buffer state. 3/3 tests pass. |
 | 2026-02-09 | Codex | Step 87: Welcome screen wired with recent files persistence and quick actions. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 88: Drag-and-drop open for files and folders. 2/2 tests pass. |
