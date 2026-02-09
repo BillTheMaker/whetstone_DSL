@@ -60,6 +60,15 @@ public:
         Range range;
     };
 
+    struct DocumentSymbol {
+        std::string name;
+        std::string detail;
+        int kind = 0;
+        Range range;
+        Range selectionRange;
+        std::vector<DocumentSymbol> children;
+    };
+
     void initialize(const std::string& rootUri,
                     const std::string& clientName,
                     int processId) {
@@ -146,6 +155,14 @@ public:
         params["position"] = {{"line", line}, {"character", character}};
         int id = sendRequest("textDocument/definition", params);
         lastDefinitionRequestId_ = id;
+        return id;
+    }
+
+    int requestDocumentSymbols(const std::string& uri) {
+        nlohmann::json params;
+        params["textDocument"] = {{"uri", uri}};
+        int id = sendRequest("textDocument/documentSymbol", params);
+        lastDocumentSymbolRequestId_ = id;
         return id;
     }
 
@@ -246,6 +263,24 @@ public:
                 definitionLocations_ = std::move(parsed);
                 return;
             }
+
+            if (id == lastDocumentSymbolRequestId_) {
+                std::vector<DocumentSymbol> parsed;
+                if (result.is_array()) {
+                    bool isSymbolInfo = !result.empty() && result[0].contains("location");
+                    for (const auto& item : result) {
+                        DocumentSymbol sym;
+                        bool ok = isSymbolInfo ? parseSymbolInformation(item, sym)
+                                               : parseDocumentSymbol(item, sym);
+                        if (ok) parsed.push_back(std::move(sym));
+                    }
+                } else if (result.is_object()) {
+                    DocumentSymbol sym;
+                    if (parseDocumentSymbol(result, sym)) parsed.push_back(std::move(sym));
+                }
+                documentSymbols_ = std::move(parsed);
+                return;
+            }
         }
     }
 
@@ -295,6 +330,14 @@ public:
         definitionLocations_.clear();
     }
 
+    std::vector<DocumentSymbol> getDocumentSymbols() const {
+        return documentSymbols_;
+    }
+
+    void clearDocumentSymbols() {
+        documentSymbols_.clear();
+    }
+
     void sendNotification(const std::string& method, const nlohmann::json& params) {
         nlohmann::json msg;
         msg["jsonrpc"] = "2.0";
@@ -329,9 +372,11 @@ private:
     int lastHoverRequestId_ = -1;
     int lastSignatureRequestId_ = -1;
     int lastDefinitionRequestId_ = -1;
+    int lastDocumentSymbolRequestId_ = -1;
     std::string hoverContents_;
     SignatureHelp signatureHelp_;
     std::vector<DefinitionLocation> definitionLocations_;
+    std::vector<DocumentSymbol> documentSymbols_;
 
     static Range parseRange(const nlohmann::json& range) {
         Range out;
@@ -364,6 +409,39 @@ private:
             return !out.uri.empty();
         }
         return false;
+    }
+
+    static bool parseDocumentSymbol(const nlohmann::json& item, DocumentSymbol& out) {
+        if (!item.contains("name")) return false;
+        out.name = item.value("name", "");
+        out.detail = item.value("detail", "");
+        out.kind = item.value("kind", 0);
+        if (item.contains("range")) out.range = parseRange(item["range"]);
+        if (item.contains("selectionRange")) {
+            out.selectionRange = parseRange(item["selectionRange"]);
+        } else {
+            out.selectionRange = out.range;
+        }
+        if (item.contains("children") && item["children"].is_array()) {
+            for (const auto& child : item["children"]) {
+                DocumentSymbol c;
+                if (parseDocumentSymbol(child, c)) out.children.push_back(std::move(c));
+            }
+        }
+        return !out.name.empty();
+    }
+
+    static bool parseSymbolInformation(const nlohmann::json& item, DocumentSymbol& out) {
+        if (!item.contains("name") || !item.contains("location")) return false;
+        out.name = item.value("name", "");
+        out.detail = item.value("detail", "");
+        out.kind = item.value("kind", 0);
+        const auto& loc = item["location"];
+        if (loc.contains("range")) {
+            out.range = parseRange(loc["range"]);
+            out.selectionRange = out.range;
+        }
+        return !out.name.empty();
     }
 
     static std::string stringifyMarkup(const nlohmann::json& contents) {

@@ -114,6 +114,8 @@ struct EditorState {
     bool              showWhitespace = false;
     bool              showMinimap = false;
     bool              showAnnotations = false;
+    bool              showOutline = true;
+    char              outlineFilter[128] = {};
     LayoutPreset      layoutPreset = LayoutPreset::VSCode;
     WelcomeScreen     welcome;
     std::string       workspaceRoot;
@@ -123,6 +125,8 @@ struct EditorState {
     FileWatcher       watcher;
     std::shared_ptr<LSPTransport> lspTransport;
     std::shared_ptr<LSPClient> lsp;
+    bool              symbolsPending = false;
+    double            symbolsLastChange = 0.0;
     bool              completionPending = false;
     bool              completionVisible = false;
     int               completionSelected = 0;
@@ -321,6 +325,9 @@ struct EditorState {
         if (lsp && path.rfind("(untitled", 0) != 0) {
             lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
         }
+        symbolsPending = true;
+        symbolsLastChange = ImGui::GetTime();
+        if (lsp) lsp->clearDocumentSymbols();
     }
 
     bool jumpToDefinitionLocation(const LSPClient::DefinitionLocation& loc) {
@@ -400,6 +407,9 @@ struct EditorState {
         if (!buffers.hasBuffer(path)) return;
         buffers.switchToBuffer(path);
         activeBuffer = bufferStates[path].get();
+        symbolsPending = true;
+        symbolsLastChange = ImGui::GetTime();
+        if (lsp) lsp->clearDocumentSymbols();
     }
 
     std::filesystem::path configDir() const {
@@ -493,6 +503,8 @@ struct EditorState {
                         [this]() { showMinimap = !showMinimap; });
         registerCommand("view.annotations", "View: Toggle Annotations", "",
                         [this]() { showAnnotations = !showAnnotations; });
+        registerCommand("view.outline", "View: Toggle Outline", "",
+                        [this]() { showOutline = !showOutline; });
         registerCommand("view.lsp", "View: LSP Servers...", "",
                         [this]() { showLspSettings = !showLspSettings; });
         registerCommand("mode.toggle", "Mode: Toggle Text/Structured", "",
@@ -570,6 +582,9 @@ struct EditorState {
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
+        symbolsPending = true;
+        symbolsLastChange = ImGui::GetTime();
+        if (lsp) lsp->clearDocumentSymbols();
         if (lsp && active()->path.rfind("(untitled", 0) != 0) {
             active()->lspVersion += 1;
             lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
@@ -1179,6 +1194,106 @@ static void collectAnnotationMarkers(const ASTNode* node, std::vector<Annotation
     }
 }
 
+struct OutlineItem {
+    std::string name;
+    std::string kind;
+    int line = -1;
+    int col = -1;
+    std::vector<OutlineItem> children;
+};
+
+static OutlineItem makeOutlineItem(const std::string& name,
+                                   const std::string& kind,
+                                   const ASTNode* node) {
+    OutlineItem item;
+    item.name = name;
+    item.kind = kind;
+    if (node && node->hasSpan()) {
+        item.line = node->spanStartLine;
+        item.col = node->spanStartCol;
+    }
+    return item;
+}
+
+static void collectOutlineFromFunction(const Function* fn, std::vector<OutlineItem>& out) {
+    OutlineItem item = makeOutlineItem(fn->name, "Function", fn);
+    for (auto* p : fn->getChildren("parameters")) {
+        if (p->conceptType == "Parameter") {
+            auto* param = static_cast<const Parameter*>(p);
+            item.children.push_back(makeOutlineItem(param->name, "Parameter", param));
+        }
+    }
+    for (auto* child : fn->getChildren("body")) {
+        if (child->conceptType == "Variable") {
+            auto* var = static_cast<const Variable*>(child);
+            item.children.push_back(makeOutlineItem(var->name, "Variable", var));
+        }
+    }
+    out.push_back(std::move(item));
+}
+
+static void collectOutlineFromAST(const Module* mod, std::vector<OutlineItem>& out) {
+    if (!mod) return;
+    for (auto* child : mod->getChildren("variables")) {
+        if (child->conceptType == "Variable") {
+            auto* var = static_cast<const Variable*>(child);
+            out.push_back(makeOutlineItem(var->name, "Variable", var));
+        }
+    }
+    for (auto* child : mod->getChildren("functions")) {
+        if (child->conceptType == "Function") {
+            auto* fn = static_cast<const Function*>(child);
+            collectOutlineFromFunction(fn, out);
+        }
+    }
+}
+
+static std::string toLowerCopy(const std::string& input) {
+    std::string out = input;
+    std::transform(out.begin(), out.end(), out.begin(),
+                   [](unsigned char c) { return (char)std::tolower(c); });
+    return out;
+}
+
+static bool containsCaseInsensitive(const std::string& text, const std::string& filter) {
+    if (filter.empty()) return true;
+    std::string hay = toLowerCopy(text);
+    return hay.find(filter) != std::string::npos;
+}
+
+static bool outlineMatchesFilter(const OutlineItem& item, const std::string& filter) {
+    if (filter.empty()) return true;
+    if (containsCaseInsensitive(item.name, filter)) return true;
+    for (const auto& child : item.children) {
+        if (outlineMatchesFilter(child, filter)) return true;
+    }
+    return false;
+}
+
+static const char* lspSymbolKindLabel(int kind) {
+    switch (kind) {
+        case 1: return "File";
+        case 2: return "Module";
+        case 5: return "Class";
+        case 6: return "Method";
+        case 12: return "Function";
+        case 13: return "Variable";
+        case 14: return "Constant";
+        case 19: return "String";
+        case 23: return "Struct";
+        default: return "Symbol";
+    }
+}
+
+static bool lspSymbolMatchesFilter(const LSPClient::DocumentSymbol& sym, const std::string& filter) {
+    if (filter.empty()) return true;
+    if (containsCaseInsensitive(sym.name, filter)) return true;
+    for (const auto& child : sym.children) {
+        if (lspSymbolMatchesFilter(child, filter)) return true;
+    }
+    return false;
+}
+
 // ---------------------------------------------------------------------------
 //  Theme setup — VSCode Dark-inspired
 // ---------------------------------------------------------------------------
@@ -1609,6 +1724,7 @@ int main(int, char**) {
                 ImGui::MenuItem("Show Whitespace", nullptr, &state.showWhitespace);
                 ImGui::MenuItem("Show Minimap", nullptr, &state.showMinimap);
                 ImGui::MenuItem("Show Annotations", nullptr, &state.showAnnotations);
+                ImGui::MenuItem("Show Outline", nullptr, &state.showOutline);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
                     bool textMode = state.active()->bufferMode == BufferManager::BufferMode::Text;
@@ -1748,6 +1864,82 @@ int main(int, char**) {
         }
         ImGui::PopFont();
         ImGui::End();
+
+        // ---------------------------------------------------------------
+        //  Symbol Outline
+        // ---------------------------------------------------------------
+        if (state.showOutline) {
+            ImGui::Begin("Outline", &state.showOutline);
+            ImGui::PushFont(uiFont);
+            ImGui::SetNextItemWidth(-1.0f);
+            ImGui::InputText("Filter", state.outlineFilter, sizeof(state.outlineFilter));
+            ImGui::Separator();
+
+            std::string filter = toLowerCopy(state.outlineFilter);
+            if (!state.active()) {
+                ImGui::TextDisabled("(no file)");
+            } else {
+                std::vector<LSPClient::DocumentSymbol> lspSymbols =
+                    state.lsp ? state.lsp->getDocumentSymbols() : std::vector<LSPClient::DocumentSymbol>{};
+
+                if (!lspSymbols.empty()) {
+                    int outlineId = 0;
+                    std::function<void(const LSPClient::DocumentSymbol&)> renderLsp;
+                    renderLsp = [&](const LSPClient::DocumentSymbol& sym) {
+                        if (!lspSymbolMatchesFilter(sym, filter)) return;
+                        ImGui::PushID(outlineId++);
+                        std::string label = std::string(lspSymbolKindLabel(sym.kind)) + ": " + sym.name;
+                        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+                        if (sym.children.empty()) flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                        bool open = ImGui::TreeNodeEx(label.c_str(), flags);
+                        if (ImGui::IsItemClicked()) {
+                            state.jumpTo(state.active(), sym.selectionRange.start.line,
+                                         sym.selectionRange.start.character);
+                        }
+                        if (!sym.children.empty() && open) {
+                            for (const auto& child : sym.children) {
+                                renderLsp(child);
+                            }
+                            ImGui::TreePop();
+                        }
+                        ImGui::PopID();
+                    };
+                    for (const auto& sym : lspSymbols) renderLsp(sym);
+                } else if (state.isStructured()) {
+                    std::vector<OutlineItem> outline;
+                    collectOutlineFromAST(state.activeAST(), outline);
+                    if (outline.empty()) {
+                        ImGui::TextDisabled("(no symbols)");
+                    } else {
+                        int outlineId = 0;
+                        std::function<void(const OutlineItem&)> renderItem;
+                        renderItem = [&](const OutlineItem& item) {
+                            if (!outlineMatchesFilter(item, filter)) return;
+                            ImGui::PushID(outlineId++);
+                            std::string label = item.kind + ": " + item.name;
+                            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+                            if (item.children.empty()) flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                            bool open = ImGui::TreeNodeEx(label.c_str(), flags);
+                            if (ImGui::IsItemClicked() && item.line >= 0) {
+                                state.jumpTo(state.active(), item.line, item.col);
+                            }
+                            if (!item.children.empty() && open) {
+                                for (const auto& child : item.children) {
+                                    renderItem(child);
+                                }
+                                ImGui::TreePop();
+                            }
+                            ImGui::PopID();
+                        };
+                        for (const auto& item : outline) renderItem(item);
+                    }
+                } else {
+                    ImGui::TextDisabled("(no symbols)");
+                }
+            }
+            ImGui::PopFont();
+            ImGui::End();
+        }
 
         // ---------------------------------------------------------------
         //  Find / Replace bar (floating at top of editor)
@@ -2177,6 +2369,13 @@ int main(int, char**) {
                                                              lineZero, colZero);
                             }
                             state.completionPending = false;
+                        }
+
+                        if (state.symbolsPending && (now - state.symbolsLastChange) > 0.3) {
+                            if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
+                                state.lsp->requestDocumentSymbols(EditorState::toFileUri(state.active()->path));
+                            }
+                            state.symbolsPending = false;
                         }
 
                         if (state.analysisPending && (now - state.analysisLastChange) > 0.5) {

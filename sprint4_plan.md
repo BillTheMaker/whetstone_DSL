@@ -321,7 +321,7 @@ Whetstone-specific AST navigation.
   Works across files when LSP supports it.
   *Wires:* `ContextAPI.h`, `LSPClient.h`
 
-- [ ] **Step 111: Symbol outline panel**
+- [x] **Step 111: Symbol outline panel**
   New "Outline" panel. Primary: use LSP `textDocument/documentSymbol` for the
   symbol tree. Fallback: walk Whetstone AST for functions/variables/parameters.
   Click to navigate. Icons by symbol kind. Search/filter box.
