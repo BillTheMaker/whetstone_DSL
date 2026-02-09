@@ -20,6 +20,7 @@ struct CodeEditorOptions {
     bool readOnly = false;
     EditorMode* mode = nullptr;
     bool enableFolding = false;
+    bool showMinimap = false;
 };
 
 struct CodeEditorResult {
@@ -30,6 +31,10 @@ struct CodeEditorResult {
     int currentLine = 0;
     int foldCount = 0;
     bool anyFolded = false;
+    bool minimapEnabled = false;
+    float minimapWidth = 0.0f;
+    float minimapViewportStart = 0.0f;
+    float minimapViewportEnd = 0.0f;
 };
 
 struct FoldRegion {
@@ -81,6 +86,7 @@ public:
         const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
         const float charAdvance = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, "M").x;
         const float gutterWidth = calcGutterWidth(lineCount, font, charAdvance);
+        const float minimapWidth = options.showMinimap ? 80.0f : 0.0f;
 
         // Estimate content size for scrollbars
         int maxLineLen = 0;
@@ -90,7 +96,7 @@ public:
             int len = std::max(0, end - start);
             maxLineLen = std::max(maxLineLen, len);
         }
-        ImVec2 contentSize(gutterWidth + maxLineLen * charAdvance + 4.0f,
+        ImVec2 contentSize(gutterWidth + maxLineLen * charAdvance + minimapWidth + 4.0f,
                            lineCount * lineHeight + 4.0f);
 
         ImGui::BeginChild(id, size, false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -104,6 +110,9 @@ public:
         const float scrollY = ImGui::GetScrollY();
         ImVec2 gutterBase(origin.x, origin.y - scrollY);
         ImVec2 textBase(origin.x + gutterWidth - scrollX, origin.y - scrollY);
+        const float windowWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
+        const float minimapBaseX = origin.x + std::max(0.0f, windowWidth - minimapWidth);
+        const float minimapBaseY = origin.y - scrollY;
 
         // Focus and input
         const bool hovered = ImGui::IsWindowHovered();
@@ -113,6 +122,17 @@ public:
         if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             ImGui::SetKeyboardFocusHere(-1);
             const ImVec2 mouse = ImGui::GetMousePos();
+            if (options.showMinimap && mouse.x >= minimapBaseX) {
+                float miniHeight = lineCount * lineHeight;
+                if (miniHeight > 0.0f) {
+                    float localY = mouse.y - minimapBaseY;
+                    float t = std::max(0.0f, std::min(1.0f, localY / miniHeight));
+                    float targetScroll = t * lineCount * lineHeight;
+                    ImGui::SetScrollY(targetScroll);
+                }
+                selecting_ = false;
+                goto after_mouse;
+            }
             int clickCount = ImGui::GetIO().MouseClickedCount[0];
             if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
                 int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
@@ -141,6 +161,7 @@ public:
             }
             selecting_ = true;
         }
+    after_mouse:
         if (hovered && selecting_ && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             const ImVec2 mouse = ImGui::GetMousePos();
             if (mouse.x >= origin.x + gutterWidth) {
@@ -162,8 +183,7 @@ public:
         const int visibleLines = (int)(ImGui::GetContentRegionAvail().y / lineHeight) + 2;
         const int lastLine = std::min(lineCount - 1, firstLine + visibleLines);
 
-        const float textAreaWidth = std::max(0.0f,
-            (ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x) - gutterWidth);
+        const float textAreaWidth = std::max(0.0f, windowWidth - gutterWidth - minimapWidth);
         const int currentLine = lineFromPos(cursor_, lineStarts);
 
         std::vector<bool> hiddenLines(lineCount, false);
@@ -278,6 +298,29 @@ public:
             }
         }
 
+        // Minimap
+        if (options.showMinimap && minimapWidth > 0.0f) {
+            float miniHeight = lineCount * lineHeight;
+            ImVec2 miniA(minimapBaseX, minimapBaseY);
+            ImVec2 miniB(minimapBaseX + minimapWidth, minimapBaseY + miniHeight);
+            drawList->AddRectFilled(miniA, miniB, IM_COL32(18, 18, 18, 255));
+            for (int ln = 0; ln < lineCount; ++ln) {
+                float y = minimapBaseY + ln * lineHeight;
+                ImU32 color = IM_COL32(80, 80, 80, 255);
+                if (ln == currentLine) color = IM_COL32(120, 120, 160, 255);
+                drawList->AddRectFilled(ImVec2(minimapBaseX + 2.0f, y),
+                                        ImVec2(minimapBaseX + minimapWidth - 2.0f, y + 2.0f),
+                                        color);
+            }
+            float viewStart = (lineCount > 0) ? (scrollY / (lineCount * lineHeight)) : 0.0f;
+            float viewEnd = viewStart + (ImGui::GetContentRegionAvail().y / (lineCount * lineHeight));
+            viewStart = std::max(0.0f, std::min(1.0f, viewStart));
+            viewEnd = std::max(0.0f, std::min(1.0f, viewEnd));
+            ImVec2 vA(minimapBaseX, minimapBaseY + viewStart * miniHeight);
+            ImVec2 vB(minimapBaseX + minimapWidth, minimapBaseY + viewEnd * miniHeight);
+            drawList->AddRect(vA, vB, IM_COL32(120, 160, 220, 180));
+        }
+
         ImGui::EndChild();
 
         result.cursorByte = cursor_;
@@ -287,6 +330,14 @@ public:
         result.foldCount = (int)folds_.size();
         result.anyFolded = std::any_of(folds_.begin(), folds_.end(),
                                        [](const FoldRegion& f) { return f.folded; });
+        result.minimapEnabled = options.showMinimap;
+        result.minimapWidth = minimapWidth;
+        if (options.showMinimap && lineCount > 0) {
+            float miniHeight = lineCount * lineHeight;
+            result.minimapViewportStart = (scrollY / (lineCount * lineHeight)) * miniHeight;
+            result.minimapViewportEnd = result.minimapViewportStart +
+                                        (ImGui::GetContentRegionAvail().y / (lineCount * lineHeight)) * miniHeight;
+        }
         return result;
     }
 

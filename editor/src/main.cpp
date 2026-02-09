@@ -64,6 +64,7 @@ struct EditorState {
     // Custom editor widget state
     CodeEditorWidget  codeWidget;
     bool              showWhitespace = false;
+    bool              showMinimap = false;
 
     void init() {
         std::string defaultContent =
@@ -563,6 +564,7 @@ int main(int, char**) {
             }
             if (ImGui::BeginMenu("View")) {
                 ImGui::MenuItem("Show Whitespace", nullptr, &state.showWhitespace);
+                ImGui::MenuItem("Show Minimap", nullptr, &state.showMinimap);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Language")) {
@@ -667,6 +669,7 @@ int main(int, char**) {
                 opts.showWhitespace = state.showWhitespace;
                 opts.mode = &state.mode;
                 opts.enableFolding = true;
+                opts.showMinimap = state.showMinimap;
 
                 CodeEditorResult res = state.codeWidget.render("##editor",
                     state.editBuf, state.highlights, opts, avail, monoFont);
