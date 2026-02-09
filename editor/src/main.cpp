@@ -40,6 +40,7 @@
 #include "DiffUtils.h"
 #include "EditorModePolicy.h"
 #include "RefactorActions.h"
+#include "CommandPalette.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -57,6 +58,8 @@
 #include <map>
 #include <memory>
 #include <cstdlib>
+#include <functional>
+#include <unordered_map>
 #include <nlohmann/json.hpp>
 
 // ---------------------------------------------------------------------------
@@ -145,6 +148,11 @@ struct EditorState {
     char              refactorNameA[128] = {};
     char              refactorNameB[128] = {};
     std::string       refactorError;
+    CommandPalette    commandPalette;
+    std::unordered_map<std::string, std::function<void()>> commandHandlers;
+    bool              showCommandPalette = false;
+    char              commandQuery[128] = {};
+    int               commandSelected = 0;
     struct DiffState {
         bool active = false;
         bool preview = false;
@@ -332,6 +340,97 @@ struct EditorState {
         workspaceRoot = std::filesystem::current_path().string();
         fileTreeDirty = true;
         loadRecentFiles();
+        registerCommands();
+    }
+
+    void registerCommand(const std::string& id,
+                         const std::string& label,
+                         const std::string& shortcut,
+                         std::function<void()> fn) {
+        commandPalette.registerCommand(id, label, shortcut);
+        commandHandlers[id] = std::move(fn);
+    }
+
+    void registerCommands() {
+        commandPalette = CommandPalette();
+        commandHandlers.clear();
+
+        registerCommand("file.new", "File: New File",
+                        keys.getBinding("file.new").toString(),
+                        [this]() {
+                            std::string lang = active() ? active()->language : "python";
+                            createBuffer(makeUntitledName(), "", lang);
+                        });
+        registerCommand("file.open", "File: Open...",
+                        keys.getBinding("file.open").toString(),
+                        [this]() {
+                            std::string path = FileDialog::openFile(
+                                {"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go"},
+                                 std::string()});
+                            if (!path.empty()) doOpen(path);
+                        });
+        registerCommand("file.save", "File: Save",
+                        keys.getBinding("file.save").toString(),
+                        [this]() { doSave(); });
+        registerCommand("edit.undo", "Edit: Undo",
+                        keys.getBinding("edit.undo").toString(),
+                        [this]() { doUndo(); });
+        registerCommand("edit.redo", "Edit: Redo",
+                        keys.getBinding("edit.redo").toString(),
+                        [this]() { doRedo(); });
+        registerCommand("search.find", "Search: Find/Replace",
+                        keys.getBinding("search.find").toString(),
+                        [this]() { showFind = !showFind; });
+        registerCommand("view.whitespace", "View: Toggle Whitespace", "",
+                        [this]() { showWhitespace = !showWhitespace; });
+        registerCommand("view.minimap", "View: Toggle Minimap", "",
+                        [this]() { showMinimap = !showMinimap; });
+        registerCommand("view.annotations", "View: Toggle Annotations", "",
+                        [this]() { showAnnotations = !showAnnotations; });
+        registerCommand("view.lsp", "View: LSP Servers...", "",
+                        [this]() { showLspSettings = !showLspSettings; });
+        registerCommand("mode.toggle", "Mode: Toggle Text/Structured", "",
+                        [this]() {
+                            if (!active()) return;
+                            active()->bufferMode = active()->bufferMode == BufferManager::BufferMode::Text ?
+                                BufferManager::BufferMode::Structured : BufferManager::BufferMode::Text;
+                            buffers.setBufferMode(active()->path, active()->bufferMode);
+                            if (active()->bufferMode == BufferManager::BufferMode::Text) {
+                                suggestions.clear();
+                                whetstoneDiagnostics.clear();
+                                analysisPending = false;
+                            } else {
+                                onTextChanged();
+                            }
+                        });
+        registerCommand("refactor.rename", "Refactor: Rename Variable", "",
+                        [this]() {
+                            refactorAction = 1;
+                            showRefactorPopup = true;
+                            refactorNameA[0] = '\0';
+                            refactorNameB[0] = '\0';
+                        });
+        registerCommand("refactor.extract", "Refactor: Extract Function", "",
+                        [this]() {
+                            refactorAction = 2;
+                            showRefactorPopup = true;
+                            refactorNameA[0] = '\0';
+                            refactorNameB[0] = '\0';
+                        });
+        registerCommand("refactor.inline", "Refactor: Inline Variable", "",
+                        [this]() {
+                            refactorAction = 3;
+                            showRefactorPopup = true;
+                            refactorNameA[0] = '\0';
+                            refactorNameB[0] = '\0';
+                        });
+    }
+
+    void executeCommand(const std::string& id) {
+        auto it = commandHandlers.find(id);
+        if (it == commandHandlers.end()) return;
+        it->second();
+        commandPalette.markUsed(id);
     }
 
     void setLanguage(const std::string& lang) {
@@ -1275,6 +1374,12 @@ int main(int, char**) {
                 if (sdlMod & KMOD_SHIFT) mods |= WMOD_SHIFT;
                 if (sdlMod & KMOD_ALT)   mods |= WMOD_ALT;
 
+                if ((sdlMod & KMOD_CTRL) && (sdlMod & KMOD_SHIFT) && sym == SDLK_p) {
+                    state.showCommandPalette = true;
+                    state.commandQuery[0] = '\0';
+                    state.commandSelected = 0;
+                }
+
                 if (key != 0 && mods != WMOD_NONE) {
                     KeyCombo combo{key, mods};
                     std::string action = state.keys.getAction(combo);
@@ -1460,8 +1565,10 @@ int main(int, char**) {
             if (ImGui::BeginMenu("Keybindings")) {
                 for (auto p : KeybindingManager::availableProfiles()) {
                     if (ImGui::MenuItem(KeybindingManager::profileName(p), nullptr,
-                                        state.keys.getProfile() == p))
+                                        state.keys.getProfile() == p)) {
                         state.keys.setProfile(p);
+                        state.registerCommands();
+                    }
                 }
                 ImGui::EndMenu();
             }
@@ -1662,6 +1769,52 @@ int main(int, char**) {
             }
 
             ImGui::EndPopup();
+        }
+
+        // ---------------------------------------------------------------
+        //  Command Palette
+        // ---------------------------------------------------------------
+        if (state.showCommandPalette) {
+            ImGui::Begin("Command Palette", &state.showCommandPalette,
+                         ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::SetNextItemWidth(420.0f);
+            if (ImGui::IsWindowAppearing()) {
+                ImGui::SetKeyboardFocusHere();
+            }
+            if (ImGui::InputText("##cmdQuery", state.commandQuery, sizeof(state.commandQuery))) {
+                state.commandSelected = 0;
+            }
+
+            auto results = state.commandPalette.search(state.commandQuery);
+            int maxIndex = std::max(0, (int)results.size() - 1);
+            if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+                state.commandSelected = std::min(state.commandSelected + 1, maxIndex);
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+                state.commandSelected = std::max(state.commandSelected - 1, 0);
+            }
+            bool accept = ImGui::IsKeyPressed(ImGuiKey_Enter);
+            bool dismiss = ImGui::IsKeyPressed(ImGuiKey_Escape);
+
+            if (dismiss) {
+                state.showCommandPalette = false;
+            }
+
+            for (int i = 0; i < (int)results.size(); ++i) {
+                const auto& cmd = results[i];
+                bool selected = (i == state.commandSelected);
+                std::string label = cmd.label;
+                if (!cmd.shortcut.empty()) label += "  [" + cmd.shortcut + "]";
+                if (ImGui::Selectable(label.c_str(), selected)) {
+                    state.commandSelected = i;
+                    accept = true;
+                }
+            }
+            if (accept && !results.empty()) {
+                state.executeCommand(results[state.commandSelected].id);
+                state.showCommandPalette = false;
+            }
+            ImGui::End();
         }
 
         // ---------------------------------------------------------------
