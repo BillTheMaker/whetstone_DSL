@@ -33,6 +33,8 @@
 #include "MemoryStrategyInference.h"
 #include "AnnotationConflict.h"
 #include "StrategyDashboard.h"
+#include "TransformEngine.h"
+#include "StrategyAwareOptimizer.h"
 #include "CrossLanguageProjector.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -127,6 +129,9 @@ struct EditorState {
     std::vector<MemoryStrategyInference::Suggestion> suggestions;
     bool              showSuggestionPopup = false;
     MemoryStrategyInference::Suggestion suggestionPopup;
+    std::string       optimizeFoldSummary;
+    std::string       optimizeDeadCodeSummary;
+    std::string       optimizeApplySummary;
 
     BufferState* active() { return activeBuffer; }
 
@@ -523,6 +528,20 @@ struct EditorState {
                      (preserved ? "yes" : "no") + ").\n";
     }
 
+    void refreshActiveTextFromAST() {
+        if (!active()) return;
+        active()->editBuf = active()->sync.getText();
+        active()->editor.setContent(active()->editBuf, active()->language);
+        active()->highlightsDirty = true;
+        active()->modified = true;
+        if (lsp && active()->path.rfind("(untitled", 0) != 0) {
+            active()->lspVersion += 1;
+            lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
+        }
+        analysisPending = true;
+        analysisLastChange = ImGui::GetTime();
+    }
+
     void updateCursorPos(int bytePos) {
         if (!active()) return;
         active()->cursorLine = 1;
@@ -589,6 +608,35 @@ static int countAnnotationNodes(const ASTNode* node) {
         count += countAnnotationNodes(child);
     }
     return count;
+}
+
+static std::string findOptimizationBlockReason(const ASTNode* node) {
+    if (!node) return "";
+    for (auto* anno : node->getChildren("annotations")) {
+        if (anno->conceptType == "OwnerAnnotation") {
+            auto* oa = static_cast<const OwnerAnnotation*>(anno);
+            if (oa->strategy == "Single") {
+                return "@Owner(Single) blocks optimization (aliasing risk)";
+            }
+        }
+        if (anno->conceptType == "DeallocateAnnotation") {
+            auto* da = static_cast<const DeallocateAnnotation*>(anno);
+            if (da->strategy == "Explicit") {
+                return "@Deallocate(Explicit) blocks optimization (reorder risk)";
+            }
+        }
+        if (anno->conceptType == "AllocateAnnotation") {
+            auto* aa = static_cast<const AllocateAnnotation*>(anno);
+            if (aa->strategy == "Static") {
+                return "@Allocate(Static) blocks optimization (dynamic alloc risk)";
+            }
+        }
+    }
+    for (auto* child : node->allChildren()) {
+        std::string found = findOptimizationBlockReason(child);
+        if (!found.empty()) return found;
+    }
+    return "";
 }
 
 
@@ -1950,6 +1998,123 @@ int main(int, char**) {
                     }
                 }
                 ImGui::EndChild();
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            // Optimization controls
+            if (ImGui::BeginTabItem("Optimize")) {
+                ImGui::PushFont(uiFont);
+                Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                if (!state.active()) {
+                    ImGui::TextDisabled("(no active buffer)");
+                } else if (!ast) {
+                    ImGui::TextDisabled("(no AST)");
+                } else if (state.active()->readOnly) {
+                    ImGui::TextDisabled("(read-only buffer)");
+                } else {
+                    std::string blockReason = findOptimizationBlockReason(ast);
+                    bool blocked = !blockReason.empty();
+
+                    auto showBlockedTooltip = [&](const std::string& reason) {
+                        if (!reason.empty() &&
+                            ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                            ImGui::BeginTooltip();
+                            ImGui::TextUnformatted(reason.c_str());
+                            ImGui::EndTooltip();
+                        }
+                    };
+
+                    if (blocked) ImGui::BeginDisabled();
+                    if (ImGui::Button("Constant Fold")) {
+                        TransformEngine engine;
+                        engine.setRoot(ast);
+                        auto res = engine.constantFolding();
+                        std::string summary = "Constant Fold: ";
+                        if (res.applied) {
+                            summary += "applied (" + std::to_string(res.nodesModified) + " nodes)";
+                        } else {
+                            summary += "no changes";
+                        }
+                        if (!res.warning.empty()) {
+                            summary += " — warning: " + res.warning;
+                            state.outputLog += res.warning + "\n";
+                        }
+                        state.optimizeFoldSummary = summary;
+                        state.outputLog += summary + "\n";
+                        if (res.applied) state.refreshActiveTextFromAST();
+                    }
+                    showBlockedTooltip(blockReason);
+                    if (blocked) ImGui::EndDisabled();
+                    if (!state.optimizeFoldSummary.empty()) {
+                        ImGui::TextWrapped("%s", state.optimizeFoldSummary.c_str());
+                    }
+
+                    ImGui::Separator();
+
+                    if (blocked) ImGui::BeginDisabled();
+                    if (ImGui::Button("Dead Code Elimination")) {
+                        TransformEngine engine;
+                        engine.setRoot(ast);
+                        auto res = engine.deadCodeElimination();
+                        std::string summary = "Dead Code Elimination: ";
+                        if (res.applied) {
+                            summary += "applied (" + std::to_string(res.nodesModified) + " nodes)";
+                        } else {
+                            summary += "no changes";
+                        }
+                        if (!res.warning.empty()) {
+                            summary += " — warning: " + res.warning;
+                            state.outputLog += res.warning + "\n";
+                        }
+                        state.optimizeDeadCodeSummary = summary;
+                        state.outputLog += summary + "\n";
+                        if (res.applied) state.refreshActiveTextFromAST();
+                    }
+                    showBlockedTooltip(blockReason);
+                    if (blocked) ImGui::EndDisabled();
+                    if (!state.optimizeDeadCodeSummary.empty()) {
+                        ImGui::TextWrapped("%s", state.optimizeDeadCodeSummary.c_str());
+                    }
+
+                    ImGui::Separator();
+
+                    if (blocked) ImGui::BeginDisabled();
+                    if (ImGui::Button("Apply All")) {
+                        TransformEngine engine;
+                        engine.setRoot(ast);
+                        auto results = engine.applyAll();
+                        int totalNodes = 0;
+                        bool applied = false;
+                        std::string warnings;
+                        for (const auto& res : results) {
+                            totalNodes += res.nodesModified;
+                            if (res.applied) applied = true;
+                            if (!res.warning.empty()) {
+                                if (!warnings.empty()) warnings += "; ";
+                                warnings += res.warning;
+                            }
+                        }
+                        std::string summary = "Apply All: ";
+                        if (applied) {
+                            summary += "applied (" + std::to_string(totalNodes) + " nodes)";
+                        } else {
+                            summary += "no changes";
+                        }
+                        if (!warnings.empty()) {
+                            summary += " — warning: " + warnings;
+                            state.outputLog += warnings + "\n";
+                        }
+                        state.optimizeApplySummary = summary;
+                        state.outputLog += summary + "\n";
+                        if (applied) state.refreshActiveTextFromAST();
+                    }
+                    showBlockedTooltip(blockReason);
+                    if (blocked) ImGui::EndDisabled();
+                    if (!state.optimizeApplySummary.empty()) {
+                        ImGui::TextWrapped("%s", state.optimizeApplySummary.c_str());
+                    }
+                }
                 ImGui::PopFont();
                 ImGui::EndTabItem();
             }

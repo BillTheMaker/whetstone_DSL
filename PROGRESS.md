@@ -205,6 +205,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 102: **IMPLEMENTED** — Memory strategy dashboard panel with counts and JSON export (1/1 tests pass)
 - [x] Step 103: **IMPLEMENTED** — Side-by-side generated code view with scroll lock, target language selection, and line highlighting (1/1 tests pass)
 - [x] Step 104: **IMPLEMENTED** — Cross-language projection button with read-only projected tabs and annotation summary (2/2 tests pass)
+- [x] Step 105: **IMPLEMENTED** — Optimization controls panel with constraint-aware buttons and summaries (2/2 tests pass)
 
 ---
 
@@ -289,6 +290,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 102:** Compile and pass (1/1)
 **Step 103:** Compile and pass (1/1)
 **Step 104:** Compile and pass (2/2)
+**Step 105:** Compile and pass (2/2)
 
 ---
 
@@ -402,3 +404,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 102: Memory strategy dashboard panel with counts and JSON export. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 103: Side-by-side generated code view with scroll lock, target language selector, and line highlighting. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 104: Cross-language projection button with read-only projected tabs and annotation summary. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 105: Optimization controls panel with constraint-aware buttons and summaries. 2/2 tests pass. |
