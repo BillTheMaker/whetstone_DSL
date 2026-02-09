@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
+if(MSVC)
+    add_compile_options(/FS)
+endif()
+
 # Use vcpkg-installed nlohmann_json instead of FetchContent
 find_package(nlohmann_json CONFIG REQUIRED)
 
@@ -368,7 +372,16 @@ target_link_libraries(step51_test PRIVATE unofficial::tree-sitter::tree-sitter t
 
 add_executable(step52_test tests/step52_test.cpp)
 target_include_directories(step52_test PRIVATE src)
-target_link_libraries(step52_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+target_link_libraries(step52_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
 
 add_executable(step53_test tests/step53_test.cpp)
 target_include_directories(step53_test PRIVATE src)
@@ -449,27 +462,57 @@ target_include_directories(step76_test PRIVATE src)
 
 add_executable(step77_test tests/step77_test.cpp)
 target_include_directories(step77_test PRIVATE src)
-target_link_libraries(step77_test PRIVATE imgui::imgui)
+target_link_libraries(step77_test PRIVATE
+    imgui::imgui
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp)
 
 add_executable(step78_test tests/step78_test.cpp)
 target_include_directories(step78_test PRIVATE src)
-target_link_libraries(step78_test PRIVATE imgui::imgui)
+target_link_libraries(step78_test PRIVATE
+    imgui::imgui
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp)
 
 add_executable(step79_test tests/step79_test.cpp)
 target_include_directories(step79_test PRIVATE src)
-target_link_libraries(step79_test PRIVATE imgui::imgui)
+target_link_libraries(step79_test PRIVATE
+    imgui::imgui
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp)
 
 add_executable(step80_test tests/step80_test.cpp)
 target_include_directories(step80_test PRIVATE src)
-target_link_libraries(step80_test PRIVATE imgui::imgui)
+target_link_libraries(step80_test PRIVATE
+    imgui::imgui
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp)
 
 add_executable(step81_test tests/step81_test.cpp)
 target_include_directories(step81_test PRIVATE src)
-target_link_libraries(step81_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+target_link_libraries(step81_test PRIVATE
+    imgui::imgui
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp)
 
 add_executable(step82_test tests/step82_test.cpp)
 target_include_directories(step82_test PRIVATE src)
-target_link_libraries(step82_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+target_link_libraries(step82_test PRIVATE
+    imgui::imgui
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp)
 
 add_executable(step83_test tests/step83_test.cpp)
 target_include_directories(step83_test PRIVATE src)
@@ -706,6 +749,16 @@ target_link_libraries(whetstone_editor PRIVATE tinyfiledialogs)
 
 add_executable(orchestrator src/orchestrator_main.cpp)
 target_include_directories(orchestrator PRIVATE src)
-target_link_libraries(orchestrator PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(orchestrator PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
 
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

@@ -39,32 +39,6 @@ struct CodeEditorOptions {
     bool scrollMaster = false;
 };
 
-struct CodeEditorResult {
-    bool changed = false;
-    int cursorByte = 0;
-    int lineCount = 0;
-    float gutterWidth = 0.0f;
-    int currentLine = 0;
-    int foldCount = 0;
-    bool anyFolded = false;
-    bool minimapEnabled = false;
-    float minimapWidth = 0.0f;
-    float minimapViewportStart = 0.0f;
-    float minimapViewportEnd = 0.0f;
-    bool suggestionClicked = false;
-    struct SuggestionMarker clickedSuggestion;
-    bool lineClicked = false;
-    int clickedLine = -1;
-    bool ctrlClick = false;
-    int ctrlClickLine = -1;
-    int ctrlClickCol = -1;
-    int ctrlClickPos = -1;
-    bool hoverValid = false;
-    int hoverLine = -1;
-    int hoverCol = -1;
-    int hoverPos = -1;
-};
-
 struct DiagnosticRange {
     int startLine = 0;
     int startCol = 0;
@@ -88,6 +62,32 @@ struct SuggestionMarker {
     std::string annotationType;
     std::string strategy;
     std::string nodeId;
+};
+
+struct CodeEditorResult {
+    bool changed = false;
+    int cursorByte = 0;
+    int lineCount = 0;
+    float gutterWidth = 0.0f;
+    int currentLine = 0;
+    int foldCount = 0;
+    bool anyFolded = false;
+    bool minimapEnabled = false;
+    float minimapWidth = 0.0f;
+    float minimapViewportStart = 0.0f;
+    float minimapViewportEnd = 0.0f;
+    bool suggestionClicked = false;
+    SuggestionMarker clickedSuggestion;
+    bool lineClicked = false;
+    int clickedLine = -1;
+    bool ctrlClick = false;
+    int ctrlClickLine = -1;
+    int ctrlClickCol = -1;
+    int ctrlClickPos = -1;
+    bool hoverValid = false;
+    int hoverLine = -1;
+    int hoverCol = -1;
+    int hoverPos = -1;
 };
 
 struct AnnotationConflictMarker {
