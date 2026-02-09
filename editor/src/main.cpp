@@ -20,6 +20,7 @@
 #include "CodeEditorWidget.h"
 #include "EditorMode.h"
 #include "FileDialog.h"
+#include "FileTree.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -29,6 +30,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <filesystem>
 
 // ---------------------------------------------------------------------------
 //  Editor application state
@@ -66,6 +68,10 @@ struct EditorState {
     CodeEditorWidget  codeWidget;
     bool              showWhitespace = false;
     bool              showMinimap = false;
+    std::string       workspaceRoot;
+    FileTree          fileTree;
+    FileNode          fileTreeRoot;
+    bool              fileTreeDirty = true;
 
     void init() {
         std::string defaultContent =
@@ -91,6 +97,8 @@ struct EditorState {
         editBuf = defaultContent;
         highlightsDirty = true;
         outputLog = "Whetstone Editor ready.\n";
+        workspaceRoot = std::filesystem::current_path().string();
+        fileTreeDirty = true;
     }
 
     void setLanguage(const std::string& lang) {
@@ -208,6 +216,12 @@ struct EditorState {
         } else {
             outputLog += "Error opening: " + path + "\n";
         }
+    }
+
+    void refreshFileTree() {
+        if (!fileTreeDirty) return;
+        fileTreeRoot = fileTree.build(workspaceRoot);
+        fileTreeDirty = false;
     }
 
     void updateHighlights() {
@@ -408,6 +422,26 @@ static void RenderHighlightedText(const std::string& text,
 }
 
 // ---------------------------------------------------------------------------
+//  File tree rendering
+// ---------------------------------------------------------------------------
+static void RenderFileTree(const FileNode& node, EditorState& state) {
+    if (!node.isDir) {
+        if (ImGui::Selectable(node.name.c_str())) {
+            state.doOpen(node.path);
+        }
+        return;
+    }
+
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    if (ImGui::TreeNodeEx(node.name.c_str(), flags)) {
+        for (const auto& child : node.children) {
+            RenderFileTree(child, state);
+        }
+        ImGui::TreePop();
+    }
+}
+
+// ---------------------------------------------------------------------------
 //  Main
 // ---------------------------------------------------------------------------
 int main(int, char**) {
@@ -557,6 +591,14 @@ int main(int, char**) {
                         state.doOpen(path);
                     }
                 }
+                if (ImGui::MenuItem("Open Folder...")) {
+                    auto path = FileDialog::openFolder({"Open Folder", state.workspaceRoot});
+                    if (!path.empty()) {
+                        state.workspaceRoot = path;
+                        state.fileTreeDirty = true;
+                        lastDialogPath = path;
+                    }
+                }
                 if (ImGui::MenuItem("Save", state.keys.getBinding("file.save").toString().c_str()))
                 {
                     if (state.filePath == "(untitled)") {
@@ -639,12 +681,11 @@ int main(int, char**) {
         ImGui::Spacing();
         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "FILES");
         ImGui::Separator();
-        // Placeholder files
-        const char* files[] = {"Calculator.py", "ConditionalExample.py", "main.cpp", "test.el"};
-        for (auto f : files) {
-            if (ImGui::Selectable(f)) {
-                state.doOpen(f);
-            }
+        state.refreshFileTree();
+        if (state.fileTreeRoot.path.empty()) {
+            ImGui::TextDisabled("(no workspace)");
+        } else {
+            RenderFileTree(state.fileTreeRoot, state);
         }
         ImGui::PopFont();
         ImGui::End();
