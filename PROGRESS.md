@@ -183,6 +183,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 ### Phase 4b: File Management (Steps 84–89) — In Progress
 - [x] Step 84: **IMPLEMENTED** — Native file dialogs via tinyfiledialogs, FileDialog wrapper with test provider injection (2/2 tests pass)
 - [x] Step 85: **IMPLEMENTED** — Filesystem tree with .gitignore filtering, recursive Explorer rendering (1/1 tests pass)
+- [x] Step 86: **IMPLEMENTED** — Multi-tab editing with BufferManager and per-buffer editor state (3/3 tests pass)
 
 ---
 
@@ -247,6 +248,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 83:** Compile and pass (2/2)
 **Step 84:** Compile and pass (2/2)
 **Step 85:** Compile and pass (1/1)
+**Step 86:** Compile and pass (3/3)
 
 ---
 
@@ -340,3 +342,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 83: Added tree-sitter grammars for JS/TS/Java/Rust/Go and editor modes; syntax highlighting extended to 8 languages. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 84: Native file dialogs via tinyfiledialogs; FileDialog wrapper with injectable provider. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 85: Filesystem tree with .gitignore filtering and Explorer rendering. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 86: Multi-tab editing wired via BufferManager with per-buffer state. 3/3 tests pass. |

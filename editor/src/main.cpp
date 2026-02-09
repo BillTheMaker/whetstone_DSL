@@ -31,24 +31,32 @@
 #include <sstream>
 #include <cstring>
 #include <filesystem>
+#include <map>
+#include <memory>
 
 // ---------------------------------------------------------------------------
 //  Editor application state
 // ---------------------------------------------------------------------------
-struct EditorState {
+struct BufferState {
     TextEditor        editor;
     TextASTSync       sync;
-    KeybindingManager keys;
+    CodeEditorWidget  widget;
     EditorMode        mode;
     std::string       language    = "python";
-    std::string       filePath    = "(untitled)";
+    std::string       path        = "(untitled)";
     bool              modified    = false;
     int               cursorLine  = 1;
     int               cursorCol   = 1;
-
-    // Edit buffer for ImGui InputTextMultiline — kept in sync with TextEditor
     std::string       editBuf;
-    bool              bufDirty    = true;  // true = need to push editBuf → editor
+    std::vector<HighlightSpan> highlights;
+    bool              highlightsDirty = true;
+};
+
+struct EditorState {
+    KeybindingManager keys;
+    BufferManager     buffers;
+    std::map<std::string, std::unique_ptr<BufferState>> bufferStates;
+    BufferState*      activeBuffer = nullptr;
 
     // Find/Replace state
     bool              showFind    = false;
@@ -60,18 +68,52 @@ struct EditorState {
     int               bottomTab   = 0;  // 0=Output, 1=AST, 2=Highlighted
     std::string       outputLog;
 
-    // Highlight cache (recomputed on text change)
-    std::vector<HighlightSpan> highlights;
-    bool              highlightsDirty = true;
-
     // Custom editor widget state
-    CodeEditorWidget  codeWidget;
     bool              showWhitespace = false;
     bool              showMinimap = false;
     std::string       workspaceRoot;
     FileTree          fileTree;
     FileNode          fileTreeRoot;
     bool              fileTreeDirty = true;
+
+    BufferState* active() { return activeBuffer; }
+
+    std::string makeUntitledName() const {
+        if (!buffers.hasBuffer("(untitled)")) return "(untitled)";
+        int i = 1;
+        while (true) {
+            std::string name = "(untitled-" + std::to_string(i) + ")";
+            if (!buffers.hasBuffer(name)) return name;
+            ++i;
+        }
+    }
+
+    void createBuffer(const std::string& path, const std::string& content, const std::string& language) {
+        if (buffers.hasBuffer(path)) {
+            buffers.switchToBuffer(path);
+            activeBuffer = bufferStates[path].get();
+            return;
+        }
+        auto state = std::make_unique<BufferState>();
+        state->path = path;
+        state->language = language;
+        state->mode.setLanguage(language);
+        state->editor.setContent(content, language);
+        state->sync.setText(content, language);
+        state->sync.syncNow();
+        state->editBuf = content;
+        state->highlightsDirty = true;
+        state->modified = false;
+        buffers.openBuffer(path, content, language);
+        activeBuffer = state.get();
+        bufferStates[path] = std::move(state);
+    }
+
+    void switchToBuffer(const std::string& path) {
+        if (!buffers.hasBuffer(path)) return;
+        buffers.switchToBuffer(path);
+        activeBuffer = bufferStates[path].get();
+    }
 
     void init() {
         std::string defaultContent =
@@ -90,63 +132,62 @@ struct EditorState {
             "        total = total + item\n"
             "    return total\n";
 
-        editor.setContent(defaultContent, language);
-        mode.setLanguage(language);
-        sync.setText(defaultContent, language);
-        sync.syncNow();
-        editBuf = defaultContent;
-        highlightsDirty = true;
+        createBuffer(makeUntitledName(), defaultContent, "python");
         outputLog = "Whetstone Editor ready.\n";
         workspaceRoot = std::filesystem::current_path().string();
         fileTreeDirty = true;
     }
 
     void setLanguage(const std::string& lang) {
-        language = lang;
-        mode.setLanguage(lang);
-        editor.setContent(editBuf, lang);
-        sync.setText(editBuf, lang);
-        sync.syncNow();
-        highlightsDirty = true;
+        if (!active()) return;
+        active()->language = lang;
+        active()->mode.setLanguage(lang);
+        active()->editor.setContent(active()->editBuf, lang);
+        active()->sync.setText(active()->editBuf, lang);
+        active()->sync.syncNow();
+        active()->highlightsDirty = true;
     }
 
     // Called after editBuf changes (from ImGui input)
     void onTextChanged() {
-        editor.setContent(editBuf, language);
-        sync.setText(editBuf, language);
-        sync.syncNow();
-        highlightsDirty = true;
-        modified = true;
+        if (!active()) return;
+        active()->editor.setContent(active()->editBuf, active()->language);
+        active()->sync.setText(active()->editBuf, active()->language);
+        active()->sync.syncNow();
+        active()->highlightsDirty = true;
+        active()->modified = true;
     }
 
     void doUndo() {
-        editor.undo();
-        editBuf = editor.getContent();
-        sync.setText(editBuf, language);
-        sync.syncNow();
-        highlightsDirty = true;
+        if (!active()) return;
+        active()->editor.undo();
+        active()->editBuf = active()->editor.getContent();
+        active()->sync.setText(active()->editBuf, active()->language);
+        active()->sync.syncNow();
+        active()->highlightsDirty = true;
     }
 
     void doRedo() {
-        editor.redo();
-        editBuf = editor.getContent();
-        sync.setText(editBuf, language);
-        sync.syncNow();
-        highlightsDirty = true;
+        if (!active()) return;
+        active()->editor.redo();
+        active()->editBuf = active()->editor.getContent();
+        active()->sync.setText(active()->editBuf, active()->language);
+        active()->sync.syncNow();
+        active()->highlightsDirty = true;
     }
 
     void doFind() {
+        if (!active()) return;
         if (strlen(findBuf) == 0) return;
-        int pos = editor.find(findBuf, lastFindPos);
+        int pos = active()->editor.find(findBuf, lastFindPos);
         if (pos >= 0) {
             lastFindPos = pos + 1;
-            // Calculate line/col from position
             int line = 1, col = 1;
-            for (int i = 0; i < pos && i < (int)editBuf.size(); ++i) {
-                if (editBuf[i] == '\n') { ++line; col = 1; } else { ++col; }
+            for (int i = 0; i < pos && i < (int)active()->editBuf.size(); ++i) {
+                if (active()->editBuf[i] == '\n') { ++line; col = 1; } else { ++col; }
             }
-            cursorLine = line;
-            cursorCol = col;
+            active()->cursorLine = line;
+            active()->cursorCol = col;
             outputLog += "Found \"" + std::string(findBuf) + "\" at line " +
                          std::to_string(line) + ", col " + std::to_string(col) + "\n";
         } else {
@@ -156,28 +197,30 @@ struct EditorState {
     }
 
     void doReplaceAll() {
+        if (!active()) return;
         if (strlen(findBuf) == 0) return;
-        int count = editor.replaceAll(findBuf, replaceBuf);
+        int count = active()->editor.replaceAll(findBuf, replaceBuf);
         if (count > 0) {
-            editBuf = editor.getContent();
-            sync.setText(editBuf, language);
-            sync.syncNow();
-            highlightsDirty = true;
-            modified = true;
+            active()->editBuf = active()->editor.getContent();
+            active()->sync.setText(active()->editBuf, active()->language);
+            active()->sync.syncNow();
+            active()->highlightsDirty = true;
+            active()->modified = true;
         }
         outputLog += "Replaced " + std::to_string(count) + " occurrence(s).\n";
     }
 
     void doSave() {
-        if (filePath == "(untitled)") return;
-        std::ofstream out(filePath);
+        if (!active()) return;
+        if (active()->path.rfind("(untitled", 0) == 0) return;
+        std::ofstream out(active()->path);
         if (out.is_open()) {
-            out << editBuf;
+            out << active()->editBuf;
             out.close();
-            modified = false;
-            outputLog += "Saved: " + filePath + "\n";
+            active()->modified = false;
+            outputLog += "Saved: " + active()->path + "\n";
         } else {
-            outputLog += "Error saving: " + filePath + "\n";
+            outputLog += "Error saving: " + active()->path + "\n";
         }
     }
 
@@ -186,9 +229,8 @@ struct EditorState {
         if (in.is_open()) {
             std::ostringstream ss;
             ss << in.rdbuf();
-            editBuf = ss.str();
-            filePath = path;
-            // Detect language from extension
+            std::string content = ss.str();
+            std::string language = "python";
             if (path.size() > 3 && path.substr(path.size() - 3) == ".py")
                 language = "python";
             else if (path.size() > 4 && path.substr(path.size() - 4) == ".cpp")
@@ -207,14 +249,27 @@ struct EditorState {
                 language = "rust";
             else if (path.size() > 3 && path.substr(path.size() - 3) == ".go")
                 language = "go";
-            editor.setContent(editBuf, language);
-            sync.setText(editBuf, language);
-            sync.syncNow();
-            highlightsDirty = true;
-            modified = false;
+            createBuffer(path, content, language);
             outputLog += "Opened: " + path + "\n";
         } else {
             outputLog += "Error opening: " + path + "\n";
+        }
+    }
+
+    void updateHighlights() {
+        if (!active()) return;
+        if (!active()->highlightsDirty) return;
+        active()->highlights = SyntaxHighlighter::highlight(active()->editBuf, active()->language);
+        active()->highlightsDirty = false;
+    }
+
+    void updateCursorPos(int bytePos) {
+        if (!active()) return;
+        active()->cursorLine = 1;
+        active()->cursorCol = 1;
+        for (int i = 0; i < bytePos && i < (int)active()->editBuf.size(); ++i) {
+            if (active()->editBuf[i] == '\n') { ++active()->cursorLine; active()->cursorCol = 1; }
+            else { ++active()->cursorCol; }
         }
     }
 
@@ -223,22 +278,8 @@ struct EditorState {
         fileTreeRoot = fileTree.build(workspaceRoot);
         fileTreeDirty = false;
     }
-
-    void updateHighlights() {
-        if (!highlightsDirty) return;
-        highlights = SyntaxHighlighter::highlight(editBuf, language);
-        highlightsDirty = false;
-    }
-
-    void updateCursorPos(int bytePos) {
-        cursorLine = 1;
-        cursorCol = 1;
-        for (int i = 0; i < bytePos && i < (int)editBuf.size(); ++i) {
-            if (editBuf[i] == '\n') { ++cursorLine; cursorCol = 1; }
-            else { ++cursorCol; }
-        }
-    }
 };
+
 
 // ---------------------------------------------------------------------------
 //  ImGui InputTextMultiline with std::string resize callback
@@ -539,10 +580,8 @@ int main(int, char**) {
                     else if (action == "search.find") state.showFind = !state.showFind;
                     else if (action == "file.save")   state.doSave();
                     else if (action == "file.new") {
-                        state.editBuf.clear();
-                        state.onTextChanged();
-                        state.filePath = "(untitled)";
-                        state.modified = false;
+                        std::string lang = state.active() ? state.active()->language : "python";
+                        state.createBuffer(state.makeUntitledName(), "", lang);
                     }
                 }
             }
@@ -578,10 +617,8 @@ int main(int, char**) {
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("New", state.keys.getBinding("file.new").toString().c_str()))
                 {
-                    state.editBuf.clear();
-                    state.onTextChanged();
-                    state.filePath = "(untitled)";
-                    state.modified = false;
+                    std::string lang = state.active() ? state.active()->language : "python";
+                    state.createBuffer(state.makeUntitledName(), "", lang);
                 }
                 if (ImGui::MenuItem("Open...", state.keys.getBinding("file.open").toString().c_str()))
                 {
@@ -601,10 +638,12 @@ int main(int, char**) {
                 }
                 if (ImGui::MenuItem("Save", state.keys.getBinding("file.save").toString().c_str()))
                 {
-                    if (state.filePath == "(untitled)") {
+                    if (!state.active()) {
+                        // no-op
+                    } else if (state.active()->path.rfind("(untitled", 0) == 0) {
                         auto path = FileDialog::saveFile({"Save File", {"*.*"}, lastDialogPath});
                         if (!path.empty()) {
-                            state.filePath = path;
+                            state.active()->path = path;
                             lastDialogPath = path;
                             state.doSave();
                         }
@@ -618,10 +657,10 @@ int main(int, char**) {
             }
             if (ImGui::BeginMenu("Edit")) {
                 if (ImGui::MenuItem("Undo", state.keys.getBinding("edit.undo").toString().c_str(),
-                                    false, state.editor.canUndo()))
+                                    false, state.active() ? state.active()->editor.canUndo() : false))
                     state.doUndo();
                 if (ImGui::MenuItem("Redo", state.keys.getBinding("edit.redo").toString().c_str(),
-                                    false, state.editor.canRedo()))
+                                    false, state.active() ? state.active()->editor.canRedo() : false))
                     state.doRedo();
                 ImGui::Separator();
                 if (ImGui::MenuItem("Find/Replace", state.keys.getBinding("search.find").toString().c_str()))
@@ -634,21 +673,21 @@ int main(int, char**) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Language")) {
-                if (ImGui::MenuItem("Python", nullptr, state.language == "python"))
+                if (ImGui::MenuItem("Python", nullptr, state.active() && state.active()->language == "python"))
                     state.setLanguage("python");
-                if (ImGui::MenuItem("C++", nullptr, state.language == "cpp"))
+                if (ImGui::MenuItem("C++", nullptr, state.active() && state.active()->language == "cpp"))
                     state.setLanguage("cpp");
-                if (ImGui::MenuItem("Elisp", nullptr, state.language == "elisp"))
+                if (ImGui::MenuItem("Elisp", nullptr, state.active() && state.active()->language == "elisp"))
                     state.setLanguage("elisp");
-                if (ImGui::MenuItem("JavaScript", nullptr, state.language == "javascript"))
+                if (ImGui::MenuItem("JavaScript", nullptr, state.active() && state.active()->language == "javascript"))
                     state.setLanguage("javascript");
-                if (ImGui::MenuItem("TypeScript", nullptr, state.language == "typescript"))
+                if (ImGui::MenuItem("TypeScript", nullptr, state.active() && state.active()->language == "typescript"))
                     state.setLanguage("typescript");
-                if (ImGui::MenuItem("Java", nullptr, state.language == "java"))
+                if (ImGui::MenuItem("Java", nullptr, state.active() && state.active()->language == "java"))
                     state.setLanguage("java");
-                if (ImGui::MenuItem("Rust", nullptr, state.language == "rust"))
+                if (ImGui::MenuItem("Rust", nullptr, state.active() && state.active()->language == "rust"))
                     state.setLanguage("rust");
-                if (ImGui::MenuItem("Go", nullptr, state.language == "go"))
+                if (ImGui::MenuItem("Go", nullptr, state.active() && state.active()->language == "go"))
                     state.setLanguage("go");
                 ImGui::EndMenu();
             }
@@ -672,11 +711,15 @@ int main(int, char**) {
         ImGui::PushFont(uiFont);
         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "OPEN EDITORS");
         ImGui::Separator();
-        // Show current file as a selectable
-        {
-            std::string label = state.filePath;
-            if (state.modified) label += " *";
-            ImGui::Selectable(label.c_str(), true);
+        // Show open buffers
+        for (const auto& path : state.buffers.getOpenBuffers()) {
+            auto* buf = state.bufferStates[path].get();
+            std::string label = path;
+            if (buf && buf->modified) label += " *";
+            bool selected = state.active() && state.active()->path == path;
+            if (ImGui::Selectable(label.c_str(), selected)) {
+                state.switchToBuffer(path);
+            }
         }
         ImGui::Spacing();
         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "FILES");
@@ -720,28 +763,46 @@ int main(int, char**) {
 
         // Tab bar for the file
         if (ImGui::BeginTabBar("EditorTabs")) {
-            std::string tabLabel = state.filePath;
-            if (state.modified) tabLabel += " *";
-            if (ImGui::BeginTabItem(tabLabel.c_str())) {
-                // Editable text area fills available space
-                ImVec2 avail = ImGui::GetContentRegionAvail();
-                avail.y -= 4; // small margin
+            auto openBuffers = state.buffers.getOpenBuffers();
+            for (const auto& path : openBuffers) {
+                auto* buf = state.bufferStates[path].get();
+                if (!buf) continue;
+                std::string tabLabel = path;
+                if (buf->modified) tabLabel += " *";
+                bool open = true;
+                if (ImGui::BeginTabItem(tabLabel.c_str(), &open)) {
+                    if (!state.active() || state.active()->path != path) {
+                        state.switchToBuffer(path);
+                    }
+                    // Editable text area fills available space
+                    ImVec2 avail = ImGui::GetContentRegionAvail();
+                    avail.y -= 4; // small margin
 
-                state.updateHighlights();
-                CodeEditorOptions opts;
-                opts.showWhitespace = state.showWhitespace;
-                opts.mode = &state.mode;
-                opts.enableFolding = true;
-                opts.showMinimap = state.showMinimap;
+                    state.updateHighlights();
+                    CodeEditorOptions opts;
+                    opts.showWhitespace = state.showWhitespace;
+                    opts.mode = &buf->mode;
+                    opts.enableFolding = true;
+                    opts.showMinimap = state.showMinimap;
 
-                CodeEditorResult res = state.codeWidget.render("##editor",
-                    state.editBuf, state.highlights, opts, avail, monoFont);
-                state.updateCursorPos(res.cursorByte);
-                if (res.changed) {
-                    state.onTextChanged();
+                    CodeEditorResult res = buf->widget.render("##editor",
+                        buf->editBuf, buf->highlights, opts, avail, monoFont);
+                    state.updateCursorPos(res.cursorByte);
+                    if (res.changed) {
+                        state.onTextChanged();
+                    }
+
+                    ImGui::EndTabItem();
                 }
-
-                ImGui::EndTabItem();
+                if (!open) {
+                    state.buffers.closeBuffer(path);
+                    state.bufferStates.erase(path);
+                    if (state.buffers.bufferCount() > 0) {
+                        state.switchToBuffer(state.buffers.getOpenBuffers().front());
+                    } else {
+                        state.activeBuffer = nullptr;
+                    }
+                }
             }
             ImGui::EndTabBar();
         }
@@ -772,7 +833,7 @@ int main(int, char**) {
             if (ImGui::BeginTabItem("AST")) {
                 ImGui::PushFont(monoFont);
                 ImGui::BeginChild("##astScroll", ImVec2(0, 0), false);
-                Module* ast = state.sync.getAST();
+                Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
                 if (ast) {
                     // Show basic AST info
                     ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
@@ -811,7 +872,8 @@ int main(int, char**) {
                 ImGui::PushFont(monoFont);
                 ImGui::BeginChild("##hlScroll", ImVec2(0, 0), false);
                 state.updateHighlights();
-                RenderHighlightedText(state.editBuf, state.highlights);
+                if (state.active())
+                    RenderHighlightedText(state.active()->editBuf, state.active()->highlights);
                 ImGui::EndChild();
                 ImGui::PopFont();
                 ImGui::EndTabItem();
@@ -821,16 +883,16 @@ int main(int, char**) {
             if (ImGui::BeginTabItem("Generated")) {
                 ImGui::PushFont(monoFont);
                 ImGui::BeginChild("##genScroll", ImVec2(0, 0), false);
-                Module* ast = state.sync.getAST();
+                Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
                 if (ast) {
                     std::string generated;
-                    if (state.language == "python") {
+                    if (state.active()->language == "python") {
                         PythonGenerator gen;
                         generated = gen.generate(ast);
-                    } else if (state.language == "cpp") {
+                    } else if (state.active()->language == "cpp") {
                         CppGenerator gen;
                         generated = gen.generate(ast);
-                    } else if (state.language == "elisp") {
+                    } else if (state.active()->language == "elisp") {
                         ElispGenerator gen;
                         generated = gen.generate(ast);
                     }
@@ -866,11 +928,17 @@ int main(int, char**) {
             ImGui::PushFont(uiFont);
 
             // Left side: line/col
-            ImGui::Text("Ln %d, Col %d", state.cursorLine, state.cursorCol);
+            if (state.active())
+                ImGui::Text("Ln %d, Col %d", state.active()->cursorLine, state.active()->cursorCol);
+            else
+                ImGui::Text("Ln -, Col -");
             ImGui::SameLine(0, 30);
 
             // Language
-            ImGui::Text("%s", state.language.c_str());
+            if (state.active())
+                ImGui::Text("%s", state.active()->language.c_str());
+            else
+                ImGui::Text("-");
             ImGui::SameLine(0, 30);
 
             // Keybinding profile
@@ -878,7 +946,7 @@ int main(int, char**) {
             ImGui::SameLine(0, 30);
 
             // Modified indicator
-            if (state.modified)
+            if (state.active() && state.active()->modified)
                 ImGui::Text("Modified");
             else
                 ImGui::Text("Saved");

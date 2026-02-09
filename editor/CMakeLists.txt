@@ -3,6 +3,7 @@ project(WhetstoneEditor LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 # Use vcpkg-installed nlohmann_json instead of FetchContent
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -488,6 +489,9 @@ target_link_libraries(step84_test PRIVATE tinyfiledialogs)
 
 add_executable(step85_test tests/step85_test.cpp)
 target_include_directories(step85_test PRIVATE src)
+
+add_executable(step86_test tests/step86_test.cpp)
+target_include_directories(step86_test PRIVATE src)
 
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
