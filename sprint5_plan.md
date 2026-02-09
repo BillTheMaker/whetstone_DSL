@@ -36,7 +36,7 @@ The foundation: import libraries, parse their APIs, index their symbols.
   dependencies, homepage URL.
   *New:* `PackageRegistry.h`
 
-- [ ] **Step 128: Dependency file parsing**
+- [x] **Step 128: Dependency file parsing**
   Parse existing dependency files to discover what's already imported:
   - Python: `requirements.txt`, `pyproject.toml`, `setup.py`
   - JS/TS: `package.json`
