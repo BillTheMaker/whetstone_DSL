@@ -1,13 +1,12 @@
 // Step 61 TDD Test: AST mutation API (extend)
 //
 // Tests extended mutation API with validation and lock checking:
-// 1. updateNode bulk property update
-// 2. Mutation recorded in operation journal
-// 3. Mutation on OptimizationLock node produces warning (not rejection)
-// 4. deleteNode removes a node from its parent
-// 5. insertNode adds a node at the correct position
-//
-// Will fail until the extended mutation API is implemented.
+// 1. setProperty updates a node property
+// 2. updateNode bulk property update
+// 3. Mutation recorded in operation journal
+// 4. Mutation on OptimizationLock node produces warning (not rejection)
+// 5. deleteNode removes a node from its parent
+// 6. insertNode adds a node at the correct position
 
 #include <iostream>
 #include <string>
@@ -20,42 +19,7 @@
 #include "ast/Statement.h"
 #include "ast/Expression.h"
 #include "ast/Annotation.h"
-
-// Forward declaration — ASTMutationAPI
-class ASTMutationAPI {
-public:
-    struct MutationResult {
-        bool success;
-        std::string warning;  // Non-empty if a warning was produced
-        std::string error;    // Non-empty if mutation failed
-    };
-
-    // Set the root AST to mutate
-    void setRoot(ASTNode* root);
-
-    // Update multiple properties on a node at once
-    MutationResult updateNode(const std::string& nodeId,
-                               const std::map<std::string, std::string>& properties);
-
-    // Delete a node by ID (removes from parent)
-    MutationResult deleteNode(const std::string& nodeId);
-
-    // Insert a node as child of parentId in the given role
-    MutationResult insertNode(const std::string& parentId,
-                               const std::string& role,
-                               ASTNode* node);
-
-    // Set a property on a node
-    MutationResult setProperty(const std::string& nodeId,
-                                const std::string& property,
-                                const std::string& value);
-
-    // Get operation journal entries since last call
-    std::vector<std::string> getJournalEntries() const;
-
-    // Clear journal
-    void clearJournal();
-};
+#include "ASTMutationAPI.h"
 
 int main() {
     int passed = 0;

@@ -63,6 +63,19 @@ public:
         return result;
     }
 
+    // Remove a child from whatever role it belongs to
+    bool removeChild(ASTNode* child) {
+        for (auto& [role, kids] : children_) {
+            auto it = std::find(kids.begin(), kids.end(), child);
+            if (it != kids.end()) {
+                (*it)->parent = nullptr;
+                kids.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     std::map<std::string, std::vector<ASTNode*>> children_;
 };

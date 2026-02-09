@@ -5,8 +5,6 @@
 // 2. getCallHierarchy returns callers and callees
 // 3. getDependencyGraph returns data flow dependencies
 // 4. Scope respects nesting (inner scope sees outer, not vice versa)
-//
-// Will fail until the Context API is implemented.
 
 #include <iostream>
 #include <string>
@@ -20,35 +18,7 @@
 #include "ast/Parameter.h"
 #include "ast/Statement.h"
 #include "ast/Expression.h"
-
-// Forward declaration — ContextAPI
-class ContextAPI {
-public:
-    struct Symbol {
-        std::string name;
-        std::string kind;  // "function", "variable", "parameter"
-        std::string nodeId;
-    };
-
-    struct CallInfo {
-        std::string functionId;
-        std::string functionName;
-        std::vector<std::string> callerIds;   // Functions that call this one
-        std::vector<std::string> calleeIds;   // Functions called by this one
-    };
-
-    // Set the root AST
-    void setRoot(ASTNode* root);
-
-    // Get symbols in scope at a given node position
-    std::vector<Symbol> getInScopeSymbols(const std::string& nodeId) const;
-
-    // Get call hierarchy for a function
-    CallInfo getCallHierarchy(const std::string& functionId) const;
-
-    // Get data dependency node IDs for a given node
-    std::vector<std::string> getDependencyGraph(const std::string& nodeId) const;
-};
+#include "ContextAPI.h"
 
 static bool hasSymbol(const std::vector<ContextAPI::Symbol>& symbols, const std::string& name) {
     return std::any_of(symbols.begin(), symbols.end(),

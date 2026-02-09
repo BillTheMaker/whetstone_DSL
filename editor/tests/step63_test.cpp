@@ -4,9 +4,8 @@
 // 1. applySequence of mutations applies all atomically
 // 2. If one mutation in the batch fails, all preceding mutations roll back
 // 3. Successful batch records all operations in journal
-// 4. Partial failure doesn't leave AST in inconsistent state
-//
-// Will fail until applySequence with rollback is implemented.
+// 4. Empty batch succeeds trivially
+// 5. Partial failure doesn't leave AST in inconsistent state
 
 #include <iostream>
 #include <string>
@@ -19,38 +18,7 @@
 #include "ast/Function.h"
 #include "ast/Variable.h"
 #include "ast/Expression.h"
-
-// Forward declaration — BatchMutationAPI
-class BatchMutationAPI {
-public:
-    struct Mutation {
-        std::string type;      // "setProperty", "insertNode", "deleteNode"
-        std::string nodeId;
-        std::string property;  // For setProperty
-        std::string value;     // For setProperty
-        std::string parentId;  // For insertNode
-        std::string role;      // For insertNode
-        ASTNode* newNode = nullptr;  // For insertNode
-    };
-
-    struct BatchResult {
-        bool success;
-        int appliedCount;      // How many mutations were applied before failure
-        std::string error;     // Error message if failed
-    };
-
-    // Set the root AST
-    void setRoot(ASTNode* root);
-
-    // Apply a sequence of mutations atomically (all-or-nothing)
-    BatchResult applySequence(const std::vector<Mutation>& mutations);
-
-    // Get journal entries
-    std::vector<std::string> getJournalEntries() const;
-
-    // Clear journal
-    void clearJournal();
-};
+#include "BatchMutationAPI.h"
 
 int main() {
     int passed = 0;
