@@ -385,7 +385,7 @@ AST extensions for Sprint 5.
   size dynamically. Status bar shows current zoom level.
   *Modifies:* `main.cpp`
 
-- [ ] **Step 120: Undo/Redo rework**
+- [x] **Step 120: Undo/Redo rework**
   Unify undo stacks: orchestrator journal is the single source of truth.
   TextEditor undo feeds into orchestrator. Undo/redo affects both text and
   AST atomically. Status bar shows undo depth.

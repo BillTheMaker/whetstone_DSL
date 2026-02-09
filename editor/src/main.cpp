@@ -99,6 +99,9 @@ struct BufferState {
     float             splitScrollX = 0.0f;
     float             splitScrollY = 0.0f;
     IncrementalOptimizer incrementalOptimizer;
+    Orchestrator      orchestrator;
+    bool              orchestratorDirty = true;
+    int               undoDepth = 0;
 };
 
 struct EditorState {
@@ -165,8 +168,6 @@ struct EditorState {
     std::vector<EditorDiagnostic> whetstoneDiagnostics;
     SettingsManager   settings;
     bool              showLspSettings = false;
-    Orchestrator      orchestrator;
-    bool              orchestratorDirty = true;
     bool              showSettingsPanel = false;
     double            lastAutoSave = 0.0;
     ASTMutationAPI    mutator;
@@ -343,7 +344,8 @@ struct EditorState {
         state->bufferMode = mode;
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
-        orchestratorDirty = true;
+        active()->orchestratorDirty = true;
+        recordUndoSnapshot();
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
         if (lsp && path.rfind("(untitled", 0) != 0) {
             lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
@@ -430,7 +432,7 @@ struct EditorState {
         if (!buffers.hasBuffer(path)) return;
         buffers.switchToBuffer(path);
         activeBuffer = bufferStates[path].get();
-        orchestratorDirty = true;
+        if (active()) active()->orchestratorDirty = true;
         symbolsPending = true;
         symbolsLastChange = ImGui::GetTime();
         if (lsp) lsp->clearDocumentSymbols();
@@ -546,6 +548,7 @@ struct EditorState {
                         active()->highlightsDirty = true;
                         active()->generatedHighlightsDirty = true;
                         active()->modified = false;
+                        recordUndoSnapshot();
                     }
                 } else {
                     doOpen(buf.path, bufferModeFromString(buf.mode));
@@ -555,7 +558,7 @@ struct EditorState {
             if (!activePath.empty() && buffers.hasBuffer(activePath)) {
                 switchToBuffer(activePath);
             }
-            orchestratorDirty = true;
+            if (active()) active()->orchestratorDirty = true;
             return true;
         } catch (...) {
             return false;
@@ -681,28 +684,61 @@ struct EditorState {
         if (!isStructured()) return;
         Module* ast = active()->sync.getAST();
         if (!ast) return;
-        orchestrator.setAST(cloneModule(ast));
-        orchestratorDirty = false;
+        active()->orchestrator.setAST(cloneModule(ast));
+        active()->orchestratorDirty = false;
     }
 
     void applyOrchestratorToActive() {
         if (!active()) return;
         if (!isStructured()) return;
-        Module* ast = orchestrator.getAST();
+        Module* ast = active()->orchestrator.getAST();
         if (!ast) return;
         active()->sync.setAST(cloneModule(ast));
         active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         refreshActiveTextFromAST();
-        orchestratorDirty = false;
+        active()->orchestratorDirty = false;
+        recordUndoSnapshot();
     }
 
     Module* mutationAST() {
         if (!active()) return nullptr;
         if (!isStructured()) return nullptr;
-        if (orchestratorDirty || !orchestrator.getAST()) {
+        if (active()->orchestratorDirty || !active()->orchestrator.getAST()) {
             syncOrchestratorFromActive();
         }
-        return orchestrator.getAST();
+        return active()->orchestrator.getAST();
+    }
+
+    void recordUndoSnapshot() {
+        if (!active()) return;
+        Module* ast = isStructured() ? active()->sync.getAST() : nullptr;
+        active()->orchestrator.recordSnapshot(active()->editBuf, ast);
+        active()->undoDepth = active()->orchestrator.getUndoDepth();
+    }
+
+    void applySnapshotToActive(const std::string& text, std::unique_ptr<Module> ast) {
+        if (!active()) return;
+        active()->editBuf = text;
+        active()->editor.setContent(active()->editBuf, active()->language);
+        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
+            if (ast) {
+                active()->orchestrator.setAST(cloneModule(ast.get()));
+                active()->sync.setAST(std::move(ast));
+            } else {
+                active()->sync.setText(active()->editBuf, active()->language);
+                active()->sync.syncNow();
+                active()->orchestrator.setAST(cloneModule(active()->sync.getAST()));
+            }
+            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        }
+        active()->orchestratorDirty = false;
+        active()->highlightsDirty = true;
+        active()->generatedHighlightsDirty = true;
+        active()->modified = true;
+        if (lsp && active()->path.rfind("(untitled", 0) != 0) {
+            active()->lspVersion += 1;
+            lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
+        }
     }
 
     void registerCommand(const std::string& id,
@@ -845,7 +881,7 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
-        orchestratorDirty = true;
+        active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
     }
 
@@ -858,7 +894,7 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
-        orchestratorDirty = true;
+        active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
@@ -869,34 +905,27 @@ struct EditorState {
             active()->lspVersion += 1;
             lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
         }
+        recordUndoSnapshot();
     }
 
     void doUndo() {
         if (!active()) return;
-        active()->editor.undo();
-        active()->editBuf = active()->editor.getContent();
-        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
-            active()->sync.setText(active()->editBuf, active()->language);
-            active()->sync.syncNow();
-            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        std::string text;
+        std::unique_ptr<Module> ast;
+        if (active()->orchestrator.undoSnapshot(text, ast)) {
+            applySnapshotToActive(text, std::move(ast));
         }
-        orchestratorDirty = true;
-        active()->highlightsDirty = true;
-        active()->generatedHighlightsDirty = true;
+        active()->undoDepth = active()->orchestrator.getUndoDepth();
     }
 
     void doRedo() {
         if (!active()) return;
-        active()->editor.redo();
-        active()->editBuf = active()->editor.getContent();
-        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
-            active()->sync.setText(active()->editBuf, active()->language);
-            active()->sync.syncNow();
-            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        std::string text;
+        std::unique_ptr<Module> ast;
+        if (active()->orchestrator.redoSnapshot(text, ast)) {
+            applySnapshotToActive(text, std::move(ast));
         }
-        orchestratorDirty = true;
-        active()->highlightsDirty = true;
-        active()->generatedHighlightsDirty = true;
+        active()->undoDepth = active()->orchestrator.getUndoDepth();
     }
 
     void doFind() {
@@ -2098,10 +2127,10 @@ int main(int, char**) {
             }
             if (ImGui::BeginMenu("Edit")) {
                 if (ImGui::MenuItem("Undo", state.keys.getBinding("edit.undo").toString().c_str(),
-                                    false, state.active() ? state.active()->editor.canUndo() : false))
+                                    false, state.active() ? state.active()->orchestrator.getUndoDepth() > 0 : false))
                     state.doUndo();
                 if (ImGui::MenuItem("Redo", state.keys.getBinding("edit.redo").toString().c_str(),
-                                    false, state.active() ? state.active()->editor.canRedo() : false))
+                                    false, state.active() ? state.active()->orchestrator.getRedoDepth() > 0 : false))
                     state.doRedo();
                 ImGui::Separator();
                 if (ImGui::MenuItem("Find/Replace", state.keys.getBinding("search.find").toString().c_str()))
@@ -4025,6 +4054,10 @@ int main(int, char**) {
 
             // Zoom
             ImGui::Text("Zoom: %d%%", zoomPercent(state.settings.getFontSize(), baseFontSize));
+            ImGui::SameLine(0, 30);
+
+            // Undo depth
+            ImGui::Text("Undo: %d", state.active() ? state.active()->undoDepth : 0);
             ImGui::SameLine(0, 30);
 
             // Modified indicator

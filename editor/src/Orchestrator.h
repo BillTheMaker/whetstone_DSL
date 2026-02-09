@@ -237,6 +237,56 @@ public:
         undoPosition++;
         return true;
     }
+
+    // Record a snapshot (text + AST) for unified undo/redo
+    void recordSnapshot(const std::string& text, const ASTNode* ast) {
+        json op;
+        op["type"] = "snapshot";
+        op["text"] = text;
+        if (ast) op["ast"] = toJson(ast);
+        recordOperation(op);
+    }
+
+    // Undo snapshot
+    bool undoSnapshot(std::string& outText, std::unique_ptr<Module>& outAst) {
+        if (undoPosition == 0) return false;
+        undoPosition--;
+        json operation = operationJournal[undoPosition];
+        if (operation.value("type", "") != "snapshot") return false;
+        outText = operation.value("text", "");
+        outAst.reset();
+        if (operation.contains("ast")) {
+            ASTNode* node = fromJson(operation["ast"]);
+            if (node && node->conceptType == "Module") {
+                outAst.reset(static_cast<Module*>(node));
+            } else {
+                deleteTree(node);
+            }
+        }
+        return true;
+    }
+
+    // Redo snapshot
+    bool redoSnapshot(std::string& outText, std::unique_ptr<Module>& outAst) {
+        if (undoPosition >= operationJournal.size()) return false;
+        json operation = operationJournal[undoPosition];
+        if (operation.value("type", "") != "snapshot") return false;
+        undoPosition++;
+        outText = operation.value("text", "");
+        outAst.reset();
+        if (operation.contains("ast")) {
+            ASTNode* node = fromJson(operation["ast"]);
+            if (node && node->conceptType == "Module") {
+                outAst.reset(static_cast<Module*>(node));
+            } else {
+                deleteTree(node);
+            }
+        }
+        return true;
+    }
+
+    int getUndoDepth() const { return (int)undoPosition; }
+    int getRedoDepth() const { return (int)(operationJournal.size() - undoPosition); }
     
     // Helper function to find a node by ID in the AST
     ASTNode* findNodeById(ASTNode* root, const std::string& id) const {
