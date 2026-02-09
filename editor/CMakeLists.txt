@@ -327,6 +327,10 @@ add_executable(step77_test tests/step77_test.cpp)
 target_include_directories(step77_test PRIVATE src)
 target_link_libraries(step77_test PRIVATE imgui::imgui)
 
+add_executable(step78_test tests/step78_test.cpp)
+target_include_directories(step78_test PRIVATE src)
+target_link_libraries(step78_test PRIVATE imgui::imgui)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

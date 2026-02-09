@@ -20,6 +20,9 @@ struct CodeEditorOptions {
 struct CodeEditorResult {
     bool changed = false;
     int cursorByte = 0;
+    int lineCount = 0;
+    float gutterWidth = 0.0f;
+    int currentLine = 0;
 };
 
 class CodeEditorWidget {
@@ -58,6 +61,7 @@ public:
         // Measure
         const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
         const float charAdvance = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, "M").x;
+        const float gutterWidth = calcGutterWidth(lineCount, font, charAdvance);
 
         // Estimate content size for scrollbars
         int maxLineLen = 0;
@@ -67,7 +71,8 @@ public:
             int len = std::max(0, end - start);
             maxLineLen = std::max(maxLineLen, len);
         }
-        ImVec2 contentSize(maxLineLen * charAdvance + 4.0f, lineCount * lineHeight + 4.0f);
+        ImVec2 contentSize(gutterWidth + maxLineLen * charAdvance + 4.0f,
+                           lineCount * lineHeight + 4.0f);
 
         ImGui::BeginChild(id, size, false, ImGuiWindowFlags_HorizontalScrollbar);
         ImVec2 origin = ImGui::GetCursorScreenPos();
@@ -78,7 +83,8 @@ public:
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         const float scrollX = ImGui::GetScrollX();
         const float scrollY = ImGui::GetScrollY();
-        ImVec2 base(origin.x - scrollX, origin.y - scrollY);
+        ImVec2 gutterBase(origin.x, origin.y - scrollY);
+        ImVec2 textBase(origin.x + gutterWidth - scrollX, origin.y - scrollY);
 
         // Focus and input
         const bool hovered = ImGui::IsWindowHovered();
@@ -87,14 +93,27 @@ public:
         // Mouse handling
         if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             ImGui::SetKeyboardFocusHere(-1);
-            cursor_ = positionFromMouse(ImGui::GetMousePos(), base, lineStarts, text, charAdvance, lineHeight);
-            selStart_ = cursor_;
-            selEnd_ = cursor_;
+            const ImVec2 mouse = ImGui::GetMousePos();
+            if (mouse.x < origin.x + gutterWidth) {
+                int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
+                int lineStart = lineStarts[line];
+                int lineEnd = (line + 1 < lineCount) ? lineStarts[line + 1] : (int)text.size();
+                cursor_ = lineStart;
+                selStart_ = lineStart;
+                selEnd_ = lineEnd;
+            } else {
+                cursor_ = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
+                selStart_ = cursor_;
+                selEnd_ = cursor_;
+            }
             selecting_ = true;
         }
         if (hovered && selecting_ && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-            int pos = positionFromMouse(ImGui::GetMousePos(), base, lineStarts, text, charAdvance, lineHeight);
-            selEnd_ = pos;
+            const ImVec2 mouse = ImGui::GetMousePos();
+            if (mouse.x >= origin.x + gutterWidth) {
+                int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
+                selEnd_ = pos;
+            }
         }
         if (selecting_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
             selecting_ = false;
@@ -110,12 +129,35 @@ public:
         const int visibleLines = (int)(ImGui::GetContentRegionAvail().y / lineHeight) + 2;
         const int lastLine = std::min(lineCount - 1, firstLine + visibleLines);
 
+        const float textAreaWidth = std::max(0.0f,
+            (ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x) - gutterWidth);
+        const int currentLine = lineFromPos(cursor_, lineStarts);
+
         for (int ln = firstLine; ln <= lastLine; ++ln) {
             int start = lineStarts[ln];
             int end = (ln + 1 < lineCount) ? lineStarts[ln + 1] - 1 : (int)text.size();
             int len = std::max(0, end - start);
 
-            float y = base.y + ln * lineHeight;
+            float y = textBase.y + ln * lineHeight;
+
+            // Gutter background
+            ImVec2 gutterA(origin.x, y);
+            ImVec2 gutterB(origin.x + gutterWidth, y + lineHeight);
+            drawList->AddRectFilled(gutterA, gutterB, IM_COL32(20, 20, 20, 255));
+
+            // Line number (right-aligned)
+            char numBuf[16];
+            snprintf(numBuf, sizeof(numBuf), "%d", ln + 1);
+            ImVec2 numSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, numBuf);
+            ImVec2 numPos(origin.x + gutterWidth - 4.0f - numSize.x, y);
+            drawList->AddText(font, font->FontSize, numPos, IM_COL32(120, 120, 120, 255), numBuf);
+
+            // Current line highlight (text area only)
+            if (ln == currentLine) {
+                ImVec2 hlA(textBase.x, y);
+                ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
+                drawList->AddRectFilled(hlA, hlB, IM_COL32(40, 40, 40, 120));
+            }
 
             // Selection background
             if (hasSelection()) {
@@ -126,8 +168,8 @@ public:
                 if (lineSelStart < lineSelEnd) {
                     int colA = lineSelStart - start;
                     int colB = lineSelEnd - start;
-                    ImVec2 a(base.x + colA * charAdvance, y);
-                    ImVec2 b(base.x + colB * charAdvance, y + lineHeight);
+                    ImVec2 a(textBase.x + colA * charAdvance, y);
+                    ImVec2 b(textBase.x + colB * charAdvance, y + lineHeight);
                     drawList->AddRectFilled(a, b, IM_COL32(60, 100, 160, 120));
                 }
             }
@@ -156,7 +198,7 @@ public:
                     chunk.pop_back();
                 }
 
-                ImVec2 p(base.x + (pos - start) * charAdvance, y);
+                ImVec2 p(textBase.x + (pos - start) * charAdvance, y);
                 drawList->AddText(font, font->FontSize, p, colorFor(cat), chunk.c_str());
 
                 pos = spanEnd;
@@ -168,11 +210,11 @@ public:
             const double t = ImGui::GetTime();
             const bool blinkOn = ((int)(t * 2.0)) % 2 == 0;
             if (blinkOn) {
-                int curLine = lineFromPos(cursor_, lineStarts);
+                int curLine = currentLine;
                 int lineStart = lineStarts[curLine];
                 int col = cursor_ - lineStart;
-                float x = base.x + col * charAdvance;
-                float y = base.y + curLine * lineHeight;
+                float x = textBase.x + col * charAdvance;
+                float y = textBase.y + curLine * lineHeight;
                 drawList->AddLine(ImVec2(x, y), ImVec2(x, y + lineHeight), IM_COL32(240, 240, 240, 255), 1.0f);
             }
         }
@@ -180,6 +222,9 @@ public:
         ImGui::EndChild();
 
         result.cursorByte = cursor_;
+        result.lineCount = lineCount;
+        result.gutterWidth = gutterWidth;
+        result.currentLine = currentLine;
         return result;
     }
 
@@ -223,6 +268,12 @@ private:
         return line;
     }
 
+    static int lineFromMouseY(float mouseY, float baseY, float lineHeight, int lineCount) {
+        int line = (int)((mouseY - baseY) / lineHeight);
+        line = std::max(0, std::min(line, lineCount - 1));
+        return line;
+    }
+
     static int positionFromMouse(const ImVec2& mouse,
                                  const ImVec2& base,
                                  const std::vector<int>& lineStarts,
@@ -239,6 +290,17 @@ private:
         int col = (int)((mouse.x - base.x) / charAdvance);
         col = std::max(0, std::min(col, len));
         return start + col;
+    }
+
+    static float calcGutterWidth(int lineCount, ImFont* font, float charAdvance) {
+        int digits = 1;
+        int n = std::max(1, lineCount);
+        while (n >= 10) { n /= 10; ++digits; }
+        const float pad = 6.0f;
+        float digitsWidth = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f,
+                                                std::string(digits, '0').c_str()).x;
+        float width = digitsWidth + pad * 2.0f;
+        return std::max(width, charAdvance * 2.0f + pad * 2.0f);
     }
 
     void deleteSelection(std::string& text, bool& changed) {
