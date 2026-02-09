@@ -23,6 +23,7 @@
 #include "FileTree.h"
 #include "WelcomeScreen.h"
 #include "DragDropHandler.h"
+#include "FileWatcher.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -80,6 +81,7 @@ struct EditorState {
     FileTree          fileTree;
     FileNode          fileTreeRoot;
     bool              fileTreeDirty = true;
+    FileWatcher       watcher;
 
     BufferState* active() { return activeBuffer; }
 
@@ -112,6 +114,7 @@ struct EditorState {
         buffers.openBuffer(path, content, language);
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
+        if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
     }
 
     void switchToBuffer(const std::string& path) {
@@ -282,6 +285,36 @@ struct EditorState {
             outputLog += "Opened: " + path + "\n";
         } else {
             outputLog += "Error opening: " + path + "\n";
+        }
+    }
+
+    void reloadBuffer(const std::string& path) {
+        auto it = bufferStates.find(path);
+        if (it == bufferStates.end()) return;
+        std::ifstream in(path);
+        if (!in.is_open()) return;
+        std::ostringstream ss;
+        ss << in.rdbuf();
+        auto* buf = it->second.get();
+        buf->editBuf = ss.str();
+        buf->editor.setContent(buf->editBuf, buf->language);
+        buf->sync.setText(buf->editBuf, buf->language);
+        buf->sync.syncNow();
+        buf->highlightsDirty = true;
+        buf->modified = false;
+        outputLog += "Reloaded: " + path + "\n";
+    }
+
+    void handleFileChanges() {
+        auto changed = watcher.poll();
+        for (const auto& path : changed) {
+            auto it = bufferStates.find(path);
+            if (it == bufferStates.end()) continue;
+            if (it->second->modified) {
+                outputLog += "File changed on disk (dirty): " + path + "\n";
+            } else {
+                reloadBuffer(path);
+            }
         }
     }
 
@@ -615,9 +648,9 @@ int main(int, char**) {
     std::string lastDialogPath;
 
     bool done = false;
-    while (!done) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
+        while (!done) {
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
                 done = true;
@@ -671,6 +704,9 @@ int main(int, char**) {
                 }
             }
         }
+
+        // File watcher polling
+        state.handleFileChanges();
 
         // Start frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -888,6 +924,7 @@ int main(int, char**) {
                     if (!open) {
                         state.buffers.closeBuffer(path);
                         state.bufferStates.erase(path);
+                        if (path.rfind("(untitled", 0) != 0) state.watcher.unwatch(path);
                         if (state.buffers.bufferCount() > 0) {
                             state.switchToBuffer(state.buffers.getOpenBuffers().front());
                         } else {
