@@ -175,6 +175,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 77: **IMPLEMENTED** — Custom CodeEditorWidget renderer: per-token coloring, cursor/selection/input handling, monospace grid, blinking cursor, visible whitespace toggle (3/3 tests pass)
 - [x] Step 78: **IMPLEMENTED** — Line numbers and gutter: fixed-width gutter with right-aligned line numbers, current line highlight, gutter click selects line (2/2 tests pass)
 - [x] Step 79: **IMPLEMENTED** — Auto-indent and smart editing: EditorMode integration, enter auto-indent, tab inserts spaces, auto-close brackets/quotes (3/3 tests pass)
+- [x] Step 80: **IMPLEMENTED** — Scroll/selection/clipboard: shift-extend selection, double/triple click selection, Ctrl+C/X/V clipboard, drag select (3/3 tests pass)
 
 ---
 
@@ -233,6 +234,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 77:** Compile and pass (3/3)
 **Step 78:** Compile and pass (2/2)
 **Step 79:** Compile and pass (3/3)
+**Step 80:** Compile and pass (3/3)
 
 ---
 
@@ -320,3 +322,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 77: Custom code editor renderer (CodeEditorWidget). Per-token coloring, cursor/selection/input, blinking cursor, whitespace toggle. 3/3 tests pass. |
 | 2026-02-09 | Codex | Step 78: Line numbers and gutter. Gutter width auto-adjusts, current line highlight, gutter click selects line. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 79: Auto-indent and smart editing. EditorMode wired for newline indent, tab spacing, and bracket auto-close. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 80: Selection and clipboard operations (Ctrl+C/X/V, shift-extend, double/triple click). 3/3 tests pass. |

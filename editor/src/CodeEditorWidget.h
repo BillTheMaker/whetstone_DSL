@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cctype>
 
 struct CodeEditorOptions {
     bool showWhitespace = false;
@@ -96,7 +97,8 @@ public:
         if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             ImGui::SetKeyboardFocusHere(-1);
             const ImVec2 mouse = ImGui::GetMousePos();
-            if (mouse.x < origin.x + gutterWidth) {
+            int clickCount = ImGui::GetIO().MouseClickedCount[0];
+            if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
                 int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
                 int lineStart = lineStarts[line];
                 int lineEnd = (line + 1 < lineCount) ? lineStarts[line + 1] : (int)text.size();
@@ -104,9 +106,18 @@ public:
                 selStart_ = lineStart;
                 selEnd_ = lineEnd;
             } else {
-                cursor_ = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
-                selStart_ = cursor_;
-                selEnd_ = cursor_;
+                int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
+                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                    selectWordAt(text, pos);
+                } else if (ImGui::GetIO().KeyShift) {
+                    if (!hasSelection()) selStart_ = cursor_;
+                    cursor_ = pos;
+                    selEnd_ = cursor_;
+                } else {
+                    cursor_ = pos;
+                    selStart_ = cursor_;
+                    selEnd_ = cursor_;
+                }
             }
             selecting_ = true;
         }
@@ -399,20 +410,30 @@ private:
         io.InputQueueCharacters.resize(0);
 
         // Navigation
-        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-            if (hasSelection()) {
-                cursor_ = std::min(selStart_, selEnd_);
+        auto moveCursor = [&](int newPos) {
+            newPos = std::max(0, std::min(newPos, (int)text.size()));
+            if (io.KeyShift) {
+                if (!hasSelection()) selStart_ = cursor_;
+                cursor_ = newPos;
+                selEnd_ = cursor_;
+            } else {
+                cursor_ = newPos;
                 selStart_ = selEnd_ = -1;
+            }
+        };
+
+        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
+            if (!io.KeyShift && hasSelection()) {
+                moveCursor(std::min(selStart_, selEnd_));
             } else if (cursor_ > 0) {
-                cursor_--;
+                moveCursor(cursor_ - 1);
             }
         }
         if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-            if (hasSelection()) {
-                cursor_ = std::max(selStart_, selEnd_);
-                selStart_ = selEnd_ = -1;
+            if (!io.KeyShift && hasSelection()) {
+                moveCursor(std::max(selStart_, selEnd_));
             } else if (cursor_ < (int)text.size()) {
-                cursor_++;
+                moveCursor(cursor_ + 1);
             }
         }
         if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
@@ -422,7 +443,7 @@ private:
                 int prevStart = lineStarts[curLine - 1];
                 int prevEnd = (curLine < (int)lineStarts.size()) ? lineStarts[curLine] - 1 : (int)text.size();
                 int prevLen = std::max(0, prevEnd - prevStart);
-                cursor_ = prevStart + std::min(curCol, prevLen);
+                moveCursor(prevStart + std::min(curCol, prevLen));
             }
         }
         if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
@@ -432,7 +453,7 @@ private:
                 int nextStart = lineStarts[curLine + 1];
                 int nextEnd = (curLine + 2 < (int)lineStarts.size()) ? lineStarts[curLine + 2] - 1 : (int)text.size();
                 int nextLen = std::max(0, nextEnd - nextStart);
-                cursor_ = nextStart + std::min(curCol, nextLen);
+                moveCursor(nextStart + std::min(curCol, nextLen));
             }
         }
 
@@ -460,5 +481,43 @@ private:
             selEnd_ = (int)text.size();
             cursor_ = selEnd_;
         }
+
+        if ((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_C)) {
+            if (hasSelection()) {
+                ImGui::SetClipboardText(getSelectionText(text).c_str());
+            }
+        }
+        if ((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_X)) {
+            if (hasSelection()) {
+                ImGui::SetClipboardText(getSelectionText(text).c_str());
+                deleteSelection(text, changed);
+            }
+        }
+        if ((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_V)) {
+            const char* clip = ImGui::GetClipboardText();
+            if (clip && *clip) {
+                insertText(text, std::string(clip), changed);
+            }
+        }
+    }
+
+    std::string getSelectionText(const std::string& text) const {
+        if (!hasSelection()) return "";
+        int a = std::min(selStart_, selEnd_);
+        int b = std::max(selStart_, selEnd_);
+        if (a < 0 || b > (int)text.size() || a >= b) return "";
+        return text.substr(a, b - a);
+    }
+
+    void selectWordAt(const std::string& text, int pos) {
+        if (pos < 0 || pos > (int)text.size()) return;
+        auto isWord = [](char c) { return std::isalnum((unsigned char)c) || c == '_'; };
+        int start = pos;
+        int end = pos;
+        while (start > 0 && isWord(text[start - 1])) --start;
+        while (end < (int)text.size() && isWord(text[end])) ++end;
+        selStart_ = start;
+        selEnd_ = end;
+        cursor_ = end;
     }
 };
