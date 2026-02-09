@@ -44,6 +44,7 @@
 #include "ContextAPI.h"
 #include "Breadcrumbs.h"
 #include "ProjectSearch.h"
+#include "GoToLine.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -113,6 +114,9 @@ struct EditorState {
     char              searchExclude[256] = {};
     bool              searchUseRegex = true;
     std::vector<ProjectSearch::FileResult> searchResults;
+    bool              showGoToLine = false;
+    char              goToLineBuf[64] = {};
+    bool              goToLineError = false;
 
     // Bottom panel
     int               bottomTab   = 0;  // 0=Output, 1=AST, 2=Highlighted
@@ -510,6 +514,13 @@ struct EditorState {
         registerCommand("search.findInFiles", "Search: Find in Files",
                         keys.getBinding("search.findInFiles").toString(),
                         [this]() { showProjectSearch = !showProjectSearch; });
+        registerCommand("nav.goToLine", "Navigate: Go to Line",
+                        keys.getBinding("nav.goToLine").toString(),
+                        [this]() {
+                            showGoToLine = true;
+                            goToLineBuf[0] = '\0';
+                            goToLineError = false;
+                        });
         registerCommand("view.whitespace", "View: Toggle Whitespace", "",
                         [this]() { showWhitespace = !showWhitespace; });
         registerCommand("view.minimap", "View: Toggle Minimap", "",
@@ -1644,6 +1655,11 @@ int main(int, char**) {
                     else if (action == "edit.redo")   state.doRedo();
                     else if (action == "search.find") state.showFind = !state.showFind;
                     else if (action == "search.findInFiles") state.showProjectSearch = !state.showProjectSearch;
+                    else if (action == "nav.goToLine") {
+                        state.showGoToLine = true;
+                        state.goToLineBuf[0] = '\0';
+                        state.goToLineError = false;
+                    }
                     else if (action == "file.save")   state.doSave();
                     else if (action == "file.new") {
                         std::string lang = state.active() ? state.active()->language : "python";
@@ -1775,6 +1791,14 @@ int main(int, char**) {
                     if (ImGui::MenuItem("JetBrains", nullptr, state.layoutPreset == LayoutPreset::JetBrains))
                         state.layoutPreset = LayoutPreset::JetBrains;
                     ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Navigate")) {
+                if (ImGui::MenuItem("Go to Line...", state.keys.getBinding("nav.goToLine").toString().c_str())) {
+                    state.showGoToLine = true;
+                    state.goToLineBuf[0] = '\0';
+                    state.goToLineError = false;
                 }
                 ImGui::EndMenu();
             }
@@ -2039,6 +2063,49 @@ int main(int, char**) {
             ImGui::EndChild();
             ImGui::PopFont();
             ImGui::End();
+        }
+
+        // ---------------------------------------------------------------
+        //  Go To Line (Ctrl+G)
+        // ---------------------------------------------------------------
+        if (state.showGoToLine) {
+            ImGui::OpenPopup("GoToLine");
+        }
+        if (ImGui::BeginPopupModal("GoToLine", &state.showGoToLine, ImGuiWindowFlags_AlwaysAutoResize)) {
+            int totalLines = state.active() ? countLines(state.active()->editBuf) : 0;
+            ImGui::Text("Enter line or :line:col");
+            ImGui::TextDisabled("Total lines: %d", totalLines);
+            ImGui::SetNextItemWidth(240);
+            bool submit = ImGui::InputText("##gotoLineInput", state.goToLineBuf,
+                                           sizeof(state.goToLineBuf),
+                                           ImGuiInputTextFlags_EnterReturnsTrue);
+            if (ImGui::Button("Go")) submit = true;
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                state.showGoToLine = false;
+                state.goToLineError = false;
+                ImGui::CloseCurrentPopup();
+            }
+            if (submit) {
+                int line = 0;
+                int col = 0;
+                if (parseLineColInput(state.goToLineBuf, line, col)) {
+                    if (totalLines > 0) line = std::max(1, std::min(line, totalLines));
+                    col = std::max(1, col);
+                    if (state.active()) {
+                        state.jumpTo(state.active(), line - 1, col - 1);
+                    }
+                    state.showGoToLine = false;
+                    state.goToLineError = false;
+                    ImGui::CloseCurrentPopup();
+                } else {
+                    state.goToLineError = true;
+                }
+            }
+            if (state.goToLineError) {
+                ImGui::TextColored(ImVec4(0.9f, 0.4f, 0.4f, 1.0f), "Invalid format.");
+            }
+            ImGui::EndPopup();
         }
 
         // ---------------------------------------------------------------

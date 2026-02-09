@@ -217,6 +217,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 111: **IMPLEMENTED** — Symbol outline panel with LSP + AST fallback (2/2 tests pass)
 - [x] Step 112: **IMPLEMENTED** — Breadcrumb navigation with scope roles (1/1 tests pass)
 - [x] Step 113: **IMPLEMENTED** — Project-wide search panel with regex and glob filters (3/3 tests pass)
+- [x] Step 114: **IMPLEMENTED** — Go-to-line popup with :line:col parsing (4/4 tests pass)
 
 ---
 
@@ -313,6 +314,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 111:** Compile and pass (2/2)
 **Step 112:** Compile and pass (1/1)
 **Step 113:** Compile and pass (3/3)
+**Step 114:** Compile and pass (4/4)
 
 ---
 
@@ -364,7 +366,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 113 (project-wide search) done. Next: Step 114 (go-to-line).
+Sprint 4 in progress. Step 114 (go-to-line) done. Next: Step 115 (wire orchestrator).
 
 ---
 
@@ -439,3 +441,4 @@ Sprint 4 in progress. Step 113 (project-wide search) done. Next: Step 114 (go-to
 | 2026-02-09 | Codex | Step 111: Symbol outline panel with LSP + AST fallback. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 112: Breadcrumb navigation with scope roles. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 113: Project-wide search panel with regex and glob filters. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 114: Go-to-line popup with :line:col parsing. 4/4 tests pass. |

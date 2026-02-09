@@ -340,7 +340,7 @@ Whetstone-specific AST navigation.
   Regex support. Include/exclude glob filters.
   *New:* `ProjectSearch.h`
 
-- [ ] **Step 114: Go-to-line**
+- [x] **Step 114: Go-to-line**
   Ctrl+G opens a quick input: type line number → jump. Supports `:line:col`
   format. Shows total line count.
   *Modifies:* `main.cpp`
