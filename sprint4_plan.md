@@ -406,7 +406,7 @@ AST extensions for Sprint 5.
 
 External tool integration and agent connectivity.
 
-- [ ] **Step 122: Integrated terminal**
+- [x] **Step 122: Integrated terminal**
   New "Terminal" tab in the bottom panel. Subprocess output capture (not a
   full terminal emulator — captures stdout/stderr from spawned processes).
   Run shell commands, see output. Ctrl+` to toggle. Working directory =

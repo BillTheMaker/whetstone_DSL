@@ -40,6 +40,7 @@
 #include "ProjectManager.h"
 #include "SessionManager.h"
 #include "ZoomUtils.h"
+#include "TerminalPanel.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -143,6 +144,8 @@ struct EditorState {
     // Bottom panel
     int               bottomTab   = 0;  // 0=Output, 1=AST, 2=Highlighted
     std::string       outputLog;
+    bool              showTerminalPanel = false;
+    TerminalPanel     terminal;
 
     // Custom editor widget state
     bool              showWhitespace = false;
@@ -834,6 +837,9 @@ struct EditorState {
                         [this]() { showAnnotations = !showAnnotations; });
         registerCommand("view.outline", "View: Toggle Outline", "",
                         [this]() { showOutline = !showOutline; });
+        registerCommand("view.toggleTerminal", "View: Toggle Terminal",
+                        keys.getBinding("view.toggleTerminal").toString(),
+                        [this]() { showTerminalPanel = !showTerminalPanel; });
         registerCommand("view.lsp", "View: LSP Servers...", "",
                         [this]() { showLspSettings = !showLspSettings; });
         registerCommand("mode.toggle", "Mode: Toggle Text/Structured", "",

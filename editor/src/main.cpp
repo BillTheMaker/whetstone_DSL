@@ -164,6 +164,9 @@ int main(int, char**) {
                         state.goToLineBuf[0] = '\0';
                         state.goToLineError = false;
                     }
+                    else if (action == "view.toggleTerminal") {
+                        state.showTerminalPanel = !state.showTerminalPanel;
+                    }
                     else if (action == "file.save")   state.doSave();
                     else if (action == "file.new") {
                         std::string lang = state.active() ? state.active()->language : "python";
@@ -293,6 +296,8 @@ int main(int, char**) {
                 ImGui::MenuItem("Show Minimap", nullptr, &state.showMinimap);
                 ImGui::MenuItem("Show Annotations", nullptr, &state.showAnnotations);
                 ImGui::MenuItem("Show Outline", nullptr, &state.showOutline);
+                ImGui::MenuItem("Terminal", state.keys.getBinding("view.toggleTerminal").toString().c_str(),
+                                &state.showTerminalPanel);
                 ImGui::MenuItem("Settings", nullptr, &state.showSettingsPanel);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
@@ -1588,7 +1593,7 @@ int main(int, char**) {
         ImGui::End();
 
         // ---------------------------------------------------------------
-        //  Bottom panel — Output / AST / Highlighted Preview
+        //  Bottom panel — Output / AST / Highlighted Preview / Terminal
         // ---------------------------------------------------------------
         ImGui::Begin("Panel");
 
@@ -1603,6 +1608,11 @@ int main(int, char**) {
                     ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();
                 ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (state.showTerminalPanel && ImGui::BeginTabItem("Terminal")) {
+                state.terminal.render(state.workspaceRoot, monoFont);
                 ImGui::EndTabItem();
             }
 
