@@ -20,7 +20,7 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 | Sprint 1 | — | Complete | MPS-based prototype (JetBrains MPS language plugin) |
 | Sprint 2 | 1–38 | **Complete** | C++ editor stack: AST, serialization, generators, ImGui shell, orchestrator, agents |
 | Sprint 3 | 39–75 | **Complete** | Core functionality: C++ generator, tree-sitter, classical editing, optimization |
-| Sprint 4 | 76–120 | **Complete** | Professional editor: layout presets, code editor, LSP, annotation UI (Steps 121–126 deferred) |
+| Sprint 4 | 76–121 | **In Progress** | Professional editor: layout presets, code editor, LSP, annotation UI |
 
 ---
 
@@ -168,7 +168,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 
 ---
 
-## Sprint 4: Professional Editor (Steps 76–120) — Complete (Steps 121–126 deferred to Sprint 5)
+## Sprint 4: Professional Editor (Steps 76–126) — In Progress
 
 ### Phase 4a: Layout & Code Editor Core (Steps 76–83) — In Progress
 - [x] Step 76: **IMPLEMENTED** — LayoutManager: 3 preset docking layouts (VSCode/Emacs/JetBrains), panel visibility/ratio queries, dirty flag for rebuild, save/load persistence, preset name round-trip (10/10 tests pass)
@@ -382,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 5: Deferred Steps 121–126 (AST import, external modules, dependency browser, library browser, advanced search, final integration). New panels (Dependencies, Library Browser) will be added following the panel extraction pattern in `editor/src/panels/`.
+Sprint 4 complete. Step 126 (build system integration) done.
 
 ---
 
@@ -465,3 +465,10 @@ Sprint 5: Deferred Steps 121–126 (AST import, external modules, dependency bro
 | 2026-02-09 | Codex | Step 119: Zoom controls and status bar indicator. 5/5 tests pass. |
 | 2026-02-09 | Codex | Step 120: Unified undo/redo via orchestrator snapshots (per-buffer), status bar undo depth, snapshot-based undo/redo wiring. 4/4 tests pass. |
 | 2026-02-09 | Claude Opus 4.6 | Pre-Sprint 5 refactoring: Created ARCHITECTURE.md (coding standards). Split Generator.h (2150→4 files, shared dispatch eliminates 279 lines duplication). Extracted EditorState.h and EditorUtils.h from main.cpp (4102→~2235 lines). Pinned 6 FetchContent deps to release tags. Orchestrator.h cleanup: wired CppGenerator, added platform guards, fixed shell injection, replaced stale TODOs with STUB markers. Sprint 4 marked complete (Steps 121–126 deferred to Sprint 5). |
+| 2026-02-09 | Codex | Step 121: Added Import, ExternalModule, TypeSignature AST concepts with serialization + schema wiring. 10/10 tests pass. |
+| 2026-02-09 | Codex | Step 122: Integrated terminal panel with command runner, ANSI color rendering, and Ctrl+` toggle. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 123: Run/build command support with toolbar buttons, build menu, and status bar run state. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 124: Agent server wiring (Mock transport), RPC handler, and Agents tab/log. 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 125: Agents panel enhancements (permissions, disconnect, request logging). 2/2 tests pass. |
+| 2026-02-09 | Codex | Added integration test for Step 125 agent mutation flow; updated testing policy in ARCHITECTURE.md. 3/3 integration tests pass. |
+| 2026-02-09 | Codex | Step 126: Build system detection, build commands, and error parsing/jump. 7/7 tests pass. |
