@@ -188,6 +188,16 @@ struct EditorState {
                 language = "cpp";
             else if (path.size() > 3 && path.substr(path.size() - 3) == ".el")
                 language = "elisp";
+            else if (path.size() > 3 && path.substr(path.size() - 3) == ".js")
+                language = "javascript";
+            else if (path.size() > 3 && path.substr(path.size() - 3) == ".ts")
+                language = "typescript";
+            else if (path.size() > 5 && path.substr(path.size() - 5) == ".java")
+                language = "java";
+            else if (path.size() > 3 && path.substr(path.size() - 3) == ".rs")
+                language = "rust";
+            else if (path.size() > 3 && path.substr(path.size() - 3) == ".go")
+                language = "go";
             editor.setContent(editBuf, language);
             sync.setText(editBuf, language);
             sync.syncNow();
@@ -574,6 +584,16 @@ int main(int, char**) {
                     state.setLanguage("cpp");
                 if (ImGui::MenuItem("Elisp", nullptr, state.language == "elisp"))
                     state.setLanguage("elisp");
+                if (ImGui::MenuItem("JavaScript", nullptr, state.language == "javascript"))
+                    state.setLanguage("javascript");
+                if (ImGui::MenuItem("TypeScript", nullptr, state.language == "typescript"))
+                    state.setLanguage("typescript");
+                if (ImGui::MenuItem("Java", nullptr, state.language == "java"))
+                    state.setLanguage("java");
+                if (ImGui::MenuItem("Rust", nullptr, state.language == "rust"))
+                    state.setLanguage("rust");
+                if (ImGui::MenuItem("Go", nullptr, state.language == "go"))
+                    state.setLanguage("go");
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Keybindings")) {

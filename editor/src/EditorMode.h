@@ -42,6 +42,11 @@ enum class EditorModeType {
     Python,
     Cpp,
     Elisp,
+    JavaScript,
+    TypeScript,
+    Java,
+    Rust,
+    Go,
     PlainText
 };
 
@@ -56,6 +61,11 @@ public:
         if (language == "python")     loadPython();
         else if (language == "cpp")   loadCpp();
         else if (language == "elisp") loadElisp();
+        else if (language == "javascript") loadJavaScript();
+        else if (language == "typescript") loadTypeScript();
+        else if (language == "java") loadJava();
+        else if (language == "rust") loadRust();
+        else if (language == "go") loadGo();
         else                          loadPlainText();
     }
 
@@ -146,6 +156,11 @@ public:
             case EditorModeType::Python:    return "Python";
             case EditorModeType::Cpp:       return "C++";
             case EditorModeType::Elisp:     return "Elisp";
+            case EditorModeType::JavaScript:return "JavaScript";
+            case EditorModeType::TypeScript:return "TypeScript";
+            case EditorModeType::Java:      return "Java";
+            case EditorModeType::Rust:      return "Rust";
+            case EditorModeType::Go:        return "Go";
             case EditorModeType::PlainText: return "Plain Text";
         }
         return "Unknown";
@@ -155,6 +170,11 @@ public:
         if (lang == "python") return EditorModeType::Python;
         if (lang == "cpp")    return EditorModeType::Cpp;
         if (lang == "elisp")  return EditorModeType::Elisp;
+        if (lang == "javascript") return EditorModeType::JavaScript;
+        if (lang == "typescript") return EditorModeType::TypeScript;
+        if (lang == "java") return EditorModeType::Java;
+        if (lang == "rust") return EditorModeType::Rust;
+        if (lang == "go") return EditorModeType::Go;
         return EditorModeType::PlainText;
     }
 
@@ -229,6 +249,62 @@ private:
         comment_ = {"", "", ""};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'"', '"'}};
         snippets_ = {};
+    }
+
+    void loadJavaScript() {
+        type_ = EditorModeType::JavaScript;
+        indent_ = {"{", "}", 2, false};
+        comment_ = {"//", "/*", "*/"};
+        brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}};
+        snippets_ = {
+            {"fn", "function $1($2) {\\n  $0\\n}", "Function"},
+            {"if", "if ($1) {\\n  $0\\n}", "If statement"},
+            {"for", "for (let $1 = 0; $1 < $2; $1++) {\\n  $0\\n}", "For loop"},
+        };
+    }
+
+    void loadTypeScript() {
+        type_ = EditorModeType::TypeScript;
+        indent_ = {"{", "}", 2, false};
+        comment_ = {"//", "/*", "*/"};
+        brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}, {'<', '>'}};
+        snippets_ = {
+            {"fn", "function $1($2): $3 {\\n  $0\\n}", "Function"},
+            {"if", "if ($1) {\\n  $0\\n}", "If statement"},
+        };
+    }
+
+    void loadJava() {
+        type_ = EditorModeType::Java;
+        indent_ = {"{", "}", 4, false};
+        comment_ = {"//", "/*", "*/"};
+        brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}};
+        snippets_ = {
+            {"class", "class $1 {\\n    $0\\n}", "Class"},
+            {"if", "if ($1) {\\n    $0\\n}", "If statement"},
+        };
+    }
+
+    void loadRust() {
+        type_ = EditorModeType::Rust;
+        indent_ = {"{", "}", 4, false};
+        comment_ = {"//", "/*", "*/"};
+        brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'\"', '\"'}};
+        snippets_ = {
+            {"fn", "fn $1($2) -> $3 {\\n    $0\\n}", "Function"},
+            {"if", "if $1 {\\n    $0\\n}", "If statement"},
+        };
+    }
+
+    void loadGo() {
+        type_ = EditorModeType::Go;
+        indent_ = {"{", "}", 4, false};
+        comment_ = {"//", "/*", "*/"};
+        brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'\"', '\"'}};
+        snippets_ = {
+            {"fn", "func $1($2) $3 {\\n    $0\\n}", "Function"},
+            {"if", "if $1 {\\n    $0\\n}", "If statement"},
+        };
     }
 
     std::string language_;

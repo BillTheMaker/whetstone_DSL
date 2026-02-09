@@ -34,6 +34,43 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 
+FetchContent_Declare(
+    tree-sitter-javascript
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-javascript.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
+    tree-sitter-typescript
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-typescript.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
+    tree-sitter-java
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-java.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
+    tree-sitter-rust
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-rust.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+    SOURCE_DIR     ${CMAKE_BINARY_DIR}/_deps/tree-sitter-rust-src2
+    BINARY_DIR     ${CMAKE_BINARY_DIR}/_deps/tree-sitter-rust-build2
+)
+
+FetchContent_Declare(
+    tree-sitter-go
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-go.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+
 # Populate without add_subdirectory (grammars have their own CMakeLists with conflicting targets)
 FetchContent_GetProperties(tree-sitter-python)
 if(NOT tree-sitter-python_POPULATED)
@@ -48,6 +85,31 @@ endif()
 FetchContent_GetProperties(tree-sitter-elisp)
 if(NOT tree-sitter-elisp_POPULATED)
     FetchContent_Populate(tree-sitter-elisp)
+endif()
+
+FetchContent_GetProperties(tree-sitter-javascript)
+if(NOT tree-sitter-javascript_POPULATED)
+    FetchContent_Populate(tree-sitter-javascript)
+endif()
+
+FetchContent_GetProperties(tree-sitter-typescript)
+if(NOT tree-sitter-typescript_POPULATED)
+    FetchContent_Populate(tree-sitter-typescript)
+endif()
+
+FetchContent_GetProperties(tree-sitter-java)
+if(NOT tree-sitter-java_POPULATED)
+    FetchContent_Populate(tree-sitter-java)
+endif()
+
+FetchContent_GetProperties(tree-sitter-rust)
+if(NOT tree-sitter-rust_POPULATED)
+    FetchContent_Populate(tree-sitter-rust)
+endif()
+
+FetchContent_GetProperties(tree-sitter-go)
+if(NOT tree-sitter-go_POPULATED)
+    FetchContent_Populate(tree-sitter-go)
 endif()
 
 # Build tree-sitter-python grammar as a static C library
@@ -79,6 +141,51 @@ target_include_directories(tree_sitter_elisp PUBLIC
     ${tree-sitter-elisp_SOURCE_DIR}/src
 )
 target_link_libraries(tree_sitter_elisp PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-javascript grammar as a static C library
+set(_ts_js_src ${tree-sitter-javascript_SOURCE_DIR}/src/parser.c)
+if(EXISTS "${tree-sitter-javascript_SOURCE_DIR}/src/scanner.c")
+    list(APPEND _ts_js_src "${tree-sitter-javascript_SOURCE_DIR}/src/scanner.c")
+endif()
+add_library(tree_sitter_javascript STATIC ${_ts_js_src})
+target_include_directories(tree_sitter_javascript PUBLIC ${tree-sitter-javascript_SOURCE_DIR}/src)
+target_link_libraries(tree_sitter_javascript PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-typescript grammar as a static C library (typescript only)
+set(_ts_ts_src ${tree-sitter-typescript_SOURCE_DIR}/typescript/src/parser.c)
+if(EXISTS "${tree-sitter-typescript_SOURCE_DIR}/typescript/src/scanner.c")
+    list(APPEND _ts_ts_src "${tree-sitter-typescript_SOURCE_DIR}/typescript/src/scanner.c")
+endif()
+add_library(tree_sitter_typescript STATIC ${_ts_ts_src})
+target_include_directories(tree_sitter_typescript PUBLIC ${tree-sitter-typescript_SOURCE_DIR}/typescript/src)
+target_link_libraries(tree_sitter_typescript PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-java grammar as a static C library
+set(_ts_java_src ${tree-sitter-java_SOURCE_DIR}/src/parser.c)
+if(EXISTS "${tree-sitter-java_SOURCE_DIR}/src/scanner.c")
+    list(APPEND _ts_java_src "${tree-sitter-java_SOURCE_DIR}/src/scanner.c")
+endif()
+add_library(tree_sitter_java STATIC ${_ts_java_src})
+target_include_directories(tree_sitter_java PUBLIC ${tree-sitter-java_SOURCE_DIR}/src)
+target_link_libraries(tree_sitter_java PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-rust grammar as a static C library
+set(_ts_rust_src ${tree-sitter-rust_SOURCE_DIR}/src/parser.c)
+if(EXISTS "${tree-sitter-rust_SOURCE_DIR}/src/scanner.c")
+    list(APPEND _ts_rust_src "${tree-sitter-rust_SOURCE_DIR}/src/scanner.c")
+endif()
+add_library(tree_sitter_rust STATIC ${_ts_rust_src})
+target_include_directories(tree_sitter_rust PUBLIC ${tree-sitter-rust_SOURCE_DIR}/src)
+target_link_libraries(tree_sitter_rust PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-go grammar as a static C library
+set(_ts_go_src ${tree-sitter-go_SOURCE_DIR}/src/parser.c)
+if(EXISTS "${tree-sitter-go_SOURCE_DIR}/src/scanner.c")
+    list(APPEND _ts_go_src "${tree-sitter-go_SOURCE_DIR}/src/scanner.c")
+endif()
+add_library(tree_sitter_go STATIC ${_ts_go_src})
+target_include_directories(tree_sitter_go PUBLIC ${tree-sitter-go_SOURCE_DIR}/src)
+target_link_libraries(tree_sitter_go PUBLIC unofficial::tree-sitter::tree-sitter)
 
 add_executable(step1_test tests/step1_test.cpp)
 target_include_directories(step1_test PRIVATE src)
@@ -347,6 +454,18 @@ add_executable(step82_test tests/step82_test.cpp)
 target_include_directories(step82_test PRIVATE src)
 target_link_libraries(step82_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
 
+add_executable(step83_test tests/step83_test.cpp)
+target_include_directories(step83_test PRIVATE src)
+target_link_libraries(step83_test PRIVATE unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -401,7 +520,12 @@ target_link_libraries(whetstone_editor PRIVATE
     unofficial::tree-sitter::tree-sitter
     tree_sitter_python
     tree_sitter_cpp
-    tree_sitter_elisp)
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
 
 add_executable(orchestrator src/orchestrator_main.cpp)
 target_include_directories(orchestrator PRIVATE src)

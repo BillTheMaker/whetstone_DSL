@@ -19,6 +19,11 @@ extern "C" {
     const TSLanguage* tree_sitter_python();
     const TSLanguage* tree_sitter_cpp();
     const TSLanguage* tree_sitter_elisp();
+    const TSLanguage* tree_sitter_javascript();
+    const TSLanguage* tree_sitter_typescript();
+    const TSLanguage* tree_sitter_java();
+    const TSLanguage* tree_sitter_rust();
+    const TSLanguage* tree_sitter_go();
 }
 
 enum class TokenCategory {
@@ -55,6 +60,11 @@ public:
         if (language == "python") lang = tree_sitter_python();
         else if (language == "cpp") lang = tree_sitter_cpp();
         else if (language == "elisp") lang = tree_sitter_elisp();
+        else if (language == "javascript") lang = tree_sitter_javascript();
+        else if (language == "typescript") lang = tree_sitter_typescript();
+        else if (language == "java") lang = tree_sitter_java();
+        else if (language == "rust") lang = tree_sitter_rust();
+        else if (language == "go") lang = tree_sitter_go();
 
         if (!lang) {
             ts_parser_delete(parser);
@@ -70,6 +80,11 @@ public:
         if (language == "python") walkPython(root, source, spans);
         else if (language == "cpp") walkCpp(root, source, spans);
         else if (language == "elisp") walkElisp(root, source, spans);
+        else if (language == "javascript") walkJavaScript(root, source, spans);
+        else if (language == "typescript") walkTypeScript(root, source, spans);
+        else if (language == "java") walkJava(root, source, spans);
+        else if (language == "rust") walkRust(root, source, spans);
+        else if (language == "go") walkGo(root, source, spans);
 
         ts_tree_delete(tree);
         ts_parser_delete(parser);
@@ -263,6 +278,281 @@ private:
             if (text == *t) return true;
         }
         return false;
+    }
+
+    // --- JavaScript / TypeScript --------------------------------------
+
+    static bool isJsKeyword(const std::string& text) {
+        static const char* keywords[] = {
+            "function", "return", "if", "else", "for", "while", "class",
+            "const", "let", "var", "import", "export", "new", "try", "catch",
+            "finally", "switch", "case", "break", "continue", "throw",
+            "async", "await", "yield", nullptr
+        };
+        for (const char** k = keywords; *k; ++k) {
+            if (text == *k) return true;
+        }
+        return false;
+    }
+
+    static void walkJavaScript(TSNode node, const std::string& source,
+                               std::vector<HighlightSpan>& spans) {
+        if (ts_node_is_null(node)) return;
+        std::string type = nodeType(node);
+        std::string text = nodeText(node, source);
+
+        bool descend = true;
+
+        if (type.find("comment") != std::string::npos) {
+            addSpan(spans, node, TokenCategory::Comment);
+            descend = false;
+        } else if (type == "string" || type == "string_fragment" || type == "template_string" ||
+                   type == "template_substitution") {
+            addSpan(spans, node, TokenCategory::String);
+            descend = false;
+        } else if (type == "number" || type == "number_literal") {
+            addSpan(spans, node, TokenCategory::Number);
+            descend = false;
+        } else if (type == "identifier" || type == "property_identifier") {
+            TSNode parent = ts_node_parent(node);
+            std::string parentType = ts_node_is_null(parent) ? "" : nodeType(parent);
+            if (parentType == "function_declaration" || parentType == "method_definition") {
+                addSpan(spans, node, TokenCategory::Function);
+            } else {
+                addSpan(spans, node, TokenCategory::Identifier);
+            }
+            descend = false;
+        } else if (type == "true" || type == "false" || type == "null" || type == "undefined") {
+            addSpan(spans, node, TokenCategory::Builtin);
+            descend = false;
+        } else if (!ts_node_is_named(node)) {
+            if (isJsKeyword(text)) {
+                addSpan(spans, node, TokenCategory::Keyword);
+            } else if (text == "(" || text == ")" || text == "[" || text == "]" ||
+                       text == "{" || text == "}" || text == ";" || text == "," ||
+                       text == "." || text == ":" ) {
+                addSpan(spans, node, TokenCategory::Punctuation);
+            } else {
+                addSpan(spans, node, TokenCategory::Operator);
+            }
+            descend = false;
+        }
+
+        if (descend) {
+            uint32_t count = ts_node_child_count(node);
+            for (uint32_t i = 0; i < count; ++i) {
+                walkJavaScript(ts_node_child(node, i), source, spans);
+            }
+        }
+    }
+
+    static void walkTypeScript(TSNode node, const std::string& source,
+                               std::vector<HighlightSpan>& spans) {
+        walkJavaScript(node, source, spans);
+    }
+
+    // --- Java -----------------------------------------------------------
+
+    static bool isJavaKeyword(const std::string& text) {
+        static const char* keywords[] = {
+            "class", "interface", "enum", "public", "private", "protected",
+            "static", "final", "void", "int", "float", "double", "boolean",
+            "return", "if", "else", "for", "while", "switch", "case",
+            "break", "continue", "new", "try", "catch", "finally", "throw",
+            "extends", "implements", "import", "package", "this", "super",
+            nullptr
+        };
+        for (const char** k = keywords; *k; ++k) {
+            if (text == *k) return true;
+        }
+        return false;
+    }
+
+    static void walkJava(TSNode node, const std::string& source,
+                         std::vector<HighlightSpan>& spans) {
+        if (ts_node_is_null(node)) return;
+        std::string type = nodeType(node);
+        std::string text = nodeText(node, source);
+
+        bool descend = true;
+
+        if (type.find("comment") != std::string::npos) {
+            addSpan(spans, node, TokenCategory::Comment);
+            descend = false;
+        } else if (type.find("string") != std::string::npos || type == "character_literal") {
+            addSpan(spans, node, TokenCategory::String);
+            descend = false;
+        } else if (type.find("integer") != std::string::npos || type.find("floating") != std::string::npos ||
+                   type == "decimal_integer_literal" || type == "decimal_floating_point_literal") {
+            addSpan(spans, node, TokenCategory::Number);
+            descend = false;
+        } else if (type == "identifier") {
+            TSNode parent = ts_node_parent(node);
+            std::string parentType = ts_node_is_null(parent) ? "" : nodeType(parent);
+            if (parentType == "method_declaration" || parentType == "constructor_declaration") {
+                addSpan(spans, node, TokenCategory::Function);
+            } else {
+                addSpan(spans, node, TokenCategory::Identifier);
+            }
+            descend = false;
+        } else if (type == "type_identifier" || type == "integral_type" || type == "floating_point_type") {
+            addSpan(spans, node, TokenCategory::Type);
+            descend = false;
+        } else if (type == "true" || type == "false" || type == "null_literal") {
+            addSpan(spans, node, TokenCategory::Builtin);
+            descend = false;
+        } else if (!ts_node_is_named(node)) {
+            if (isJavaKeyword(text)) {
+                addSpan(spans, node, TokenCategory::Keyword);
+            } else if (text == "(" || text == ")" || text == "[" || text == "]" ||
+                       text == "{" || text == "}" || text == ";" || text == "," ||
+                       text == "." || text == ":" ) {
+                addSpan(spans, node, TokenCategory::Punctuation);
+            } else {
+                addSpan(spans, node, TokenCategory::Operator);
+            }
+            descend = false;
+        }
+
+        if (descend) {
+            uint32_t count = ts_node_child_count(node);
+            for (uint32_t i = 0; i < count; ++i) {
+                walkJava(ts_node_child(node, i), source, spans);
+            }
+        }
+    }
+
+    // --- Rust -----------------------------------------------------------
+
+    static bool isRustKeyword(const std::string& text) {
+        static const char* keywords[] = {
+            "fn", "let", "mut", "pub", "impl", "trait", "struct", "enum",
+            "use", "mod", "crate", "self", "super", "return", "if", "else",
+            "for", "while", "loop", "match", "break", "continue", "const",
+            "static", "async", "await", "move", nullptr
+        };
+        for (const char** k = keywords; *k; ++k) {
+            if (text == *k) return true;
+        }
+        return false;
+    }
+
+    static void walkRust(TSNode node, const std::string& source,
+                         std::vector<HighlightSpan>& spans) {
+        if (ts_node_is_null(node)) return;
+        std::string type = nodeType(node);
+        std::string text = nodeText(node, source);
+
+        bool descend = true;
+
+        if (type.find("comment") != std::string::npos) {
+            addSpan(spans, node, TokenCategory::Comment);
+            descend = false;
+        } else if (type == "string_literal" || type == "char_literal" ||
+                   type == "raw_string_literal") {
+            addSpan(spans, node, TokenCategory::String);
+            descend = false;
+        } else if (type.find("integer") != std::string::npos || type.find("float") != std::string::npos ||
+                   type == "number") {
+            addSpan(spans, node, TokenCategory::Number);
+            descend = false;
+        } else if (type == "identifier") {
+            TSNode parent = ts_node_parent(node);
+            std::string parentType = ts_node_is_null(parent) ? "" : nodeType(parent);
+            if (parentType == "function_item") {
+                addSpan(spans, node, TokenCategory::Function);
+            } else {
+                addSpan(spans, node, TokenCategory::Identifier);
+            }
+            descend = false;
+        } else if (type == "type_identifier" || type == "primitive_type") {
+            addSpan(spans, node, TokenCategory::Type);
+            descend = false;
+        } else if (!ts_node_is_named(node)) {
+            if (isRustKeyword(text)) {
+                addSpan(spans, node, TokenCategory::Keyword);
+            } else if (text == "(" || text == ")" || text == "[" || text == "]" ||
+                       text == "{" || text == "}" || text == ";" || text == "," ||
+                       text == ":" ) {
+                addSpan(spans, node, TokenCategory::Punctuation);
+            } else {
+                addSpan(spans, node, TokenCategory::Operator);
+            }
+            descend = false;
+        }
+
+        if (descend) {
+            uint32_t count = ts_node_child_count(node);
+            for (uint32_t i = 0; i < count; ++i) {
+                walkRust(ts_node_child(node, i), source, spans);
+            }
+        }
+    }
+
+    // --- Go -------------------------------------------------------------
+
+    static bool isGoKeyword(const std::string& text) {
+        static const char* keywords[] = {
+            "func", "package", "import", "return", "if", "else", "for",
+            "switch", "case", "break", "continue", "struct", "interface",
+            "type", "var", "const", "go", "defer", "range", nullptr
+        };
+        for (const char** k = keywords; *k; ++k) {
+            if (text == *k) return true;
+        }
+        return false;
+    }
+
+    static void walkGo(TSNode node, const std::string& source,
+                       std::vector<HighlightSpan>& spans) {
+        if (ts_node_is_null(node)) return;
+        std::string type = nodeType(node);
+        std::string text = nodeText(node, source);
+
+        bool descend = true;
+
+        if (type.find("comment") != std::string::npos) {
+            addSpan(spans, node, TokenCategory::Comment);
+            descend = false;
+        } else if (type == "interpreted_string_literal" || type == "raw_string_literal" ||
+                   type == "rune_literal") {
+            addSpan(spans, node, TokenCategory::String);
+            descend = false;
+        } else if (type.find("int") != std::string::npos || type.find("float") != std::string::npos ||
+                   type == "number") {
+            addSpan(spans, node, TokenCategory::Number);
+            descend = false;
+        } else if (type == "identifier") {
+            TSNode parent = ts_node_parent(node);
+            std::string parentType = ts_node_is_null(parent) ? "" : nodeType(parent);
+            if (parentType == "function_declaration" || parentType == "method_declaration") {
+                addSpan(spans, node, TokenCategory::Function);
+            } else {
+                addSpan(spans, node, TokenCategory::Identifier);
+            }
+            descend = false;
+        } else if (type == "type_identifier" || type == "primitive_type") {
+            addSpan(spans, node, TokenCategory::Type);
+            descend = false;
+        } else if (!ts_node_is_named(node)) {
+            if (isGoKeyword(text)) {
+                addSpan(spans, node, TokenCategory::Keyword);
+            } else if (text == "(" || text == ")" || text == "[" || text == "]" ||
+                       text == "{" || text == "}" || text == ";" || text == "," ||
+                       text == ":" ) {
+                addSpan(spans, node, TokenCategory::Punctuation);
+            } else {
+                addSpan(spans, node, TokenCategory::Operator);
+            }
+            descend = false;
+        }
+
+        if (descend) {
+            uint32_t count = ts_node_child_count(node);
+            for (uint32_t i = 0; i < count; ++i) {
+                walkGo(ts_node_child(node, i), source, spans);
+            }
+        }
     }
 
     static void walkCpp(TSNode node, const std::string& source,
