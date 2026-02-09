@@ -36,6 +36,8 @@
 #include "TransformEngine.h"
 #include "StrategyAwareOptimizer.h"
 #include "CrossLanguageProjector.h"
+#include "DiffUtils.h"
+#include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
 
@@ -133,6 +135,21 @@ struct EditorState {
     std::string       optimizeFoldSummary;
     std::string       optimizeDeadCodeSummary;
     std::string       optimizeApplySummary;
+    bool              optimizePreview = false;
+    struct DiffState {
+        bool active = false;
+        bool preview = false;
+        int action = 0; // 1=constant-fold, 2=dead-code-elim, 3=apply-all
+        std::string beforeText;
+        std::string afterText;
+        std::vector<std::string> transformIds;
+        std::vector<int> beforeLines;
+        std::vector<int> afterLines;
+    } diff;
+    CodeEditorWidget  diffLeftWidget;
+    CodeEditorWidget  diffRightWidget;
+    float             diffScrollX = 0.0f;
+    float             diffScrollY = 0.0f;
 
     BufferState* active() { return activeBuffer; }
 
@@ -551,6 +568,22 @@ struct EditorState {
         analysisLastChange = ImGui::GetTime();
     }
 
+    void openDiff(const std::string& beforeText,
+                  const std::string& afterText,
+                  bool preview,
+                  int action,
+                  const std::vector<std::string>& transformIds) {
+        diff.active = true;
+        diff.preview = preview;
+        diff.action = action;
+        diff.beforeText = beforeText;
+        diff.afterText = afterText;
+        diff.transformIds = transformIds;
+        LineDiff lineDiff = buildLineDiff(beforeText, afterText);
+        diff.beforeLines = std::move(lineDiff.beforeLines);
+        diff.afterLines = std::move(lineDiff.afterLines);
+    }
+
     void updateCursorPos(int bytePos) {
         if (!active()) return;
         active()->cursorLine = 1;
@@ -599,6 +632,14 @@ static std::string generateForLanguage(const Module* ast, const std::string& lan
     }
     PythonGenerator gen;
     return gen.generate(ast);
+}
+
+static std::unique_ptr<Module> cloneModule(const Module* ast) {
+    if (!ast) return nullptr;
+    json j = toJson(ast);
+    ASTNode* node = fromJson(j);
+    if (!node || node->conceptType != "Module") return nullptr;
+    return std::unique_ptr<Module>(static_cast<Module*>(node));
 }
 
 static bool isAnnotationNode(const ASTNode* node) {
@@ -2044,6 +2085,7 @@ int main(int, char**) {
                 } else if (state.active()->readOnly) {
                     ImGui::TextDisabled("(read-only buffer)");
                 } else {
+                    ImGui::Checkbox("Preview changes", &state.optimizePreview);
                     std::string blockReason = findOptimizationBlockReason(ast);
                     bool blocked = !blockReason.empty();
 
@@ -2058,31 +2100,44 @@ int main(int, char**) {
 
                     if (blocked) ImGui::BeginDisabled();
                     if (ImGui::Button("Constant Fold")) {
-                        auto& inc = state.active()->incrementalOptimizer;
-                        inc.setRoot(ast);
-                        std::string tid = inc.applyTransform("constant-fold");
-                        auto history = inc.getTransformHistory();
-                        size_t nodes = 0;
-                        for (const auto& h : history) {
-                            if (h.transformId == tid) {
-                                nodes = h.affectedNodeIds.size();
-                                break;
-                            }
-                        }
-                        std::string warning = findOptimizationLockWarning(ast);
-                        std::string summary = "Constant Fold: ";
-                        if (nodes > 0) {
-                            summary += "applied (" + std::to_string(nodes) + " nodes)";
+                        std::string beforeText = state.active()->editBuf;
+                        if (state.optimizePreview) {
+                            auto previewAst = cloneModule(ast);
+                            TransformEngine engine;
+                            engine.setRoot(previewAst.get());
+                            engine.constantFolding();
+                            std::string afterText = generateForLanguage(previewAst.get(),
+                                                                        state.active()->language);
+                            state.openDiff(beforeText, afterText, true, 1, {});
                         } else {
-                            summary += "no changes";
+                            auto& inc = state.active()->incrementalOptimizer;
+                            inc.setRoot(ast);
+                            std::string tid = inc.applyTransform("constant-fold");
+                            auto history = inc.getTransformHistory();
+                            size_t nodes = 0;
+                            for (const auto& h : history) {
+                                if (h.transformId == tid) {
+                                    nodes = h.affectedNodeIds.size();
+                                    break;
+                                }
+                            }
+                            std::string warning = findOptimizationLockWarning(ast);
+                            std::string summary = "Constant Fold: ";
+                            if (nodes > 0) {
+                                summary += "applied (" + std::to_string(nodes) + " nodes)";
+                            } else {
+                                summary += "no changes";
+                            }
+                            if (!warning.empty()) {
+                                summary += " — warning: " + warning;
+                                state.outputLog += warning + "\n";
+                            }
+                            state.optimizeFoldSummary = summary;
+                            state.outputLog += summary + "\n";
+                            if (nodes > 0) state.refreshActiveTextFromAST();
+                            std::string afterText = state.active()->editBuf;
+                            state.openDiff(beforeText, afterText, false, 1, {tid});
                         }
-                        if (!warning.empty()) {
-                            summary += " — warning: " + warning;
-                            state.outputLog += warning + "\n";
-                        }
-                        state.optimizeFoldSummary = summary;
-                        state.outputLog += summary + "\n";
-                        if (nodes > 0) state.refreshActiveTextFromAST();
                     }
                     showBlockedTooltip(blockReason);
                     if (blocked) ImGui::EndDisabled();
@@ -2094,26 +2149,39 @@ int main(int, char**) {
 
                     if (blocked) ImGui::BeginDisabled();
                     if (ImGui::Button("Dead Code Elimination")) {
-                        auto& inc = state.active()->incrementalOptimizer;
-                        inc.setRoot(ast);
-                        std::string tid = inc.applyTransform("dead-code-elim");
-                        auto history = inc.getTransformHistory();
-                        size_t nodes = 0;
-                        for (const auto& h : history) {
-                            if (h.transformId == tid) {
-                                nodes = h.affectedNodeIds.size();
-                                break;
-                            }
-                        }
-                        std::string summary = "Dead Code Elimination: ";
-                        if (nodes > 0) {
-                            summary += "applied (" + std::to_string(nodes) + " nodes)";
+                        std::string beforeText = state.active()->editBuf;
+                        if (state.optimizePreview) {
+                            auto previewAst = cloneModule(ast);
+                            TransformEngine engine;
+                            engine.setRoot(previewAst.get());
+                            engine.deadCodeElimination();
+                            std::string afterText = generateForLanguage(previewAst.get(),
+                                                                        state.active()->language);
+                            state.openDiff(beforeText, afterText, true, 2, {});
                         } else {
-                            summary += "no changes";
+                            auto& inc = state.active()->incrementalOptimizer;
+                            inc.setRoot(ast);
+                            std::string tid = inc.applyTransform("dead-code-elim");
+                            auto history = inc.getTransformHistory();
+                            size_t nodes = 0;
+                            for (const auto& h : history) {
+                                if (h.transformId == tid) {
+                                    nodes = h.affectedNodeIds.size();
+                                    break;
+                                }
+                            }
+                            std::string summary = "Dead Code Elimination: ";
+                            if (nodes > 0) {
+                                summary += "applied (" + std::to_string(nodes) + " nodes)";
+                            } else {
+                                summary += "no changes";
+                            }
+                            state.optimizeDeadCodeSummary = summary;
+                            state.outputLog += summary + "\n";
+                            if (nodes > 0) state.refreshActiveTextFromAST();
+                            std::string afterText = state.active()->editBuf;
+                            state.openDiff(beforeText, afterText, false, 2, {tid});
                         }
-                        state.optimizeDeadCodeSummary = summary;
-                        state.outputLog += summary + "\n";
-                        if (nodes > 0) state.refreshActiveTextFromAST();
                     }
                     showBlockedTooltip(blockReason);
                     if (blocked) ImGui::EndDisabled();
@@ -2125,31 +2193,44 @@ int main(int, char**) {
 
                     if (blocked) ImGui::BeginDisabled();
                     if (ImGui::Button("Apply All")) {
-                        auto& inc = state.active()->incrementalOptimizer;
-                        inc.setRoot(ast);
-                        std::string tidFold = inc.applyTransform("constant-fold");
-                        std::string tidDce = inc.applyTransform("dead-code-elim");
-                        auto history = inc.getTransformHistory();
-                        size_t totalNodes = 0;
-                        for (const auto& h : history) {
-                            if (h.transformId == tidFold || h.transformId == tidDce) {
-                                totalNodes += h.affectedNodeIds.size();
-                            }
-                        }
-                        std::string warning = findOptimizationLockWarning(ast);
-                        std::string summary = "Apply All: ";
-                        if (totalNodes > 0) {
-                            summary += "applied (" + std::to_string(totalNodes) + " nodes)";
+                        std::string beforeText = state.active()->editBuf;
+                        if (state.optimizePreview) {
+                            auto previewAst = cloneModule(ast);
+                            TransformEngine engine;
+                            engine.setRoot(previewAst.get());
+                            engine.applyAll();
+                            std::string afterText = generateForLanguage(previewAst.get(),
+                                                                        state.active()->language);
+                            state.openDiff(beforeText, afterText, true, 3, {});
                         } else {
-                            summary += "no changes";
+                            auto& inc = state.active()->incrementalOptimizer;
+                            inc.setRoot(ast);
+                            std::string tidFold = inc.applyTransform("constant-fold");
+                            std::string tidDce = inc.applyTransform("dead-code-elim");
+                            auto history = inc.getTransformHistory();
+                            size_t totalNodes = 0;
+                            for (const auto& h : history) {
+                                if (h.transformId == tidFold || h.transformId == tidDce) {
+                                    totalNodes += h.affectedNodeIds.size();
+                                }
+                            }
+                            std::string warning = findOptimizationLockWarning(ast);
+                            std::string summary = "Apply All: ";
+                            if (totalNodes > 0) {
+                                summary += "applied (" + std::to_string(totalNodes) + " nodes)";
+                            } else {
+                                summary += "no changes";
+                            }
+                            if (!warning.empty()) {
+                                summary += " — warning: " + warning;
+                                state.outputLog += warning + "\n";
+                            }
+                            state.optimizeApplySummary = summary;
+                            state.outputLog += summary + "\n";
+                            if (totalNodes > 0) state.refreshActiveTextFromAST();
+                            std::string afterText = state.active()->editBuf;
+                            state.openDiff(beforeText, afterText, false, 3, {tidFold, tidDce});
                         }
-                        if (!warning.empty()) {
-                            summary += " — warning: " + warning;
-                            state.outputLog += warning + "\n";
-                        }
-                        state.optimizeApplySummary = summary;
-                        state.outputLog += summary + "\n";
-                        if (totalNodes > 0) state.refreshActiveTextFromAST();
                     }
                     showBlockedTooltip(blockReason);
                     if (blocked) ImGui::EndDisabled();
@@ -2215,6 +2296,94 @@ int main(int, char**) {
                             ImGui::PopID();
                         }
                     }
+                }
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            // Diff view
+            if (ImGui::BeginTabItem("Diff")) {
+                ImGui::PushFont(uiFont);
+                auto* buf = state.active();
+                Module* ast = buf ? buf->sync.getAST() : nullptr;
+                if (!buf) {
+                    ImGui::TextDisabled("(no active buffer)");
+                } else if (!state.diff.active) {
+                    ImGui::TextDisabled("(no diff)");
+                } else {
+                    if (state.diff.preview) {
+                        if (ImGui::Button("Apply")) {
+                            if (ast && !buf->readOnly) {
+                                buf->incrementalOptimizer.setRoot(ast);
+                                std::vector<std::string> ids;
+                                if (state.diff.action == 1) {
+                                    ids.push_back(buf->incrementalOptimizer.applyTransform("constant-fold"));
+                                } else if (state.diff.action == 2) {
+                                    ids.push_back(buf->incrementalOptimizer.applyTransform("dead-code-elim"));
+                                } else if (state.diff.action == 3) {
+                                    ids.push_back(buf->incrementalOptimizer.applyTransform("constant-fold"));
+                                    ids.push_back(buf->incrementalOptimizer.applyTransform("dead-code-elim"));
+                                }
+                                state.refreshActiveTextFromAST();
+                            }
+                            state.diff.active = false;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Cancel")) {
+                            state.diff.active = false;
+                        }
+                    } else {
+                        if (ImGui::Button("Keep")) {
+                            state.diff.active = false;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Undo")) {
+                            if (ast && !buf->readOnly) {
+                                buf->incrementalOptimizer.setRoot(ast);
+                                for (auto it = state.diff.transformIds.rbegin();
+                                     it != state.diff.transformIds.rend(); ++it) {
+                                    buf->incrementalOptimizer.undoTransform(*it);
+                                }
+                                state.refreshActiveTextFromAST();
+                            }
+                            state.diff.active = false;
+                        }
+                    }
+
+                    ImGui::Separator();
+                    ImGui::BeginTable("##diffSplit", 2,
+                                      ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp);
+                    ImGui::TableSetupColumn("Before", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+                    ImGui::TableSetupColumn("After", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    CodeEditorOptions leftOpts;
+                    leftOpts.readOnly = true;
+                    leftOpts.showWhitespace = state.showWhitespace;
+                    leftOpts.showCurrentLine = false;
+                    leftOpts.highlightLines = &state.diff.beforeLines;
+                    leftOpts.highlightLineColor = IM_COL32(160, 80, 80, 120);
+                    leftOpts.syncScrollX = &state.diffScrollX;
+                    leftOpts.syncScrollY = &state.diffScrollY;
+                    leftOpts.scrollMaster = true;
+                    state.diffLeftWidget.render("##diffBefore",
+                        state.diff.beforeText, std::vector<HighlightSpan>{}, leftOpts,
+                        ImVec2(0, 0), monoFont);
+
+                    ImGui::TableSetColumnIndex(1);
+                    CodeEditorOptions rightOpts;
+                    rightOpts.readOnly = true;
+                    rightOpts.showWhitespace = state.showWhitespace;
+                    rightOpts.showCurrentLine = false;
+                    rightOpts.highlightLines = &state.diff.afterLines;
+                    rightOpts.highlightLineColor = IM_COL32(80, 160, 80, 120);
+                    rightOpts.syncScrollX = &state.diffScrollX;
+                    rightOpts.syncScrollY = &state.diffScrollY;
+                    rightOpts.scrollMaster = false;
+                    state.diffRightWidget.render("##diffAfter",
+                        state.diff.afterText, std::vector<HighlightSpan>{}, rightOpts,
+                        ImVec2(0, 0), monoFont);
+                    ImGui::EndTable();
                 }
                 ImGui::PopFont();
                 ImGui::EndTabItem();

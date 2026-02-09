@@ -31,6 +31,8 @@ struct CodeEditorOptions {
     const std::vector<struct SuggestionMarker>* suggestions = nullptr;
     const std::vector<struct AnnotationConflictMarker>* conflicts = nullptr;
     int highlightLine = -1;
+    const std::vector<int>* highlightLines = nullptr;
+    ImU32 highlightLineColor = IM_COL32(90, 70, 30, 120);
     float* syncScrollX = nullptr;
     float* syncScrollY = nullptr;
     bool scrollMaster = false;
@@ -388,7 +390,15 @@ public:
             if (options.highlightLine >= 0 && ln == options.highlightLine) {
                 ImVec2 hlA(textBase.x, y);
                 ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
-                drawList->AddRectFilled(hlA, hlB, IM_COL32(90, 70, 30, 120));
+                drawList->AddRectFilled(hlA, hlB, options.highlightLineColor);
+            }
+            if (options.highlightLines) {
+                if (std::find(options.highlightLines->begin(),
+                              options.highlightLines->end(), ln) != options.highlightLines->end()) {
+                    ImVec2 hlA(textBase.x, y);
+                    ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
+                    drawList->AddRectFilled(hlA, hlB, options.highlightLineColor);
+                }
             }
 
             // Selection background
