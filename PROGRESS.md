@@ -20,6 +20,7 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 | Sprint 1 | — | Complete | MPS-based prototype (JetBrains MPS language plugin) |
 | Sprint 2 | 1–38 | **Complete** | C++ editor stack: AST, serialization, generators, ImGui shell, orchestrator, agents |
 | Sprint 3 | 39–75 | **Complete** | Core functionality: C++ generator, tree-sitter, classical editing, optimization |
+| Sprint 4 | 76–126 | **In Progress** | Professional editor: layout presets, code editor, LSP, annotation UI |
 
 ---
 
@@ -167,6 +168,13 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 
 ---
 
+## Sprint 4: Professional Editor (Steps 76–126) — In Progress
+
+### Phase 4a: Layout & Code Editor Core (Steps 76–83) — In Progress
+- [x] Step 76: **IMPLEMENTED** — LayoutManager: 3 preset docking layouts (VSCode/Emacs/JetBrains), panel visibility/ratio queries, dirty flag for rebuild, save/load persistence, preset name round-trip (10/10 tests pass)
+
+---
+
 ## Build Infrastructure
 
 Created in the most recent session:
@@ -218,6 +226,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Steps 66–67:** Compile and pass (step66: 5/5, step67: 9/9)
 **Steps 68–71:** All compile and pass (step68: 4/4, step69: 4/4, step70: 5/5, step71: 4/4)
 **Steps 72–75:** All compile and pass (step72: 6/6, step73: 8/8, step74: 6/6, step75: 6/6)
+**Step 76:** Compile and pass (10/10)
 
 ---
 
@@ -249,6 +258,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | `editor/src/IncrementalOptimizer.h` | Incremental transforms with journal, undo by ID, provenance tracking |
 | `editor/src/Pipeline.h` | End-to-end pipeline: parse → infer → validate → optimize → generate |
 | `editor/src/APIDocGenerator.h` | Structured API documentation for all 23 components |
+| `editor/src/LayoutManager.h` | Docking layout presets (VSCode/Emacs/JetBrains), panel queries, persistence |
 | `editor/src/Orchestrator.h` | Orchestrator: Emacs integration, file ops, undo/redo, agent API |
 | `editor/src/main.cpp` | ImGui editor shell (SDL2 + OpenGL3, VSCode Dark theme, docking) |
 | `editor/src/orchestrator_main.cpp` | Orchestrator standalone process (JSON-RPC server) |
@@ -268,10 +278,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 3 complete. All 75 steps implemented and passing.
-All phases (3a–3h) done. Sprint 3 adds: C++ generator, tree-sitter parsing,
-classical editing, editor infrastructure, agent APIs, memory management,
-optimization pipeline, and end-to-end integration.
+Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code editor renderer).
 
 ---
 
@@ -303,3 +310,4 @@ optimization pipeline, and end-to-end integration.
 | 2026-02-08 | Claude Opus 4.6 | Step 65: MemoryStrategyInference. Language-based defaults (Python/Elisp/Ruby/JS/Java→Tracing, C→Explicit, Rust→Single, Swift→Shared_ARC, C++→RAII). Per-function alloc/dealloc pattern scan. Confidence scores. Read-only (never modifies AST). 5/5 tests pass. |
 | 2026-02-09 | Claude Opus 4.6 | Phase 3g complete: Optimization Pipeline (Steps 68–71). TransformEngine (constant folding, DCE, OptimizationLock warning). StrategyAwareOptimizer (annotation-constrained: @Reclaim allows, @Owner blocks duplication, @Deallocate blocks reorder, @Allocate blocks dynamic). StrategyValidator (use-after-free, leak, aliasing detection). IncrementalOptimizer (journal, undo by ID, provenance). 17/17 tests pass. |
 | 2026-02-09 | Claude Opus 4.6 | Phase 3h complete: Integration & Validation (Steps 72–75). Pipeline (end-to-end parse→infer→validate→optimize→generate across Python/C++). Error handling (8 edge cases: null roots, empty ASTs, nonexistent IDs). Performance benchmarks (1000-fn AST in 1ms, JSON round-trip 4ms). APIDocGenerator (23 components, 6 categories, markdown output). 26/26 tests pass. **Sprint 3 complete: all 75 steps done.** |
+| 2026-02-09 | Claude Opus 4.6 | Step 76: LayoutManager with 3 preset docking layouts (VSCode/Emacs/JetBrains). Panel visibility/ratio queries, dirty flag, save/load persistence. 10/10 tests pass. Sprint 4 started. |
