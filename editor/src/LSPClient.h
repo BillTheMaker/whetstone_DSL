@@ -49,6 +49,12 @@ public:
         std::string filterText;
     };
 
+    struct SignatureHelp {
+        std::string label;
+        int activeSignature = 0;
+        int activeParameter = 0;
+    };
+
     void initialize(const std::string& rootUri,
                     const std::string& clientName,
                     int processId) {
@@ -111,6 +117,24 @@ public:
         return id;
     }
 
+    int requestHover(const std::string& uri, int line, int character) {
+        nlohmann::json params;
+        params["textDocument"] = {{"uri", uri}};
+        params["position"] = {{"line", line}, {"character", character}};
+        int id = sendRequest("textDocument/hover", params);
+        lastHoverRequestId_ = id;
+        return id;
+    }
+
+    int requestSignatureHelp(const std::string& uri, int line, int character) {
+        nlohmann::json params;
+        params["textDocument"] = {{"uri", uri}};
+        params["position"] = {{"line", line}, {"character", character}};
+        int id = sendRequest("textDocument/signatureHelp", params);
+        lastSignatureRequestId_ = id;
+        return id;
+    }
+
     void handleMessage(const std::string& msg) {
         nlohmann::json j;
         try {
@@ -152,27 +176,47 @@ public:
 
         if (j.contains("id") && j.contains("result")) {
             int id = j["id"].get<int>();
-            if (lastCompletionRequestId_ > 0 && id != lastCompletionRequestId_) return;
             const auto& result = j["result"];
-            const nlohmann::json* items = nullptr;
-            if (result.is_array()) {
-                items = &result;
-            } else if (result.is_object() && result.contains("items")) {
-                items = &result["items"];
-            }
-            if (!items || !items->is_array()) return;
+            if (id == lastCompletionRequestId_) {
+                const nlohmann::json* items = nullptr;
+                if (result.is_array()) {
+                    items = &result;
+                } else if (result.is_object() && result.contains("items")) {
+                    items = &result["items"];
+                }
+                if (!items || !items->is_array()) return;
 
-            std::vector<CompletionItem> parsed;
-            for (const auto& item : *items) {
-                CompletionItem ci;
-                ci.label = item.value("label", "");
-                ci.kind = item.value("kind", 0);
-                ci.detail = item.value("detail", "");
-                ci.insertText = item.value("insertText", ci.label);
-                ci.filterText = item.value("filterText", "");
-                parsed.push_back(std::move(ci));
+                std::vector<CompletionItem> parsed;
+                for (const auto& item : *items) {
+                    CompletionItem ci;
+                    ci.label = item.value("label", "");
+                    ci.kind = item.value("kind", 0);
+                    ci.detail = item.value("detail", "");
+                    ci.insertText = item.value("insertText", ci.label);
+                    ci.filterText = item.value("filterText", "");
+                    parsed.push_back(std::move(ci));
+                }
+                completionItems_ = std::move(parsed);
+                return;
             }
-            completionItems_ = std::move(parsed);
+
+            if (id == lastHoverRequestId_) {
+                if (result.contains("contents")) {
+                    hoverContents_ = stringifyMarkup(result["contents"]);
+                }
+                return;
+            }
+
+            if (id == lastSignatureRequestId_) {
+                if (result.contains("signatures") && result["signatures"].is_array() &&
+                    !result["signatures"].empty()) {
+                    const auto& sig = result["signatures"][0];
+                    signatureHelp_.label = sig.value("label", "");
+                    signatureHelp_.activeSignature = result.value("activeSignature", 0);
+                    signatureHelp_.activeParameter = result.value("activeParameter", 0);
+                }
+                return;
+            }
         }
     }
 
@@ -196,6 +240,22 @@ public:
 
     void clearCompletionItems() {
         completionItems_.clear();
+    }
+
+    std::string getHoverContents() const {
+        return hoverContents_;
+    }
+
+    void clearHover() {
+        hoverContents_.clear();
+    }
+
+    SignatureHelp getSignatureHelp() const {
+        return signatureHelp_;
+    }
+
+    void clearSignatureHelp() {
+        signatureHelp_ = SignatureHelp{};
     }
 
     void sendNotification(const std::string& method, const nlohmann::json& params) {
@@ -229,4 +289,24 @@ private:
     std::unordered_map<std::string, std::vector<Diagnostic>> diagnosticsByUri_;
     int lastCompletionRequestId_ = -1;
     std::vector<CompletionItem> completionItems_;
+    int lastHoverRequestId_ = -1;
+    int lastSignatureRequestId_ = -1;
+    std::string hoverContents_;
+    SignatureHelp signatureHelp_;
+
+    static std::string stringifyMarkup(const nlohmann::json& contents) {
+        if (contents.is_string()) return contents.get<std::string>();
+        if (contents.is_object()) {
+            if (contents.contains("value")) return contents["value"].get<std::string>();
+        }
+        if (contents.is_array()) {
+            std::string out;
+            for (const auto& item : contents) {
+                if (!out.empty()) out += "\n";
+                out += stringifyMarkup(item);
+            }
+            return out;
+        }
+        return "";
+    }
 };

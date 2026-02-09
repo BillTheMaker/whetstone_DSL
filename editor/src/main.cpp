@@ -91,6 +91,9 @@ struct EditorState {
     bool              completionVisible = false;
     int               completionSelected = 0;
     double            completionLastChange = 0.0;
+    bool              hoverPending = false;
+    double            hoverLastMove = 0.0;
+    ImVec2            hoverLastMouse = ImVec2(-1.0f, -1.0f);
 
     BufferState* active() { return activeBuffer; }
 
@@ -1016,6 +1019,17 @@ int main(int, char**) {
                             state.completionVisible = false;
                             state.completionSelected = 0;
                             if (state.lsp) state.lsp->clearCompletionItems();
+                            if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
+                                int cursor = state.active()->widget.getCursor();
+                                if (cursor > 0 && state.active()->editBuf[cursor - 1] == '(') {
+                                    int lineZero = std::max(0, state.active()->cursorLine - 1);
+                                    int colZero = std::max(0, state.active()->cursorCol - 1);
+                                    state.lsp->requestSignatureHelp(EditorState::toFileUri(state.active()->path),
+                                                                    lineZero, colZero);
+                                } else if (cursor > 0 && state.active()->editBuf[cursor - 1] == ')') {
+                                    state.lsp->clearSignatureHelp();
+                                }
+                            }
                         }
 
                         double now = ImGui::GetTime();
@@ -1079,6 +1093,42 @@ int main(int, char**) {
                                     state.lsp->clearCompletionItems();
                                     state.completionVisible = false;
                                 }
+                                ImGui::EndChild();
+                            }
+                        }
+
+                        if (state.lsp && state.active()) {
+                            if (ImGui::IsWindowHovered()) {
+                                ImVec2 mouse = ImGui::GetMousePos();
+                                if (mouse.x != state.hoverLastMouse.x || mouse.y != state.hoverLastMouse.y) {
+                                    state.hoverLastMouse = mouse;
+                                    state.hoverLastMove = ImGui::GetTime();
+                                    state.hoverPending = true;
+                                    state.lsp->clearHover();
+                                }
+                                if (state.hoverPending && (ImGui::GetTime() - state.hoverLastMove) > 0.5) {
+                                    if (state.active()->path.rfind("(untitled", 0) != 0) {
+                                        int lineZero = std::max(0, state.active()->cursorLine - 1);
+                                        int colZero = std::max(0, state.active()->cursorCol - 1);
+                                        state.lsp->requestHover(EditorState::toFileUri(state.active()->path),
+                                                               lineZero, colZero);
+                                    }
+                                    state.hoverPending = false;
+                                }
+                                std::string hover = state.lsp->getHoverContents();
+                                if (!hover.empty()) {
+                                    ImGui::BeginTooltip();
+                                    ImGui::TextUnformatted(hover.c_str());
+                                    ImGui::EndTooltip();
+                                }
+                            }
+
+                            auto sig = state.lsp->getSignatureHelp();
+                            if (!sig.label.empty()) {
+                                ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x + 20.0f,
+                                                                 ImGui::GetWindowPos().y + ImGui::GetWindowHeight() - 80.0f));
+                                ImGui::BeginChild("##signatureHelp", ImVec2(420, 60), true);
+                                ImGui::TextUnformatted(sig.label.c_str());
                                 ImGui::EndChild();
                             }
                         }
