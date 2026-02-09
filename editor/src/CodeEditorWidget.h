@@ -22,6 +22,7 @@ struct CodeEditorOptions {
     bool enableFolding = false;
     bool showMinimap = false;
     bool showAnnotations = false;
+    bool showLineNumbers = true;
     bool showCurrentLine = true;
     int annotationLayout = 0; // 0=above, 1=margin, 2=beside
     const std::vector<int>* errorLines = nullptr;
@@ -147,7 +148,8 @@ public:
         // Measure
         const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
         const float charAdvance = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, "M").x;
-        const float gutterWidth = calcGutterWidth(lineCount, font, charAdvance);
+        const float gutterWidth = options.showLineNumbers ?
+            calcGutterWidth(lineCount, font, charAdvance) : 12.0f;
         const float minimapWidth = options.showMinimap ? 80.0f : 0.0f;
 
         // Estimate content size for scrollbars
@@ -307,11 +309,13 @@ public:
             drawList->AddRectFilled(gutterA, gutterB, IM_COL32(20, 20, 20, 255));
 
             // Line number (right-aligned)
-            char numBuf[16];
-            snprintf(numBuf, sizeof(numBuf), "%d", ln + 1);
-            ImVec2 numSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, numBuf);
-            ImVec2 numPos(origin.x + gutterWidth - 4.0f - numSize.x, y);
-            drawList->AddText(font, font->FontSize, numPos, IM_COL32(120, 120, 120, 255), numBuf);
+            if (options.showLineNumbers) {
+                char numBuf[16];
+                snprintf(numBuf, sizeof(numBuf), "%d", ln + 1);
+                ImVec2 numSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, numBuf);
+                ImVec2 numPos(origin.x + gutterWidth - 4.0f - numSize.x, y);
+                drawList->AddText(font, font->FontSize, numPos, IM_COL32(120, 120, 120, 255), numBuf);
+            }
 
             // Diagnostics marker
             bool hasError = lineIn(options.errorLines, ln);

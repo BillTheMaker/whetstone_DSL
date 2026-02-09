@@ -5,6 +5,8 @@
 #include <vector>
 #include <filesystem>
 #include <cstdlib>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include "ast/Schema.h"
 #include "ast/ASTNode.h"
 
@@ -26,6 +28,85 @@ public:
     const std::string& getEmacsConfigPath() const { return emacsConfigPath_; }
     void setEmacsConfigPath(const std::string& path) { emacsConfigPath_ = path; }
     std::string& getEmacsConfigPathMutable() { return emacsConfigPath_; }
+    int getFontSize() const { return fontSize_; }
+    void setFontSize(int size) { fontSize_ = size; }
+    int getTabSize() const { return tabSize_; }
+    void setTabSize(int size) { tabSize_ = size; }
+    const std::string& getTheme() const { return theme_; }
+    void setTheme(const std::string& theme) { theme_ = theme; }
+    int getAutoSaveSeconds() const { return autoSaveSeconds_; }
+    void setAutoSaveSeconds(int seconds) { autoSaveSeconds_ = seconds; }
+    bool getShowMinimap() const { return showMinimap_; }
+    void setShowMinimap(bool value) { showMinimap_ = value; }
+    bool getShowLineNumbers() const { return showLineNumbers_; }
+    void setShowLineNumbers(bool value) { showLineNumbers_ = value; }
+    const std::string& getLayoutPreset() const { return layoutPreset_; }
+    void setLayoutPreset(const std::string& name) { layoutPreset_ = name; }
+    const std::string& getKeybindingProfile() const { return keybindingProfile_; }
+    void setKeybindingProfile(const std::string& name) { keybindingProfile_ = name; }
+
+    bool loadFromFile(const std::string& path) {
+        try {
+            std::ifstream in(path, std::ios::binary);
+            if (!in.is_open()) return false;
+            nlohmann::json j;
+            in >> j;
+            fontSize_ = j.value("fontSize", fontSize_);
+            tabSize_ = j.value("tabSize", tabSize_);
+            theme_ = j.value("theme", theme_);
+            autoSaveSeconds_ = j.value("autoSaveSeconds", autoSaveSeconds_);
+            showMinimap_ = j.value("showMinimap", showMinimap_);
+            showLineNumbers_ = j.value("showLineNumbers", showLineNumbers_);
+            layoutPreset_ = j.value("layoutPreset", layoutPreset_);
+            keybindingProfile_ = j.value("keybindingProfile", keybindingProfile_);
+            emacsConfigPath_ = j.value("emacsConfigPath", emacsConfigPath_);
+            if (j.contains("lspServers") && j["lspServers"].is_array()) {
+                for (const auto& item : j["lspServers"]) {
+                    std::string lang = item.value("language", "");
+                    if (lang.empty()) continue;
+                    auto* cfg = getServer(lang);
+                    if (!cfg) continue;
+                    cfg->path = item.value("path", cfg->path);
+                    cfg->argsLine = item.value("args", cfg->argsLine);
+                    cfg->enabled = item.value("enabled", cfg->enabled);
+                    syncArgs(*cfg);
+                }
+            }
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    bool saveToFile(const std::string& path) const {
+        try {
+            nlohmann::json j;
+            j["fontSize"] = fontSize_;
+            j["tabSize"] = tabSize_;
+            j["theme"] = theme_;
+            j["autoSaveSeconds"] = autoSaveSeconds_;
+            j["showMinimap"] = showMinimap_;
+            j["showLineNumbers"] = showLineNumbers_;
+            j["layoutPreset"] = layoutPreset_;
+            j["keybindingProfile"] = keybindingProfile_;
+            j["emacsConfigPath"] = emacsConfigPath_;
+            j["lspServers"] = nlohmann::json::array();
+            for (const auto& cfg : lspServers_) {
+                j["lspServers"].push_back({
+                    {"language", cfg.language},
+                    {"path", cfg.path},
+                    {"args", cfg.argsLine},
+                    {"enabled", cfg.enabled}
+                });
+            }
+            std::ofstream out(path, std::ios::binary);
+            if (!out.is_open()) return false;
+            out << j.dump(2);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
 
     LSPServerConfig* getServer(const std::string& language) {
         for (auto& s : lspServers_) {
@@ -67,6 +148,14 @@ public:
 private:
     std::vector<LSPServerConfig> lspServers_;
     std::string emacsConfigPath_;
+    int fontSize_ = 15;
+    int tabSize_ = 4;
+    std::string theme_ = "Dark";
+    int autoSaveSeconds_ = 0;
+    bool showMinimap_ = false;
+    bool showLineNumbers_ = true;
+    std::string layoutPreset_ = "VSCode";
+    std::string keybindingProfile_ = "VSCode";
 
     void loadDefaults() {
         lspServers_.push_back(makeConfig("python", "pylsp", {}));

@@ -130,6 +130,7 @@ struct EditorState {
     bool              showMinimap = false;
     bool              showAnnotations = false;
     bool              showOutline = true;
+    bool              showLineNumbers = true;
     char              outlineFilter[128] = {};
     LayoutPreset      layoutPreset = LayoutPreset::VSCode;
     WelcomeScreen     welcome;
@@ -165,6 +166,8 @@ struct EditorState {
     bool              showLspSettings = false;
     Orchestrator      orchestrator;
     bool              orchestratorDirty = true;
+    bool              showSettingsPanel = false;
+    double            lastAutoSave = 0.0;
     ASTMutationAPI    mutator;
     std::vector<MemoryStrategyInference::Suggestion> suggestions;
     bool              showSuggestionPopup = false;
@@ -562,6 +565,10 @@ struct EditorState {
         return configDir() / "session.json";
     }
 
+    std::filesystem::path settingsFilePath() const {
+        return configDir() / "settings.json";
+    }
+
     bool saveSession(const std::string& imguiIni) {
         SessionData session;
         session.workspaceRoot = workspaceRoot;
@@ -628,12 +635,43 @@ struct EditorState {
         }
     }
 
+    void applyTabSizeToBuffers(int size) {
+        for (auto& kv : bufferStates) {
+            kv.second->mode.setTabSize(size);
+            kv.second->generatedMode.setTabSize(size);
+        }
+    }
+
+    void applySettingsToState() {
+        showMinimap = settings.getShowMinimap();
+        showLineNumbers = settings.getShowLineNumbers();
+        layoutPreset = LayoutManager::presetFromName(settings.getLayoutPreset());
+        keys.setProfile(KeybindingManager::profileFromName(settings.getKeybindingProfile()));
+        registerCommands();
+        applyTabSizeToBuffers(settings.getTabSize());
+    }
+
+    void loadSettingsFromDisk() {
+        settings.loadFromFile(settingsFilePath().string());
+        applySettingsToState();
+    }
+
+    void saveSettingsToDisk() {
+        settings.setShowMinimap(showMinimap);
+        settings.setShowLineNumbers(showLineNumbers);
+        settings.setLayoutPreset(LayoutManager::presetName(layoutPreset));
+        settings.setKeybindingProfile(KeybindingManager::profileName(keys.getProfile()));
+        std::filesystem::create_directories(settingsFilePath().parent_path());
+        settings.saveToFile(settingsFilePath().string());
+    }
+
     void init() {
         outputLog = "Whetstone Editor ready.\n";
         workspaceRoot = std::filesystem::current_path().string();
         projectSearch.setRoot(workspaceRoot);
         fileTreeDirty = true;
         loadRecentFiles();
+        loadSettingsFromDisk();
         registerCommands();
     }
 
@@ -1618,6 +1656,48 @@ static void SetupVSCodeDarkTheme() {
     style.ItemSpacing       = ImVec2(6, 4);
 }
 
+static void SetupVSCodeLightTheme() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    colors[ImGuiCol_WindowBg]           = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
+    colors[ImGuiCol_ChildBg]            = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
+    colors[ImGuiCol_PopupBg]            = ImVec4(0.98f, 0.98f, 0.98f, 1.00f);
+
+    colors[ImGuiCol_Border]             = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
+    colors[ImGuiCol_FrameBg]            = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]     = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]      = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+
+    colors[ImGuiCol_TitleBg]            = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+    colors[ImGuiCol_TitleBgActive]      = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed]   = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+
+    colors[ImGuiCol_MenuBarBg]          = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
+    colors[ImGuiCol_Button]             = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
+    colors[ImGuiCol_ButtonHovered]      = ImVec4(0.78f, 0.78f, 0.78f, 1.00f);
+    colors[ImGuiCol_ButtonActive]       = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
+
+    colors[ImGuiCol_Header]             = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
+    colors[ImGuiCol_HeaderHovered]      = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
+    colors[ImGuiCol_HeaderActive]       = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
+
+    colors[ImGuiCol_Text]               = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+    colors[ImGuiCol_TextDisabled]       = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
+    colors[ImGuiCol_TextSelectedBg]     = ImVec4(0.40f, 0.60f, 0.90f, 0.45f);
+
+    style.WindowRounding    = 0.0f;
+    style.FrameRounding     = 2.0f;
+    style.ScrollbarRounding = 2.0f;
+    style.GrabRounding      = 2.0f;
+    style.TabRounding       = 0.0f;
+    style.WindowBorderSize  = 1.0f;
+    style.FrameBorderSize   = 0.0f;
+    style.WindowPadding     = ImVec2(8, 8);
+    style.FramePadding      = ImVec2(6, 3);
+    style.ItemSpacing       = ImVec2(6, 4);
+}
+
 // ---------------------------------------------------------------------------
 //  Syntax highlight color map
 // ---------------------------------------------------------------------------
@@ -1792,13 +1872,14 @@ int main(int, char**) {
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // Load a monospace font (Consolas on Windows, fallback to default)
+    const float baseFontSize = 15.0f;
     ImFont* monoFont = nullptr;
-    monoFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\consola.ttf", 15.0f);
+    monoFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\consola.ttf", baseFontSize);
     if (!monoFont) {
         monoFont = io.Fonts->AddFontDefault();
     }
     // Also keep default font for UI elements
-    ImFont* uiFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 15.0f);
+    ImFont* uiFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", baseFontSize);
     if (!uiFont) {
         uiFont = io.Fonts->AddFontDefault();
     }
@@ -1811,6 +1892,12 @@ int main(int, char**) {
     // Editor state
     EditorState state;
     state.init();
+    if (state.settings.getTheme() == "Light") {
+        SetupVSCodeLightTheme();
+    } else {
+        SetupVSCodeDarkTheme();
+    }
+    io.FontGlobalScale = state.settings.getFontSize() / baseFontSize;
     SessionData session;
     if (state.loadSession(session)) {
         if (!session.imguiIni.empty()) {
@@ -1898,6 +1985,13 @@ int main(int, char**) {
 
         // File watcher polling
         state.handleFileChanges();
+        if (state.settings.getAutoSaveSeconds() > 0 && state.active() && state.active()->modified) {
+            double now = ImGui::GetTime();
+            if ((now - state.lastAutoSave) >= state.settings.getAutoSaveSeconds()) {
+                state.doSave();
+                state.lastAutoSave = now;
+            }
+        }
 
         // Start frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -2007,6 +2101,7 @@ int main(int, char**) {
                 ImGui::MenuItem("Show Minimap", nullptr, &state.showMinimap);
                 ImGui::MenuItem("Show Annotations", nullptr, &state.showAnnotations);
                 ImGui::MenuItem("Show Outline", nullptr, &state.showOutline);
+                ImGui::MenuItem("Settings", nullptr, &state.showSettingsPanel);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
                     bool textMode = state.active()->bufferMode == BufferManager::BufferMode::Text;
@@ -2308,6 +2403,118 @@ int main(int, char**) {
                 }
             }
             ImGui::EndChild();
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        // ---------------------------------------------------------------
+        //  Settings Panel
+        // ---------------------------------------------------------------
+        if (state.showSettingsPanel) {
+            ImGui::Begin("Settings", &state.showSettingsPanel);
+            ImGui::PushFont(uiFont);
+            bool settingsChanged = false;
+            ImGuiIO& io = ImGui::GetIO();
+
+            int fontSize = state.settings.getFontSize();
+            if (ImGui::SliderInt("Font Size", &fontSize, 12, 24)) {
+                state.settings.setFontSize(fontSize);
+                io.FontGlobalScale = fontSize / baseFontSize;
+                settingsChanged = true;
+            }
+
+            int tabSize = state.settings.getTabSize();
+            const int tabSizes[] = {2, 4, 8};
+            int tabIndex = 1;
+            for (int i = 0; i < 3; ++i) {
+                if (tabSize == tabSizes[i]) tabIndex = i;
+            }
+            const char* tabLabels[] = {"2", "4", "8"};
+            if (ImGui::Combo("Tab Size", &tabIndex, tabLabels, 3)) {
+                state.settings.setTabSize(tabSizes[tabIndex]);
+                state.applyTabSizeToBuffers(tabSizes[tabIndex]);
+                settingsChanged = true;
+            }
+
+            const char* themeLabels[] = {"Dark", "Light"};
+            int themeIndex = state.settings.getTheme() == "Light" ? 1 : 0;
+            if (ImGui::Combo("Theme", &themeIndex, themeLabels, 2)) {
+                state.settings.setTheme(themeLabels[themeIndex]);
+                if (themeIndex == 1) SetupVSCodeLightTheme();
+                else SetupVSCodeDarkTheme();
+                settingsChanged = true;
+            }
+
+            int autoSave = state.settings.getAutoSaveSeconds();
+            if (ImGui::InputInt("Auto-save (sec)", &autoSave)) {
+                autoSave = std::max(0, autoSave);
+                state.settings.setAutoSaveSeconds(autoSave);
+                settingsChanged = true;
+            }
+
+            bool showMinimap = state.showMinimap;
+            if (ImGui::Checkbox("Show Minimap", &showMinimap)) {
+                state.showMinimap = showMinimap;
+                settingsChanged = true;
+            }
+            bool showLineNumbers = state.showLineNumbers;
+            if (ImGui::Checkbox("Show Line Numbers", &showLineNumbers)) {
+                state.showLineNumbers = showLineNumbers;
+                settingsChanged = true;
+            }
+
+            LayoutPreset preset = state.layoutPreset;
+            int presetIndex = 0;
+            if (preset == LayoutPreset::Emacs) presetIndex = 1;
+            else if (preset == LayoutPreset::JetBrains) presetIndex = 2;
+            const char* presetLabels[] = {"VSCode", "Emacs", "JetBrains"};
+            if (ImGui::Combo("Layout Preset", &presetIndex, presetLabels, 3)) {
+                state.layoutPreset = (presetIndex == 1) ? LayoutPreset::Emacs :
+                                    (presetIndex == 2) ? LayoutPreset::JetBrains : LayoutPreset::VSCode;
+                settingsChanged = true;
+            }
+
+            int keyProfileIndex = 0;
+            if (state.keys.getProfile() == KeybindingProfile::JetBrains) keyProfileIndex = 1;
+            else if (state.keys.getProfile() == KeybindingProfile::Emacs) keyProfileIndex = 2;
+            const char* keyProfiles[] = {"VSCode", "JetBrains", "Emacs"};
+            if (ImGui::Combo("Keybindings", &keyProfileIndex, keyProfiles, 3)) {
+                KeybindingProfile profile = KeybindingProfile::VSCode;
+                if (keyProfileIndex == 1) profile = KeybindingProfile::JetBrains;
+                else if (keyProfileIndex == 2) profile = KeybindingProfile::Emacs;
+                state.keys.setProfile(profile);
+                state.registerCommands();
+                settingsChanged = true;
+            }
+
+            ImGui::Separator();
+            ImGui::TextUnformatted("Emacs Config");
+            ImGui::SetNextItemWidth(320);
+            if (InputTextStr("Config Path", &state.settings.getEmacsConfigPathMutable())) {
+                settingsChanged = true;
+            }
+
+            if (ImGui::CollapsingHeader("LSP Servers", ImGuiTreeNodeFlags_DefaultOpen)) {
+                for (auto& cfg : state.settings.getLSPServersMutable()) {
+                    ImGui::PushID(cfg.language.c_str());
+                    ImGui::Checkbox("Enabled", &cfg.enabled);
+                    ImGui::SameLine();
+                    ImGui::Text("%s", cfg.language.c_str());
+                    ImGui::SetNextItemWidth(320);
+                    if (InputTextStr("Path", &cfg.path)) settingsChanged = true;
+                    ImGui::SetNextItemWidth(320);
+                    if (InputTextStr("Args", &cfg.argsLine)) {
+                        state.settings.syncArgs(cfg);
+                        settingsChanged = true;
+                    }
+                    ImGui::Separator();
+                    ImGui::PopID();
+                }
+            }
+
+            if (settingsChanged) {
+                state.saveSettingsToDisk();
+            }
             ImGui::PopFont();
             ImGui::End();
         }
@@ -2680,6 +2887,7 @@ int main(int, char**) {
                         opts.enableFolding = true;
                         opts.showMinimap = state.showMinimap;
                         opts.showAnnotations = state.showAnnotations;
+                        opts.showLineNumbers = state.showLineNumbers;
                         if (state.layoutPreset == LayoutPreset::Emacs) opts.annotationLayout = 1;
                         else if (state.layoutPreset == LayoutPreset::JetBrains) opts.annotationLayout = 2;
                         else opts.annotationLayout = 0;
@@ -2732,6 +2940,7 @@ int main(int, char**) {
                             genOpts.readOnly = true;
                             genOpts.showWhitespace = state.showWhitespace;
                             genOpts.mode = &buf->generatedMode;
+                            genOpts.showLineNumbers = state.showLineNumbers;
                             genOpts.showCurrentLine = false;
                             genOpts.highlightLine = buf->generatedHighlightLine;
                             genOpts.syncScrollX = &buf->splitScrollX;
@@ -3561,6 +3770,7 @@ int main(int, char**) {
                     CodeEditorOptions leftOpts;
                     leftOpts.readOnly = true;
                     leftOpts.showWhitespace = state.showWhitespace;
+                    leftOpts.showLineNumbers = state.showLineNumbers;
                     leftOpts.showCurrentLine = false;
                     leftOpts.highlightLines = &state.diff.beforeLines;
                     leftOpts.highlightLineColor = IM_COL32(160, 80, 80, 120);
@@ -3575,6 +3785,7 @@ int main(int, char**) {
                     CodeEditorOptions rightOpts;
                     rightOpts.readOnly = true;
                     rightOpts.showWhitespace = state.showWhitespace;
+                    rightOpts.showLineNumbers = state.showLineNumbers;
                     rightOpts.showCurrentLine = false;
                     rightOpts.highlightLines = &state.diff.afterLines;
                     rightOpts.highlightLineColor = IM_COL32(80, 160, 80, 120);

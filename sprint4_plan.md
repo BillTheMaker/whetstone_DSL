@@ -373,7 +373,7 @@ AST extensions for Sprint 5.
   Saved to `~/.whetstone/session.json`. Restore on next launch.
   *New:* `SessionManager.h`
 
-- [ ] **Step 118: Settings panel**
+- [x] **Step 118: Settings panel**
   View > Settings opens a dockable panel. Options: font size (12–24),
   tab size (2/4/8), theme variant (Dark/Light), auto-save interval,
   show minimap, show line numbers, LSP server paths, layout preset,

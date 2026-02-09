@@ -96,6 +96,7 @@ public:
     }
 
     int getTabSize() const { return indent_.tabSize; }
+    void setTabSize(int size) { indent_.tabSize = size; }
 
     // --- Comments ---
 
