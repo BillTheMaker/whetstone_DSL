@@ -43,6 +43,7 @@
 #include "CommandPalette.h"
 #include "ContextAPI.h"
 #include "Breadcrumbs.h"
+#include "ProjectSearch.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -106,6 +107,12 @@ struct EditorState {
     char              findBuf[256]    = {};
     char              replaceBuf[256] = {};
     int               lastFindPos     = 0;
+    bool              showProjectSearch = false;
+    char              searchQuery[256] = {};
+    char              searchInclude[256] = {};
+    char              searchExclude[256] = {};
+    bool              searchUseRegex = true;
+    std::vector<ProjectSearch::FileResult> searchResults;
 
     // Bottom panel
     int               bottomTab   = 0;  // 0=Output, 1=AST, 2=Highlighted
@@ -124,6 +131,7 @@ struct EditorState {
     FileNode          fileTreeRoot;
     bool              fileTreeDirty = true;
     FileWatcher       watcher;
+    ProjectSearch     projectSearch;
     std::shared_ptr<LSPTransport> lspTransport;
     std::shared_ptr<LSPClient> lsp;
     bool              symbolsPending = false;
@@ -455,6 +463,7 @@ struct EditorState {
     void init() {
         outputLog = "Whetstone Editor ready.\n";
         workspaceRoot = std::filesystem::current_path().string();
+        projectSearch.setRoot(workspaceRoot);
         fileTreeDirty = true;
         loadRecentFiles();
         registerCommands();
@@ -498,6 +507,9 @@ struct EditorState {
         registerCommand("search.find", "Search: Find/Replace",
                         keys.getBinding("search.find").toString(),
                         [this]() { showFind = !showFind; });
+        registerCommand("search.findInFiles", "Search: Find in Files",
+                        keys.getBinding("search.findInFiles").toString(),
+                        [this]() { showProjectSearch = !showProjectSearch; });
         registerCommand("view.whitespace", "View: Toggle Whitespace", "",
                         [this]() { showWhitespace = !showWhitespace; });
         registerCommand("view.minimap", "View: Toggle Minimap", "",
@@ -1496,6 +1508,7 @@ static void RenderWelcome(WelcomeScreen& welcome, EditorState& state, std::strin
         if (!path.empty()) {
             state.workspaceRoot = path;
             state.fileTreeDirty = true;
+            state.projectSearch.setRoot(state.workspaceRoot);
             lastDialogPath = path;
         }
     }
@@ -1588,12 +1601,13 @@ int main(int, char**) {
             if (event.type == SDL_DROPFILE) {
                 char* droppedFile = event.drop.file;
                 if (droppedFile) {
-                    DragDropHandler::handleDrop(droppedFile,
-                        [&](const std::string& p) { state.doOpen(p); },
-                        [&](const std::string& p) {
-                            state.workspaceRoot = p;
-                            state.fileTreeDirty = true;
-                        });
+                        DragDropHandler::handleDrop(droppedFile,
+                            [&](const std::string& p) { state.doOpen(p); },
+                            [&](const std::string& p) {
+                                state.workspaceRoot = p;
+                                state.fileTreeDirty = true;
+                                state.projectSearch.setRoot(state.workspaceRoot);
+                            });
                     SDL_free(droppedFile);
                 }
             }
@@ -1629,6 +1643,7 @@ int main(int, char**) {
                     if (action == "edit.undo")       state.doUndo();
                     else if (action == "edit.redo")   state.doRedo();
                     else if (action == "search.find") state.showFind = !state.showFind;
+                    else if (action == "search.findInFiles") state.showProjectSearch = !state.showProjectSearch;
                     else if (action == "file.save")   state.doSave();
                     else if (action == "file.new") {
                         std::string lang = state.active() ? state.active()->language : "python";
@@ -1687,6 +1702,7 @@ int main(int, char**) {
                     if (!path.empty()) {
                         state.workspaceRoot = path;
                         state.fileTreeDirty = true;
+                        state.projectSearch.setRoot(state.workspaceRoot);
                         lastDialogPath = path;
                     }
                 }
@@ -1719,6 +1735,8 @@ int main(int, char**) {
                 ImGui::Separator();
                 if (ImGui::MenuItem("Find/Replace", state.keys.getBinding("search.find").toString().c_str()))
                     state.showFind = !state.showFind;
+                if (ImGui::MenuItem("Find in Files", state.keys.getBinding("search.findInFiles").toString().c_str()))
+                    state.showProjectSearch = !state.showProjectSearch;
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
@@ -1960,6 +1978,65 @@ int main(int, char**) {
             ImGui::InputText("Replace", state.replaceBuf, sizeof(state.replaceBuf));
             ImGui::SameLine();
             if (ImGui::Button("Replace All")) state.doReplaceAll();
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        // ---------------------------------------------------------------
+        //  Project Search (Ctrl+Shift+F)
+        // ---------------------------------------------------------------
+        if (state.showProjectSearch) {
+            ImGui::Begin("Search", &state.showProjectSearch);
+            ImGui::PushFont(uiFont);
+            bool doSearch = false;
+            ImGui::SetNextItemWidth(420);
+            if (ImGui::InputText("Query", state.searchQuery, sizeof(state.searchQuery),
+                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
+                doSearch = true;
+            }
+            ImGui::SetNextItemWidth(420);
+            ImGui::InputText("Include (glob)", state.searchInclude, sizeof(state.searchInclude));
+            ImGui::SetNextItemWidth(420);
+            ImGui::InputText("Exclude (glob)", state.searchExclude, sizeof(state.searchExclude));
+            ImGui::Checkbox("Regex", &state.searchUseRegex);
+            ImGui::SameLine();
+            if (ImGui::Button("Search")) doSearch = true;
+            ImGui::SameLine();
+            if (ImGui::Button("Clear")) {
+                state.searchQuery[0] = '\0';
+                state.searchResults.clear();
+            }
+
+            if (doSearch) {
+                state.searchResults = state.projectSearch.search(
+                    state.searchQuery,
+                    state.searchInclude,
+                    state.searchExclude,
+                    state.searchUseRegex);
+            }
+
+            ImGui::Separator();
+            ImGui::BeginChild("##searchResults", ImVec2(0, 0), false);
+            if (state.searchResults.empty()) {
+                ImGui::TextDisabled("(no results)");
+            } else {
+                for (const auto& fileRes : state.searchResults) {
+                    std::string label = fileRes.path + " (" + std::to_string(fileRes.matches.size()) + ")";
+                    if (ImGui::TreeNode(label.c_str())) {
+                        for (const auto& match : fileRes.matches) {
+                            std::string lineLabel = std::to_string(match.line + 1) + ":" +
+                                std::to_string(match.col + 1) + "  " + match.lineText;
+                            if (ImGui::Selectable(lineLabel.c_str())) {
+                                if (state.buffers.hasBuffer(fileRes.path)) state.switchToBuffer(fileRes.path);
+                                else state.doOpen(fileRes.path);
+                                state.jumpTo(state.active(), match.line, match.col);
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+            }
+            ImGui::EndChild();
             ImGui::PopFont();
             ImGui::End();
         }

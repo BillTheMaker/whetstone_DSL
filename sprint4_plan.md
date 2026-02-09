@@ -334,7 +334,7 @@ Whetstone-specific AST navigation.
   LSPs don't provide this annotation-aware scope path).
   *Modifies:* `CodeEditorWidget.h`
 
-- [ ] **Step 113: Project-wide search**
+- [x] **Step 113: Project-wide search**
   Ctrl+Shift+F opens search panel. Searches all files in the workspace.
   Results grouped by file with line previews. Click to open file at location.
   Regex support. Include/exclude glob filters.
