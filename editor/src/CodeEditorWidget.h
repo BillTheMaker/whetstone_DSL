@@ -23,6 +23,7 @@ struct CodeEditorOptions {
     bool showMinimap = false;
     const std::vector<int>* errorLines = nullptr;
     const std::vector<int>* warningLines = nullptr;
+    const std::vector<struct DiagnosticRange>* diagnostics = nullptr;
 };
 
 struct CodeEditorResult {
@@ -37,6 +38,15 @@ struct CodeEditorResult {
     float minimapWidth = 0.0f;
     float minimapViewportStart = 0.0f;
     float minimapViewportEnd = 0.0f;
+};
+
+struct DiagnosticRange {
+    int startLine = 0;
+    int startCol = 0;
+    int endLine = 0;
+    int endCol = 0;
+    int severity = 0; // 1=error, 2=warning
+    std::string message;
 };
 
 struct FoldRegion {
@@ -224,6 +234,16 @@ public:
                 ImVec2 center(origin.x + 3.0f, y + lineHeight * 0.5f);
                 drawList->AddCircleFilled(center, 3.0f, color);
             }
+            if (options.diagnostics) {
+                std::string msg = diagnosticMessageAtLine(*options.diagnostics, ln);
+                ImVec2 gutterA(origin.x, y);
+                ImVec2 gutterB(origin.x + gutterWidth, y + lineHeight);
+                if (!msg.empty() && ImGui::IsMouseHoveringRect(gutterA, gutterB)) {
+                    ImGui::BeginTooltip();
+                    ImGui::TextUnformatted(msg.c_str());
+                    ImGui::EndTooltip();
+                }
+            }
 
             // Fold indicator
             const FoldRegion* fold = findFoldAtLine(ln);
@@ -292,6 +312,21 @@ public:
             if (fold && fold->folded) {
                 ImVec2 p(textBase.x + len * charAdvance + 6.0f, y);
                 drawList->AddText(font, font->FontSize, p, IM_COL32(140, 140, 140, 255), "{...}");
+            }
+
+            if (options.diagnostics) {
+                renderSquiggles(*options.diagnostics, ln, y, lineHeight, charAdvance,
+                                textBase.x, len, drawList);
+                if (hovered) {
+                    ImVec2 mouse = ImGui::GetMousePos();
+                    std::string msg = diagnosticMessageAtPoint(*options.diagnostics, ln, mouse,
+                                                               y, lineHeight, charAdvance, textBase.x);
+                    if (!msg.empty()) {
+                        ImGui::BeginTooltip();
+                        ImGui::TextUnformatted(msg.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
             }
         }
 
@@ -467,6 +502,64 @@ private:
     static bool lineIn(const std::vector<int>* lines, int line) {
         if (!lines) return false;
         return std::find(lines->begin(), lines->end(), line) != lines->end();
+    }
+
+    static std::string diagnosticMessageAtLine(const std::vector<DiagnosticRange>& diags, int line) {
+        for (const auto& d : diags) {
+            if (line >= d.startLine && line <= d.endLine) return d.message;
+        }
+        return "";
+    }
+
+    static void renderSquiggles(const std::vector<DiagnosticRange>& diags,
+                                int line,
+                                float y,
+                                float lineHeight,
+                                float charAdvance,
+                                float textBaseX,
+                                int lineLen,
+                                ImDrawList* drawList) {
+        float baseY = y + lineHeight - 2.0f;
+        for (const auto& d : diags) {
+            if (line < d.startLine || line > d.endLine) continue;
+            int startCol = (line == d.startLine) ? d.startCol : 0;
+            int endCol = (line == d.endLine) ? d.endCol : lineLen;
+            startCol = std::max(0, startCol);
+            endCol = std::max(startCol, endCol);
+            float xStart = textBaseX + startCol * charAdvance;
+            float xEnd = textBaseX + endCol * charAdvance;
+            ImU32 color = (d.severity == 1) ? IM_COL32(220, 80, 80, 255) : IM_COL32(220, 160, 60, 255);
+            float x = xStart;
+            float amp = 2.0f;
+            bool up = true;
+            while (x < xEnd) {
+                float x2 = std::min(x + 4.0f, xEnd);
+                float y1 = baseY + (up ? -amp : amp);
+                float y2 = baseY + (up ? amp : -amp);
+                drawList->AddLine(ImVec2(x, y1), ImVec2(x2, y2), color, 1.0f);
+                up = !up;
+                x = x2;
+            }
+        }
+    }
+
+    static std::string diagnosticMessageAtPoint(const std::vector<DiagnosticRange>& diags,
+                                                int line,
+                                                const ImVec2& mouse,
+                                                float y,
+                                                float lineHeight,
+                                                float charAdvance,
+                                                float textBaseX) {
+        if (mouse.y < y || mouse.y > y + lineHeight) return "";
+        for (const auto& d : diags) {
+            if (line < d.startLine || line > d.endLine) continue;
+            int startCol = (line == d.startLine) ? d.startCol : 0;
+            int endCol = (line == d.endLine) ? d.endCol : startCol + 1;
+            float xStart = textBaseX + startCol * charAdvance;
+            float xEnd = textBaseX + endCol * charAdvance;
+            if (mouse.x >= xStart && mouse.x <= xEnd) return d.message;
+        }
+        return "";
     }
 
     void updateFolds(const std::string& text, const std::string& language) {

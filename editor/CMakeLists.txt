@@ -522,6 +522,10 @@ add_executable(step94_test tests/step94_test.cpp)
 target_include_directories(step94_test PRIVATE src)
 target_link_libraries(step94_test PRIVATE nlohmann_json::nlohmann_json)
 
+add_executable(step95_test tests/step95_test.cpp)
+target_include_directories(step95_test PRIVATE src)
+target_link_libraries(step95_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

@@ -1011,18 +1011,35 @@ int main(int, char**) {
                         state.updateHighlights();
                         std::vector<int> errorLines;
                         std::vector<int> warningLines;
+                        std::vector<DiagnosticRange> diagRanges;
                         std::string activeUri = EditorState::toFileUri(buf->path);
                         if (state.lsp) {
                             auto lspDiags = state.lsp->getDiagnosticsForUri(activeUri);
                             for (const auto& d : lspDiags) {
                                 if (d.severity == 1) errorLines.push_back(d.range.start.line);
                                 else if (d.severity == 2) warningLines.push_back(d.range.start.line);
+                                DiagnosticRange dr;
+                                dr.startLine = d.range.start.line;
+                                dr.startCol = d.range.start.character;
+                                dr.endLine = d.range.end.line;
+                                dr.endCol = d.range.end.character;
+                                dr.severity = d.severity;
+                                dr.message = d.message;
+                                diagRanges.push_back(std::move(dr));
                             }
                         }
                         for (const auto& d : state.whetstoneDiagnostics) {
                             if (d.uri != activeUri) continue;
                             if (d.severity == 1) errorLines.push_back(d.line);
                             else if (d.severity == 2) warningLines.push_back(d.line);
+                            DiagnosticRange dr;
+                            dr.startLine = d.line;
+                            dr.startCol = d.character;
+                            dr.endLine = d.line;
+                            dr.endCol = d.character + 1;
+                            dr.severity = d.severity;
+                            dr.message = d.message;
+                            diagRanges.push_back(std::move(dr));
                         }
 
                         CodeEditorOptions opts;
@@ -1032,6 +1049,7 @@ int main(int, char**) {
                         opts.showMinimap = state.showMinimap;
                         opts.errorLines = &errorLines;
                         opts.warningLines = &warningLines;
+                        opts.diagnostics = &diagRanges;
 
                         CodeEditorResult res = buf->widget.render("##editor",
                             buf->editBuf, buf->highlights, opts, avail, monoFont);

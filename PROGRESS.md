@@ -194,6 +194,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 92: **IMPLEMENTED** — LSP completion requests, response parsing, and completion popup with filtering/acceptance (1/1 tests pass)
 - [x] Step 93: **IMPLEMENTED** — LSP hover and signature help requests, response parsing, and inline tooltip/popup (2/2 tests pass)
 - [x] Step 94: **IMPLEMENTED** — Whetstone diagnostics aggregation via Pipeline, merged Problems panel, and gutter markers (1/1 tests pass)
+- [x] Step 95: **IMPLEMENTED** — Diagnostic gutter markers with tooltips and inline squiggles (1/1 tests pass)
 
 ---
 
@@ -267,6 +268,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 92:** Compile and pass (1/1)
 **Step 93:** Compile and pass (2/2)
 **Step 94:** Compile and pass (1/1)
+**Step 95:** Compile and pass (1/1)
 
 ---
 
@@ -369,3 +371,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 92: LSP completion requests/response parsing; completion popup with filtering and acceptance. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 93: LSP hover and signature help requests/response parsing; tooltip and signature popup. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 94: Whetstone diagnostics aggregation via Pipeline; merged Problems panel and gutter markers. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 95: Diagnostic gutter markers with tooltips and inline squiggles. 1/1 tests pass. |
