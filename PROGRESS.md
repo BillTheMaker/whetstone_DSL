@@ -220,6 +220,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 114: **IMPLEMENTED** — Go-to-line popup with :line:col parsing (4/4 tests pass)
 - [x] Step 115: **IMPLEMENTED** — Orchestrator wired for structured mutations; Emacs config path setting (3/3 tests pass)
 - [x] Step 116: **IMPLEMENTED** — Project save/load (.whetstone) with AST serialization (4/4 tests pass)
+- [x] Step 117: **IMPLEMENTED** — Session persistence (layout, buffers, cursors, folds) (5/5 tests pass)
 
 ---
 
@@ -319,6 +320,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 114:** Compile and pass (4/4)
 **Step 115:** Compile and pass (3/3)
 **Step 116:** Compile and pass (4/4)
+**Step 117:** Compile and pass (5/5)
 
 ---
 
@@ -370,7 +372,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 116 (project save/load) done. Next: Step 117 (session persistence).
+Sprint 4 in progress. Step 117 (session persistence) done. Next: Step 118 (settings panel).
 
 ---
 
@@ -448,3 +450,4 @@ Sprint 4 in progress. Step 116 (project save/load) done. Next: Step 117 (session
 | 2026-02-09 | Codex | Step 114: Go-to-line popup with :line:col parsing. 4/4 tests pass. |
 | 2026-02-09 | Codex | Step 115: Orchestrator wired for structured mutations; Emacs config path setting. 3/3 tests pass. |
 | 2026-02-09 | Codex | Step 116: Project save/load (.whetstone) with AST serialization. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 117: Session persistence (layout, buffers, cursors, folds). 5/5 tests pass. |

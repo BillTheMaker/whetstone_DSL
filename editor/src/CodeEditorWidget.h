@@ -585,6 +585,18 @@ public:
     void setCursor(int pos) { cursor_ = pos; }
     int getCursor() const { return cursor_; }
     const std::vector<FoldRegion>& getFoldRegions() const { return folds_; }
+    std::vector<int> getFoldedLines() const {
+        std::vector<int> lines;
+        for (const auto& f : folds_) {
+            if (f.folded) lines.push_back(f.startLine);
+        }
+        return lines;
+    }
+
+    void setDesiredFoldedLines(const std::vector<int>& lines) {
+        desiredFoldedLines_ = lines;
+        applyDesiredFoldState_ = true;
+    }
 
     void toggleFoldAtLine(int line) {
         for (auto& f : folds_) {
@@ -604,6 +616,8 @@ private:
     std::string lastFoldText_;
     std::string lastFoldLang_;
     std::string annotationPopupMessage_;
+    std::vector<int> desiredFoldedLines_;
+    bool applyDesiredFoldState_ = false;
 
     bool hasSelection() const {
         return selStart_ >= 0 && selEnd_ >= 0 && selStart_ != selEnd_;
@@ -826,6 +840,14 @@ private:
         }
 
         folds_ = std::move(newFolds);
+        if (applyDesiredFoldState_) {
+            for (auto& f : folds_) {
+                f.folded = std::find(desiredFoldedLines_.begin(),
+                                     desiredFoldedLines_.end(),
+                                     f.startLine) != desiredFoldedLines_.end();
+            }
+            applyDesiredFoldState_ = false;
+        }
 
         ts_tree_delete(tree);
         ts_parser_delete(parser);

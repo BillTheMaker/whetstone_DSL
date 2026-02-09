@@ -47,6 +47,7 @@
 #include "GoToLine.h"
 #include "Orchestrator.h"
 #include "ProjectManager.h"
+#include "SessionManager.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -554,6 +555,76 @@ struct EditorState {
             return true;
         } catch (...) {
             return false;
+        }
+    }
+
+    std::filesystem::path sessionFilePath() const {
+        return configDir() / "session.json";
+    }
+
+    bool saveSession(const std::string& imguiIni) {
+        SessionData session;
+        session.workspaceRoot = workspaceRoot;
+        session.activePath = active() ? active()->path : "";
+        session.layoutPreset = LayoutManager::presetName(layoutPreset);
+        session.imguiIni = imguiIni;
+        for (const auto& bufPath : buffers.getOpenBuffers()) {
+            auto it = bufferStates.find(bufPath);
+            if (it == bufferStates.end()) continue;
+            const auto* buf = it->second.get();
+            SessionBufferState entry;
+            entry.path = bufPath;
+            entry.language = buf->language;
+            entry.mode = bufferModeToString(buf->bufferMode);
+            entry.cursorLine = buf->cursorLine;
+            entry.cursorCol = buf->cursorCol;
+            entry.foldedLines = buf->widget.getFoldedLines();
+            session.buffers.push_back(std::move(entry));
+        }
+        try {
+            std::ofstream out(sessionFilePath().string(), std::ios::binary);
+            if (!out.is_open()) return false;
+            out << sessionToJson(session).dump(2);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    bool loadSession(SessionData& out) {
+        try {
+            std::ifstream in(sessionFilePath().string(), std::ios::binary);
+            if (!in.is_open()) return false;
+            nlohmann::json j;
+            in >> j;
+            out = sessionFromJson(j);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    void applySession(const SessionData& session) {
+        closeAllBuffers();
+        if (!session.workspaceRoot.empty()) {
+            workspaceRoot = session.workspaceRoot;
+            fileTreeDirty = true;
+            projectSearch.setRoot(workspaceRoot);
+        }
+        layoutPreset = LayoutManager::presetFromName(session.layoutPreset);
+        for (const auto& buf : session.buffers) {
+            doOpen(buf.path, bufferModeFromString(buf.mode));
+            auto it = bufferStates.find(buf.path);
+            if (it != bufferStates.end()) {
+                auto* bs = it->second.get();
+                bs->cursorLine = buf.cursorLine;
+                bs->cursorCol = buf.cursorCol;
+                bs->widget.setDesiredFoldedLines(buf.foldedLines);
+                jumpTo(bs, std::max(0, buf.cursorLine - 1), std::max(0, buf.cursorCol - 1));
+            }
+        }
+        if (!session.activePath.empty() && buffers.hasBuffer(session.activePath)) {
+            switchToBuffer(session.activePath);
         }
     }
 
@@ -1740,6 +1811,14 @@ int main(int, char**) {
     // Editor state
     EditorState state;
     state.init();
+    SessionData session;
+    if (state.loadSession(session)) {
+        if (!session.imguiIni.empty()) {
+            ImGui::LoadIniSettingsFromMemory(session.imguiIni.c_str(),
+                                             session.imguiIni.size());
+        }
+        state.applySession(session);
+    }
     state.lspTransport = std::make_shared<NullLSPTransport>();
     state.lsp = std::make_shared<LSPClient>(state.lspTransport);
 
@@ -3745,6 +3824,11 @@ int main(int, char**) {
     }
 
     // Cleanup
+    size_t iniSize = 0;
+    const char* iniData = ImGui::SaveIniSettingsToMemory(&iniSize);
+    if (iniData && iniSize > 0) {
+        state.saveSession(std::string(iniData, iniSize));
+    }
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();

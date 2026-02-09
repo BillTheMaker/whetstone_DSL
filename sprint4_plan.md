@@ -367,7 +367,7 @@ AST extensions for Sprint 5.
   Open Project. Includes workspace root path and open buffer list.
   *Wires:* `ast/Serialization.h`
 
-- [ ] **Step 117: Session persistence**
+- [x] **Step 117: Session persistence**
   Remember window layout (docking configuration), open files, active tab,
   cursor positions, fold state, and layout preset across sessions.
   Saved to `~/.whetstone/session.json`. Restore on next launch.
