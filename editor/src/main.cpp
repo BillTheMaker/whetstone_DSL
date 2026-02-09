@@ -41,6 +41,7 @@
 #include "EditorModePolicy.h"
 #include "RefactorActions.h"
 #include "CommandPalette.h"
+#include "ContextAPI.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -129,6 +130,13 @@ struct EditorState {
     bool              hoverPending = false;
     double            hoverLastMove = 0.0;
     ImVec2            hoverLastMouse = ImVec2(-1.0f, -1.0f);
+    bool              definitionPending = false;
+    double            definitionLastRequest = 0.0;
+    int               definitionRequestLine = 0;
+    int               definitionRequestCol = 0;
+    std::string       definitionRequestPath;
+    LSPClient::DefinitionLocation definitionPreview;
+    bool              definitionPreviewValid = false;
     Pipeline          pipeline;
     bool              analysisPending = false;
     double            analysisLastChange = 0.0;
@@ -223,6 +231,31 @@ struct EditorState {
         return pos;
     }
 
+    static bool isWordChar(char c) {
+        return std::isalnum((unsigned char)c) || c == '_';
+    }
+
+    static std::string wordAt(const std::string& text, int pos) {
+        if (text.empty()) return "";
+        pos = std::max(0, std::min(pos, (int)text.size()));
+        if (pos == (int)text.size()) pos = (int)text.size() - 1;
+        if (pos < 0) return "";
+        if (!isWordChar(text[pos]) && pos > 0 && isWordChar(text[pos - 1])) {
+            --pos;
+        }
+        if (!isWordChar(text[pos])) return "";
+        int start = pos;
+        while (start > 0 && isWordChar(text[start - 1])) --start;
+        int end = pos;
+        while (end < (int)text.size() && isWordChar(text[end])) ++end;
+        return text.substr(start, end - start);
+    }
+
+    static std::string wordAtLineCol(const std::string& text, int lineZero, int colZero) {
+        int pos = byteOffsetForLineCol(text, lineZero, colZero);
+        return wordAt(text, pos);
+    }
+
     static std::string wordPrefixAt(const std::string& text, int pos) {
         int start = wordStartAt(text, pos);
         return text.substr(start, pos - start);
@@ -288,6 +321,79 @@ struct EditorState {
         if (lsp && path.rfind("(untitled", 0) != 0) {
             lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
         }
+    }
+
+    bool jumpToDefinitionLocation(const LSPClient::DefinitionLocation& loc) {
+        if (loc.uri.empty()) return false;
+        std::string path = fromFileUri(loc.uri);
+        if (path.empty()) return false;
+        if (buffers.hasBuffer(path)) switchToBuffer(path);
+        else doOpen(path);
+        jumpTo(active(), loc.range.start.line, loc.range.start.character);
+        return true;
+    }
+
+    bool goToDefinitionFallback(int lineZero, int colZero) {
+        if (!isStructured()) return false;
+        Module* ast = activeAST();
+        if (!ast || !active()) return false;
+        std::string word = wordAtLineCol(active()->editBuf, lineZero, colZero);
+        if (word.empty()) return false;
+
+        ASTNode* scopeNode = findNodeAtPosition(ast, lineZero, colZero);
+        if (!scopeNode) scopeNode = ast;
+
+        ContextAPI ctx;
+        ctx.setRoot(ast);
+        auto symbols = ctx.getInScopeSymbols(scopeNode->id);
+        for (const auto& sym : symbols) {
+            if (sym.name != word) continue;
+            ASTNode* target = findNodeById(ast, sym.nodeId);
+            if (target && target->hasSpan()) {
+                jumpTo(active(), target->spanStartLine, target->spanStartCol);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool goToDefinitionAt(int lineZero, int colZero) {
+        if (!active()) return false;
+        if (lsp && lspTransport && lspTransport->isOpen() &&
+            active()->path.rfind("(untitled", 0) != 0) {
+            definitionPreviewValid = false;
+            definitionPending = true;
+            definitionLastRequest = ImGui::GetTime();
+            definitionRequestLine = lineZero;
+            definitionRequestCol = colZero;
+            definitionRequestPath = active()->path;
+            lsp->clearDefinitionLocations();
+            lsp->requestDefinition(toFileUri(active()->path), lineZero, colZero);
+            return true;
+        }
+        return goToDefinitionFallback(lineZero, colZero);
+    }
+
+    bool previewDefinitionAt(int lineZero, int colZero, std::string& outLabel) {
+        if (!isStructured() || !active()) return false;
+        Module* ast = activeAST();
+        if (!ast) return false;
+        std::string word = wordAtLineCol(active()->editBuf, lineZero, colZero);
+        if (word.empty()) return false;
+        ASTNode* scopeNode = findNodeAtPosition(ast, lineZero, colZero);
+        if (!scopeNode) scopeNode = ast;
+        ContextAPI ctx;
+        ctx.setRoot(ast);
+        auto symbols = ctx.getInScopeSymbols(scopeNode->id);
+        for (const auto& sym : symbols) {
+            if (sym.name != word) continue;
+            ASTNode* target = findNodeById(ast, sym.nodeId);
+            if (target && target->hasSpan()) {
+                outLabel = word + " -> line " + std::to_string(target->spanStartLine + 1);
+                return true;
+            }
+        }
+        return false;
     }
 
     void switchToBuffer(const std::string& path) {
@@ -1004,6 +1110,27 @@ static int spanScore(const ASTNode* node) {
     int lines = node->spanEndLine - node->spanStartLine;
     int cols = node->spanEndCol - node->spanStartCol;
     return lines * 10000 + cols;
+}
+
+static bool spanContains(const ASTNode* node, int line, int col) {
+    if (!node || !node->hasSpan()) return false;
+    if (line < node->spanStartLine || line > node->spanEndLine) return false;
+    if (line == node->spanStartLine && col < node->spanStartCol) return false;
+    if (line == node->spanEndLine && col > node->spanEndCol) return false;
+    return true;
+}
+
+static ASTNode* findNodeAtPosition(ASTNode* node, int line, int col) {
+    if (!node) return nullptr;
+    ASTNode* best = nullptr;
+    if (spanContains(node, line, col)) best = node;
+    for (auto* child : node->allChildren()) {
+        ASTNode* cand = findNodeAtPosition(child, line, col);
+        if (cand) {
+            if (!best || spanScore(cand) < spanScore(best)) best = cand;
+        }
+    }
+    return best;
 }
 
 static ASTNode* findAnnotationTarget(ASTNode* node, int line) {
@@ -1994,6 +2121,9 @@ int main(int, char**) {
                         }
 
                         state.updateCursorPos(res.cursorByte);
+                        if (res.ctrlClick && state.active()) {
+                            state.goToDefinitionAt(res.ctrlClickLine, res.ctrlClickCol);
+                        }
                         if (res.lineClicked && buf->bufferMode == BufferManager::BufferMode::Structured) {
                             Module* ast = state.activeAST();
                             if (ast) {
@@ -2193,6 +2323,21 @@ int main(int, char**) {
                                 }
                             }
 
+                            if (state.definitionPending) {
+                                auto defs = state.lsp->getDefinitionLocations();
+                                if (!defs.empty()) {
+                                    state.definitionPending = false;
+                                    state.definitionPreview = defs.front();
+                                    state.definitionPreviewValid = true;
+                                    state.lsp->clearDefinitionLocations();
+                                    state.jumpToDefinitionLocation(state.definitionPreview);
+                                } else if ((ImGui::GetTime() - state.definitionLastRequest) > 0.5) {
+                                    state.definitionPending = false;
+                                    state.goToDefinitionFallback(state.definitionRequestLine,
+                                                                 state.definitionRequestCol);
+                                }
+                            }
+
                             auto sig = state.lsp->getSignatureHelp();
                             if (!sig.label.empty()) {
                                 ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x + 20.0f,
@@ -2200,6 +2345,22 @@ int main(int, char**) {
                                 ImGui::BeginChild("##signatureHelp", ImVec2(420, 60), true);
                                 ImGui::TextUnformatted(sig.label.c_str());
                                 ImGui::EndChild();
+                            }
+                        }
+
+                        if (res.hoverValid && (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+                            std::string preview;
+                            if (state.previewDefinitionAt(res.hoverLine, res.hoverCol, preview)) {
+                                ImGui::BeginTooltip();
+                                ImGui::TextUnformatted(preview.c_str());
+                                ImGui::EndTooltip();
+                            } else if (state.definitionPreviewValid) {
+                                std::string path = EditorState::fromFileUri(state.definitionPreview.uri);
+                                std::string label = path + ":" +
+                                    std::to_string(state.definitionPreview.range.start.line + 1);
+                                ImGui::BeginTooltip();
+                                ImGui::TextUnformatted(label.c_str());
+                                ImGui::EndTooltip();
                             }
                         }
 

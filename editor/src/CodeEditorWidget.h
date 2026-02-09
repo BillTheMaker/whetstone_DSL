@@ -54,6 +54,14 @@ struct CodeEditorResult {
     struct SuggestionMarker clickedSuggestion;
     bool lineClicked = false;
     int clickedLine = -1;
+    bool ctrlClick = false;
+    int ctrlClickLine = -1;
+    int ctrlClickCol = -1;
+    int ctrlClickPos = -1;
+    bool hoverValid = false;
+    int hoverLine = -1;
+    int hoverCol = -1;
+    int hoverPos = -1;
 };
 
 struct DiagnosticRange {
@@ -107,6 +115,7 @@ public:
         CodeEditorResult result;
         if (!font) font = ImGui::GetFont();
 
+        ImGuiIO& io = ImGui::GetIO();
         // Build line start offsets
         std::vector<int> lineStarts;
         lineStarts.reserve(128);
@@ -199,6 +208,7 @@ public:
                 selecting_ = false;
                 goto after_mouse;
             }
+            bool ctrlClick = io.KeyCtrl || io.KeySuper;
             int clickCount = ImGui::GetIO().MouseClickedCount[0];
             if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
                 int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
@@ -217,6 +227,12 @@ public:
                 int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
                 result.lineClicked = true;
                 result.clickedLine = lineFromPos(pos, lineStarts);
+                if (ctrlClick) {
+                    result.ctrlClick = true;
+                    result.ctrlClickPos = pos;
+                    result.ctrlClickLine = result.clickedLine;
+                    result.ctrlClickCol = pos - lineStarts[result.ctrlClickLine];
+                }
                 if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
                     selectWordAt(text, pos);
                 } else if (ImGui::GetIO().KeyShift) {
@@ -241,6 +257,19 @@ public:
         }
         if (selecting_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
             selecting_ = false;
+        }
+
+        if (hovered) {
+            const ImVec2 mouse = ImGui::GetMousePos();
+            if (mouse.x >= origin.x + gutterWidth &&
+                (!options.showMinimap || mouse.x < minimapBaseX)) {
+                int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
+                int line = lineFromPos(pos, lineStarts);
+                result.hoverValid = true;
+                result.hoverPos = pos;
+                result.hoverLine = line;
+                result.hoverCol = pos - lineStarts[line];
+            }
         }
 
         // Keyboard input

@@ -55,6 +55,11 @@ public:
         int activeParameter = 0;
     };
 
+    struct DefinitionLocation {
+        std::string uri;
+        Range range;
+    };
+
     void initialize(const std::string& rootUri,
                     const std::string& clientName,
                     int processId) {
@@ -132,6 +137,15 @@ public:
         params["position"] = {{"line", line}, {"character", character}};
         int id = sendRequest("textDocument/signatureHelp", params);
         lastSignatureRequestId_ = id;
+        return id;
+    }
+
+    int requestDefinition(const std::string& uri, int line, int character) {
+        nlohmann::json params;
+        params["textDocument"] = {{"uri", uri}};
+        params["position"] = {{"line", line}, {"character", character}};
+        int id = sendRequest("textDocument/definition", params);
+        lastDefinitionRequestId_ = id;
         return id;
     }
 
@@ -217,6 +231,21 @@ public:
                 }
                 return;
             }
+
+            if (id == lastDefinitionRequestId_) {
+                std::vector<DefinitionLocation> parsed;
+                if (result.is_array()) {
+                    for (const auto& item : result) {
+                        DefinitionLocation loc;
+                        if (parseDefinitionLocation(item, loc)) parsed.push_back(std::move(loc));
+                    }
+                } else if (result.is_object()) {
+                    DefinitionLocation loc;
+                    if (parseDefinitionLocation(result, loc)) parsed.push_back(std::move(loc));
+                }
+                definitionLocations_ = std::move(parsed);
+                return;
+            }
         }
     }
 
@@ -258,6 +287,14 @@ public:
         signatureHelp_ = SignatureHelp{};
     }
 
+    std::vector<DefinitionLocation> getDefinitionLocations() const {
+        return definitionLocations_;
+    }
+
+    void clearDefinitionLocations() {
+        definitionLocations_.clear();
+    }
+
     void sendNotification(const std::string& method, const nlohmann::json& params) {
         nlohmann::json msg;
         msg["jsonrpc"] = "2.0";
@@ -291,8 +328,43 @@ private:
     std::vector<CompletionItem> completionItems_;
     int lastHoverRequestId_ = -1;
     int lastSignatureRequestId_ = -1;
+    int lastDefinitionRequestId_ = -1;
     std::string hoverContents_;
     SignatureHelp signatureHelp_;
+    std::vector<DefinitionLocation> definitionLocations_;
+
+    static Range parseRange(const nlohmann::json& range) {
+        Range out;
+        if (range.contains("start")) {
+            const auto& start = range["start"];
+            out.start.line = start.value("line", 0);
+            out.start.character = start.value("character", 0);
+        }
+        if (range.contains("end")) {
+            const auto& end = range["end"];
+            out.end.line = end.value("line", 0);
+            out.end.character = end.value("character", 0);
+        }
+        return out;
+    }
+
+    static bool parseDefinitionLocation(const nlohmann::json& item, DefinitionLocation& out) {
+        if (item.contains("uri") && item.contains("range")) {
+            out.uri = item.value("uri", "");
+            out.range = parseRange(item["range"]);
+            return !out.uri.empty();
+        }
+        if (item.contains("targetUri")) {
+            out.uri = item.value("targetUri", "");
+            if (item.contains("targetRange")) {
+                out.range = parseRange(item["targetRange"]);
+            } else if (item.contains("targetSelectionRange")) {
+                out.range = parseRange(item["targetSelectionRange"]);
+            }
+            return !out.uri.empty();
+        }
+        return false;
+    }
 
     static std::string stringifyMarkup(const nlohmann::json& contents) {
         if (contents.is_string()) return contents.get<std::string>();

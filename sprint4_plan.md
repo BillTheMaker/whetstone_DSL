@@ -314,7 +314,7 @@ Whetstone-specific AST navigation.
   Most-recently-used commands float to top. Extensible for plugins.
   *New:* `CommandPalette.h`
 
-- [ ] **Step 110: Go-to-definition (LSP + Whetstone)**
+- [x] **Step 110: Go-to-definition (LSP + Whetstone)**
   Ctrl+click on a symbol → jump to its definition. Primary: send
   `textDocument/definition` to LSP server. Fallback: use `ContextAPI.getInScopeSymbols()`
   for Whetstone AST-level resolution. Hover shows definition preview popup.
