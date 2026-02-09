@@ -276,16 +276,30 @@ Surface the code generation and optimization pipeline in the UI.
   *Wires:* `IncrementalOptimizer.h`
 
 - [ ] **Step 107: Before/after diff view**
-  When a transform is applied, show a diff view: original code on left,
-  transformed on right. Changed lines highlighted in green/red.
-  Accept/reject per-transform. "Preview" mode shows diff without applying.
-  *Modifies:* `main.cpp`
+    When a transform is applied, show a diff view: original code on left,
+    transformed on right. Changed lines highlighted in green/red.
+    Accept/reject per-transform. "Preview" mode shows diff without applying.
+    *Modifies:* `main.cpp`
 
-- [ ] **Step 108: Batch mutation UI**
-  "Refactor" menu with batch operations: "Rename Variable", "Extract Function",
-  "Inline Variable". Each uses `BatchMutationAPI.applySequence()` with atomic
-  rollback on failure. Preview changes in diff view before applying.
-  *Wires:* `BatchMutationAPI.h`
+  - [ ] **Step 107a: Text-Editor Mode toggle**
+    Add a per-buffer mode selector (Text vs Structured) in status bar or View menu.
+    Text mode disables AST sync, generator/projection, and optimization panels.
+    *Modifies:* `main.cpp`, `TextASTSync.h` (if needed for bypass)
+
+  - [ ] **Step 107b: UI behavior by mode**
+    Hide or disable AST/Generated/Transforms/Optimize panels in Text mode.
+    Generated split view collapses to single editor in Text mode.
+    *Modifies:* `main.cpp`, `CodeEditorWidget.h`
+
+  - [ ] **Step 107c: Buffer persistence**
+    Store mode per buffer and preserve on open/reopen; include in recent files.
+    *Modifies:* `BufferManager.h`, `main.cpp`, `WelcomeScreen` persistence if needed
+
+  - [ ] **Step 108: Batch mutation UI**
+    "Refactor" menu with batch operations: "Rename Variable", "Extract Function",
+    "Inline Variable". Each uses `BatchMutationAPI.applySequence()` with atomic
+    rollback on failure. Preview changes in diff view before applying.
+    *Wires:* `BatchMutationAPI.h`
 
 ---
 
