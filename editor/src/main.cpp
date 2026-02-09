@@ -33,6 +33,7 @@
 #include "MemoryStrategyInference.h"
 #include "AnnotationConflict.h"
 #include "StrategyDashboard.h"
+#include "CrossLanguageProjector.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
 
@@ -64,6 +65,7 @@ struct BufferState {
     std::string       language    = "python";
     std::string       generatedLanguage = "python";
     std::string       path        = "(untitled)";
+    bool              readOnly    = false;
     bool              modified    = false;
     int               cursorLine  = 1;
     int               cursorCol   = 1;
@@ -461,22 +463,7 @@ struct EditorState {
     void updateGenerated() {
         if (!active()) return;
         Module* ast = active()->sync.getAST();
-        std::string generated;
-        if (ast) {
-            if (active()->generatedLanguage == "python") {
-                PythonGenerator gen;
-                generated = gen.generate(ast);
-            } else if (active()->generatedLanguage == "cpp") {
-                CppGenerator gen;
-                generated = gen.generate(ast);
-            } else if (active()->generatedLanguage == "elisp") {
-                ElispGenerator gen;
-                generated = gen.generate(ast);
-            } else {
-                PythonGenerator gen;
-                generated = gen.generate(ast);
-            }
-        }
+        std::string generated = generateForLanguage(ast, active()->generatedLanguage);
         if (generated != active()->generatedBuf) {
             active()->generatedBuf = generated;
             active()->generatedHighlightsDirty = true;
@@ -486,6 +473,54 @@ struct EditorState {
                 SyntaxHighlighter::highlight(active()->generatedBuf, active()->generatedLanguage);
             active()->generatedHighlightsDirty = false;
         }
+    }
+
+    void projectToLanguage(const std::string& targetLanguage) {
+        if (!active()) return;
+        Module* ast = active()->sync.getAST();
+        if (!ast) {
+            outputLog += "Project to " + targetLanguage + ": no AST available.\n";
+            return;
+        }
+
+        CrossLanguageProjector projector;
+        auto projected = projector.project(ast, targetLanguage);
+        if (!projected) {
+            outputLog += "Project to " + targetLanguage + ": failed to project AST.\n";
+            return;
+        }
+
+        const int srcAnnoCount = countAnnotationNodes(ast);
+        const int projAnnoCount = countAnnotationNodes(projected.get());
+        const bool preserved = projector.annotationsPreserved(ast, projected.get());
+        std::string generated = generateForLanguage(projected.get(), targetLanguage);
+
+        std::string baseName = "(untitled-projection:" + targetLanguage + ")";
+        std::string projName = baseName;
+        int suffix = 1;
+        while (buffers.hasBuffer(projName)) {
+            projName = baseName + "-" + std::to_string(suffix++);
+        }
+
+        createBuffer(projName, generated, targetLanguage);
+        if (active()) {
+            active()->readOnly = true;
+            active()->sync.setText(generated, targetLanguage);
+            active()->sync.setAST(std::move(projected));
+            active()->editBuf = generated;
+            active()->editor.setContent(active()->editBuf, targetLanguage);
+            active()->mode.setLanguage(targetLanguage);
+            active()->highlightsDirty = true;
+            active()->generatedLanguage = targetLanguage;
+            active()->generatedMode.setLanguage(targetLanguage);
+            active()->generatedHighlightsDirty = true;
+            active()->modified = false;
+        }
+
+        outputLog += "Projected to " + targetLanguage + " in " + projName +
+                     " (annotations " + std::to_string(srcAnnoCount) + " -> " +
+                     std::to_string(projAnnoCount) + ", types preserved: " +
+                     (preserved ? "yes" : "no") + ").\n";
     }
 
     void updateCursorPos(int bytePos) {
@@ -518,6 +553,42 @@ static int countLines(const std::string& text) {
         if (c == '\n') ++lines;
     }
     return lines;
+}
+
+static std::string generateForLanguage(const Module* ast, const std::string& language) {
+    if (!ast) return "";
+    if (language == "python") {
+        PythonGenerator gen;
+        return gen.generate(ast);
+    }
+    if (language == "cpp") {
+        CppGenerator gen;
+        return gen.generate(ast);
+    }
+    if (language == "elisp") {
+        ElispGenerator gen;
+        return gen.generate(ast);
+    }
+    PythonGenerator gen;
+    return gen.generate(ast);
+}
+
+static bool isAnnotationNode(const ASTNode* node) {
+    if (!node) return false;
+    if (node->conceptType.find("Annotation") != std::string::npos) return true;
+    if (node->conceptType == "DerefStrategy") return true;
+    if (node->conceptType == "OptimizationLock") return true;
+    if (node->conceptType == "LangSpecific") return true;
+    return false;
+}
+
+static int countAnnotationNodes(const ASTNode* node) {
+    if (!node) return 0;
+    int count = isAnnotationNode(node) ? 1 : 0;
+    for (auto* child : node->allChildren()) {
+        count += countAnnotationNodes(child);
+    }
+    return count;
 }
 
 
@@ -1175,6 +1246,22 @@ int main(int, char**) {
                 }
                 ImGui::EndMenu();
             }
+
+            const bool canProject = state.active() && state.active()->sync.getAST();
+            ImGui::SameLine();
+            ImGui::Dummy(ImVec2(12.0f, 0.0f));
+            ImGui::SameLine();
+            if (!canProject) ImGui::BeginDisabled();
+            if (ImGui::Button("Project to...")) {
+                ImGui::OpenPopup("ProjectToPopup");
+            }
+            if (ImGui::BeginPopup("ProjectToPopup")) {
+                if (ImGui::MenuItem("Python")) state.projectToLanguage("python");
+                if (ImGui::MenuItem("C++")) state.projectToLanguage("cpp");
+                if (ImGui::MenuItem("Elisp")) state.projectToLanguage("elisp");
+                ImGui::EndPopup();
+            }
+            if (!canProject) ImGui::EndDisabled();
             ImGui::EndMainMenuBar();
         }
 
@@ -1361,6 +1448,7 @@ int main(int, char**) {
 
                         CodeEditorOptions opts;
                         opts.showWhitespace = state.showWhitespace;
+                        opts.readOnly = buf->readOnly;
                         opts.mode = &buf->mode;
                         opts.enableFolding = true;
                         opts.showMinimap = state.showMinimap;
