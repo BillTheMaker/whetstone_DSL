@@ -48,6 +48,7 @@
 #include "Orchestrator.h"
 #include "ProjectManager.h"
 #include "SessionManager.h"
+#include "ZoomUtils.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -1962,6 +1963,17 @@ int main(int, char**) {
                     state.commandSelected = 0;
                 }
 
+                auto applyFontSize = [&](int newSize) {
+                    newSize = clampFontSize(newSize);
+                    state.settings.setFontSize(newSize);
+                    io.FontGlobalScale = newSize / baseFontSize;
+                    state.saveSettingsToDisk();
+                };
+
+                if ((sdlMod & KMOD_CTRL) && sym == SDLK_0) {
+                    applyFontSize((int)baseFontSize);
+                }
+
                 if (key != 0 && mods != WMOD_NONE) {
                     KeyCombo combo{key, mods};
                     std::string action = state.keys.getAction(combo);
@@ -1979,6 +1991,8 @@ int main(int, char**) {
                         std::string lang = state.active() ? state.active()->language : "python";
                         state.createBuffer(state.makeUntitledName(), "", lang);
                     }
+                    else if (action == "view.zoomIn")  applyFontSize(state.settings.getFontSize() + 1);
+                    else if (action == "view.zoomOut") applyFontSize(state.settings.getFontSize() - 1);
                 }
             }
         }
@@ -4007,6 +4021,10 @@ int main(int, char**) {
 
             // Keybinding profile
             ImGui::Text("Keys: %s", KeybindingManager::profileName(state.keys.getProfile()));
+            ImGui::SameLine(0, 30);
+
+            // Zoom
+            ImGui::Text("Zoom: %d%%", zoomPercent(state.settings.getFontSize(), baseFontSize));
             ImGui::SameLine(0, 30);
 
             // Modified indicator

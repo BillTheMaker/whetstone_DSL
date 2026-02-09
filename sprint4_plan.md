@@ -380,7 +380,7 @@ AST extensions for Sprint 5.
   keybinding profile. Persisted to `~/.whetstone/settings.json`.
   *New:* `SettingsManager.h`
 
-- [ ] **Step 119: Zoom**
+- [x] **Step 119: Zoom**
   Ctrl+= zoom in, Ctrl+- zoom out, Ctrl+0 reset. Scales the editor font
   size dynamically. Status bar shows current zoom level.
   *Modifies:* `main.cpp`

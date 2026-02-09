@@ -222,6 +222,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 116: **IMPLEMENTED** — Project save/load (.whetstone) with AST serialization (4/4 tests pass)
 - [x] Step 117: **IMPLEMENTED** — Session persistence (layout, buffers, cursors, folds) (5/5 tests pass)
 - [x] Step 118: **IMPLEMENTED** — Settings panel + persistence (11/11 tests pass)
+- [x] Step 119: **IMPLEMENTED** — Zoom controls and status bar indicator (5/5 tests pass)
 
 ---
 
@@ -323,6 +324,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 116:** Compile and pass (4/4)
 **Step 117:** Compile and pass (5/5)
 **Step 118:** Compile and pass (11/11)
+**Step 119:** Compile and pass (5/5)
 
 ---
 
@@ -374,7 +376,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 118 (settings panel) done. Next: Step 119 (zoom).
+Sprint 4 in progress. Step 119 (zoom) done. Next: Step 120 (undo/redo rework).
 
 ---
 
@@ -454,3 +456,4 @@ Sprint 4 in progress. Step 118 (settings panel) done. Next: Step 119 (zoom).
 | 2026-02-09 | Codex | Step 116: Project save/load (.whetstone) with AST serialization. 4/4 tests pass. |
 | 2026-02-09 | Codex | Step 117: Session persistence (layout, buffers, cursors, folds). 5/5 tests pass. |
 | 2026-02-09 | Codex | Step 118: Settings panel + persistence. 11/11 tests pass. |
+| 2026-02-09 | Codex | Step 119: Zoom controls and status bar indicator. 5/5 tests pass. |
