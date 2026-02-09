@@ -11,20 +11,27 @@
 
 class BufferManager {
 public:
+    enum class BufferMode {
+        Structured,
+        Text
+    };
+
     struct BufferInfo {
         std::string path;
         std::string content;
         std::string language;
         bool modified = false;
+        BufferMode mode = BufferMode::Structured;
     };
 
     BufferManager() = default;
 
     // Open a file into a buffer (makes it active)
     bool openBuffer(const std::string& path, const std::string& content,
-                    const std::string& language) {
+                    const std::string& language,
+                    BufferMode mode = BufferMode::Structured) {
         if (hasBuffer(path)) return false;  // already open
-        BufferInfo info{path, content, language, false};
+        BufferInfo info{path, content, language, false, mode};
         buffers_[path] = info;
         activeBuffer_ = path;
         return true;
@@ -68,6 +75,19 @@ public:
         if (it != buffers_.end()) {
             it->second.content = content;
         }
+    }
+
+    void setBufferMode(const std::string& path, BufferMode mode) {
+        auto it = buffers_.find(path);
+        if (it != buffers_.end()) {
+            it->second.mode = mode;
+        }
+    }
+
+    BufferMode getBufferMode(const std::string& path) const {
+        auto it = buffers_.find(path);
+        if (it != buffers_.end()) return it->second.mode;
+        return BufferMode::Structured;
     }
 
     // Get list of all open buffer paths

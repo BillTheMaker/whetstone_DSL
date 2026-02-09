@@ -17,6 +17,7 @@
 #include "TextASTSync.h"
 #include "SyntaxHighlighter.h"
 #include "KeybindingManager.h"
+#include "BufferManager.h"
 #include "CodeEditorWidget.h"
 #include "EditorMode.h"
 #include "FileDialog.h"
@@ -70,6 +71,7 @@ struct BufferState {
     std::string       generatedLanguage = "python";
     std::string       path        = "(untitled)";
     bool              readOnly    = false;
+    BufferManager::BufferMode mode = BufferManager::BufferMode::Structured;
     bool              modified    = false;
     int               cursorLine  = 1;
     int               cursorCol   = 1;
@@ -251,7 +253,8 @@ struct EditorState {
         state->generatedHighlightsDirty = true;
         state->modified = false;
         state->lspVersion = 1;
-        buffers.openBuffer(path, content, language);
+        buffers.openBuffer(path, content, language, BufferManager::BufferMode::Structured);
+        state->mode = BufferManager::BufferMode::Structured;
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
@@ -1328,6 +1331,15 @@ int main(int, char**) {
                 ImGui::MenuItem("Show Minimap", nullptr, &state.showMinimap);
                 ImGui::MenuItem("Show Annotations", nullptr, &state.showAnnotations);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
+                if (state.active()) {
+                    bool textMode = state.active()->mode == BufferManager::BufferMode::Text;
+                    if (ImGui::MenuItem("Text-Editor Mode", nullptr, textMode)) {
+                        state.active()->mode = textMode ?
+                            BufferManager::BufferMode::Structured :
+                            BufferManager::BufferMode::Text;
+                        state.buffers.setBufferMode(state.active()->path, state.active()->mode);
+                    }
+                }
                 if (ImGui::BeginMenu("Layout")) {
                     if (ImGui::MenuItem("VSCode", nullptr, state.layoutPreset == LayoutPreset::VSCode))
                         state.layoutPreset = LayoutPreset::VSCode;
@@ -2573,6 +2585,16 @@ int main(int, char**) {
                 ImGui::Text("%s", state.active()->language.c_str());
             else
                 ImGui::Text("-");
+            ImGui::SameLine(0, 30);
+
+            // Mode
+            if (state.active()) {
+                const char* modeLabel =
+                    state.active()->mode == BufferManager::BufferMode::Text ? "Text" : "Structured";
+                ImGui::Text("Mode: %s", modeLabel);
+            } else {
+                ImGui::Text("Mode: -");
+            }
             ImGui::SameLine(0, 30);
 
             // Keybinding profile

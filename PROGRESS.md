@@ -207,8 +207,9 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 104: **IMPLEMENTED** — Cross-language projection button with read-only projected tabs and annotation summary (2/2 tests pass)
 - [x] Step 105: **IMPLEMENTED** — Optimization controls panel with constraint-aware buttons and summaries (2/2 tests pass)
 - [x] Step 106: **IMPLEMENTED** — Transform history panel with undo controls and provenance coloring (1/1 tests pass)
-- [ ] Step 107a–107c: **PLANNED** — Text-Editor Mode toggle, UI behavior by mode, and per-buffer persistence (not started)
 - [x] Step 107: **IMPLEMENTED** — Before/after diff view with preview and accept/reject (1/1 tests pass)
+- [x] Step 107a: **IMPLEMENTED** — Text-Editor Mode toggle and per-buffer mode tracking (2/2 tests pass)
+- [ ] Step 107b–107c: **PLANNED** — Mode-specific UI behavior and per-buffer persistence (not started)
 
 ---
 
@@ -296,6 +297,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 105:** Compile and pass (2/2)
 **Step 106:** Compile and pass (1/1)
 **Step 107:** Compile and pass (1/1)
+**Step 107a:** Compile and pass (2/2)
 
 ---
 
@@ -413,3 +415,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 106: Transform history panel with undo controls and provenance coloring. 1/1 tests pass. |
 | 2026-02-09 | Codex | Planned Step 107a–107c: add Text-Editor Mode toggle, mode-specific UI behavior, and per-buffer persistence. |
 | 2026-02-09 | Codex | Step 107: Before/after diff view with preview and accept/reject. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 107a: Text-Editor Mode toggle and per-buffer mode tracking. 2/2 tests pass. |
