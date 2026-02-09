@@ -20,32 +20,7 @@
 #include "ast/Statement.h"
 #include "ast/Expression.h"
 
-// Forward declaration — IncrementalOptimizer
-class IncrementalOptimizer {
-public:
-    struct TransformRecord {
-        std::string transformId;
-        std::string transformName;  // e.g., "constant-fold", "dead-code-elim"
-        std::vector<std::string> affectedNodeIds;
-    };
-
-    void setRoot(ASTNode* root);
-
-    // Apply a named transform, returns its ID
-    std::string applyTransform(const std::string& transformName);
-
-    // Get all applied transforms in order
-    std::vector<TransformRecord> getTransformHistory() const;
-
-    // Undo a specific transform by ID
-    bool undoTransform(const std::string& transformId);
-
-    // Undo the most recent transform
-    bool undoLast();
-
-    // Get which transform created/modified a given node
-    std::string getProvenance(const std::string& nodeId) const;
-};
+#include "IncrementalOptimizer.h"
 
 int main() {
     int passed = 0;

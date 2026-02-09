@@ -306,6 +306,20 @@ target_include_directories(step70_test PRIVATE src)
 add_executable(step71_test tests/step71_test.cpp)
 target_include_directories(step71_test PRIVATE src)
 
+add_executable(step72_test tests/step72_test.cpp)
+target_include_directories(step72_test PRIVATE src)
+target_link_libraries(step72_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+
+add_executable(step73_test tests/step73_test.cpp)
+target_include_directories(step73_test PRIVATE src)
+
+add_executable(step74_test tests/step74_test.cpp)
+target_include_directories(step74_test PRIVATE src)
+target_link_libraries(step74_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step75_test tests/step75_test.cpp)
+target_include_directories(step75_test PRIVATE src)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

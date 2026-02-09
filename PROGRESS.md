@@ -19,7 +19,7 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 |--------|-------|--------|-------------|
 | Sprint 1 | — | Complete | MPS-based prototype (JetBrains MPS language plugin) |
 | Sprint 2 | 1–38 | **Complete** | C++ editor stack: AST, serialization, generators, ImGui shell, orchestrator, agents |
-| Sprint 3 | 39–75 | **In Progress** | Core functionality: C++ generator, tree-sitter, classical editing, optimization |
+| Sprint 3 | 39–75 | **Complete** | Core functionality: C++ generator, tree-sitter, classical editing, optimization |
 
 ---
 
@@ -91,7 +91,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 
 ---
 
-## Sprint 3: Core Functionality (Steps 39–75) — IN PROGRESS
+## Sprint 3: Core Functionality (Steps 39–75) — COMPLETE
 
 ### Phase 3a: C++ Generator Implementation (Steps 39–44) — COMPLETE
 - [x] Step 39: CppGenerator basic skeleton
@@ -153,17 +153,17 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 66: **IMPLEMENTED** — CrossLanguageProjector: deep-copy AST projection with language change, annotation-aware CppGenerator (shared_ptr for @Reclaim(Tracing), unique_ptr for @Lifetime(RAII)), round-trip annotation preservation (5/5 tests pass)
 - [x] Step 67: **IMPLEMENTED** — Optimization annotations: HotColdAnnotation(@Hot→__attribute__((hot)), @Cold→__attribute__((cold))), InlineAnnotation(@Inline(Always)→[[gnu::always_inline]]), PureAnnotation(@Pure→[[nodiscard]]), ConstExprAnnotation(@ConstExpr→constexpr); all 3 generators updated (9/9 tests pass)
 
-### Phase 3g: Optimization Pipeline (Steps 68–71) — TDD STUBS ONLY
-- [x] Step 68: TDD test written (does not link)
-- [x] Step 69: TDD test written (does not link)
-- [x] Step 70: TDD test written (does not link)
-- [x] Step 71: TDD test written (does not link)
+### Phase 3g: Optimization Pipeline (Steps 68–71) — COMPLETE
+- [x] Step 68: **IMPLEMENTED** — TransformEngine: constant folding (BinaryOp on IntegerLiterals), dead code elimination (after Return), OptimizationLock warning (4/4 tests pass)
+- [x] Step 69: **IMPLEMENTED** — StrategyAwareOptimizer: annotation-constrained optimization (@Reclaim→allow, @Owner(Single)→block duplication, @Deallocate(Explicit)→block reorder, @Allocate(Static)→block dynamic alloc) (4/4 tests pass)
+- [x] Step 70: **IMPLEMENTED** — StrategyValidator: post-optimization invariant checking (use-after-free, leak, aliasing under @Owner(Single), clean code passes) (5/5 tests pass)
+- [x] Step 71: **IMPLEMENTED** — IncrementalOptimizer: transform journal with unique IDs, undoLast, undoTransform(id), provenance tracking (4/4 tests pass)
 
-### Phase 3h: Integration & Validation (Steps 72–75) — NOT STARTED
-- [ ] Step 72: End-to-end pipeline test
-- [ ] Step 73: Error handling and edge cases
-- [ ] Step 74: Performance profiling and benchmarks
-- [ ] Step 75: API documentation
+### Phase 3h: Integration & Validation (Steps 72–75) — COMPLETE
+- [x] Step 72: **IMPLEMENTED** — Pipeline: end-to-end parse→infer→validate→optimize→generate for Python and C++, cross-language projection, constant folding in pipeline (6/6 tests pass)
+- [x] Step 73: **IMPLEMENTED** — Error handling: empty AST, null roots, unannotated code, nonexistent node IDs, empty history, empty module (8/8 tests pass)
+- [x] Step 74: **IMPLEMENTED** — Performance benchmarks: 1000-function AST creation (1ms), 500-function constant fold (0ms), 100-variable leak detection (0ms), JSON round-trip 100 functions (4ms), 50 incremental transforms+undo (1ms) (6/6 tests pass)
+- [x] Step 75: **IMPLEMENTED** — APIDocGenerator: structured docs for 23 components across 6 categories, markdown generation, coverage verification (6/6 tests pass)
 
 ---
 
@@ -215,7 +215,9 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 63:** Compile and pass (5/5)
 **Step 64:** Compile and pass (5/5)
 **Step 65:** Compile and pass (5/5)
-**Steps 66–75:** Either not started or TDD stubs that don't link yet
+**Steps 66–67:** Compile and pass (step66: 5/5, step67: 9/9)
+**Steps 68–71:** All compile and pass (step68: 4/4, step69: 4/4, step70: 5/5, step71: 4/4)
+**Steps 72–75:** All compile and pass (step72: 6/6, step73: 8/8, step74: 6/6, step75: 6/6)
 
 ---
 
@@ -241,6 +243,12 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | `editor/src/BatchMutationAPI.h` | Atomic batch mutations with reverse-order rollback on failure |
 | `editor/src/AnnotationValidator.h` | Memory annotation validation: missing intent, alias detection, conflict checking |
 | `editor/src/MemoryStrategyInference.h` | Memory strategy inference: language defaults, pattern analysis, confidence scoring |
+| `editor/src/TransformEngine.h` | AST transformation engine: constant folding, dead code elimination, OptimizationLock |
+| `editor/src/StrategyAwareOptimizer.h` | Annotation-constrained optimization (respects @Owner, @Deallocate, @Allocate, @Reclaim) |
+| `editor/src/StrategyValidator.h` | Post-optimization invariant validation (use-after-free, leak, aliasing) |
+| `editor/src/IncrementalOptimizer.h` | Incremental transforms with journal, undo by ID, provenance tracking |
+| `editor/src/Pipeline.h` | End-to-end pipeline: parse → infer → validate → optimize → generate |
+| `editor/src/APIDocGenerator.h` | Structured API documentation for all 23 components |
 | `editor/src/Orchestrator.h` | Orchestrator: Emacs integration, file ops, undo/redo, agent API |
 | `editor/src/main.cpp` | ImGui editor shell (SDL2 + OpenGL3, VSCode Dark theme, docking) |
 | `editor/src/orchestrator_main.cpp` | Orchestrator standalone process (JSON-RPC server) |
@@ -260,11 +268,10 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Phase 3e (Agent API Extend) complete. Phase 3f Step 64 done.
-Next logical work:
-- **Step 65**: Memory strategy inference (suggest annotations from usage patterns)
-- **Step 66**: Cross-language memory projection (lossless annotation translation)
-- **Step 67**: Optimization annotations (@Hot/@Cold, @Inline, @Pure, @ConstExpr)
+Sprint 3 complete. All 75 steps implemented and passing.
+All phases (3a–3h) done. Sprint 3 adds: C++ generator, tree-sitter parsing,
+classical editing, editor infrastructure, agent APIs, memory management,
+optimization pipeline, and end-to-end integration.
 
 ---
 
@@ -294,3 +301,5 @@ Next logical work:
 | 2026-02-08 | Claude Opus 4.6 | Step 63: BatchMutationAPI with atomic applySequence. Captures undo closures per mutation; on failure, rolls back in reverse order. Supports setProperty/insertNode/deleteNode. Journal recorded on success. Phase 3e complete (35/35 tests across steps 59–63). 5/5 tests pass. |
 | 2026-02-08 | Claude Opus 4.6 | Step 64: AnnotationValidator. @Deallocate(Explicit) → checks for dealloc evidence (FunctionCall to delete/free), emits "Missing Intent" error if absent. @Owner(Single) → scans for aliasing assignments to local vars. Conflicting same-family annotations on parent/child → conflict error. 5/5 tests pass. |
 | 2026-02-08 | Claude Opus 4.6 | Step 65: MemoryStrategyInference. Language-based defaults (Python/Elisp/Ruby/JS/Java→Tracing, C→Explicit, Rust→Single, Swift→Shared_ARC, C++→RAII). Per-function alloc/dealloc pattern scan. Confidence scores. Read-only (never modifies AST). 5/5 tests pass. |
+| 2026-02-09 | Claude Opus 4.6 | Phase 3g complete: Optimization Pipeline (Steps 68–71). TransformEngine (constant folding, DCE, OptimizationLock warning). StrategyAwareOptimizer (annotation-constrained: @Reclaim allows, @Owner blocks duplication, @Deallocate blocks reorder, @Allocate blocks dynamic). StrategyValidator (use-after-free, leak, aliasing detection). IncrementalOptimizer (journal, undo by ID, provenance). 17/17 tests pass. |
+| 2026-02-09 | Claude Opus 4.6 | Phase 3h complete: Integration & Validation (Steps 72–75). Pipeline (end-to-end parse→infer→validate→optimize→generate across Python/C++). Error handling (8 edge cases: null roots, empty ASTs, nonexistent IDs). Performance benchmarks (1000-fn AST in 1ms, JSON round-trip 4ms). APIDocGenerator (23 components, 6 categories, markdown output). 26/26 tests pass. **Sprint 3 complete: all 75 steps done.** |

@@ -22,27 +22,7 @@
 #include "ast/Expression.h"
 #include "ast/Annotation.h"
 
-// Forward declaration — TransformEngine
-class TransformEngine {
-public:
-    struct TransformResult {
-        bool applied;
-        std::string warning;  // Non-empty if warning produced
-        int nodesModified;
-    };
-
-    // Set the AST root to transform
-    void setRoot(ASTNode* root);
-
-    // Apply constant folding pass
-    TransformResult constantFolding();
-
-    // Apply dead code elimination pass
-    TransformResult deadCodeElimination();
-
-    // Apply all built-in transforms
-    std::vector<TransformResult> applyAll();
-};
+#include "TransformEngine.h"
 
 int main() {
     int passed = 0;

@@ -22,19 +22,7 @@
 #include "ast/Expression.h"
 #include "ast/Annotation.h"
 
-// Forward declaration — StrategyValidator
-class StrategyValidator {
-public:
-    struct Violation {
-        std::string severity;   // "error" or "warning"
-        std::string category;   // "use-after-free", "leak", "double-move", "aliasing", "destructor-unreachable"
-        std::string message;
-        std::string nodeId;
-    };
-
-    // Validate all memory strategy invariants
-    std::vector<Violation> validateInvariants(const ASTNode* root) const;
-};
+#include "StrategyValidator.h"
 
 static bool hasViolation(const std::vector<StrategyValidator::Violation>& violations,
                           const std::string& category) {

@@ -20,30 +20,7 @@
 #include "ast/Expression.h"
 #include "ast/Annotation.h"
 
-// Forward declaration — StrategyAwareOptimizer
-class StrategyAwareOptimizer {
-public:
-    struct OptResult {
-        bool applied;
-        std::string warning;
-        std::string blocked;   // Non-empty if optimization was blocked by annotation
-        int nodesModified;
-    };
-
-    void setRoot(ASTNode* root);
-
-    // Try to inline a variable (replace references with the value)
-    OptResult inlineVariable(const std::string& variableId);
-
-    // Try to reorder statements for efficiency
-    OptResult reorderStatements(const std::string& functionId);
-
-    // Try to duplicate/clone a node for parallelism
-    OptResult duplicateNode(const std::string& nodeId);
-
-    // General optimization respecting all annotations
-    OptResult optimizeFunction(const std::string& functionId);
-};
+#include "StrategyAwareOptimizer.h"
 
 int main() {
     int passed = 0;
