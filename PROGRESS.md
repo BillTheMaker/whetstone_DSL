@@ -191,6 +191,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 ### Phase 4c: LSP Client & Diagnostics (Steps 90–96) — In Progress
 - [x] Step 90: **IMPLEMENTED** — LSPClient core with JSON-RPC initialize/shutdown, injectable transport (2/2 tests pass)
 - [x] Step 91: **IMPLEMENTED** — LSP diagnostics: didOpen/didChange/didSave notifications, publishDiagnostics parsing/storage, Problems panel UI (1/1 tests pass)
+- [x] Step 92: **IMPLEMENTED** — LSP completion requests, response parsing, and completion popup with filtering/acceptance (1/1 tests pass)
 
 ---
 
@@ -261,6 +262,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 89:** Compile and pass (1/1)
 **Step 90:** Compile and pass (2/2)
 **Step 91:** Compile and pass (1/1)
+**Step 92:** Compile and pass (1/1)
 
 ---
 
@@ -360,3 +362,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 89: File watcher polling with auto-reload for clean buffers. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 90: LSPClient core with JSON-RPC initialize/shutdown and injectable transport. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 91: LSP diagnostics integration: didOpen/didChange/didSave notifications, publishDiagnostics parsing, Problems panel with jump-to-location. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 92: LSP completion requests/response parsing; completion popup with filtering and acceptance. 1/1 tests pass. |

@@ -34,6 +34,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <cctype>
 #include <filesystem>
 #include <map>
 #include <memory>
@@ -86,6 +87,10 @@ struct EditorState {
     FileWatcher       watcher;
     std::shared_ptr<LSPTransport> lspTransport;
     std::shared_ptr<LSPClient> lsp;
+    bool              completionPending = false;
+    bool              completionVisible = false;
+    int               completionSelected = 0;
+    double            completionLastChange = 0.0;
 
     BufferState* active() { return activeBuffer; }
 
@@ -119,12 +124,41 @@ struct EditorState {
         return pos;
     }
 
+    static int wordStartAt(const std::string& text, int pos) {
+        pos = std::max(0, std::min(pos, (int)text.size()));
+        while (pos > 0) {
+            char c = text[pos - 1];
+            if (std::isalnum((unsigned char)c) || c == '_') {
+                --pos;
+            } else {
+                break;
+            }
+        }
+        return pos;
+    }
+
+    static std::string wordPrefixAt(const std::string& text, int pos) {
+        int start = wordStartAt(text, pos);
+        return text.substr(start, pos - start);
+    }
+
     void jumpTo(BufferState* buf, int lineZero, int colZero) {
         if (!buf) return;
         int pos = byteOffsetForLineCol(buf->editBuf, lineZero, colZero);
         buf->widget.setCursor(pos);
         buf->cursorLine = lineZero + 1;
         buf->cursorCol = colZero + 1;
+    }
+
+    void applyCompletion(BufferState* buf, const std::string& insertText, int replaceStart, int replaceEnd) {
+        if (!buf) return;
+        replaceStart = std::max(0, std::min(replaceStart, (int)buf->editBuf.size()));
+        replaceEnd = std::max(replaceStart, std::min(replaceEnd, (int)buf->editBuf.size()));
+        buf->editBuf.replace(replaceStart, replaceEnd - replaceStart, insertText);
+        int newPos = replaceStart + (int)insertText.size();
+        buf->widget.setCursor(newPos);
+        activeBuffer = buf;
+        onTextChanged();
     }
 
     std::string makeUntitledName() const {
@@ -977,6 +1011,76 @@ int main(int, char**) {
                         state.updateCursorPos(res.cursorByte);
                         if (res.changed) {
                             state.onTextChanged();
+                            state.completionPending = true;
+                            state.completionLastChange = ImGui::GetTime();
+                            state.completionVisible = false;
+                            state.completionSelected = 0;
+                            if (state.lsp) state.lsp->clearCompletionItems();
+                        }
+
+                        double now = ImGui::GetTime();
+                        if (state.completionPending && (now - state.completionLastChange) > 0.2) {
+                            if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
+                                int lineZero = std::max(0, state.active()->cursorLine - 1);
+                                int colZero = std::max(0, state.active()->cursorCol - 1);
+                                state.lsp->requestCompletion(EditorState::toFileUri(state.active()->path),
+                                                             lineZero, colZero);
+                            }
+                            state.completionPending = false;
+                        }
+
+                        if (state.lsp && state.active()) {
+                            auto items = state.lsp->getCompletionItems();
+                            int cursor = state.active()->widget.getCursor();
+                            std::string prefix = EditorState::wordPrefixAt(state.active()->editBuf, cursor);
+                            std::vector<LSPClient::CompletionItem> filtered;
+                            filtered.reserve(items.size());
+                            for (const auto& item : items) {
+                                const std::string& key = item.filterText.empty() ? item.label : item.filterText;
+                                if (prefix.empty() || key.rfind(prefix, 0) == 0) filtered.push_back(item);
+                            }
+
+                            state.completionVisible = !filtered.empty();
+                            if (state.completionVisible) {
+                                ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x + 20.0f,
+                                                                 ImGui::GetWindowPos().y + 60.0f));
+                                ImGui::BeginChild("##completionPopup", ImVec2(300, 150), true);
+                                int maxIndex = std::max(0, (int)filtered.size() - 1);
+                                if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+                                    state.completionSelected = std::min(state.completionSelected + 1, maxIndex);
+                                }
+                                if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+                                    state.completionSelected = std::max(state.completionSelected - 1, 0);
+                                }
+                                bool accept = ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Tab);
+                                bool dismiss = ImGui::IsKeyPressed(ImGuiKey_Escape);
+
+                                if (dismiss) {
+                                    state.lsp->clearCompletionItems();
+                                    state.completionVisible = false;
+                                }
+
+                                for (int i = 0; i < (int)filtered.size(); ++i) {
+                                    std::string itemLabel = filtered[i].label;
+                                    if (filtered[i].kind != 0) {
+                                        itemLabel = "[" + std::to_string(filtered[i].kind) + "] " + itemLabel;
+                                    }
+                                    bool selected = (i == state.completionSelected);
+                                    if (ImGui::Selectable(itemLabel.c_str(), selected)) {
+                                        state.completionSelected = i;
+                                        accept = true;
+                                    }
+                                }
+
+                                if (accept && !filtered.empty()) {
+                                    const auto& item = filtered[state.completionSelected];
+                                    int start = EditorState::wordStartAt(state.active()->editBuf, cursor);
+                                    state.applyCompletion(state.active(), item.insertText, start, cursor);
+                                    state.lsp->clearCompletionItems();
+                                    state.completionVisible = false;
+                                }
+                                ImGui::EndChild();
+                            }
                         }
 
                         ImGui::EndTabItem();
