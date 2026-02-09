@@ -376,7 +376,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 119 (zoom) done. Next: Step 120 (undo/redo rework).
+Sprint 4 in progress. Step 120 (undo/redo rework) done. Next: Step 121 (AST import/external module concepts).
 
 ---
 
@@ -457,3 +457,4 @@ Sprint 4 in progress. Step 119 (zoom) done. Next: Step 120 (undo/redo rework).
 | 2026-02-09 | Codex | Step 117: Session persistence (layout, buffers, cursors, folds). 5/5 tests pass. |
 | 2026-02-09 | Codex | Step 118: Settings panel + persistence. 11/11 tests pass. |
 | 2026-02-09 | Codex | Step 119: Zoom controls and status bar indicator. 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 120: Unified undo/redo via orchestrator snapshots (per-buffer), status bar undo depth, snapshot-based undo/redo wiring. 4/4 tests pass. |
