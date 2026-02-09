@@ -27,6 +27,7 @@
 #include "LSPClient.h"
 #include "Pipeline.h"
 #include "Diagnostics.h"
+#include "SettingsManager.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -100,6 +101,8 @@ struct EditorState {
     bool              analysisPending = false;
     double            analysisLastChange = 0.0;
     std::vector<EditorDiagnostic> whetstoneDiagnostics;
+    SettingsManager   settings;
+    bool              showLspSettings = false;
 
     BufferState* active() { return activeBuffer; }
 
@@ -469,6 +472,15 @@ static bool InputTextMultilineStr(const char* label, std::string* str,
         str->reserve(str->size() + 4096);
     return ImGui::InputTextMultiline(label, str->data(), str->capacity() + 1,
                                       size, flags, InputTextCallback, &cbData);
+}
+
+static bool InputTextStr(const char* label, std::string* str, ImGuiInputTextFlags flags = 0) {
+    flags |= ImGuiInputTextFlags_CallbackResize;
+    InputTextCallbackData cbData{str};
+    if (str->capacity() < str->size() + 64)
+        str->reserve(str->size() + 256);
+    return ImGui::InputText(label, str->data(), str->capacity() + 1,
+                            flags, InputTextCallback, &cbData);
 }
 
 // ---------------------------------------------------------------------------
@@ -894,6 +906,7 @@ int main(int, char**) {
             if (ImGui::BeginMenu("View")) {
                 ImGui::MenuItem("Show Whitespace", nullptr, &state.showWhitespace);
                 ImGui::MenuItem("Show Minimap", nullptr, &state.showMinimap);
+                ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Language")) {
@@ -975,6 +988,34 @@ int main(int, char**) {
             ImGui::InputText("Replace", state.replaceBuf, sizeof(state.replaceBuf));
             ImGui::SameLine();
             if (ImGui::Button("Replace All")) state.doReplaceAll();
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        // ---------------------------------------------------------------
+        //  LSP Server Settings
+        // ---------------------------------------------------------------
+        if (state.showLspSettings) {
+            ImGui::Begin("LSP Servers", &state.showLspSettings);
+            ImGui::PushFont(uiFont);
+            if (ImGui::Button("Auto-Detect")) {
+                state.settings.autoDetect();
+            }
+            ImGui::Separator();
+            for (auto& cfg : state.settings.getLSPServersMutable()) {
+                ImGui::PushID(cfg.language.c_str());
+                ImGui::Checkbox("Enabled", &cfg.enabled);
+                ImGui::SameLine();
+                ImGui::Text("%s", cfg.language.c_str());
+                ImGui::SetNextItemWidth(320);
+                InputTextStr("Path", &cfg.path);
+                ImGui::SetNextItemWidth(320);
+                if (InputTextStr("Args", &cfg.argsLine)) {
+                    state.settings.syncArgs(cfg);
+                }
+                ImGui::Separator();
+                ImGui::PopID();
+            }
             ImGui::PopFont();
             ImGui::End();
         }
