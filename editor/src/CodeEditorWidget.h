@@ -8,6 +8,7 @@
 
 #include "imgui.h"
 #include "SyntaxHighlighter.h"
+#include "EditorMode.h"
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -15,6 +16,7 @@
 struct CodeEditorOptions {
     bool showWhitespace = false;
     bool readOnly = false;
+    EditorMode* mode = nullptr;
 };
 
 struct CodeEditorResult {
@@ -121,7 +123,7 @@ public:
 
         // Keyboard input
         if (focused && !options.readOnly) {
-            handleKeyboard(text, result.changed, lineStarts);
+            handleKeyboard(text, result.changed, lineStarts, options.mode);
         }
 
         // Render visible lines
@@ -323,7 +325,48 @@ private:
         changed = true;
     }
 
-    void handleKeyboard(std::string& text, bool& changed, const std::vector<int>& lineStarts) {
+    void insertPair(std::string& text, char open, char close, bool& changed) {
+        deleteSelection(text, changed);
+        text.insert(cursor_, 1, open);
+        text.insert(cursor_ + 1, 1, close);
+        cursor_ += 1;
+        changed = true;
+    }
+
+    static std::string lineTextAt(const std::string& text, const std::vector<int>& lineStarts, int line) {
+        if (line < 0 || line >= (int)lineStarts.size()) return "";
+        int start = lineStarts[line];
+        int end = (line + 1 < (int)lineStarts.size()) ? lineStarts[line + 1] - 1 : (int)text.size();
+        if (end < start) end = start;
+        return text.substr(start, end - start);
+    }
+
+    static std::string leadingIndent(const std::string& line) {
+        size_t i = 0;
+        while (i < line.size() && (line[i] == ' ' || line[i] == '\t')) ++i;
+        return line.substr(0, i);
+    }
+
+    void insertNewlineWithIndent(std::string& text,
+                                 const std::vector<int>& lineStarts,
+                                 const EditorMode* mode,
+                                 bool& changed) {
+        std::string indent;
+        if (mode) {
+            int line = lineFromPos(cursor_, lineStarts);
+            std::string lineText = lineTextAt(text, lineStarts, line);
+            indent = leadingIndent(lineText);
+            if (mode->shouldIndentAfter(lineText)) {
+                indent += mode->getIndentString();
+            }
+        }
+        insertText(text, "\n" + indent, changed);
+    }
+
+    void handleKeyboard(std::string& text,
+                        bool& changed,
+                        const std::vector<int>& lineStarts,
+                        const EditorMode* mode) {
         ImGuiIO& io = ImGui::GetIO();
 
         // Text input
@@ -332,13 +375,25 @@ private:
             if (c == 0) continue;
             if (c == '\r') c = '\n';
             if (c == '\n') {
-                insertText(text, "\n", changed);
+                insertNewlineWithIndent(text, lineStarts, mode, changed);
             } else if (c == '\t') {
-                insertText(text, "\t", changed);
+                if (mode) insertText(text, mode->getIndentString(), changed);
+                else insertText(text, "\t", changed);
             } else if (c >= 32) {
-                char buf[5] = {0};
-                buf[0] = (char)c;
-                insertText(text, std::string(buf), changed);
+                if (mode) {
+                    char close = mode->getClosingBracket((char)c);
+                    if (close != 0) {
+                        insertPair(text, (char)c, close, changed);
+                    } else {
+                        char buf[5] = {0};
+                        buf[0] = (char)c;
+                        insertText(text, std::string(buf), changed);
+                    }
+                } else {
+                    char buf[5] = {0};
+                    buf[0] = (char)c;
+                    insertText(text, std::string(buf), changed);
+                }
             }
         }
         io.InputQueueCharacters.resize(0);

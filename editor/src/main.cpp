@@ -18,6 +18,7 @@
 #include "SyntaxHighlighter.h"
 #include "KeybindingManager.h"
 #include "CodeEditorWidget.h"
+#include "EditorMode.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -35,6 +36,7 @@ struct EditorState {
     TextEditor        editor;
     TextASTSync       sync;
     KeybindingManager keys;
+    EditorMode        mode;
     std::string       language    = "python";
     std::string       filePath    = "(untitled)";
     bool              modified    = false;
@@ -81,6 +83,7 @@ struct EditorState {
             "    return total\n";
 
         editor.setContent(defaultContent, language);
+        mode.setLanguage(language);
         sync.setText(defaultContent, language);
         sync.syncNow();
         editBuf = defaultContent;
@@ -90,6 +93,7 @@ struct EditorState {
 
     void setLanguage(const std::string& lang) {
         language = lang;
+        mode.setLanguage(lang);
         editor.setContent(editBuf, lang);
         sync.setText(editBuf, lang);
         sync.syncNow();
@@ -661,6 +665,7 @@ int main(int, char**) {
                 state.updateHighlights();
                 CodeEditorOptions opts;
                 opts.showWhitespace = state.showWhitespace;
+                opts.mode = &state.mode;
 
                 CodeEditorResult res = state.codeWidget.render("##editor",
                     state.editBuf, state.highlights, opts, avail, monoFont);
