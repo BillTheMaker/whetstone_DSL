@@ -241,7 +241,9 @@ struct EditorState {
         }
     }
 
-    void createBuffer(const std::string& path, const std::string& content, const std::string& language) {
+    void createBuffer(const std::string& path, const std::string& content,
+                      const std::string& language,
+                      BufferManager::BufferMode mode = BufferManager::BufferMode::Structured) {
         if (buffers.hasBuffer(path)) {
             buffers.switchToBuffer(path);
             activeBuffer = bufferStates[path].get();
@@ -262,8 +264,8 @@ struct EditorState {
         state->generatedHighlightsDirty = true;
         state->modified = false;
         state->lspVersion = 1;
-        buffers.openBuffer(path, content, language, BufferManager::BufferMode::Structured);
-        state->bufferMode = BufferManager::BufferMode::Structured;
+        buffers.openBuffer(path, content, language, mode);
+        state->bufferMode = mode;
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
@@ -301,7 +303,8 @@ struct EditorState {
             if (!item.contains("path")) continue;
             std::string path = item.value("path", "");
             std::string lang = item.value("language", "");
-            if (!path.empty()) welcome.addRecentFile(path, lang);
+            std::string mode = item.value("mode", "structured");
+            if (!path.empty()) welcome.addRecentFile(path, lang, mode);
         }
     }
 
@@ -310,7 +313,7 @@ struct EditorState {
         std::filesystem::create_directories(p.parent_path());
         nlohmann::json j = nlohmann::json::array();
         for (const auto& rf : welcome.getRecentFiles()) {
-            j.push_back({{"path", rf.path}, {"language", rf.language}});
+            j.push_back({{"path", rf.path}, {"language", rf.language}, {"mode", rf.mode}});
         }
         std::ofstream out(p.string(), std::ios::binary);
         out << j.dump(2);
@@ -439,7 +442,8 @@ struct EditorState {
         }
     }
 
-    void doOpen(const std::string& path) {
+    void doOpen(const std::string& path,
+                BufferManager::BufferMode modeOverride = BufferManager::BufferMode::Structured) {
         std::ifstream in(path);
         if (in.is_open()) {
             std::ostringstream ss;
@@ -464,8 +468,8 @@ struct EditorState {
                 language = "rust";
             else if (path.size() > 3 && path.substr(path.size() - 3) == ".go")
                 language = "go";
-            createBuffer(path, content, language);
-            welcome.addRecentFile(path, language);
+            createBuffer(path, content, language, modeOverride);
+            welcome.addRecentFile(path, language, bufferModeToString(modeOverride));
             saveRecentFiles();
             outputLog += "Opened: " + path + "\n";
         } else {
@@ -640,6 +644,15 @@ static int countLines(const std::string& text) {
         if (c == '\n') ++lines;
     }
     return lines;
+}
+
+static std::string bufferModeToString(BufferManager::BufferMode mode) {
+    return mode == BufferManager::BufferMode::Text ? "text" : "structured";
+}
+
+static BufferManager::BufferMode bufferModeFromString(const std::string& mode) {
+    if (mode == "text") return BufferManager::BufferMode::Text;
+    return BufferManager::BufferMode::Structured;
 }
 
 static std::string generateForLanguage(const Module* ast, const std::string& language) {
@@ -1138,7 +1151,7 @@ static void RenderWelcome(WelcomeScreen& welcome, EditorState& state, std::strin
     ImGui::Text("Recent Files");
     for (const auto& rf : welcome.getRecentFiles()) {
         if (ImGui::Selectable(rf.displayName.c_str())) {
-            state.doOpen(rf.path);
+            state.doOpen(rf.path, bufferModeFromString(rf.mode));
         }
     }
 
@@ -1367,6 +1380,12 @@ int main(int, char**) {
                             state.analysisPending = false;
                         } else {
                             state.onTextChanged();
+                        }
+                        if (state.active()->path.rfind("(untitled", 0) != 0) {
+                            state.welcome.addRecentFile(state.active()->path,
+                                                        state.active()->language,
+                                                        bufferModeToString(state.active()->bufferMode));
+                            state.saveRecentFiles();
                         }
                     }
                 }

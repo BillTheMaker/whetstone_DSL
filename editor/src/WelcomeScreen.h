@@ -18,6 +18,7 @@ struct WelcomeAction {
 struct RecentFile {
     std::string path;
     std::string language;
+    std::string mode;
     std::string displayName;  // just the filename
 };
 
@@ -54,18 +55,21 @@ public:
     void setActions(const std::vector<WelcomeAction>& a) { actions_ = a; }
 
     const std::vector<RecentFile>& getRecentFiles() const { return recentFiles_; }
-    void addRecentFile(const std::string& path, const std::string& lang) {
+    void addRecentFile(const std::string& path, const std::string& lang, const std::string& mode = "structured") {
         // Extract display name from path
         std::string name = path;
         auto sep = path.find_last_of("/\\");
         if (sep != std::string::npos) name = path.substr(sep + 1);
         // Don't add duplicates
-        for (const auto& f : recentFiles_) {
-            if (f.path == path) return;
+        for (auto it = recentFiles_.begin(); it != recentFiles_.end(); ++it) {
+            if (it->path == path) {
+                recentFiles_.erase(it);
+                break;
+            }
         }
         // Keep max 10 recent files
         if (recentFiles_.size() >= 10) recentFiles_.pop_back();
-        recentFiles_.insert(recentFiles_.begin(), {path, lang, name});
+        recentFiles_.insert(recentFiles_.begin(), {path, lang, mode, name});
     }
 
     void clearRecentFiles() { recentFiles_.clear(); }
