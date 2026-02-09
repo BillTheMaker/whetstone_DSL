@@ -25,6 +25,8 @@
 #include "DragDropHandler.h"
 #include "FileWatcher.h"
 #include "LSPClient.h"
+#include "Pipeline.h"
+#include "Diagnostics.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -94,6 +96,10 @@ struct EditorState {
     bool              hoverPending = false;
     double            hoverLastMove = 0.0;
     ImVec2            hoverLastMouse = ImVec2(-1.0f, -1.0f);
+    Pipeline          pipeline;
+    bool              analysisPending = false;
+    double            analysisLastChange = 0.0;
+    std::vector<EditorDiagnostic> whetstoneDiagnostics;
 
     BufferState* active() { return activeBuffer; }
 
@@ -1003,11 +1009,29 @@ int main(int, char**) {
                         avail.y -= 4; // small margin
 
                         state.updateHighlights();
+                        std::vector<int> errorLines;
+                        std::vector<int> warningLines;
+                        std::string activeUri = EditorState::toFileUri(buf->path);
+                        if (state.lsp) {
+                            auto lspDiags = state.lsp->getDiagnosticsForUri(activeUri);
+                            for (const auto& d : lspDiags) {
+                                if (d.severity == 1) errorLines.push_back(d.range.start.line);
+                                else if (d.severity == 2) warningLines.push_back(d.range.start.line);
+                            }
+                        }
+                        for (const auto& d : state.whetstoneDiagnostics) {
+                            if (d.uri != activeUri) continue;
+                            if (d.severity == 1) errorLines.push_back(d.line);
+                            else if (d.severity == 2) warningLines.push_back(d.line);
+                        }
+
                         CodeEditorOptions opts;
                         opts.showWhitespace = state.showWhitespace;
                         opts.mode = &buf->mode;
                         opts.enableFolding = true;
                         opts.showMinimap = state.showMinimap;
+                        opts.errorLines = &errorLines;
+                        opts.warningLines = &warningLines;
 
                         CodeEditorResult res = buf->widget.render("##editor",
                             buf->editBuf, buf->highlights, opts, avail, monoFont);
@@ -1030,6 +1054,8 @@ int main(int, char**) {
                                     state.lsp->clearSignatureHelp();
                                 }
                             }
+                            state.analysisPending = true;
+                            state.analysisLastChange = ImGui::GetTime();
                         }
 
                         double now = ImGui::GetTime();
@@ -1041,6 +1067,23 @@ int main(int, char**) {
                                                              lineZero, colZero);
                             }
                             state.completionPending = false;
+                        }
+
+                        if (state.analysisPending && (now - state.analysisLastChange) > 0.5) {
+                            if (state.active()) {
+                                auto result = state.pipeline.run(state.active()->editBuf,
+                                                                 state.active()->language,
+                                                                 state.active()->language);
+                                if (result.success) {
+                                    state.whetstoneDiagnostics =
+                                        collectWhetstoneDiagnostics(result.validationDiags,
+                                                                    result.violations,
+                                                                    EditorState::toFileUri(state.active()->path));
+                                } else {
+                                    state.whetstoneDiagnostics.clear();
+                                }
+                            }
+                            state.analysisPending = false;
                         }
 
                         if (state.lsp && state.active()) {
@@ -1177,7 +1220,8 @@ int main(int, char**) {
                 ImGui::PushFont(monoFont);
                 ImGui::BeginChild("##problemsScroll", ImVec2(0, 0), false);
                 auto diags = state.lsp ? state.lsp->getDiagnostics() : std::vector<LSPClient::Diagnostic>{};
-                if (diags.empty()) {
+                const auto& whetDiags = state.whetstoneDiagnostics;
+                if (diags.empty() && whetDiags.empty()) {
                     ImGui::TextDisabled("(no diagnostics)");
                 } else {
                     for (const auto& d : diags) {
@@ -1196,6 +1240,24 @@ int main(int, char**) {
                                 if (state.buffers.hasBuffer(path)) state.switchToBuffer(path);
                                 else state.doOpen(path);
                                 state.jumpTo(state.active(), d.range.start.line, d.range.start.character);
+                            }
+                        }
+                    }
+                    for (const auto& d : whetDiags) {
+                        const char* sev = "Unknown";
+                        if (d.severity == 1) sev = "Error";
+                        else if (d.severity == 2) sev = "Warning";
+                        else if (d.severity == 3) sev = "Info";
+
+                        std::string path = EditorState::fromFileUri(d.uri);
+                        std::string label = "[" + std::string(sev) + "] " + d.message +
+                                            " (" + path + ":" + std::to_string(d.line + 1) +
+                                            ":" + std::to_string(d.character + 1) + ")";
+                        if (ImGui::Selectable(label.c_str())) {
+                            if (!path.empty()) {
+                                if (state.buffers.hasBuffer(path)) state.switchToBuffer(path);
+                                else state.doOpen(path);
+                                state.jumpTo(state.active(), d.line, d.character);
                             }
                         }
                     }

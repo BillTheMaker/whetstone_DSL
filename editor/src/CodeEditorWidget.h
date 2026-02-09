@@ -21,6 +21,8 @@ struct CodeEditorOptions {
     EditorMode* mode = nullptr;
     bool enableFolding = false;
     bool showMinimap = false;
+    const std::vector<int>* errorLines = nullptr;
+    const std::vector<int>* warningLines = nullptr;
 };
 
 struct CodeEditorResult {
@@ -213,6 +215,15 @@ public:
             ImVec2 numSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, numBuf);
             ImVec2 numPos(origin.x + gutterWidth - 4.0f - numSize.x, y);
             drawList->AddText(font, font->FontSize, numPos, IM_COL32(120, 120, 120, 255), numBuf);
+
+            // Diagnostics marker
+            bool hasError = lineIn(options.errorLines, ln);
+            bool hasWarn = lineIn(options.warningLines, ln);
+            if (hasError || hasWarn) {
+                ImU32 color = hasError ? IM_COL32(220, 80, 80, 255) : IM_COL32(220, 160, 60, 255);
+                ImVec2 center(origin.x + 3.0f, y + lineHeight * 0.5f);
+                drawList->AddCircleFilled(center, 3.0f, color);
+            }
 
             // Fold indicator
             const FoldRegion* fold = findFoldAtLine(ln);
@@ -451,6 +462,11 @@ private:
                 ImVec2(center.x + s, center.y),
                 color);
         }
+    }
+
+    static bool lineIn(const std::vector<int>* lines, int line) {
+        if (!lines) return false;
+        return std::find(lines->begin(), lines->end(), line) != lines->end();
     }
 
     void updateFolds(const std::string& text, const std::string& language) {
