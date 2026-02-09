@@ -71,6 +71,13 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 
+FetchContent_Declare(
+    tinyfiledialogs
+    GIT_REPOSITORY https://github.com/native-toolkit/tinyfiledialogs.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+
 # Populate without add_subdirectory (grammars have their own CMakeLists with conflicting targets)
 FetchContent_GetProperties(tree-sitter-python)
 if(NOT tree-sitter-python_POPULATED)
@@ -110,6 +117,11 @@ endif()
 FetchContent_GetProperties(tree-sitter-go)
 if(NOT tree-sitter-go_POPULATED)
     FetchContent_Populate(tree-sitter-go)
+endif()
+
+FetchContent_GetProperties(tinyfiledialogs)
+if(NOT tinyfiledialogs_POPULATED)
+    FetchContent_Populate(tinyfiledialogs)
 endif()
 
 # Build tree-sitter-python grammar as a static C library
@@ -186,6 +198,10 @@ endif()
 add_library(tree_sitter_go STATIC ${_ts_go_src})
 target_include_directories(tree_sitter_go PUBLIC ${tree-sitter-go_SOURCE_DIR}/src)
 target_link_libraries(tree_sitter_go PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# tinyfiledialogs (single C file)
+add_library(tinyfiledialogs STATIC ${tinyfiledialogs_SOURCE_DIR}/tinyfiledialogs.c)
+target_include_directories(tinyfiledialogs PUBLIC ${tinyfiledialogs_SOURCE_DIR})
 
 add_executable(step1_test tests/step1_test.cpp)
 target_include_directories(step1_test PRIVATE src)
@@ -466,6 +482,10 @@ target_link_libraries(step83_test PRIVATE unofficial::tree-sitter::tree-sitter
     tree_sitter_rust
     tree_sitter_go)
 
+add_executable(step84_test tests/step84_test.cpp src/FileDialog.cpp)
+target_include_directories(step84_test PRIVATE src)
+target_link_libraries(step84_test PRIVATE tinyfiledialogs)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -500,7 +520,7 @@ else()
     endif()
 endif()
 
-add_executable(whetstone_editor src/main.cpp ${IMGUI_SDL2_BACKEND})
+add_executable(whetstone_editor src/main.cpp src/FileDialog.cpp ${IMGUI_SDL2_BACKEND})
 target_include_directories(whetstone_editor PRIVATE
     src
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/imgui
@@ -526,6 +546,7 @@ target_link_libraries(whetstone_editor PRIVATE
     tree_sitter_java
     tree_sitter_rust
     tree_sitter_go)
+target_link_libraries(whetstone_editor PRIVATE tinyfiledialogs)
 
 add_executable(orchestrator src/orchestrator_main.cpp)
 target_include_directories(orchestrator PRIVATE src)

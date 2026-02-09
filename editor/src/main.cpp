@@ -19,6 +19,7 @@
 #include "KeybindingManager.h"
 #include "CodeEditorWidget.h"
 #include "EditorMode.h"
+#include "FileDialog.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -462,8 +463,8 @@ int main(int, char**) {
     EditorState state;
     state.init();
 
-    // File open dialog state
-    static char openPathBuf[512] = {};
+    // File dialog defaults
+    std::string lastDialogPath;
 
     bool done = false;
     while (!done) {
@@ -550,11 +551,24 @@ int main(int, char**) {
                 }
                 if (ImGui::MenuItem("Open...", state.keys.getBinding("file.open").toString().c_str()))
                 {
-                    ImGui::OpenPopup("OpenFilePopup");
+                    auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go"}, lastDialogPath});
+                    if (!path.empty()) {
+                        lastDialogPath = path;
+                        state.doOpen(path);
+                    }
                 }
                 if (ImGui::MenuItem("Save", state.keys.getBinding("file.save").toString().c_str()))
                 {
-                    state.doSave();
+                    if (state.filePath == "(untitled)") {
+                        auto path = FileDialog::saveFile({"Save File", {"*.*"}, lastDialogPath});
+                        if (!path.empty()) {
+                            state.filePath = path;
+                            lastDialogPath = path;
+                            state.doSave();
+                        }
+                    } else {
+                        state.doSave();
+                    }
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Exit")) done = true;
@@ -607,19 +621,7 @@ int main(int, char**) {
             ImGui::EndMainMenuBar();
         }
 
-        // Open file popup
-        if (ImGui::BeginPopupModal("OpenFilePopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Enter file path:");
-            ImGui::InputText("##path", openPathBuf, sizeof(openPathBuf));
-            if (ImGui::Button("Open", ImVec2(120, 0))) {
-                state.doOpen(openPathBuf);
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Cancel", ImVec2(120, 0)))
-                ImGui::CloseCurrentPopup();
-            ImGui::EndPopup();
-        }
+        // Native dialogs replace manual path popup (Step 84)
 
         // ---------------------------------------------------------------
         //  File Explorer (left panel)

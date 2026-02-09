@@ -180,6 +180,9 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 82: **IMPLEMENTED** — Minimap: right-side overview with viewport indicator and click-to-scroll (1/1 tests pass)
 - [x] Step 83: **IMPLEMENTED** — Additional tree-sitter grammars (JS/TS/Java/Rust/Go), new EditorMode configs, syntax highlighting for 8 languages (2/2 tests pass)
 
+### Phase 4b: File Management (Steps 84–89) — In Progress
+- [x] Step 84: **IMPLEMENTED** — Native file dialogs via tinyfiledialogs, FileDialog wrapper with test provider injection (2/2 tests pass)
+
 ---
 
 ## Build Infrastructure
@@ -241,6 +244,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 81:** Compile and pass (2/2)
 **Step 82:** Compile and pass (1/1)
 **Step 83:** Compile and pass (2/2)
+**Step 84:** Compile and pass (2/2)
 
 ---
 
@@ -332,3 +336,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 81: Code folding with tree-sitter fold regions and gutter toggles. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 82: Minimap overview with viewport indicator and click-to-scroll. 1/1 tests pass. |
 | 2026-02-09 | Codex | Step 83: Added tree-sitter grammars for JS/TS/Java/Rust/Go and editor modes; syntax highlighting extended to 8 languages. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 84: Native file dialogs via tinyfiledialogs; FileDialog wrapper with injectable provider. 2/2 tests pass. |
