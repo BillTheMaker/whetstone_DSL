@@ -27,6 +27,7 @@ struct CodeEditorOptions {
     const std::vector<int>* warningLines = nullptr;
     const std::vector<struct DiagnosticRange>* diagnostics = nullptr;
     const std::vector<struct AnnotationMarker>* annotations = nullptr;
+    const std::vector<struct SuggestionMarker>* suggestions = nullptr;
 };
 
 struct CodeEditorResult {
@@ -41,6 +42,8 @@ struct CodeEditorResult {
     float minimapWidth = 0.0f;
     float minimapViewportStart = 0.0f;
     float minimapViewportEnd = 0.0f;
+    bool suggestionClicked = false;
+    struct SuggestionMarker clickedSuggestion;
 };
 
 struct DiagnosticRange {
@@ -56,6 +59,16 @@ struct AnnotationMarker {
     int line = 0;
     ImU32 color = 0;
     std::string message;
+};
+
+struct SuggestionMarker {
+    int line = 0;
+    double confidence = 0.0;
+    std::string label;
+    std::string reason;
+    std::string annotationType;
+    std::string strategy;
+    std::string nodeId;
 };
 
 struct FoldRegion {
@@ -270,6 +283,29 @@ public:
                         }
                         ImGui::BeginTooltip();
                         ImGui::TextUnformatted(marker.message.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+
+            // Suggestion marker (lightbulb)
+            if (options.suggestions) {
+                SuggestionMarker suggestion;
+                if (suggestionAtLine(*options.suggestions, ln, suggestion)) {
+                    ImVec2 center(origin.x + 20.0f, y + lineHeight * 0.5f);
+                    ImU32 color = IM_COL32(240, 200, 40, 255);
+                    drawList->AddCircleFilled(center, 3.0f, color);
+                    ImVec2 a(center.x - 4.0f, center.y - 4.0f);
+                    ImVec2 b(center.x + 4.0f, center.y + 4.0f);
+                    if (ImGui::IsMouseHoveringRect(a, b)) {
+                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                            result.suggestionClicked = true;
+                            result.clickedSuggestion = suggestion;
+                        }
+                        ImGui::BeginTooltip();
+                        ImGui::Text("%s (%.2f)", suggestion.label.c_str(), suggestion.confidence);
+                        ImGui::Separator();
+                        ImGui::TextUnformatted(suggestion.reason.c_str());
                         ImGui::EndTooltip();
                     }
                 }
@@ -566,6 +602,18 @@ private:
     static bool annotationAtLine(const std::vector<AnnotationMarker>& markers,
                                  int line,
                                  AnnotationMarker& out) {
+        for (const auto& m : markers) {
+            if (m.line == line) {
+                out = m;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static bool suggestionAtLine(const std::vector<SuggestionMarker>& markers,
+                                 int line,
+                                 SuggestionMarker& out) {
         for (const auto& m : markers) {
             if (m.line == line) {
                 out = m;

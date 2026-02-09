@@ -30,6 +30,7 @@
 #include "SettingsManager.h"
 #include "LayoutManager.h"
 #include "ASTMutationAPI.h"
+#include "MemoryStrategyInference.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
 
@@ -110,6 +111,9 @@ struct EditorState {
     SettingsManager   settings;
     bool              showLspSettings = false;
     ASTMutationAPI    mutator;
+    std::vector<MemoryStrategyInference::Suggestion> suggestions;
+    bool              showSuggestionPopup = false;
+    MemoryStrategyInference::Suggestion suggestionPopup;
 
     BufferState* active() { return activeBuffer; }
 
@@ -614,6 +618,15 @@ static ASTNode* findAnnotationTarget(ASTNode* node, int line) {
         }
     }
     return best;
+}
+
+static ASTNode* findNodeById(ASTNode* node, const std::string& id) {
+    if (!node) return nullptr;
+    if (node->id == id) return node;
+    for (auto* child : node->allChildren()) {
+        if (auto* found = findNodeById(child, id)) return found;
+    }
+    return nullptr;
 }
 
 static void collectAnnotationMarkers(const ASTNode* node, std::vector<AnnotationMarker>& out) {
@@ -1217,6 +1230,7 @@ int main(int, char**) {
                         std::vector<int> warningLines;
                         std::vector<DiagnosticRange> diagRanges;
                         std::vector<AnnotationMarker> annoMarkers;
+                        std::vector<SuggestionMarker> suggestionMarkers;
                         std::string activeUri = EditorState::toFileUri(buf->path);
                         if (state.lsp) {
                             auto lspDiags = state.lsp->getDiagnosticsForUri(activeUri);
@@ -1248,7 +1262,24 @@ int main(int, char**) {
                         }
                         if (state.active()) {
                             Module* ast = state.active()->sync.getAST();
-                            if (ast) collectAnnotationMarkers(ast, annoMarkers);
+                            if (ast) {
+                                collectAnnotationMarkers(ast, annoMarkers);
+                                for (const auto& s : state.suggestions) {
+                                    if (s.confidence <= 0.5) continue;
+                                    ASTNode* target = findNodeById(ast, s.nodeId);
+                                    if (!target || !target->hasSpan()) continue;
+                                    SuggestionMarker sm;
+                                    sm.line = target->spanStartLine;
+                                    sm.confidence = s.confidence;
+                                    sm.reason = s.reason;
+                                    sm.annotationType = s.annotationType;
+                                    sm.strategy = s.strategy;
+                                    sm.nodeId = s.nodeId;
+                                    sm.label = "@" + s.annotationType.substr(0, s.annotationType.find("Annotation")) +
+                                               "(" + s.strategy + ")";
+                                    suggestionMarkers.push_back(std::move(sm));
+                                }
+                            }
                         }
 
                         CodeEditorOptions opts;
@@ -1264,6 +1295,7 @@ int main(int, char**) {
                         opts.warningLines = &warningLines;
                         opts.diagnostics = &diagRanges;
                         opts.annotations = &annoMarkers;
+                        opts.suggestions = &suggestionMarkers;
 
                         CodeEditorResult res = buf->widget.render("##editor",
                             buf->editBuf, buf->highlights, opts, avail, monoFont);
@@ -1290,6 +1322,16 @@ int main(int, char**) {
                             state.analysisLastChange = ImGui::GetTime();
                         }
 
+                        if (res.suggestionClicked) {
+                            state.suggestionPopup.annotationType = res.clickedSuggestion.annotationType;
+                            state.suggestionPopup.strategy = res.clickedSuggestion.strategy;
+                            state.suggestionPopup.reason = res.clickedSuggestion.reason;
+                            state.suggestionPopup.confidence = res.clickedSuggestion.confidence;
+                            state.suggestionPopup.nodeId = res.clickedSuggestion.nodeId;
+                            state.showSuggestionPopup = true;
+                            ImGui::OpenPopup("SuggestionPopup");
+                        }
+
                         double now = ImGui::GetTime();
                         if (state.completionPending && (now - state.completionLastChange) > 0.2) {
                             if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
@@ -1313,6 +1355,13 @@ int main(int, char**) {
                                                                     EditorState::toFileUri(state.active()->path));
                                 } else {
                                     state.whetstoneDiagnostics.clear();
+                                }
+                                Module* ast = state.active()->sync.getAST();
+                                if (ast) {
+                                    MemoryStrategyInference inf;
+                                    state.suggestions = inf.inferAnnotations(ast);
+                                } else {
+                                    state.suggestions.clear();
                                 }
                             }
                             state.analysisPending = false;
@@ -1369,6 +1418,43 @@ int main(int, char**) {
                                     state.completionVisible = false;
                                 }
                                 ImGui::EndChild();
+                            }
+                        }
+
+                        if (state.showSuggestionPopup) {
+                            if (ImGui::BeginPopupModal("SuggestionPopup", &state.showSuggestionPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
+                                ImGui::Text("%s(%s)", state.suggestionPopup.annotationType.c_str(),
+                                            state.suggestionPopup.strategy.c_str());
+                                ImGui::Separator();
+                                ImGui::TextWrapped("%s", state.suggestionPopup.reason.c_str());
+                                ImGui::Text("Confidence: %.2f", state.suggestionPopup.confidence);
+                                if (ImGui::Button("Apply")) {
+                                    Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+                                    if (ast) {
+                                        ASTNode* target = findNodeById(ast, state.suggestionPopup.nodeId);
+                                        if (target) {
+                                            auto* anno = createAnnotationNode(state.suggestionPopup.annotationType,
+                                                                             state.suggestionPopup.strategy);
+                                            if (anno) {
+                                                if (target->hasSpan()) {
+                                                    anno->setSpan(target->spanStartLine, target->spanStartCol,
+                                                                  target->spanEndLine, target->spanEndCol);
+                                                }
+                                                state.mutator.setRoot(ast);
+                                                auto res2 = state.mutator.insertNode(target->id, "annotations", anno);
+                                                if (!res2.error.empty()) state.outputLog += res2.error + "\n";
+                                            }
+                                        }
+                                    }
+                                    state.showSuggestionPopup = false;
+                                    ImGui::CloseCurrentPopup();
+                                }
+                                ImGui::SameLine();
+                                if (ImGui::Button("Cancel")) {
+                                    state.showSuggestionPopup = false;
+                                    ImGui::CloseCurrentPopup();
+                                }
+                                ImGui::EndPopup();
                             }
                         }
 
