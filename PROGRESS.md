@@ -207,6 +207,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 104: **IMPLEMENTED** — Cross-language projection button with read-only projected tabs and annotation summary (2/2 tests pass)
 - [x] Step 105: **IMPLEMENTED** — Optimization controls panel with constraint-aware buttons and summaries (2/2 tests pass)
 - [x] Step 106: **IMPLEMENTED** — Transform history panel with undo controls and provenance coloring (1/1 tests pass)
+- [ ] Step 107a–107c: **PLANNED** — Text-Editor Mode toggle, UI behavior by mode, and per-buffer persistence (not started)
 
 ---
 
@@ -408,3 +409,4 @@ Sprint 4 in progress. Step 76 (LayoutManager) done. Next: Step 77 (custom code e
 | 2026-02-09 | Codex | Step 104: Cross-language projection button with read-only projected tabs and annotation summary. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 105: Optimization controls panel with constraint-aware buttons and summaries. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 106: Transform history panel with undo controls and provenance coloring. 1/1 tests pass. |
+| 2026-02-09 | Codex | Planned Step 107a–107c: add Text-Editor Mode toggle, mode-specific UI behavior, and per-buffer persistence. |
