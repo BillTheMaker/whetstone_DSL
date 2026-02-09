@@ -32,6 +32,7 @@
 #include "ASTMutationAPI.h"
 #include "MemoryStrategyInference.h"
 #include "AnnotationConflict.h"
+#include "StrategyDashboard.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
 
@@ -1824,6 +1825,55 @@ int main(int, char**) {
             ImGui::EndTabBar();
         }
 
+        ImGui::End();
+
+        // ---------------------------------------------------------------
+        //  Memory Strategies dashboard
+        // ---------------------------------------------------------------
+        ImGui::Begin("Memory Strategies");
+        ImGui::PushFont(uiFont);
+        Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
+        if (!ast) {
+            ImGui::TextDisabled("(no AST)");
+        } else {
+            std::vector<AnnotationEntry> entries;
+            collectAnnotationEntries(ast, entries);
+            std::map<std::string, int> counts;
+            for (const auto& e : entries) counts[e.label]++;
+
+            ImGui::Text("Annotations");
+            ImGui::Separator();
+            for (const auto& [label, count] : counts) {
+                ImGui::Text("%s: %d", label.c_str(), count);
+            }
+            ImGui::Spacing();
+
+            ImGui::Text("Details");
+            ImGui::Separator();
+            for (const auto& e : entries) {
+                std::string lineInfo = e.line >= 0 ? ("L" + std::to_string(e.line + 1)) : "-";
+                std::string row = e.label + " — " + e.nodeName + " (" + lineInfo + ")";
+                if (ImGui::Selectable(row.c_str())) {
+                    if (state.active()) state.jumpTo(state.active(), e.line, 0);
+                }
+            }
+
+            ImGui::Spacing();
+            ImGui::Text("Suggestions");
+            ImGui::Separator();
+            for (const auto& s : state.suggestions) {
+                if (s.confidence < 0.5) continue;
+                std::string row = s.annotationType + "(" + s.strategy + ") — " +
+                                  s.nodeId + " (" + std::to_string(s.confidence) + ")";
+                ImGui::TextUnformatted(row.c_str());
+            }
+
+            if (ImGui::Button("Export JSON")) {
+                auto j = buildAnnotationSummaryJson(entries);
+                state.outputLog += "Annotation summary:\\n" + j.dump(2) + "\\n";
+            }
+        }
+        ImGui::PopFont();
         ImGui::End();
 
         // ---------------------------------------------------------------
