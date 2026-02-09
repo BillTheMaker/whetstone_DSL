@@ -123,6 +123,12 @@ inline json toJson(const ASTNode* node) {
     j["id"] = node->id;
     j["concept"] = node->conceptType;
     j["properties"] = propertiesToJson(node);
+    if (node->hasSpan()) {
+        j["span"] = {
+            {"start", {{"line", node->spanStartLine}, {"col", node->spanStartCol}}},
+            {"end", {{"line", node->spanEndLine}, {"col", node->spanEndCol}}}
+        };
+    }
 
     json children = json::object();
     for (const auto& role : node->childRoles()) {
@@ -274,6 +280,17 @@ inline ASTNode* fromJson(const json& j) {
     if (!node) return nullptr;
 
     node->id = j["id"].get<std::string>();
+    if (j.contains("span")) {
+        const auto& span = j["span"];
+        if (span.contains("start") && span.contains("end")) {
+            const auto& s = span["start"];
+            const auto& e = span["end"];
+            if (s.contains("line") && s.contains("col") && e.contains("line") && e.contains("col")) {
+                node->setSpan(s["line"].get<int>(), s["col"].get<int>(),
+                              e["line"].get<int>(), e["col"].get<int>());
+            }
+        }
+    }
 
     if (j.contains("properties")) {
         setPropertiesFromJson(node, j["properties"]);

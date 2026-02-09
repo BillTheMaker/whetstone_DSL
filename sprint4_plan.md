@@ -168,6 +168,12 @@ This is the biggest architectural change from the original plan.
   Wire `Pipeline.h` for full analysis pass (debounced, cached).
   *Wires:* `AnnotationValidator.h`, `StrategyValidator.h`, `Pipeline.h`
 
+- [ ] **Step 94a: Source span tracking**
+  Add source spans (start/end line/column) to AST nodes and propagate them from
+  tree-sitter CST nodes. Serialize spans in `Serialization.h`. Whetstone diagnostics
+  map to exact ranges using node spans (no heuristic line guessing).
+  *Modifies:* `ast/ASTNode.h`, `ast/Parser.h`, `ast/Serialization.h`
+
 - [ ] **Step 95: Gutter markers and inline squiggles**
   Red circle (error) and yellow triangle (warning) icons in the gutter for
   lines with diagnostics (from both LSP and Whetstone). Hover shows message

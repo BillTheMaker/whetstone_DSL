@@ -67,6 +67,7 @@ public:
         module->id = IdGenerator::next("mod");
         module->name = "parsed_python_module";
         module->targetLanguage = "python";
+        applySpan(module.get(), root);
 
         convertPythonModule(root, source, module.get());
 
@@ -86,6 +87,7 @@ public:
         result.module->id = IdGenerator::next("mod");
         result.module->name = "parsed_python_module";
         result.module->targetLanguage = "python";
+        applySpan(result.module.get(), root);
 
         convertPythonModule(root, source, result.module.get());
         collectDiagnostics(root, source, result.diagnostics);
@@ -108,6 +110,7 @@ public:
         module->id = IdGenerator::next("mod");
         module->name = "parsed_cpp_module";
         module->targetLanguage = "cpp";
+        applySpan(module.get(), root);
 
         convertCppTranslationUnit(root, source, module.get());
 
@@ -127,6 +130,7 @@ public:
         result.module->id = IdGenerator::next("mod");
         result.module->name = "parsed_cpp_module";
         result.module->targetLanguage = "cpp";
+        applySpan(result.module.get(), root);
 
         convertCppTranslationUnit(root, source, result.module.get());
         collectDiagnostics(root, source, result.diagnostics);
@@ -149,6 +153,7 @@ public:
         module->id = IdGenerator::next("mod");
         module->name = "parsed_elisp_module";
         module->targetLanguage = "elisp";
+        applySpan(module.get(), root);
 
         convertElispSourceFile(root, source, module.get());
 
@@ -168,6 +173,7 @@ public:
         result.module->id = IdGenerator::next("mod");
         result.module->name = "parsed_elisp_module";
         result.module->targetLanguage = "elisp";
+        applySpan(result.module.get(), root);
 
         convertElispSourceFile(root, source, result.module.get());
         collectDiagnostics(root, source, result.diagnostics);
@@ -190,6 +196,13 @@ private:
 
     static std::string nodeType(TSNode node) {
         return ts_node_type(node);
+    }
+
+    static void applySpan(ASTNode* node, TSNode tsNode) {
+        if (!node || ts_node_is_null(tsNode)) return;
+        TSPoint start = ts_node_start_point(tsNode);
+        TSPoint end = ts_node_end_point(tsNode);
+        node->setSpan((int)start.row, (int)start.column, (int)end.row, (int)end.column);
     }
 
     static bool isNamed(TSNode node) {
@@ -243,7 +256,10 @@ private:
 
         auto* fn = new Function();
         fn->id = IdGenerator::next("fn");
+        applySpan(fn, node);
+        applySpan(fn, node);
         fn->name = nodeText(nameNode, source);
+        applySpan(fn, node);
 
         // Parameters
         TSNode paramsNode = childByFieldName(node, "parameters");
@@ -271,6 +287,7 @@ private:
             std::string type = nodeType(child);
             if (type == "identifier") {
                 auto* param = new Parameter(IdGenerator::next("param"), nodeText(child, source));
+                applySpan(param, child);
                 fn->addChild("parameters", param);
             } else if (type == "default_parameter") {
                 // def f(x=10) → Parameter with defaultValue
@@ -278,6 +295,7 @@ private:
                 TSNode valueN = childByFieldName(child, "value");
                 if (!ts_node_is_null(nameN)) {
                     auto* param = new Parameter(IdGenerator::next("param"), nodeText(nameN, source));
+                    applySpan(param, child);
                     if (!ts_node_is_null(valueN)) {
                         ASTNode* defVal = convertPythonExpression(valueN, source);
                         if (defVal) param->setChild("defaultValue", defVal);
@@ -303,6 +321,7 @@ private:
         if (type == "return_statement") {
             auto* ret = new Return();
             ret->id = IdGenerator::next("ret");
+            applySpan(ret, node);
             // The return value is the first named child (if any)
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) {
@@ -314,6 +333,7 @@ private:
         } else if (type == "if_statement") {
             auto* ifStmt = new IfStatement();
             ifStmt->id = IdGenerator::next("if");
+            applySpan(ifStmt, node);
             TSNode condNode = childByFieldName(node, "condition");
             if (!ts_node_is_null(condNode)) {
                 ASTNode* cond = convertPythonExpression(condNode, source);
@@ -331,6 +351,7 @@ private:
         } else if (type == "for_statement") {
             auto* forLoop = new ForLoop();
             forLoop->id = IdGenerator::next("for");
+            applySpan(forLoop, node);
             TSNode leftNode = childByFieldName(node, "left");
             if (!ts_node_is_null(leftNode)) {
                 forLoop->iteratorName = nodeText(leftNode, source);
@@ -352,6 +373,7 @@ private:
         } else if (type == "expression_statement") {
             auto* exprStmt = new ExpressionStatement();
             exprStmt->id = IdGenerator::next("exprstmt");
+            applySpan(exprStmt, node);
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) {
                 ASTNode* expr = convertPythonExpression(ts_node_named_child(node, 0), source);
@@ -364,6 +386,7 @@ private:
         if (expr) {
             auto* exprStmt = new ExpressionStatement();
             exprStmt->id = IdGenerator::next("exprstmt");
+            applySpan(exprStmt, node);
             exprStmt->setChild("expression", expr);
             return exprStmt;
         }
@@ -375,6 +398,7 @@ private:
         if (type == "binary_operator") {
             auto* binOp = new BinaryOperation();
             binOp->id = IdGenerator::next("binop");
+            applySpan(binOp, node);
             TSNode opNode = childByFieldName(node, "operator");
             if (!ts_node_is_null(opNode)) {
                 binOp->op = nodeText(opNode, source);
@@ -392,20 +416,24 @@ private:
             return binOp;
         } else if (type == "identifier") {
             auto* ref = new VariableReference(IdGenerator::next("var"), nodeText(node, source));
+            applySpan(ref, node);
             return ref;
         } else if (type == "integer") {
             std::string text = nodeText(node, source);
             int val = 0;
             try { val = std::stoi(text); } catch (...) {}
             auto* lit = new IntegerLiteral(IdGenerator::next("int"), val);
+            applySpan(lit, node);
             return lit;
         } else if (type == "string" || type == "concatenated_string") {
             auto* lit = new StringLiteral(IdGenerator::next("str"), nodeText(node, source));
+            applySpan(lit, node);
             return lit;
         } else if (type == "comparison_operator" || type == "boolean_operator") {
             // Treat like binary op
             auto* binOp = new BinaryOperation();
             binOp->id = IdGenerator::next("binop");
+            applySpan(binOp, node);
             uint32_t count = ts_node_named_child_count(node);
             if (count >= 2) {
                 ASTNode* left = convertPythonExpression(ts_node_named_child(node, 0), source);
@@ -429,6 +457,7 @@ private:
         } else if (type == "call") {
             auto* call = new FunctionCall();
             call->id = IdGenerator::next("call");
+            applySpan(call, node);
             TSNode funcNode = childByFieldName(node, "function");
             if (!ts_node_is_null(funcNode)) {
                 call->functionName = nodeText(funcNode, source);
@@ -448,6 +477,7 @@ private:
         } else if (type == "unary_operator") {
             auto* unOp = new UnaryOperation();
             unOp->id = IdGenerator::next("unop");
+            applySpan(unOp, node);
             TSNode opNode = childByFieldName(node, "operator");
             if (!ts_node_is_null(opNode)) {
                 unOp->op = nodeText(opNode, source);
@@ -463,6 +493,7 @@ private:
         std::string text = nodeText(node, source);
         if (!text.empty()) {
             auto* ref = new VariableReference(IdGenerator::next("var"), text);
+            applySpan(ref, node);
             return ref;
         }
         return nullptr;
@@ -486,6 +517,7 @@ private:
     static Function* convertCppFunction(TSNode node, const std::string& source) {
         auto* fn = new Function();
         fn->id = IdGenerator::next("fn");
+        applySpan(fn, node);
 
         // In C++ grammar, the structure is:
         //   function_definition: type declarator body
@@ -578,6 +610,7 @@ private:
     static void convertCppParameter(TSNode paramNode, const std::string& source, Function* fn) {
         auto* param = new Parameter();
         param->id = IdGenerator::next("param");
+        applySpan(param, paramNode);
 
         // parameter_declaration has type and declarator fields
         TSNode typeNode = childByFieldName(paramNode, "type");
@@ -586,6 +619,7 @@ private:
         if (!ts_node_is_null(typeNode)) {
             std::string typeText = nodeText(typeNode, source);
             auto* primType = new PrimitiveType(IdGenerator::next("type"), typeText);
+            applySpan(primType, typeNode);
             param->setChild("type", primType);
         }
 
@@ -611,6 +645,7 @@ private:
         if (type == "return_statement") {
             auto* ret = new Return();
             ret->id = IdGenerator::next("ret");
+            applySpan(ret, node);
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) {
                 ASTNode* val = convertCppExpression(ts_node_named_child(node, 0), source);
@@ -620,6 +655,7 @@ private:
         } else if (type == "expression_statement") {
             auto* exprStmt = new ExpressionStatement();
             exprStmt->id = IdGenerator::next("exprstmt");
+            applySpan(exprStmt, node);
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) {
                 ASTNode* expr = convertCppExpression(ts_node_named_child(node, 0), source);
@@ -629,10 +665,12 @@ private:
         } else if (type == "declaration") {
             auto* exprStmt = new ExpressionStatement();
             exprStmt->id = IdGenerator::next("exprstmt");
+            applySpan(exprStmt, node);
             return exprStmt;
         } else if (type == "if_statement") {
             auto* ifStmt = new IfStatement();
             ifStmt->id = IdGenerator::next("if");
+            applySpan(ifStmt, node);
             return ifStmt;
         }
         return nullptr;
@@ -643,6 +681,7 @@ private:
         if (type == "binary_expression") {
             auto* binOp = new BinaryOperation();
             binOp->id = IdGenerator::next("binop");
+            applySpan(binOp, node);
             TSNode leftNode = childByFieldName(node, "left");
             TSNode rightNode = childByFieldName(node, "right");
             TSNode opNode = childByFieldName(node, "operator");
@@ -659,14 +698,20 @@ private:
             }
             return binOp;
         } else if (type == "identifier") {
-            return new VariableReference(IdGenerator::next("var"), nodeText(node, source));
+            auto* ref = new VariableReference(IdGenerator::next("var"), nodeText(node, source));
+            applySpan(ref, node);
+            return ref;
         } else if (type == "number_literal") {
             std::string text = nodeText(node, source);
             int val = 0;
             try { val = std::stoi(text); } catch (...) {}
-            return new IntegerLiteral(IdGenerator::next("int"), val);
+            auto* lit = new IntegerLiteral(IdGenerator::next("int"), val);
+            applySpan(lit, node);
+            return lit;
         } else if (type == "string_literal" || type == "raw_string_literal") {
-            return new StringLiteral(IdGenerator::next("str"), nodeText(node, source));
+            auto* lit = new StringLiteral(IdGenerator::next("str"), nodeText(node, source));
+            applySpan(lit, node);
+            return lit;
         } else if (type == "parenthesized_expression") {
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) return convertCppExpression(ts_node_named_child(node, 0), source);
@@ -674,7 +719,9 @@ private:
         // Fallback
         std::string text = nodeText(node, source);
         if (!text.empty()) {
-            return new VariableReference(IdGenerator::next("var"), text);
+            auto* ref = new VariableReference(IdGenerator::next("var"), text);
+            applySpan(ref, node);
+            return ref;
         }
         return nullptr;
     }
@@ -726,6 +773,7 @@ private:
     static Function* convertElispDefun(TSNode node, const std::string& source) {
         auto* fn = new Function();
         fn->id = IdGenerator::next("fn");
+        applySpan(fn, node);
 
         // tree-sitter-elisp function_definition has:
         //   field "name" → symbol (function name)
@@ -761,6 +809,7 @@ private:
             if (expr) {
                 auto* exprStmt = new ExpressionStatement();
                 exprStmt->id = IdGenerator::next("exprstmt");
+                applySpan(exprStmt, child);
                 exprStmt->setChild("expression", expr);
                 fn->addChild("body", exprStmt);
             }
@@ -819,11 +868,13 @@ private:
                     // Last form — wrap in ExpressionStatement (implicit return)
                     auto* exprStmt = new ExpressionStatement();
                     exprStmt->id = IdGenerator::next("exprstmt");
+                    applySpan(exprStmt, bodyChild);
                     exprStmt->setChild("expression", expr);
                     fn->addChild("body", exprStmt);
                 } else {
                     auto* exprStmt = new ExpressionStatement();
                     exprStmt->id = IdGenerator::next("exprstmt");
+                    applySpan(exprStmt, bodyChild);
                     exprStmt->setChild("expression", expr);
                     fn->addChild("body", exprStmt);
                 }
@@ -865,6 +916,7 @@ private:
             if (expr) {
                 auto* exprStmt = new ExpressionStatement();
                 exprStmt->id = IdGenerator::next("exprstmt");
+                applySpan(exprStmt, bodyChild);
                 exprStmt->setChild("expression", expr);
                 fn->addChild("body", exprStmt);
             }
@@ -883,6 +935,7 @@ private:
             std::string type = nodeType(child);
             if (type == "symbol" || type == "identifier") {
                 auto* param = new Parameter(IdGenerator::next("param"), nodeText(child, source));
+                applySpan(param, child);
                 fn->addChild("parameters", param);
             }
         }
@@ -898,6 +951,7 @@ private:
                 if (expr) {
                     auto* exprStmt = new ExpressionStatement();
                     exprStmt->id = IdGenerator::next("exprstmt");
+                    applySpan(exprStmt, child);
                     exprStmt->setChild("expression", expr);
                     fn->addChild("body", exprStmt);
                 }
@@ -907,6 +961,7 @@ private:
             if (expr) {
                 auto* exprStmt = new ExpressionStatement();
                 exprStmt->id = IdGenerator::next("exprstmt");
+                applySpan(exprStmt, bodyNode);
                 exprStmt->setChild("expression", expr);
                 fn->addChild("body", exprStmt);
             }
@@ -936,6 +991,7 @@ private:
                 if (expr) {
                     auto* exprStmt = new ExpressionStatement();
                     exprStmt->id = IdGenerator::next("exprstmt");
+                    applySpan(exprStmt, child);
                     exprStmt->setChild("expression", expr);
                     fn->addChild("body", exprStmt);
                 }
@@ -956,6 +1012,7 @@ private:
                     auto* binOp = new BinaryOperation();
                     binOp->id = IdGenerator::next("binop");
                     binOp->op = firstText;
+                    applySpan(binOp, node);
                     ASTNode* left = convertElispExpression(ts_node_named_child(node, 1), source);
                     ASTNode* right = convertElispExpression(ts_node_named_child(node, 2), source);
                     if (left) binOp->setChild("left", left);
@@ -967,6 +1024,7 @@ private:
             if (count >= 1) {
                 auto* call = new FunctionCall();
                 call->id = IdGenerator::next("call");
+                applySpan(call, node);
                 TSNode funcName = ts_node_named_child(node, 0);
                 call->functionName = nodeText(funcName, source);
                 for (uint32_t i = 1; i < count; ++i) {
@@ -976,14 +1034,20 @@ private:
                 return call;
             }
         } else if (type == "symbol" || type == "identifier") {
-            return new VariableReference(IdGenerator::next("var"), nodeText(node, source));
+            auto* ref = new VariableReference(IdGenerator::next("var"), nodeText(node, source));
+            applySpan(ref, node);
+            return ref;
         } else if (type == "integer" || type == "number") {
             std::string text = nodeText(node, source);
             int val = 0;
             try { val = std::stoi(text); } catch (...) {}
-            return new IntegerLiteral(IdGenerator::next("int"), val);
+            auto* lit = new IntegerLiteral(IdGenerator::next("int"), val);
+            applySpan(lit, node);
+            return lit;
         } else if (type == "string") {
-            return new StringLiteral(IdGenerator::next("str"), nodeText(node, source));
+            auto* lit = new StringLiteral(IdGenerator::next("str"), nodeText(node, source));
+            applySpan(lit, node);
+            return lit;
         } else if (type == "special_form") {
             // Could be (if ...), (let ...), etc.
             return convertElispSpecialForm(node, source);
@@ -992,7 +1056,9 @@ private:
         // Fallback
         std::string text = nodeText(node, source);
         if (!text.empty()) {
-            return new VariableReference(IdGenerator::next("var"), text);
+            auto* ref = new VariableReference(IdGenerator::next("var"), text);
+            applySpan(ref, node);
+            return ref;
         }
         return nullptr;
     }
@@ -1007,6 +1073,7 @@ private:
         if (formName == "if" && count >= 3) {
             auto* ifStmt = new IfStatement();
             ifStmt->id = IdGenerator::next("if");
+            applySpan(ifStmt, node);
             ASTNode* cond = convertElispExpression(ts_node_named_child(node, 1), source);
             if (cond) ifStmt->setChild("condition", cond);
             return ifStmt;
@@ -1015,6 +1082,7 @@ private:
         // Generic: treat as function call
         auto* call = new FunctionCall();
         call->id = IdGenerator::next("call");
+        applySpan(call, node);
         call->functionName = formName;
         for (uint32_t i = 1; i < count; ++i) {
             ASTNode* arg = convertElispExpression(ts_node_named_child(node, i), source);

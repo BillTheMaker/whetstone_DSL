@@ -522,6 +522,10 @@ add_executable(step94_test tests/step94_test.cpp)
 target_include_directories(step94_test PRIVATE src)
 target_link_libraries(step94_test PRIVATE nlohmann_json::nlohmann_json)
 
+add_executable(step94a_test tests/step94a_test.cpp)
+target_include_directories(step94a_test PRIVATE src)
+target_link_libraries(step94a_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python)
+
 add_executable(step95_test tests/step95_test.cpp)
 target_include_directories(step95_test PRIVATE src)
 target_link_libraries(step95_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)

@@ -8,8 +8,23 @@ public:
     std::string id;
     std::string conceptType;
     ASTNode* parent = nullptr;
+    int spanStartLine = -1;
+    int spanStartCol = -1;
+    int spanEndLine = -1;
+    int spanEndCol = -1;
 
     virtual ~ASTNode() = default;
+
+    void setSpan(int startLine, int startCol, int endLine, int endCol) {
+        spanStartLine = startLine;
+        spanStartCol = startCol;
+        spanEndLine = endLine;
+        spanEndCol = endCol;
+    }
+
+    bool hasSpan() const {
+        return spanStartLine >= 0 && spanStartCol >= 0 && spanEndLine >= 0 && spanEndCol >= 0;
+    }
 
     // Multi-valued child: append to role
     void addChild(const std::string& role, ASTNode* child) {
