@@ -54,6 +54,14 @@ public:
         output_ += text;
     }
 
+    int runAndAppend(const std::string& cwd, const std::string& command) {
+        std::string out;
+        int code = runProcess(cwd, command, out);
+        output_ += "> " + command + "\n";
+        output_ += out;
+        return code;
+    }
+
     const std::string& getOutput() const {
         return output_;
     }
@@ -107,29 +115,37 @@ private:
     void runCommand(const std::string& cwd) {
         if (commandBuf_.empty()) return;
 
-        std::string fullCmd = buildCommandLine(cwd, commandBuf_);
+        std::string out;
+        int code = runProcess(cwd, commandBuf_, out);
+        output_ += "> " + commandBuf_ + "\n";
+        output_ += out;
+        output_ += "[exit code: " + std::to_string(code) + "]\n";
+    }
+
+    static int runProcess(const std::string& cwd, const std::string& command, std::string& out) {
+        std::string fullCmd = buildCommandLine(cwd, command);
 #ifdef _WIN32
         FILE* pipe = _popen(fullCmd.c_str(), "r");
 #else
         FILE* pipe = popen(fullCmd.c_str(), "r");
 #endif
         if (!pipe) {
-            output_ += "[terminal] Failed to launch command.\n";
-            return;
+            out += "[terminal] Failed to launch command.\n";
+            return -1;
         }
 
-        output_ += "> " + commandBuf_ + "\n";
         char buffer[4096];
         while (!feof(pipe)) {
             if (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-                output_ += buffer;
+                out += buffer;
             }
         }
 #ifdef _WIN32
-        _pclose(pipe);
+        int code = _pclose(pipe);
 #else
-        pclose(pipe);
+        int code = pclose(pipe);
 #endif
+        return code;
     }
 
     static ImVec4 ansiColor(int code, const ImVec4& base) {

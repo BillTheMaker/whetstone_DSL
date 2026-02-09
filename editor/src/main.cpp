@@ -172,6 +172,8 @@ int main(int, char**) {
                         std::string lang = state.active() ? state.active()->language : "python";
                         state.createBuffer(state.makeUntitledName(), "", lang);
                     }
+                    else if (action == "build.run")    state.runActiveFile(false);
+                    else if (action == "build.build")  state.runActiveFile(true);
                     else if (action == "view.zoomIn")  applyFontSize(state.settings.getFontSize() + 1);
                     else if (action == "view.zoomOut") applyFontSize(state.settings.getFontSize() - 1);
                 }
@@ -341,6 +343,15 @@ int main(int, char**) {
                 }
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Build")) {
+                if (ImGui::MenuItem("Run", state.keys.getBinding("build.run").toString().c_str())) {
+                    state.runActiveFile(false);
+                }
+                if (ImGui::MenuItem("Build", state.keys.getBinding("build.build").toString().c_str())) {
+                    state.runActiveFile(true);
+                }
+                ImGui::EndMenu();
+            }
             if (ImGui::BeginMenu("Language")) {
                 if (ImGui::MenuItem("Python", nullptr, state.active() && state.active()->language == "python"))
                     state.setLanguage("python");
@@ -413,6 +424,20 @@ int main(int, char**) {
                 ImGui::EndPopup();
             }
             if (!canProject) ImGui::EndDisabled();
+
+            ImGui::SameLine();
+            ImGui::Dummy(ImVec2(12.0f, 0.0f));
+            ImGui::SameLine();
+            bool canRunFile = state.active() && !state.active()->readOnly;
+            if (!canRunFile) ImGui::BeginDisabled();
+            if (ImGui::Button("Run >")) {
+                state.runActiveFile(false);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Build")) {
+                state.runActiveFile(true);
+            }
+            if (!canRunFile) ImGui::EndDisabled();
             ImGui::EndMainMenuBar();
         }
 
@@ -2217,6 +2242,15 @@ int main(int, char**) {
 
             // Undo depth
             ImGui::Text("Undo: %d", state.active() ? state.active()->undoDepth : 0);
+            ImGui::SameLine(0, 30);
+
+            if (state.runInProgress) {
+                ImGui::Text("Run: Running...");
+            } else if (state.hasRunResult) {
+                ImGui::Text("Run: Exit %d", state.lastRunExitCode);
+            } else {
+                ImGui::Text("Run: -");
+            }
             ImGui::SameLine(0, 30);
 
             // Modified indicator

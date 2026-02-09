@@ -413,7 +413,7 @@ External tool integration and agent connectivity.
   workspace root. Scrollable output with ANSI color support.
   *New:* `TerminalPanel.h`
 
-- [ ] **Step 123: Run code button**
+- [x] **Step 123: Run code button**
   Toolbar button (play icon) to run the current file. Auto-detects runner:
   Python: `python file.py`, C++: compile and run, Rust: `cargo run`,
   Go: `go run`, JS: `node file.js`. Output goes to Terminal panel.

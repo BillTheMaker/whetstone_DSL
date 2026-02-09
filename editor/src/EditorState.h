@@ -146,6 +146,10 @@ struct EditorState {
     std::string       outputLog;
     bool              showTerminalPanel = false;
     TerminalPanel     terminal;
+    bool              runInProgress = false;
+    bool              hasRunResult = false;
+    int               lastRunExitCode = 0;
+    std::string       lastRunCommand;
 
     // Custom editor widget state
     bool              showWhitespace = false;
@@ -518,10 +522,10 @@ struct EditorState {
             info.mode = bufferModeToString(it->second->bufferMode);
             project.buffers.push_back(std::move(info));
         }
-        if (isStructured()) {
+        if (isStructured() && active()) {
             syncOrchestratorFromActive();
-            if (orchestrator.getAST()) {
-                project.ast = cloneModule(orchestrator.getAST());
+            if (active()->orchestrator.getAST()) {
+                project.ast = cloneModule(active()->orchestrator.getAST());
             }
         }
 
@@ -877,6 +881,10 @@ struct EditorState {
                             refactorNameA[0] = '\0';
                             refactorNameB[0] = '\0';
                         });
+        registerCommand("build.run", "Build: Run", keys.getBinding("build.run").toString(),
+                        [this]() { runActiveFile(false); });
+        registerCommand("build.build", "Build: Build", keys.getBinding("build.build").toString(),
+                        [this]() { runActiveFile(true); });
     }
 
     void executeCommand(const std::string& id) {
@@ -904,6 +912,70 @@ struct EditorState {
         }
         active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
+    }
+
+    std::string buildRunCommand(const std::string& path,
+                                const std::string& language,
+                                bool buildOnly) const {
+        std::filesystem::path p(path);
+        std::string ext = p.extension().string();
+        std::string quoted = "\"" + path + "\"";
+        if (language == "python" || ext == ".py") {
+            return buildOnly ? "python -m py_compile " + quoted : "python " + quoted;
+        }
+        if (language == "cpp" || ext == ".cpp" || ext == ".cc" || ext == ".cxx") {
+            std::string out = (p.parent_path() / p.stem()).string();
+#ifdef _WIN32
+            out += ".exe";
+#endif
+            std::string compile = "g++ " + quoted + " -std=c++20 -o \"" + out + "\"";
+            if (buildOnly) return compile;
+            return compile + " && \"" + out + "\"";
+        }
+        if (language == "rust" || ext == ".rs") {
+            return buildOnly ? "cargo build" : "cargo run";
+        }
+        if (language == "go" || ext == ".go") {
+            return buildOnly ? "go build " + quoted : "go run " + quoted;
+        }
+        if (language == "javascript" || ext == ".js") {
+            return buildOnly ? "node --check " + quoted : "node " + quoted;
+        }
+        if (language == "typescript" || ext == ".ts") {
+            return buildOnly ? "tsc " + quoted : "node " + quoted;
+        }
+        return "";
+    }
+
+    bool runActiveFile(bool buildOnly) {
+        if (!active()) return false;
+        if (active()->path.rfind("(untitled", 0) == 0) {
+            terminal.append("[terminal] Save the file before running.\n");
+            showTerminalPanel = true;
+            return false;
+        }
+        if (active()->modified) {
+            doSave();
+        }
+        std::string cmd = buildRunCommand(active()->path, active()->language, buildOnly);
+        if (cmd.empty()) {
+            terminal.append("[terminal] No runner for language: " + active()->language + "\n");
+            showTerminalPanel = true;
+            return false;
+        }
+        std::string cwd = workspaceRoot.empty()
+            ? std::filesystem::path(active()->path).parent_path().string()
+            : workspaceRoot;
+        showTerminalPanel = true;
+        runInProgress = true;
+        hasRunResult = false;
+        lastRunCommand = cmd;
+        int code = terminal.runAndAppend(cwd, cmd);
+        terminal.append("[exit code: " + std::to_string(code) + "]\n");
+        runInProgress = false;
+        hasRunResult = true;
+        lastRunExitCode = code;
+        return code == 0;
     }
 
     // Called after editBuf changes (from ImGui input)

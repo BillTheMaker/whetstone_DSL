@@ -693,6 +693,10 @@ add_executable(step122_test tests/step122_test.cpp)
 target_include_directories(step122_test PRIVATE src)
 target_link_libraries(step122_test PRIVATE imgui::imgui)
 
+add_executable(step123_test tests/step123_test.cpp)
+target_include_directories(step123_test PRIVATE src)
+target_link_libraries(step123_test PRIVATE imgui::imgui)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
