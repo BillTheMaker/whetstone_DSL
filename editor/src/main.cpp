@@ -666,6 +666,7 @@ int main(int, char**) {
                 CodeEditorOptions opts;
                 opts.showWhitespace = state.showWhitespace;
                 opts.mode = &state.mode;
+                opts.enableFolding = true;
 
                 CodeEditorResult res = state.codeWidget.render("##editor",
                     state.editBuf, state.highlights, opts, avail, monoFont);

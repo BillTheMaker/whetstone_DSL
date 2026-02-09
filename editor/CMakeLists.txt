@@ -339,6 +339,10 @@ add_executable(step80_test tests/step80_test.cpp)
 target_include_directories(step80_test PRIVATE src)
 target_link_libraries(step80_test PRIVATE imgui::imgui)
 
+add_executable(step81_test tests/step81_test.cpp)
+target_include_directories(step81_test PRIVATE src)
+target_link_libraries(step81_test PRIVATE imgui::imgui unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

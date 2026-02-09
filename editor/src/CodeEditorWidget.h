@@ -13,11 +13,13 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 
 struct CodeEditorOptions {
     bool showWhitespace = false;
     bool readOnly = false;
     EditorMode* mode = nullptr;
+    bool enableFolding = false;
 };
 
 struct CodeEditorResult {
@@ -26,6 +28,14 @@ struct CodeEditorResult {
     int lineCount = 0;
     float gutterWidth = 0.0f;
     int currentLine = 0;
+    int foldCount = 0;
+    bool anyFolded = false;
+};
+
+struct FoldRegion {
+    int startLine = 0;
+    int endLine = 0;
+    bool folded = false;
 };
 
 class CodeEditorWidget {
@@ -59,6 +69,12 @@ public:
             for (uint32_t i = span.start; i < end; ++i) {
                 charCats[i] = span.category;
             }
+        }
+
+        if (options.enableFolding && options.mode) {
+            updateFolds(text, options.mode->getLanguage());
+        } else {
+            folds_.clear();
         }
 
         // Measure
@@ -100,6 +116,10 @@ public:
             int clickCount = ImGui::GetIO().MouseClickedCount[0];
             if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
                 int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
+                const FoldRegion* fold = findFoldAtLine(line);
+                if (fold && mouse.x < origin.x + 12.0f) {
+                    toggleFoldAtLine(line);
+                }
                 int lineStart = lineStarts[line];
                 int lineEnd = (line + 1 < lineCount) ? lineStarts[line + 1] : (int)text.size();
                 cursor_ = lineStart;
@@ -146,7 +166,16 @@ public:
             (ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x) - gutterWidth);
         const int currentLine = lineFromPos(cursor_, lineStarts);
 
+        std::vector<bool> hiddenLines(lineCount, false);
+        for (const auto& f : folds_) {
+            if (!f.folded) continue;
+            for (int l = f.startLine + 1; l <= f.endLine && l < lineCount; ++l) {
+                hiddenLines[l] = true;
+            }
+        }
+
         for (int ln = firstLine; ln <= lastLine; ++ln) {
+            if (ln >= 0 && ln < lineCount && hiddenLines[ln]) continue;
             int start = lineStarts[ln];
             int end = (ln + 1 < lineCount) ? lineStarts[ln + 1] - 1 : (int)text.size();
             int len = std::max(0, end - start);
@@ -164,6 +193,17 @@ public:
             ImVec2 numSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, numBuf);
             ImVec2 numPos(origin.x + gutterWidth - 4.0f - numSize.x, y);
             drawList->AddText(font, font->FontSize, numPos, IM_COL32(120, 120, 120, 255), numBuf);
+
+            // Fold indicator
+            const FoldRegion* fold = findFoldAtLine(ln);
+            if (fold) {
+                ImVec2 triCenter(origin.x + 6.0f, y + lineHeight * 0.5f);
+                if (fold->folded) {
+                    drawTriangle(drawList, triCenter, IM_COL32(160, 160, 160, 255), true);
+                } else {
+                    drawTriangle(drawList, triCenter, IM_COL32(160, 160, 160, 255), false);
+                }
+            }
 
             // Current line highlight (text area only)
             if (ln == currentLine) {
@@ -216,6 +256,12 @@ public:
 
                 pos = spanEnd;
             }
+
+            // Folded placeholder
+            if (fold && fold->folded) {
+                ImVec2 p(textBase.x + len * charAdvance + 6.0f, y);
+                drawList->AddText(font, font->FontSize, p, IM_COL32(140, 140, 140, 255), "{...}");
+            }
         }
 
         // Cursor
@@ -238,17 +284,33 @@ public:
         result.lineCount = lineCount;
         result.gutterWidth = gutterWidth;
         result.currentLine = currentLine;
+        result.foldCount = (int)folds_.size();
+        result.anyFolded = std::any_of(folds_.begin(), folds_.end(),
+                                       [](const FoldRegion& f) { return f.folded; });
         return result;
     }
 
     void setCursor(int pos) { cursor_ = pos; }
     int getCursor() const { return cursor_; }
+    const std::vector<FoldRegion>& getFoldRegions() const { return folds_; }
+
+    void toggleFoldAtLine(int line) {
+        for (auto& f : folds_) {
+            if (f.startLine == line) {
+                f.folded = !f.folded;
+                return;
+            }
+        }
+    }
 
 private:
     int cursor_ = 0;
     int selStart_ = -1;
     int selEnd_ = -1;
     bool selecting_ = false;
+    std::vector<FoldRegion> folds_;
+    std::string lastFoldText_;
+    std::string lastFoldLang_;
 
     bool hasSelection() const {
         return selStart_ >= 0 && selEnd_ >= 0 && selStart_ != selEnd_;
@@ -314,6 +376,115 @@ private:
                                                 std::string(digits, '0').c_str()).x;
         float width = digitsWidth + pad * 2.0f;
         return std::max(width, charAdvance * 2.0f + pad * 2.0f);
+    }
+
+    const FoldRegion* findFoldAtLine(int line) const {
+        for (const auto& f : folds_) {
+            if (f.startLine == line) return &f;
+        }
+        return nullptr;
+    }
+
+    static void drawTriangle(ImDrawList* drawList, const ImVec2& center, ImU32 color, bool down) {
+        float s = 4.0f;
+        if (down) {
+            drawList->AddTriangleFilled(
+                ImVec2(center.x - s, center.y - s * 0.6f),
+                ImVec2(center.x + s, center.y - s * 0.6f),
+                ImVec2(center.x, center.y + s),
+                color);
+        } else {
+            drawList->AddTriangleFilled(
+                ImVec2(center.x - s, center.y - s),
+                ImVec2(center.x - s, center.y + s),
+                ImVec2(center.x + s, center.y),
+                color);
+        }
+    }
+
+    void updateFolds(const std::string& text, const std::string& language) {
+        if (text == lastFoldText_ && language == lastFoldLang_) return;
+        lastFoldText_ = text;
+        lastFoldLang_ = language;
+
+        std::vector<FoldRegion> newFolds;
+        if (text.empty()) { folds_.clear(); return; }
+
+        const TSLanguage* lang = nullptr;
+        if (language == "python") lang = tree_sitter_python();
+        else if (language == "cpp") lang = tree_sitter_cpp();
+        else if (language == "elisp") lang = tree_sitter_elisp();
+        if (!lang) { folds_.clear(); return; }
+
+        TSParser* parser = ts_parser_new();
+        ts_parser_set_language(parser, lang);
+        TSTree* tree = ts_parser_parse_string(parser, nullptr, text.c_str(), (uint32_t)text.size());
+        TSNode root = ts_tree_root_node(tree);
+
+        collectFoldNodes(root, language, newFolds);
+
+        // Preserve folded state by startLine
+        for (auto& f : newFolds) {
+            for (const auto& old : folds_) {
+                if (old.startLine == f.startLine && old.endLine == f.endLine) {
+                    f.folded = old.folded;
+                    break;
+                }
+            }
+        }
+
+        folds_ = std::move(newFolds);
+
+        ts_tree_delete(tree);
+        ts_parser_delete(parser);
+    }
+
+    static bool isFoldNodeType(const std::string& language, const char* type) {
+        if (language == "python") {
+            return strcmp(type, "function_definition") == 0 ||
+                   strcmp(type, "class_definition") == 0 ||
+                   strcmp(type, "if_statement") == 0 ||
+                   strcmp(type, "for_statement") == 0 ||
+                   strcmp(type, "while_statement") == 0 ||
+                   strcmp(type, "with_statement") == 0 ||
+                   strcmp(type, "try_statement") == 0;
+        } else if (language == "cpp") {
+            return strcmp(type, "function_definition") == 0 ||
+                   strcmp(type, "class_specifier") == 0 ||
+                   strcmp(type, "struct_specifier") == 0 ||
+                   strcmp(type, "namespace_definition") == 0 ||
+                   strcmp(type, "if_statement") == 0 ||
+                   strcmp(type, "for_statement") == 0 ||
+                   strcmp(type, "while_statement") == 0 ||
+                   strcmp(type, "compound_statement") == 0;
+        } else if (language == "elisp") {
+            return strcmp(type, "function_definition") == 0 ||
+                   strcmp(type, "lambda_expression") == 0 ||
+                   strcmp(type, "if_expression") == 0 ||
+                   strcmp(type, "while_expression") == 0 ||
+                   strcmp(type, "cond_expression") == 0;
+        }
+        return false;
+    }
+
+    static void collectFoldNodes(TSNode node, const std::string& language, std::vector<FoldRegion>& out) {
+        if (ts_node_is_null(node)) return;
+        const char* type = ts_node_type(node);
+        if (isFoldNodeType(language, type)) {
+            TSPoint start = ts_node_start_point(node);
+            TSPoint end = ts_node_end_point(node);
+            if (end.row > start.row) {
+                FoldRegion f;
+                f.startLine = (int)start.row;
+                f.endLine = (int)end.row;
+                f.folded = false;
+                out.push_back(f);
+            }
+        }
+        uint32_t count = ts_node_child_count(node);
+        for (uint32_t i = 0; i < count; ++i) {
+            collectFoldNodes(ts_node_child(node, i), language, out);
+        }
     }
 
     void deleteSelection(std::string& text, bool& changed) {
