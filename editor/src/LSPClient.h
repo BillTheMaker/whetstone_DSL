@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include <nlohmann/json.hpp>
 
 class LSPTransport {
@@ -21,6 +22,24 @@ class LSPClient {
 public:
     explicit LSPClient(std::shared_ptr<LSPTransport> transport)
         : transport_(std::move(transport)) {}
+
+    struct Position {
+        int line = 0;
+        int character = 0;
+    };
+
+    struct Range {
+        Position start;
+        Position end;
+    };
+
+    struct Diagnostic {
+        std::string uri;
+        Range range;
+        int severity = 0;
+        std::string message;
+        std::string source;
+    };
 
     void initialize(const std::string& rootUri,
                     const std::string& clientName,
@@ -38,6 +57,93 @@ public:
         sendRequest("shutdown", nlohmann::json::object());
         sendNotification("exit", nlohmann::json::object());
         if (transport_) transport_->close();
+    }
+
+    void didOpen(const std::string& uri,
+                 const std::string& languageId,
+                 const std::string& text,
+                 int version) {
+        nlohmann::json params;
+        params["textDocument"] = {
+            {"uri", uri},
+            {"languageId", languageId},
+            {"version", version},
+            {"text", text}
+        };
+        sendNotification("textDocument/didOpen", params);
+    }
+
+    void didChange(const std::string& uri,
+                   const std::string& text,
+                   int version) {
+        nlohmann::json params;
+        params["textDocument"] = {
+            {"uri", uri},
+            {"version", version}
+        };
+        params["contentChanges"] = nlohmann::json::array({{
+            {"text", text}
+        }});
+        sendNotification("textDocument/didChange", params);
+    }
+
+    void didSave(const std::string& uri, const std::string& text = std::string()) {
+        nlohmann::json params;
+        params["textDocument"] = {{"uri", uri}};
+        if (!text.empty()) params["text"] = text;
+        sendNotification("textDocument/didSave", params);
+    }
+
+    void handleMessage(const std::string& msg) {
+        nlohmann::json j;
+        try {
+            j = nlohmann::json::parse(msg);
+        } catch (...) {
+            return;
+        }
+        if (!j.contains("method")) return;
+        if (j["method"].get<std::string>() != "textDocument/publishDiagnostics") return;
+        if (!j.contains("params")) return;
+        const auto& params = j["params"];
+        if (!params.contains("uri") || !params.contains("diagnostics")) return;
+
+        std::string uri = params["uri"].get<std::string>();
+        std::vector<Diagnostic> parsed;
+        for (const auto& diag : params["diagnostics"]) {
+            Diagnostic d;
+            d.uri = uri;
+            if (diag.contains("range")) {
+                const auto& range = diag["range"];
+                if (range.contains("start")) {
+                    d.range.start.line = range["start"].value("line", 0);
+                    d.range.start.character = range["start"].value("character", 0);
+                }
+                if (range.contains("end")) {
+                    d.range.end.line = range["end"].value("line", 0);
+                    d.range.end.character = range["end"].value("character", 0);
+                }
+            }
+            d.severity = diag.value("severity", 0);
+            d.message = diag.value("message", "");
+            d.source = diag.value("source", "");
+            parsed.push_back(std::move(d));
+        }
+
+        diagnosticsByUri_[uri] = std::move(parsed);
+    }
+
+    std::vector<Diagnostic> getDiagnostics() const {
+        std::vector<Diagnostic> out;
+        for (const auto& kv : diagnosticsByUri_) {
+            out.insert(out.end(), kv.second.begin(), kv.second.end());
+        }
+        return out;
+    }
+
+    std::vector<Diagnostic> getDiagnosticsForUri(const std::string& uri) const {
+        auto it = diagnosticsByUri_.find(uri);
+        if (it == diagnosticsByUri_.end()) return {};
+        return it->second;
     }
 
     void sendNotification(const std::string& method, const nlohmann::json& params) {
@@ -68,4 +174,5 @@ private:
 
     std::shared_ptr<LSPTransport> transport_;
     int nextId_ = 1;
+    std::unordered_map<std::string, std::vector<Diagnostic>> diagnosticsByUri_;
 };

@@ -24,6 +24,7 @@
 #include "WelcomeScreen.h"
 #include "DragDropHandler.h"
 #include "FileWatcher.h"
+#include "LSPClient.h"
 #include "ast/Generator.h"
 
 #include <cstdio>
@@ -52,6 +53,7 @@ struct BufferState {
     bool              modified    = false;
     int               cursorLine  = 1;
     int               cursorCol   = 1;
+    int               lspVersion  = 1;
     std::string       editBuf;
     std::vector<HighlightSpan> highlights;
     bool              highlightsDirty = true;
@@ -82,8 +84,48 @@ struct EditorState {
     FileNode          fileTreeRoot;
     bool              fileTreeDirty = true;
     FileWatcher       watcher;
+    std::shared_ptr<LSPTransport> lspTransport;
+    std::shared_ptr<LSPClient> lsp;
 
     BufferState* active() { return activeBuffer; }
+
+    static std::string toFileUri(const std::string& path) {
+        std::filesystem::path p(path);
+        return "file:///" + p.generic_string();
+    }
+
+    static std::string fromFileUri(const std::string& uri) {
+        const std::string prefix = "file:///";
+        if (uri.rfind(prefix, 0) != 0) return uri;
+        std::string path = uri.substr(prefix.size());
+        std::replace(path.begin(), path.end(), '/', '\\');
+        return path;
+    }
+
+    static int byteOffsetForLineCol(const std::string& text, int lineZero, int colZero) {
+        if (lineZero < 0) lineZero = 0;
+        if (colZero < 0) colZero = 0;
+        int line = 0;
+        int pos = 0;
+        while (pos < (int)text.size() && line < lineZero) {
+            if (text[pos] == '\n') ++line;
+            ++pos;
+        }
+        int col = 0;
+        while (pos < (int)text.size() && text[pos] != '\n' && col < colZero) {
+            ++pos;
+            ++col;
+        }
+        return pos;
+    }
+
+    void jumpTo(BufferState* buf, int lineZero, int colZero) {
+        if (!buf) return;
+        int pos = byteOffsetForLineCol(buf->editBuf, lineZero, colZero);
+        buf->widget.setCursor(pos);
+        buf->cursorLine = lineZero + 1;
+        buf->cursorCol = colZero + 1;
+    }
 
     std::string makeUntitledName() const {
         if (!buffers.hasBuffer("(untitled)")) return "(untitled)";
@@ -111,10 +153,14 @@ struct EditorState {
         state->editBuf = content;
         state->highlightsDirty = true;
         state->modified = false;
+        state->lspVersion = 1;
         buffers.openBuffer(path, content, language);
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
+        if (lsp && path.rfind("(untitled", 0) != 0) {
+            lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
+        }
     }
 
     void switchToBuffer(const std::string& path) {
@@ -186,6 +232,10 @@ struct EditorState {
         active()->sync.syncNow();
         active()->highlightsDirty = true;
         active()->modified = true;
+        if (lsp && active()->path.rfind("(untitled", 0) != 0) {
+            active()->lspVersion += 1;
+            lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
+        }
     }
 
     void doUndo() {
@@ -249,6 +299,7 @@ struct EditorState {
             out.close();
             active()->modified = false;
             outputLog += "Saved: " + active()->path + "\n";
+            if (lsp) lsp->didSave(toFileUri(active()->path), active()->editBuf);
         } else {
             outputLog += "Error saving: " + active()->path + "\n";
         }
@@ -340,6 +391,13 @@ struct EditorState {
         fileTreeRoot = fileTree.build(workspaceRoot);
         fileTreeDirty = false;
     }
+};
+
+struct NullLSPTransport : public LSPTransport {
+    void send(const std::string& msg) override { (void)msg; }
+    bool receive(std::string& out) override { (void)out; return false; }
+    bool isOpen() const override { return false; }
+    void close() override {}
 };
 
 
@@ -643,6 +701,8 @@ int main(int, char**) {
     // Editor state
     EditorState state;
     state.init();
+    state.lspTransport = std::make_shared<NullLSPTransport>();
+    state.lsp = std::make_shared<LSPClient>(state.lspTransport);
 
     // File dialog defaults
     std::string lastDialogPath;
@@ -953,6 +1013,39 @@ int main(int, char**) {
                 // Auto-scroll to bottom
                 if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 20)
                     ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            // Problems (LSP diagnostics)
+            if (ImGui::BeginTabItem("Problems")) {
+                ImGui::PushFont(monoFont);
+                ImGui::BeginChild("##problemsScroll", ImVec2(0, 0), false);
+                auto diags = state.lsp ? state.lsp->getDiagnostics() : std::vector<LSPClient::Diagnostic>{};
+                if (diags.empty()) {
+                    ImGui::TextDisabled("(no diagnostics)");
+                } else {
+                    for (const auto& d : diags) {
+                        const char* sev = "Unknown";
+                        if (d.severity == 1) sev = "Error";
+                        else if (d.severity == 2) sev = "Warning";
+                        else if (d.severity == 3) sev = "Info";
+                        else if (d.severity == 4) sev = "Hint";
+
+                        std::string path = EditorState::fromFileUri(d.uri);
+                        std::string label = "[" + std::string(sev) + "] " + d.message +
+                                            " (" + path + ":" + std::to_string(d.range.start.line + 1) +
+                                            ":" + std::to_string(d.range.start.character + 1) + ")";
+                        if (ImGui::Selectable(label.c_str())) {
+                            if (!path.empty()) {
+                                if (state.buffers.hasBuffer(path)) state.switchToBuffer(path);
+                                else state.doOpen(path);
+                                state.jumpTo(state.active(), d.range.start.line, d.range.start.character);
+                            }
+                        }
+                    }
+                }
                 ImGui::EndChild();
                 ImGui::PopFont();
                 ImGui::EndTabItem();
