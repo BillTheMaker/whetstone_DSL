@@ -46,6 +46,7 @@
 #include "ProjectSearch.h"
 #include "GoToLine.h"
 #include "Orchestrator.h"
+#include "ProjectManager.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -469,6 +470,93 @@ struct EditorState {
         out << j.dump(2);
     }
 
+    void closeAllBuffers() {
+        auto open = buffers.getOpenBuffers();
+        for (const auto& path : open) {
+            buffers.closeBuffer(path);
+            bufferStates.erase(path);
+            if (path.rfind("(untitled", 0) != 0) watcher.unwatch(path);
+        }
+        activeBuffer = nullptr;
+    }
+
+    bool saveProject(const std::string& path) {
+        ProjectFile project;
+        project.workspaceRoot = workspaceRoot;
+        project.activePath = active() ? active()->path : "";
+        for (const auto& bufPath : buffers.getOpenBuffers()) {
+            auto it = bufferStates.find(bufPath);
+            if (it == bufferStates.end()) continue;
+            ProjectBufferInfo info;
+            info.path = bufPath;
+            info.language = it->second->language;
+            info.mode = bufferModeToString(it->second->bufferMode);
+            project.buffers.push_back(std::move(info));
+        }
+        if (isStructured()) {
+            syncOrchestratorFromActive();
+            if (orchestrator.getAST()) {
+                project.ast = cloneModule(orchestrator.getAST());
+            }
+        }
+
+        try {
+            nlohmann::json j = projectToJson(project);
+            std::ofstream out(path, std::ios::binary);
+            if (!out.is_open()) return false;
+            out << j.dump(2);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    bool loadProject(const std::string& path) {
+        try {
+            std::ifstream in(path, std::ios::binary);
+            if (!in.is_open()) return false;
+            nlohmann::json j;
+            in >> j;
+            ProjectFile project = projectFromJson(j);
+            closeAllBuffers();
+
+            if (!project.workspaceRoot.empty()) {
+                workspaceRoot = project.workspaceRoot;
+                fileTreeDirty = true;
+                projectSearch.setRoot(workspaceRoot);
+            }
+
+            std::string activePath = project.activePath;
+            for (const auto& buf : project.buffers) {
+                if (buf.path == activePath && project.ast) {
+                    std::string lang = buf.language.empty() ? project.ast->targetLanguage : buf.language;
+                    std::string generated = generateForLanguage(project.ast.get(), lang);
+                    createBuffer(buf.path, generated, lang, bufferModeFromString(buf.mode));
+                    if (active()) {
+                        active()->sync.setAST(std::move(project.ast));
+                        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+                        active()->editBuf = active()->sync.getText();
+                        active()->editor.setContent(active()->editBuf, lang);
+                        active()->mode.setLanguage(lang);
+                        active()->highlightsDirty = true;
+                        active()->generatedHighlightsDirty = true;
+                        active()->modified = false;
+                    }
+                } else {
+                    doOpen(buf.path, bufferModeFromString(buf.mode));
+                }
+            }
+
+            if (!activePath.empty() && buffers.hasBuffer(activePath)) {
+                switchToBuffer(activePath);
+            }
+            orchestratorDirty = true;
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
     void init() {
         outputLog = "Whetstone Editor ready.\n";
         workspaceRoot = std::filesystem::current_path().string();
@@ -536,6 +624,28 @@ struct EditorState {
         registerCommand("file.save", "File: Save",
                         keys.getBinding("file.save").toString(),
                         [this]() { doSave(); });
+        registerCommand("project.open", "Project: Open...",
+                        "",
+                        [this]() {
+                            std::string path = FileDialog::openFile(
+                                {"Open Project", {"*.whetstone"}, std::string()});
+                            if (!path.empty()) {
+                                if (!loadProject(path)) {
+                                    outputLog += "Failed to open project: " + path + "\n";
+                                }
+                            }
+                        });
+        registerCommand("project.save", "Project: Save...",
+                        "",
+                        [this]() {
+                            std::string path = FileDialog::saveFile(
+                                {"Save Project", {"*.whetstone"}, std::string()});
+                            if (!path.empty()) {
+                                if (!saveProject(path)) {
+                                    outputLog += "Failed to save project: " + path + "\n";
+                                }
+                            }
+                        });
         registerCommand("edit.undo", "Edit: Undo",
                         keys.getBinding("edit.undo").toString(),
                         [this]() { doUndo(); });
@@ -1751,6 +1861,16 @@ int main(int, char**) {
                         state.doOpen(path);
                     }
                 }
+                if (ImGui::MenuItem("Open Project...")) {
+                    auto path = FileDialog::openFile({"Open Project", {"*.whetstone"}, lastDialogPath});
+                    if (!path.empty()) {
+                        if (!state.loadProject(path)) {
+                            state.outputLog += "Failed to open project: " + path + "\n";
+                        } else {
+                            lastDialogPath = path;
+                        }
+                    }
+                }
                 if (ImGui::MenuItem("Open Folder...")) {
                     auto path = FileDialog::openFolder({"Open Folder", state.workspaceRoot});
                     if (!path.empty()) {
@@ -1773,6 +1893,16 @@ int main(int, char**) {
                         }
                     } else {
                         state.doSave();
+                    }
+                }
+                if (ImGui::MenuItem("Save Project...")) {
+                    auto path = FileDialog::saveFile({"Save Project", {"*.whetstone"}, lastDialogPath});
+                    if (!path.empty()) {
+                        if (!state.saveProject(path)) {
+                            state.outputLog += "Failed to save project: " + path + "\n";
+                        } else {
+                            lastDialogPath = path;
+                        }
                     }
                 }
                 ImGui::Separator();

@@ -361,7 +361,7 @@ AST extensions for Sprint 5.
   their own `~/.emacs.d/`).
   *Wires:* `Orchestrator.h`
 
-- [ ] **Step 116: Project save/load (AST serialization)**
+- [x] **Step 116: Project save/load (AST serialization)**
   Save/load `.whetstone` project files using `ast/Serialization.h`.
   JSON format preserving the full AST with annotations. File > Save Project /
   Open Project. Includes workspace root path and open buffer list.

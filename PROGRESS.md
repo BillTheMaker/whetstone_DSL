@@ -219,6 +219,7 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 - [x] Step 113: **IMPLEMENTED** — Project-wide search panel with regex and glob filters (3/3 tests pass)
 - [x] Step 114: **IMPLEMENTED** — Go-to-line popup with :line:col parsing (4/4 tests pass)
 - [x] Step 115: **IMPLEMENTED** — Orchestrator wired for structured mutations; Emacs config path setting (3/3 tests pass)
+- [x] Step 116: **IMPLEMENTED** — Project save/load (.whetstone) with AST serialization (4/4 tests pass)
 
 ---
 
@@ -317,6 +318,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 **Step 113:** Compile and pass (3/3)
 **Step 114:** Compile and pass (4/4)
 **Step 115:** Compile and pass (3/3)
+**Step 116:** Compile and pass (4/4)
 
 ---
 
@@ -368,7 +370,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 4 in progress. Step 115 (wire orchestrator) done. Next: Step 116 (project save/load).
+Sprint 4 in progress. Step 116 (project save/load) done. Next: Step 117 (session persistence).
 
 ---
 
@@ -445,3 +447,4 @@ Sprint 4 in progress. Step 115 (wire orchestrator) done. Next: Step 116 (project
 | 2026-02-09 | Codex | Step 113: Project-wide search panel with regex and glob filters. 3/3 tests pass. |
 | 2026-02-09 | Codex | Step 114: Go-to-line popup with :line:col parsing. 4/4 tests pass. |
 | 2026-02-09 | Codex | Step 115: Orchestrator wired for structured mutations; Emacs config path setting. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 116: Project save/load (.whetstone) with AST serialization. 4/4 tests pass. |
