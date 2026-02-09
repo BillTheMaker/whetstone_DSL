@@ -23,7 +23,7 @@
 
 The foundation: import libraries, parse their APIs, index their symbols.
 
-- [ ] **Step 127: Package registry abstraction**
+- [x] **Step 127: Package registry abstraction**
   Create `PackageRegistry.h` with a unified interface for querying package
   metadata across ecosystems. Adapters for:
   - Python: PyPI (REST API for package info, version listing)
