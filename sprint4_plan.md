@@ -420,7 +420,7 @@ External tool integration and agent connectivity.
   Status bar shows "Running..." / exit code. Ctrl+Shift+B for build.
   *Modifies:* `main.cpp`
 
-- [ ] **Step 124: Wire WebSocket agent server**
+- [x] **Step 124: Wire WebSocket agent server**
   Start `WebSocketAgentServer` when the editor launches (configurable port).
   External AI agents can connect, query the AST, and apply mutations via
   JSON-RPC. Agent activity logged in "Agents" tab in the bottom panel.

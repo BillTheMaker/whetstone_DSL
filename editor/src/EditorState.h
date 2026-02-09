@@ -41,6 +41,7 @@
 #include "SessionManager.h"
 #include "ZoomUtils.h"
 #include "TerminalPanel.h"
+#include "WebSocketServer.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -63,6 +64,8 @@
 #include <functional>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 // ---------------------------------------------------------------------------
 //  Forward declarations for utility functions defined in EditorUtils.h
@@ -150,6 +153,10 @@ struct EditorState {
     bool              hasRunResult = false;
     int               lastRunExitCode = 0;
     std::string       lastRunCommand;
+    std::unique_ptr<WebSocketAgentServer> agentServer;
+    MockWebSocketTransport* agentTransport = nullptr;
+    int               agentPort = 8765;
+    std::vector<std::string> agentLog;
 
     // Custom editor widget state
     bool              showWhitespace = false;
@@ -699,6 +706,153 @@ struct EditorState {
         loadRecentFiles();
         loadSettingsFromDisk();
         registerCommands();
+        initAgentServer();
+    }
+
+    void initAgentServer() {
+        auto transport = std::make_unique<MockWebSocketTransport>();
+        agentTransport = transport.get();
+        agentServer = std::make_unique<WebSocketAgentServer>(std::move(transport));
+        agentServer->setRequestHandler([this](const json& request) {
+            return processAgentRequest(request);
+        });
+        agentServer->setSessionEventCallback([this](const AgentSession& s,
+                                                   const std::string& event) {
+            logAgentEvent("Agent " + s.sessionId + " " + event);
+        });
+        if (agentServer->start(agentPort)) {
+            logAgentEvent("Agent server started on port " + std::to_string(agentPort));
+        } else {
+            logAgentEvent("Agent server failed to start on port " + std::to_string(agentPort));
+        }
+    }
+
+    void shutdownAgentServer() {
+        if (agentServer) agentServer->stop();
+    }
+
+    void logAgentEvent(const std::string& msg) {
+        agentLog.push_back(msg);
+    }
+
+    json buildDiagnosticsJson() const {
+        json out;
+        json lspArr = json::array();
+        auto diags = lsp ? lsp->getDiagnostics() : std::vector<LSPClient::Diagnostic>{};
+        for (const auto& d : diags) {
+            lspArr.push_back({
+                {"uri", d.uri},
+                {"message", d.message},
+                {"severity", d.severity},
+                {"range", {
+                    {"start", {{"line", d.range.start.line}, {"character", d.range.start.character}}},
+                    {"end", {{"line", d.range.end.line}, {"character", d.range.end.character}}}
+                }}
+            });
+        }
+
+        json whetArr = json::array();
+        for (const auto& d : whetstoneDiagnostics) {
+            whetArr.push_back({
+                {"uri", d.uri},
+                {"message", d.message},
+                {"severity", d.severity},
+                {"line", d.line},
+                {"character", d.character}
+            });
+        }
+
+        out["lsp"] = lspArr;
+        out["whetstone"] = whetArr;
+        return out;
+    }
+
+    json processAgentRequest(const json& request) {
+        json response;
+        response["jsonrpc"] = "2.0";
+        response["id"] = request.contains("id") ? request["id"] : json(nullptr);
+
+        std::string method = request.value("method", "");
+        logAgentEvent("Agent RPC: " + method);
+
+        if (method == "getAST") {
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            response["result"] = {
+                {"ast", toJson(ast)},
+                {"annotationCount", countAnnotationNodes(ast)},
+                {"diagnostics", buildDiagnosticsJson()}
+            };
+            return response;
+        }
+
+        if (method == "applyMutation") {
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string type = params.value("type", "");
+            Module* ast = mutationAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            ASTMutationAPI mut;
+            mut.setRoot(ast);
+            ASTMutationAPI::MutationResult res;
+
+            if (type == "setProperty") {
+                res = mut.setProperty(params.value("nodeId", ""),
+                                      params.value("property", ""),
+                                      params.value("value", ""));
+            } else if (type == "updateNode") {
+                std::map<std::string, std::string> props;
+                if (params.contains("properties")) {
+                    for (auto& [k, v] : params["properties"].items()) {
+                        props[k] = v.get<std::string>();
+                    }
+                }
+                res = mut.updateNode(params.value("nodeId", ""), props);
+            } else if (type == "deleteNode") {
+                res = mut.deleteNode(params.value("nodeId", ""));
+            } else if (type == "insertNode") {
+                ASTNode* node = nullptr;
+                if (params.contains("node")) {
+                    node = fromJson(params["node"]);
+                }
+                res = mut.insertNode(params.value("parentId", ""),
+                                     params.value("role", ""), node);
+                if (!res.success && node) {
+                    deleteTree(node);
+                }
+            } else {
+                response["error"] = {{"code", -32602}, {"message", "Unknown mutation type"}};
+                return response;
+            }
+
+            if (!res.success) {
+                response["error"] = {{"code", -32010}, {"message", res.error}};
+                return response;
+            }
+
+            applyOrchestratorToActive();
+            response["result"] = {
+                {"success", true},
+                {"warning", res.warning}
+            };
+            return response;
+        }
+
+        response["error"] = {{"code", -32601}, {"message", "Method not found"}};
+        return response;
     }
 
     void syncOrchestratorFromActive() {

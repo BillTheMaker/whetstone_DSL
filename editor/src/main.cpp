@@ -1641,6 +1641,40 @@ int main(int, char**) {
                 ImGui::EndTabItem();
             }
 
+            if (ImGui::BeginTabItem("Agents")) {
+                ImGui::PushFont(monoFont);
+                bool running = state.agentServer && state.agentServer->isRunning();
+                ImGui::Text("Server: %s", running ? "Running" : "Stopped");
+                ImGui::SameLine(0, 20);
+                ImGui::Text("Port: %d", state.agentPort);
+                ImGui::Separator();
+
+                ImGui::TextUnformatted("Active Sessions");
+                if (!state.agentServer || state.agentServer->getActiveSessionCount() == 0) {
+                    ImGui::TextDisabled("(none)");
+                } else {
+                    for (const auto& s : state.agentServer->getActiveSessions()) {
+                        std::string label = s.sessionId;
+                        if (!s.agentName.empty()) label += " (" + s.agentName + ")";
+                        label += " - msgs: " + std::to_string(s.messageCount);
+                        ImGui::BulletText("%s", label.c_str());
+                    }
+                }
+
+                ImGui::Separator();
+                ImGui::TextUnformatted("Activity Log");
+                ImGui::BeginChild("##agentLog", ImVec2(0, 0), false);
+                for (const auto& line : state.agentLog) {
+                    ImGui::TextUnformatted(line.c_str());
+                }
+                if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 20)
+                    ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
             // Problems (LSP diagnostics)
             if (ImGui::BeginTabItem("Problems")) {
                 ImGui::PushFont(monoFont);
@@ -2284,6 +2318,7 @@ int main(int, char**) {
     if (iniData && iniSize > 0) {
         state.saveSession(std::string(iniData, iniSize));
     }
+    state.shutdownAgentServer();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
