@@ -421,7 +421,7 @@ Capture real editing sessions, anonymize them, and export as training data.
   - Deterministic: same input produces same anonymized output (with seed)
   *New:* `editor/src/SessionAnonymizer.h`
 
-- [ ] **Step 232: Session-to-trace converter**
+- [x] **Step 232: Session-to-trace converter**
   Convert recorded sessions into training trace format:
   - Map editor events → user messages ("I opened file X and want to annotate it")
   - Map RPC requests → tool calls
