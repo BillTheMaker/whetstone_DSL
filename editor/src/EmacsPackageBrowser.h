@@ -1,6 +1,7 @@
 #pragma once
 #include "imgui.h"
 #include "EmacsIntegration.h"
+#include "StringUtils.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -24,13 +25,7 @@ struct EmacsPackageBrowserState {
     std::string lastError;
 };
 
-static inline std::string trimCopy(const std::string& s) {
-    size_t start = 0;
-    while (start < s.size() && std::isspace((unsigned char)s[start])) ++start;
-    size_t end = s.size();
-    while (end > start && std::isspace((unsigned char)s[end - 1])) --end;
-    return s.substr(start, end - start);
-}
+// trimCopy is provided by EditorUtils.h
 
 static inline std::string toLowerCopyPkg(const std::string& s) {
     std::string out = s;

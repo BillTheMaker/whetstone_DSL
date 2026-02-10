@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EditorState.h"
+#include "StringUtils.h"
 
 #include "imgui.h"
 #include "SyntaxHighlighter.h"
@@ -410,6 +411,8 @@ static void collectOutlineFromAST(const Module* mod, std::vector<OutlineItem>& o
     }
 }
 
+// trimCopy is in StringUtils.h
+
 static std::string toLowerCopy(const std::string& input) {
     std::string out = input;
     std::transform(out.begin(), out.end(), out.begin(),
@@ -699,7 +702,7 @@ static void RenderWelcome(WelcomeScreen& welcome, EditorState& state, std::strin
         if (!path.empty()) {
             state.workspaceRoot = path;
             state.fileTreeDirty = true;
-            state.projectSearch.setRoot(state.workspaceRoot);
+            state.search.projectSearch.setRoot(state.workspaceRoot);
             lastDialogPath = path;
         }
     }

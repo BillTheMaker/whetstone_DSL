@@ -49,6 +49,12 @@
 #include "HelpPanel.h"
 #include "Telemetry.h"
 #include "UpdateChecker.h"
+#include "state/SearchState.h"
+#include "state/AgentState.h"
+#include "state/BuildState.h"
+#include "state/LibraryState.h"
+#include "state/EmacsState.h"
+#include "state/UIFlags.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
 #include "LibraryBrowserPanel.h"
@@ -147,91 +153,36 @@ struct BufferState {
 };
 
 struct EditorState {
+    // Rendering context (set by main before first frame)
+    ImFont*           monoFont = nullptr;
+    ImFont*           uiFont = nullptr;
+    float             baseFontSize = 15.0f;
+    std::string       lastDialogPath;
+    bool              exitRequested = false;
+
     KeybindingManager keys;
     BufferManager     buffers;
     std::map<std::string, std::unique_ptr<BufferState>> bufferStates;
     BufferState*      activeBuffer = nullptr;
-    EmacsConnection   emacs;
 
-    // Find/Replace state
-    bool              showFind    = false;
-    char              findBuf[256]    = {};
-    char              replaceBuf[256] = {};
-    int               lastFindPos     = 0;
-    bool              showProjectSearch = false;
-    char              searchQuery[256] = {};
-    char              searchInclude[256] = {};
-    char              searchExclude[256] = {};
-    bool              searchUseRegex = true;
-    std::vector<ProjectSearch::FileResult> searchResults;
-    bool              showGoToLine = false;
-    char              goToLineBuf[64] = {};
-    bool              goToLineError = false;
+    SearchState       search;
+    AgentState        agent;
+    BuildState        build;
+    LibraryState      library;
+    EmacsState        emacsState;
+    UIFlags           ui;
 
-    // Bottom panel
-    int               bottomTab   = 0;  // 0=Output, 1=AST, 2=Highlighted
+    // Bottom panel + global log
     std::string       outputLog;
-    bool              showTerminalPanel = false;
-    TerminalPanel     terminal;
-    bool              runInProgress = false;
-    bool              hasRunResult = false;
-    int               lastRunExitCode = 0;
-    std::string       lastRunCommand;
-    std::unique_ptr<WebSocketAgentServer> agentServer;
-    MockWebSocketTransport* agentTransport = nullptr;
-    int               agentPort = 8765;
-    std::vector<std::string> agentLog;
-    std::map<std::string, AgentRole> agentRoles;
-    WorkflowRecorder workflowRecorder;
-    AgentRegistry agentRegistry;
-    AgentMarketplaceState agentMarketplace;
     HelpPanelState helpPanel;
     Telemetry telemetry;
-    BuildSystem::Type buildType = BuildSystem::Type::None;
-    std::vector<BuildError> buildErrors;
-    std::string lastBuildOutput;
-    std::string lastBuildCommand;
-    bool              showDependencyPanel = true;
-    DependencyPanelState dependencyPanel;
-    bool              showLibraryBrowserPanel = true;
-    LibraryBrowserState libraryBrowser;
-    bool              showCompositionPanel = false;
-    CompositionPanelState compositionPanel;
-    bool              showEmacsPackagesPanel = false;
-    EmacsPackageBrowserState emacsPackages;
-    EmacsFunctionIndex emacsFunctionIndex;
-    bool              emacsFunctionIndexDirty = true;
-    EmacsKeybindingState emacsKeys;
-    bool              showEmacsBridgePanel = false;
-    bool              showOrgPanel = true;
-    OrgDocumentState  orgDoc;
-    int               orgTempCounter = 0;
-    struct LibraryIndexRequest {
-        std::string name;
-        std::string version;
-        std::string source;
-        int symbolsRequestId = -1;
-        int completionRequestId = -1;
-    };
-    std::vector<LibraryIndexRequest> libraryIndexRequests;
-    LibraryIndexData libraryIndex;
-    PrimitivesRegistry primitives;
-
-    // Custom editor widget state
-    bool              showWhitespace = false;
-    bool              showMinimap = false;
-    bool              showAnnotations = false;
-    bool              showOutline = true;
-    bool              showLineNumbers = true;
     char              outlineFilter[128] = {};
-    LayoutPreset      layoutPreset = LayoutPreset::VSCode;
     WelcomeScreen     welcome;
     std::string       workspaceRoot;
     FileTree          fileTree;
     FileNode          fileTreeRoot;
     bool              fileTreeDirty = true;
     FileWatcher       watcher;
-    ProjectSearch     projectSearch;
     std::shared_ptr<LSPTransport> lspTransport;
     std::shared_ptr<LSPClient> lsp;
     bool              symbolsPending = false;
@@ -256,8 +207,6 @@ struct EditorState {
     std::vector<EditorDiagnostic> whetstoneDiagnostics;
     std::vector<EditorDiagnostic> emacsDiagnostics;
     SettingsManager   settings;
-    bool              showLspSettings = false;
-    bool              showSettingsPanel = false;
     double            lastAutoSave = 0.0;
     ASTMutationAPI    mutator;
     std::vector<MemoryStrategyInference::Suggestion> suggestions;
@@ -476,11 +425,11 @@ struct EditorState {
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         active()->orchestratorDirty = true;
-        primitives.setRoot(activeAST());
-        primitives.setLanguage(active()->language);
+        library.primitives.setRoot(activeAST());
+        library.primitives.setLanguage(active()->language);
         recordUndoSnapshot();
         if (language == "elisp") {
-            emacsFunctionIndexDirty = true;
+            emacsState.emacsFunctionIndexDirty = true;
         }
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
         if (lsp && path.rfind("(untitled", 0) != 0) {
@@ -569,13 +518,13 @@ struct EditorState {
         buffers.switchToBuffer(path);
         activeBuffer = bufferStates[path].get();
         if (active()) active()->orchestratorDirty = true;
-        primitives.setRoot(activeAST());
-        primitives.setLanguage(active()->language);
+        library.primitives.setRoot(activeAST());
+        library.primitives.setLanguage(active()->language);
         symbolsPending = true;
         symbolsLastChange = ImGui::GetTime();
         if (lsp) lsp->clearDocumentSymbols();
         if (active() && active()->language == "elisp") {
-            emacsFunctionIndexDirty = true;
+            emacsState.emacsFunctionIndexDirty = true;
         }
     }
 
@@ -671,7 +620,7 @@ struct EditorState {
             if (!project.workspaceRoot.empty()) {
                 workspaceRoot = project.workspaceRoot;
                 fileTreeDirty = true;
-                projectSearch.setRoot(workspaceRoot);
+                search.projectSearch.setRoot(workspaceRoot);
             }
 
             std::string activePath = project.activePath;
@@ -718,7 +667,7 @@ struct EditorState {
         SessionData session;
         session.workspaceRoot = workspaceRoot;
         session.activePath = active() ? active()->path : "";
-        session.layoutPreset = LayoutManager::presetName(layoutPreset);
+        session.layoutPreset = LayoutManager::presetName(ui.layoutPreset);
         session.imguiIni = imguiIni;
         for (const auto& bufPath : buffers.getOpenBuffers()) {
             auto it = bufferStates.find(bufPath);
@@ -761,9 +710,9 @@ struct EditorState {
         if (!session.workspaceRoot.empty()) {
             workspaceRoot = session.workspaceRoot;
             fileTreeDirty = true;
-            projectSearch.setRoot(workspaceRoot);
+            search.projectSearch.setRoot(workspaceRoot);
         }
-        layoutPreset = LayoutManager::presetFromName(session.layoutPreset);
+        ui.layoutPreset = LayoutManager::presetFromName(session.layoutPreset);
         for (const auto& buf : session.buffers) {
             doOpen(buf.path, bufferModeFromString(buf.mode));
             auto it = bufferStates.find(buf.path);
@@ -788,9 +737,9 @@ struct EditorState {
     }
 
     void applySettingsToState() {
-        showMinimap = settings.getShowMinimap();
-        showLineNumbers = settings.getShowLineNumbers();
-        layoutPreset = LayoutManager::presetFromName(settings.getLayoutPreset());
+        ui.showMinimap = settings.getShowMinimap();
+        ui.showLineNumbers = settings.getShowLineNumbers();
+        ui.layoutPreset = LayoutManager::presetFromName(settings.getLayoutPreset());
         keys.setProfile(KeybindingManager::profileFromName(settings.getKeybindingProfile()));
         registerCommands();
         applyTabSizeToBuffers(settings.getTabSize());
@@ -802,9 +751,9 @@ struct EditorState {
     }
 
     void saveSettingsToDisk() {
-        settings.setShowMinimap(showMinimap);
-        settings.setShowLineNumbers(showLineNumbers);
-        settings.setLayoutPreset(LayoutManager::presetName(layoutPreset));
+        settings.setShowMinimap(ui.showMinimap);
+        settings.setShowLineNumbers(ui.showLineNumbers);
+        settings.setLayoutPreset(LayoutManager::presetName(ui.layoutPreset));
         settings.setKeybindingProfile(KeybindingManager::profileName(keys.getProfile()));
         std::filesystem::create_directories(settingsFilePath().parent_path());
         settings.saveToFile(settingsFilePath().string());
@@ -813,7 +762,7 @@ struct EditorState {
     void init() {
         outputLog = "Whetstone Editor ready.\n";
         workspaceRoot = std::filesystem::current_path().string();
-        projectSearch.setRoot(workspaceRoot);
+        search.projectSearch.setRoot(workspaceRoot);
         fileTreeDirty = true;
         loadRecentFiles();
         loadSettingsFromDisk();
@@ -843,7 +792,8 @@ struct EditorState {
             : std::filesystem::path(workspaceRoot);
         std::filesystem::path dir = root / ".whetstone_org";
         std::filesystem::create_directories(dir);
-        std::string name = "org_block_" + std::to_string(++orgTempCounter) + orgTempExtension(language);
+        std::string name = "org_block_" + std::to_string(++emacsState.orgTempCounter) +
+                           orgTempExtension(language);
         std::filesystem::path filePath = dir / name;
         std::ofstream out(filePath.string(), std::ios::binary);
         out << code;
@@ -852,18 +802,18 @@ struct EditorState {
 
     std::string runOrgBlock(const std::string& language, const std::string& code) {
         if (language == "elisp") {
-            std::string result = emacs.sendCommand(ElispCommandBuilder::eval(code));
-            if (!emacs.getLastError().empty() && result == "error") {
-                return emacs.getLastError();
+            std::string result = emacsState.emacs.sendCommand(ElispCommandBuilder::eval(code));
+            if (!emacsState.emacs.getLastError().empty() && result == "error") {
+                return emacsState.emacs.getLastError();
             }
             return result.empty() ? "OK" : result;
         }
         std::string path = writeOrgTempFile(language, code);
         std::string cmd = buildRunCommand(path, language, false);
         if (cmd.empty()) return "No runner for language: " + language;
-        showTerminalPanel = true;
+        build.showTerminalPanel = true;
         std::string output;
-        int codeExit = terminal.runAndCapture(workspaceRoot, cmd, output);
+        int codeExit = build.terminal.runAndCapture(workspaceRoot, cmd, output);
         output += "[exit code: " + std::to_string(codeExit) + "]";
         return output;
     }
@@ -872,7 +822,7 @@ struct EditorState {
         emacsDiagnostics.clear();
         std::string initPath = resolveEmacsInitPath();
         std::string log;
-        bool ok = emacs.startDaemonWithConfig(initPath, log);
+        bool ok = emacsState.emacs.startDaemonWithConfig(initPath, log);
         if (!log.empty()) {
             outputLog += "[emacs] " + log + "\n";
         }
@@ -880,7 +830,7 @@ struct EditorState {
             EditorDiagnostic d;
             d.uri = "emacs://init";
             d.severity = 1;
-            d.message = "[Emacs] " + emacs.getLastError();
+            d.message = "[Emacs] " + emacsState.emacs.getLastError();
             d.source = "EmacsDaemon";
             emacsDiagnostics.push_back(d);
             return;
@@ -914,57 +864,57 @@ struct EditorState {
 
     void initAgentServer() {
         auto transport = std::make_unique<MockWebSocketTransport>();
-        agentTransport = transport.get();
-        agentServer = std::make_unique<WebSocketAgentServer>(std::move(transport));
-        agentServer->setRequestHandler([this](const json& request,
-                                              const std::string& sessionId) {
+        agent.transport = transport.get();
+        agent.server = std::make_unique<WebSocketAgentServer>(std::move(transport));
+        agent.server->setRequestHandler([this](const json& request,
+                                               const std::string& sessionId) {
             return processAgentRequest(request, sessionId);
         });
-        agentServer->setSessionEventCallback([this](const AgentSession& s,
-                                                   const std::string& event) {
+        agent.server->setSessionEventCallback([this](const AgentSession& s,
+                                                    const std::string& event) {
             logAgentEvent("Agent " + s.sessionId + " " + event);
             if (event == "connected") {
-                agentRoles[s.sessionId] = AgentRole::Linter;
+                agent.roles[s.sessionId] = AgentRole::Linter;
             } else if (event == "disconnected") {
-                agentRoles.erase(s.sessionId);
+                agent.roles.erase(s.sessionId);
             }
         });
-        agentServer->setRequestLogCallback([this](const std::string& sid,
-                                                  const json& req,
-                                                  const json& res) {
+        agent.server->setRequestLogCallback([this](const std::string& sid,
+                                                   const json& req,
+                                                   const json& res) {
             std::string method = req.value("method", "");
             bool ok = !res.contains("error");
             logAgentEvent("RPC " + sid + " " + method + (ok ? " ok" : " error"));
-            workflowRecorder.record(sid, req, res);
+            agent.workflowRecorder.record(sid, req, res);
         });
-        if (agentServer->start(agentPort)) {
-            logAgentEvent("Agent server started on port " + std::to_string(agentPort));
+        if (agent.server->start(agent.port)) {
+            logAgentEvent("Agent server started on port " + std::to_string(agent.port));
         } else {
-            logAgentEvent("Agent server failed to start on port " + std::to_string(agentPort));
+            logAgentEvent("Agent server failed to start on port " + std::to_string(agent.port));
         }
     }
 
     void shutdownAgentServer() {
-        if (agentServer) agentServer->stop();
+        if (agent.server) agent.server->stop();
     }
 
     void logAgentEvent(const std::string& msg) {
-        agentLog.push_back(msg);
+        agent.log.push_back(msg);
     }
 
     AgentRole getAgentRole(const std::string& sessionId) const {
-        auto it = agentRoles.find(sessionId);
-        return it != agentRoles.end() ? it->second : AgentRole::Linter;
+        auto it = agent.roles.find(sessionId);
+        return it != agent.roles.end() ? it->second : AgentRole::Linter;
     }
 
     void setAgentRole(const std::string& sessionId, AgentRole role) {
-        agentRoles[sessionId] = role;
+        agent.roles[sessionId] = role;
     }
 
     std::string agentActorLabel(const std::string& sessionId) const {
         std::string label = "agent:" + sessionId;
-        if (agentServer) {
-            if (const auto* sess = agentServer->getSession(sessionId)) {
+        if (agent.server) {
+            if (const auto* sess = agent.server->getSession(sessionId)) {
                 if (!sess->agentName.empty()) {
                     label = "agent:" + sess->agentName;
                 }
@@ -974,18 +924,18 @@ struct EditorState {
     }
 
     void refreshBuildSystem() {
-        buildType = BuildSystem::detect(workspaceRoot);
+        build.buildType = BuildSystem::detect(workspaceRoot);
     }
 
     int runBuildCommand(const BuildCommand& cmd) {
         if (workspaceRoot.empty()) {
-            terminal.append("[build] No workspace root set.\n");
+            build.terminal.append("[build] No workspace root set.\n");
             return -1;
         }
-        showTerminalPanel = true;
-        lastBuildCommand = cmd.command;
-        int code = terminal.runAndCapture(workspaceRoot, cmd.command, lastBuildOutput);
-        buildErrors = BuildSystem::parseErrors(lastBuildOutput);
+        build.showTerminalPanel = true;
+        build.lastBuildCommand = cmd.command;
+        int code = build.terminal.runAndCapture(workspaceRoot, cmd.command, build.lastBuildOutput);
+        build.buildErrors = BuildSystem::parseErrors(build.lastBuildOutput);
         outputLog += "[build] " + cmd.label + " => exit " + std::to_string(code) + "\n";
         return code;
     }
@@ -999,23 +949,23 @@ struct EditorState {
     }
 
     void requestLibraryIndex() {
-        libraryIndex.symbolsByLibrary.clear();
-        libraryIndex.completionsByLibrary.clear();
-        libraryIndexRequests.clear();
+        library.libraryIndex.symbolsByLibrary.clear();
+        library.libraryIndex.completionsByLibrary.clear();
+        library.libraryIndexRequests.clear();
         if (!isStructured() || !activeAST()) {
             outputLog += "[deps] Library index skipped: no structured AST.\n";
             return;
         }
         if (!lsp || !lspTransport || !lspTransport->isOpen()) {
-            applyStubFallback(libraryIndex, dependencyPanel.deps, workspaceRoot);
+            applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
             rebuildExternalModulesFromIndex();
             outputLog += "[deps] Library index uses cached symbols (LSP offline).\n";
             return;
         }
 
-        for (const auto& dep : dependencyPanel.deps) {
+        for (const auto& dep : library.dependencyPanel.deps) {
             if (dep.name.empty()) continue;
-            LibraryIndexRequest req;
+            LibraryState::LibraryIndexRequest req;
             req.name = dep.name;
             req.version = dep.version;
             req.source = dep.source;
@@ -1026,22 +976,22 @@ struct EditorState {
                 req.completionRequestId = lsp->requestLibraryCompletion(
                     toFileUri(active()->path), line, col, dep.name + ".");
             }
-            libraryIndexRequests.push_back(req);
+            library.libraryIndexRequests.push_back(req);
         }
-        applyStubFallback(libraryIndex, dependencyPanel.deps, workspaceRoot);
+        applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
         rebuildExternalModulesFromIndex();
         outputLog += "[deps] Library index requests queued: " +
-                     std::to_string(libraryIndexRequests.size()) + "\n";
+                     std::to_string(library.libraryIndexRequests.size()) + "\n";
     }
 
     void processLibraryIndexResponses() {
         if (!lsp) return;
         bool updated = false;
-        for (auto& req : libraryIndexRequests) {
+        for (auto& req : library.libraryIndexRequests) {
             if (req.symbolsRequestId >= 0) {
                 std::vector<LSPClient::WorkspaceSymbol> symbols;
                 if (lsp->takeWorkspaceSymbols(req.symbolsRequestId, symbols)) {
-                    libraryIndex.symbolsByLibrary[req.name] = std::move(symbols);
+                    library.libraryIndex.symbolsByLibrary[req.name] = std::move(symbols);
                     req.symbolsRequestId = -1;
                     updated = true;
                 }
@@ -1055,7 +1005,7 @@ struct EditorState {
                         if (!item.label.empty()) labels.push_back(item.label);
                     }
                     if (!labels.empty()) {
-                        libraryIndex.completionsByLibrary[req.name] = std::move(labels);
+                        library.libraryIndex.completionsByLibrary[req.name] = std::move(labels);
                     }
                     req.completionRequestId = -1;
                     updated = true;
@@ -1063,7 +1013,7 @@ struct EditorState {
             }
         }
         if (updated) {
-            applyStubFallback(libraryIndex, dependencyPanel.deps, workspaceRoot);
+            applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
             rebuildExternalModulesFromIndex();
             outputLog += "[deps] Library index updated.\n";
         }
@@ -1072,24 +1022,24 @@ struct EditorState {
     void updateEmacsFunctionIndex() {
         if (!active() || active()->language != "elisp") return;
         std::string error;
-        auto packages = queryEmacsPackageList(emacs, false, outputLog, error);
+        auto packages = queryEmacsPackageList(emacsState.emacs, false, outputLog, error);
         if (!error.empty()) return;
-        refreshEmacsFunctionIndex(emacsFunctionIndex, emacs, packages, outputLog);
-        addEmacsSymbolsToLibraryIndex(libraryIndex, emacsFunctionIndex);
-        emacsFunctionIndexDirty = false;
+        refreshEmacsFunctionIndex(emacsState.emacsFunctionIndex, emacsState.emacs, packages, outputLog);
+        addEmacsSymbolsToLibraryIndex(library.libraryIndex, emacsState.emacsFunctionIndex);
+        emacsState.emacsFunctionIndexDirty = false;
         rebuildExternalModulesFromIndex();
         outputLog += "[emacs] Indexed functions for " +
-                     std::to_string(emacsFunctionIndex.functionsByPackage.size()) +
+                     std::to_string(emacsState.emacsFunctionIndex.functionsByPackage.size()) +
                      " packages.\n";
     }
 
     void rebuildExternalModulesFromIndex() {
         Module* ast = activeAST();
         if (!ast) return;
-        rebuildExternalModules(ast, dependencyPanel.deps, libraryIndex);
+        rebuildExternalModules(ast, library.dependencyPanel.deps, library.libraryIndex);
         if (active() && active()->language == "elisp") {
             int signatureId = 0;
-            appendEmacsExternalModules(ast, emacsFunctionIndex, signatureId);
+            appendEmacsExternalModules(ast, emacsState.emacsFunctionIndex, signatureId);
         }
         if (active()) active()->orchestratorDirty = true;
     }
@@ -1181,11 +1131,11 @@ struct EditorState {
             std::string spec = params.value("spec", "");
             bool preferImports = params.value("preferImports", true);
 
-            primitives.setRoot(ast);
-            primitives.setLanguage(active()->language);
+            library.primitives.setRoot(ast);
+            library.primitives.setLanguage(active()->language);
 
             AgentCodeGen gen;
-            AgentCodeGenResult genRes = gen.generate(spec, primitives, active()->language, preferImports);
+            AgentCodeGenResult genRes = gen.generate(spec, library.primitives, active()->language, preferImports);
             if (!genRes.node) {
                 response["error"] = {{"code", -32020}, {"message", "Code generation failed"}};
                 return response;
@@ -1217,7 +1167,7 @@ struct EditorState {
         if (method == "startWorkflowRecording") {
             auto params = request.contains("params") ? request["params"] : json::object();
             std::string name = params.value("name", "workflow");
-            workflowRecorder.startRecording(name, sessionId);
+            agent.workflowRecorder.startRecording(name, sessionId);
             response["result"] = {
                 {"recording", true},
                 {"name", name}
@@ -1226,12 +1176,12 @@ struct EditorState {
         }
 
         if (method == "stopWorkflowRecording") {
-            response["result"] = workflowRecorder.stopRecording();
+            response["result"] = agent.workflowRecorder.stopRecording();
             return response;
         }
 
         if (method == "getWorkflowRecording") {
-            response["result"] = workflowRecorder.exportWorkflow();
+            response["result"] = agent.workflowRecorder.exportWorkflow();
             return response;
         }
 
@@ -1248,11 +1198,11 @@ struct EditorState {
             }
             auto requests = temp.buildReplayRequests();
             json results = json::array();
-            workflowRecorder.setReplaying(true);
+            agent.workflowRecorder.setReplaying(true);
             for (auto& req : requests) {
                 results.push_back(processAgentRequest(req, sessionId));
             }
-            workflowRecorder.setReplaying(false);
+            agent.workflowRecorder.setReplaying(false);
             response["result"] = {
                 {"count", results.size()},
                 {"responses", results}
@@ -1617,30 +1567,30 @@ struct EditorState {
                         [this]() { doRedo(); });
         registerCommand("search.find", "Search: Find/Replace",
                         keys.getBinding("search.find").toString(),
-                        [this]() { showFind = !showFind; });
+                        [this]() { search.showFind = !search.showFind; });
         registerCommand("search.findInFiles", "Search: Find in Files",
                         keys.getBinding("search.findInFiles").toString(),
-                        [this]() { showProjectSearch = !showProjectSearch; });
+                        [this]() { search.showProjectSearch = !search.showProjectSearch; });
         registerCommand("nav.goToLine", "Navigate: Go to Line",
                         keys.getBinding("nav.goToLine").toString(),
                         [this]() {
-                            showGoToLine = true;
-                            goToLineBuf[0] = '\0';
-                            goToLineError = false;
+                            search.showGoToLine = true;
+                            search.goToLineBuf[0] = '\0';
+                            search.goToLineError = false;
                         });
         registerCommand("view.whitespace", "View: Toggle Whitespace", "",
-                        [this]() { showWhitespace = !showWhitespace; });
+                        [this]() { ui.showWhitespace = !ui.showWhitespace; });
         registerCommand("view.minimap", "View: Toggle Minimap", "",
-                        [this]() { showMinimap = !showMinimap; });
+                        [this]() { ui.showMinimap = !ui.showMinimap; });
         registerCommand("view.annotations", "View: Toggle Annotations", "",
-                        [this]() { showAnnotations = !showAnnotations; });
+                        [this]() { ui.showAnnotations = !ui.showAnnotations; });
         registerCommand("view.outline", "View: Toggle Outline", "",
-                        [this]() { showOutline = !showOutline; });
+                        [this]() { ui.showOutline = !ui.showOutline; });
         registerCommand("view.toggleTerminal", "View: Toggle Terminal",
                         keys.getBinding("view.toggleTerminal").toString(),
-                        [this]() { showTerminalPanel = !showTerminalPanel; });
+                        [this]() { build.showTerminalPanel = !build.showTerminalPanel; });
         registerCommand("view.lsp", "View: LSP Servers...", "",
-                        [this]() { showLspSettings = !showLspSettings; });
+                        [this]() { ui.showLspSettings = !ui.showLspSettings; });
         registerCommand("mode.toggle", "Mode: Toggle Text/Structured", "",
                         [this]() {
                             if (!active()) return;
@@ -1694,7 +1644,7 @@ struct EditorState {
         std::string prevLang = active()->language;
         active()->language = lang;
         active()->mode.setLanguage(lang);
-        primitives.setLanguage(lang);
+        library.primitives.setLanguage(lang);
         if (active()->generatedLanguage == prevLang) {
             active()->generatedLanguage = lang;
             active()->generatedMode.setLanguage(lang);
@@ -1709,7 +1659,7 @@ struct EditorState {
         active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
         if (lang == "elisp") {
-            emacsFunctionIndexDirty = true;
+            emacsState.emacsFunctionIndexDirty = true;
         }
         if (lang == "org") {
             active()->bufferMode = BufferManager::BufferMode::Text;
@@ -1718,13 +1668,13 @@ struct EditorState {
     }
 
     bool handleEmacsKeyChord(const std::string& chord) {
-        if (layoutPreset != LayoutPreset::Emacs) return false;
-        return emacsHandleKeySequence(emacsKeys, emacs, chord, outputLog);
+        if (ui.layoutPreset != LayoutPreset::Emacs) return false;
+        return emacsHandleKeySequence(emacsState.emacsKeys, emacsState.emacs, chord, outputLog);
     }
 
     void refreshEmacsModeLine(double nowSeconds) {
-        if (layoutPreset != LayoutPreset::Emacs) return;
-        updateEmacsModeLine(emacsKeys, emacs, nowSeconds, outputLog);
+        if (ui.layoutPreset != LayoutPreset::Emacs) return;
+        updateEmacsModeLine(emacsState.emacsKeys, emacsState.emacs, nowSeconds, outputLog);
     }
 
     void pullFromEmacs() {
@@ -1733,9 +1683,9 @@ struct EditorState {
             outputLog += "[emacs] Save file before syncing.\n";
             return;
         }
-        std::string text = emacs.getBufferText(active()->path);
-        if (!emacs.getLastError().empty() && text == "error") {
-            outputLog += "[emacs] " + emacs.getLastError() + "\n";
+        std::string text = emacsState.emacs.getBufferText(active()->path);
+        if (!emacsState.emacs.getLastError().empty() && text == "error") {
+            outputLog += "[emacs] " + emacsState.emacs.getLastError() + "\n";
             return;
         }
         active()->editBuf = text;
@@ -1749,8 +1699,8 @@ struct EditorState {
             outputLog += "[emacs] Save file before syncing.\n";
             return;
         }
-        if (!emacs.setBufferText(active()->path, active()->editBuf)) {
-            outputLog += "[emacs] " + emacs.getLastError() + "\n";
+        if (!emacsState.emacs.setBufferText(active()->path, active()->editBuf)) {
+            outputLog += "[emacs] " + emacsState.emacs.getLastError() + "\n";
             return;
         }
         outputLog += "[emacs] Pushed buffer to Emacs.\n";
@@ -1762,8 +1712,8 @@ struct EditorState {
             outputLog += "[emacs] Save file before opening in Emacs.\n";
             return;
         }
-        if (!emacs.openFileInEmacsFrame(active()->path)) {
-            outputLog += "[emacs] " + emacs.getLastError() + "\n";
+        if (!emacsState.emacs.openFileInEmacsFrame(active()->path)) {
+            outputLog += "[emacs] " + emacsState.emacs.getLastError() + "\n";
             return;
         }
         outputLog += "[emacs] Opened in Emacs frame.\n";
@@ -1805,8 +1755,8 @@ struct EditorState {
     bool runActiveFile(bool buildOnly) {
         if (!active()) return false;
         if (active()->path.rfind("(untitled", 0) == 0) {
-            terminal.append("[terminal] Save the file before running.\n");
-            showTerminalPanel = true;
+            build.terminal.append("[terminal] Save the file before running.\n");
+            build.showTerminalPanel = true;
             return false;
         }
         if (active()->modified) {
@@ -1814,22 +1764,22 @@ struct EditorState {
         }
         std::string cmd = buildRunCommand(active()->path, active()->language, buildOnly);
         if (cmd.empty()) {
-            terminal.append("[terminal] No runner for language: " + active()->language + "\n");
-            showTerminalPanel = true;
+            build.terminal.append("[terminal] No runner for language: " + active()->language + "\n");
+            build.showTerminalPanel = true;
             return false;
         }
         std::string cwd = workspaceRoot.empty()
             ? std::filesystem::path(active()->path).parent_path().string()
             : workspaceRoot;
-        showTerminalPanel = true;
-        runInProgress = true;
-        hasRunResult = false;
-        lastRunCommand = cmd;
-        int code = terminal.runAndAppend(cwd, cmd);
-        terminal.append("[exit code: " + std::to_string(code) + "]\n");
-        runInProgress = false;
-        hasRunResult = true;
-        lastRunExitCode = code;
+        build.showTerminalPanel = true;
+        build.runInProgress = true;
+        build.hasRunResult = false;
+        build.lastRunCommand = cmd;
+        int code = build.terminal.runAndAppend(cwd, cmd);
+        build.terminal.append("[exit code: " + std::to_string(code) + "]\n");
+        build.runInProgress = false;
+        build.hasRunResult = true;
+        build.lastRunExitCode = code;
         return code == 0;
     }
 
@@ -1842,8 +1792,8 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
-        primitives.setRoot(activeAST());
-        primitives.setLanguage(active()->language);
+        library.primitives.setRoot(activeAST());
+        library.primitives.setLanguage(active()->language);
         active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
@@ -1880,28 +1830,28 @@ struct EditorState {
 
     void doFind() {
         if (!active()) return;
-        if (strlen(findBuf) == 0) return;
-        int pos = active()->editor.find(findBuf, lastFindPos);
+        if (strlen(search.findBuf) == 0) return;
+        int pos = active()->editor.find(search.findBuf, search.lastFindPos);
         if (pos >= 0) {
-            lastFindPos = pos + 1;
+            search.lastFindPos = pos + 1;
             int line = 1, col = 1;
             for (int i = 0; i < pos && i < (int)active()->editBuf.size(); ++i) {
                 if (active()->editBuf[i] == '\n') { ++line; col = 1; } else { ++col; }
             }
             active()->cursorLine = line;
             active()->cursorCol = col;
-            outputLog += "Found \"" + std::string(findBuf) + "\" at line " +
+            outputLog += "Found \"" + std::string(search.findBuf) + "\" at line " +
                          std::to_string(line) + ", col " + std::to_string(col) + "\n";
         } else {
-            lastFindPos = 0;
-            outputLog += "\"" + std::string(findBuf) + "\" not found.\n";
+            search.lastFindPos = 0;
+            outputLog += "\"" + std::string(search.findBuf) + "\" not found.\n";
         }
     }
 
     void doReplaceAll() {
         if (!active()) return;
-        if (strlen(findBuf) == 0) return;
-        int count = active()->editor.replaceAll(findBuf, replaceBuf);
+        if (strlen(search.findBuf) == 0) return;
+        int count = active()->editor.replaceAll(search.findBuf, search.replaceBuf);
         if (count > 0) {
             active()->editBuf = active()->editor.getContent();
             if (active()->bufferMode == BufferManager::BufferMode::Structured) {

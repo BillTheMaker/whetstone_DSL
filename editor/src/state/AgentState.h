@@ -1,0 +1,20 @@
+#pragma once
+#include <memory>
+#include <vector>
+#include <map>
+#include "WebSocketServer.h"
+#include "WorkflowRecorder.h"
+#include "AgentRegistry.h"
+#include "AgentMarketplace.h"
+#include "AgentPermissionPolicy.h"
+
+struct AgentState {
+    std::unique_ptr<WebSocketAgentServer> server;
+    MockWebSocketTransport* transport = nullptr;
+    int port = 8765;
+    std::vector<std::string> log;
+    std::map<std::string, AgentRole> roles;
+    WorkflowRecorder workflowRecorder;
+    AgentRegistry registry;
+    AgentMarketplaceState marketplace;
+};

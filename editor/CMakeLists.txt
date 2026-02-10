@@ -946,6 +946,11 @@ target_link_libraries(step166_test PRIVATE
     tree_sitter_rust
     tree_sitter_go)
 
+add_executable(step167_test tests/step167_test.cpp)
+target_include_directories(step167_test PRIVATE src)
+target_link_libraries(step167_test PRIVATE
+    nlohmann_json::nlohmann_json)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
