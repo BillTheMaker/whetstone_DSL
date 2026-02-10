@@ -406,6 +406,8 @@ public:
             targetLanguage = "java";
         } else if (path.substr(path.find_last_of(".") + 1) == "rs") {
             targetLanguage = "rust";
+        } else if (path.substr(path.find_last_of(".") + 1) == "go") {
+            targetLanguage = "go";
         }
         
         // Parse the content using the appropriate tree-sitter parser
@@ -424,6 +426,8 @@ public:
             module = TreeSitterParser::parseJava(content);
         } else if (targetLanguage == "rust") {
             module = TreeSitterParser::parseRust(content);
+        } else if (targetLanguage == "go") {
+            module = TreeSitterParser::parseGo(content);
         } else {
             // For unknown languages, create a basic module with the content
             module = std::make_unique<Module>();
@@ -463,6 +467,8 @@ public:
                 targetLanguage = "java";
             } else if (path.substr(path.find_last_of(".") + 1) == "rs") {
                 targetLanguage = "rust";
+            } else if (path.substr(path.find_last_of(".") + 1) == "go") {
+                targetLanguage = "go";
             }
         }
         
@@ -488,6 +494,9 @@ public:
             content = gen.generate(ast);
         } else if (targetLanguage == "rust") {
             RustGenerator gen;
+            content = gen.generate(ast);
+        } else if (targetLanguage == "go") {
+            GoGenerator gen;
             content = gen.generate(ast);
         } else {
             // Default to Python generator for unknown languages

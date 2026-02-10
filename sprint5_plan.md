@@ -259,7 +259,7 @@ adds full semantic support.
   @Reclaim(Tracing) → Rc<T> with caution note.
   *Modifies:* `Parser.h`, `Generator.h`
 
-- [ ] **Step 151: Go CST-to-AST and generator**
+- [x] **Step 151: Go CST-to-AST and generator**
   Full tree-sitter Go parsing: functions, structs, interfaces, goroutines,
   channels, defer, multiple return values. Generator produces Go with
   proper package/import structure. Memory annotations map to: @Reclaim(Escape)

@@ -8,3 +8,4 @@
 #include "JavaScriptGenerator.h"
 #include "JavaGenerator.h"
 #include "RustGenerator.h"
+#include "GoGenerator.h"

@@ -53,6 +53,9 @@ public:
         } else if (language_ == "rust") {
             RustGenerator gen;
             return gen.generate(module_.get());
+        } else if (language_ == "go") {
+            GoGenerator gen;
+            return gen.generate(module_.get());
         }
         return text_;
     }
@@ -73,6 +76,8 @@ public:
             module_ = TreeSitterParser::parseJava(text_);
         } else if (language_ == "rust") {
             module_ = TreeSitterParser::parseRust(text_);
+        } else if (language_ == "go") {
+            module_ = TreeSitterParser::parseGo(text_);
         }
         parsePending_ = false;
     }
