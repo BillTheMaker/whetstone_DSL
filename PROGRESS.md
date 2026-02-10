@@ -542,4 +542,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 192: Security diagnostics integration (gutter shields, [Security] problems, vulnerable import blocking, and agent import deprioritization). 1/1 tests pass (step192_test). |
 | 2026-02-10 | Codex | Step 193: Semantic library tags (semantic_tags.json storage, auto-tagging heuristics, tags attached to ExternalModule/TypeSignature). 1/1 tests pass (step193_test). |
 | 2026-02-10 | Codex | Step 194: Semantic-filtered library browser (tag filter bar, active tag chips, tag badges, context-aware completion boosting, agent tag context). 1/1 tests pass (step194_test). |
+| 2026-02-10 | Codex | Step 195: Security & semantic UX tests (vulnerability badges/advisories, security diagnostics severity mapping, semantic tag auto-assign, library tag filtering, vulnerable import deprioritization, safe upgrade writeback). 1/1 tests pass (step195_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

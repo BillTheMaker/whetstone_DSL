@@ -367,7 +367,7 @@ feature requests with polished UX.
   - Agent prompts include semantic tag context for better suggestions
   *Modifies:* `LibraryBrowserPanel.h`, completion system
 
-- [ ] **Step 195: Security & semantic UX tests**
+- [x] **Step 195: Security & semantic UX tests**
   End-to-end tests:
   1. Add vulnerable package → badge appears → advisory details correct
   2. Security diagnostic appears in Problems panel with correct severity
