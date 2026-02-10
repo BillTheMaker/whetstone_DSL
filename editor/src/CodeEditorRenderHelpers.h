@@ -136,6 +136,19 @@
         return "";
     }
 
+    static bool securityDiagnosticAtLine(const std::vector<DiagnosticRange>& diags,
+                                         int line,
+                                         DiagnosticRange& out) {
+        for (const auto& d : diags) {
+            if (line < d.startLine || line > d.endLine) continue;
+            if (d.message.find("[Security]") != std::string::npos) {
+                out = d;
+                return true;
+            }
+        }
+        return false;
+    }
+
     static void renderSquiggles(const std::vector<DiagnosticRange>& diags,
                                 int line,
                                 float y,
@@ -155,7 +168,9 @@
             float xEnd = textBaseX + endCol * charAdvance;
             ImU32 color = (d.severity == 1)
                 ? ThemeEngine::instance().editorColor("diag_error", IM_COL32(220, 80, 80, 255))
-                : ThemeEngine::instance().editorColor("diag_warning", IM_COL32(220, 160, 60, 255));
+                : (d.severity == 2)
+                    ? ThemeEngine::instance().editorColor("diag_warning", IM_COL32(220, 160, 60, 255))
+                    : ThemeEngine::instance().editorColor("diag_info", IM_COL32(90, 160, 220, 255));
             float x = xStart;
             float amp = 2.0f;
             bool up = true;

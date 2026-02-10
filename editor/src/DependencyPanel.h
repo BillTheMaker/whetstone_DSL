@@ -35,6 +35,7 @@ struct DependencyPanelState {
     bool needsIndex = false;
     bool vulnIgnoreLoaded = false;
     std::unordered_map<std::string, std::string> vulnIgnore;
+    std::unordered_set<std::string> vulnerableLibraries;
     char vulnIgnoreReason[128] = {};
 };
 
@@ -462,6 +463,7 @@ static void refreshDependencies(DependencyPanelState& state,
     state.editVersionIndex = -1;
     state.lastWorkspaceRoot = workspaceRoot;
     state.needsIndex = true;
+    state.vulnerableLibraries.clear();
     if (workspaceRoot.empty()) return;
     for (const auto& file : state.sources) {
         auto parsed = DependencyParser::parseFile(file.path);
@@ -472,6 +474,13 @@ static void refreshDependencies(DependencyPanelState& state,
         std::string osv = osvEcosystem(eco);
         if (!osv.empty() && !dep.name.empty()) {
             vulnDb.trackPackage(osv, dep.name);
+            std::string key = vulnKey(osv, dep.name);
+            if (state.vulnIgnore.find(key) == state.vulnIgnore.end()) {
+                auto vulns = vulnDb.query(osv, dep.name, dep.version);
+                if (!vulns.empty()) {
+                    state.vulnerableLibraries.insert(dep.name);
+                }
+            }
         }
     }
     if (!state.sources.empty()) {

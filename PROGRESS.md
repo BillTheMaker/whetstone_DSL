@@ -539,4 +539,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 189: Guided workflow wizards (annotate file, cross-language project, connect agent) with shared wizard framework. 1/1 tests pass (step189_test). |
 | 2026-02-10 | Codex | Step 190: Vulnerability database (OSV parsing, cache+TTL, offline mode, query/range matching, background refresh hook). 1/1 tests pass (step190_test). |
 | 2026-02-10 | Codex | Step 191: Dependency security badges with severity colors, advisory details, safe upgrade path, and ignore list persistence. 1/1 tests pass (step191_test). |
+| 2026-02-10 | Codex | Step 192: Security diagnostics integration (gutter shields, [Security] problems, vulnerable import blocking, and agent import deprioritization). 1/1 tests pass (step192_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

@@ -388,6 +388,23 @@ struct EditorState {
 
     void ensureImportForSymbol(const std::string& library, const std::string& symbol) {
         if (!active() || library.empty()) return;
+        if (settings.getBlockVulnerableImports()) {
+            PackageEcosystem eco = ecosystemForLanguage(active()->language);
+            std::string osvEco = osvEcosystem(eco);
+            if (!osvEco.empty()) {
+                std::string key = vulnKey(osvEco, library);
+                if (library.dependencyPanel.vulnIgnore.find(key) ==
+                    library.dependencyPanel.vulnIgnore.end()) {
+                    std::string version = dependencyVersionFor(osvEco, library);
+                    auto vulns = library.vulnDb.query(osvEco, library, version);
+                    if (!vulns.empty()) {
+                        notify(NotificationLevel::Warning,
+                               "Blocked vulnerable import: " + library);
+                        return;
+                    }
+                }
+            }
+        }
         std::string clean = symbol;
         auto paren = clean.find('(');
         if (paren != std::string::npos) clean = clean.substr(0, paren);
@@ -413,6 +430,143 @@ struct EditorState {
             ed.severity = 2;
             ed.message = "[Imports] " + issue.message;
             ed.source = "ImportManager";
+            diags.push_back(std::move(ed));
+        }
+    }
+
+    struct ImportLocation {
+        int line = 0;
+        std::string library;
+    };
+
+    static PackageEcosystem ecosystemForLanguage(const std::string& language) {
+        if (language == "python") return PackageEcosystem::Python;
+        if (language == "javascript" || language == "typescript") return PackageEcosystem::Npm;
+        if (language == "rust") return PackageEcosystem::Rust;
+        if (language == "go") return PackageEcosystem::Go;
+        if (language == "java") return PackageEcosystem::Java;
+        return PackageEcosystem::Cpp;
+    }
+
+    static std::vector<ImportLocation> collectImportLocations(const std::string& text,
+                                                              const std::string& language) {
+        std::vector<ImportLocation> out;
+        auto lines = importSplitLines(text);
+        for (int i = 0; i < (int)lines.size(); ++i) {
+            std::string t = trimStr(lines[i]);
+            if (language == "python") {
+                if (startsWith(t, "import ")) {
+                    std::string lib = trimStr(t.substr(7));
+                    auto comma = lib.find(',');
+                    if (comma != std::string::npos) lib = trimStr(lib.substr(0, comma));
+                    out.push_back({i, lib});
+                } else if (startsWith(t, "from ")) {
+                    auto pos = t.find("import");
+                    if (pos != std::string::npos) {
+                        std::string lib = trimStr(t.substr(5, pos - 5));
+                        out.push_back({i, lib});
+                    }
+                }
+            } else if (language == "javascript" || language == "typescript") {
+                if (startsWith(t, "import ")) {
+                    auto pos = t.find(" from ");
+                    if (pos != std::string::npos) {
+                        auto quote = t.find('\'', pos);
+                        if (quote == std::string::npos) quote = t.find('\"', pos);
+                        if (quote != std::string::npos) {
+                            auto end = t.find(t[quote], quote + 1);
+                            if (end != std::string::npos) {
+                                std::string lib = t.substr(quote + 1, end - quote - 1);
+                                out.push_back({i, lib});
+                            }
+                        }
+                    }
+                }
+            } else if (language == "rust") {
+                if (startsWith(t, "use ")) {
+                    std::string lib = trimStr(t.substr(4));
+                    auto pos = lib.find("::");
+                    if (pos != std::string::npos) lib = lib.substr(0, pos);
+                    if (!lib.empty() && lib.back() == ';') lib.pop_back();
+                    out.push_back({i, lib});
+                }
+            } else if (language == "go") {
+                if (startsWith(t, "import \"")) {
+                    std::string path = t.substr(8);
+                    if (!path.empty() && path.back() == '"') path.pop_back();
+                    out.push_back({i, path});
+                }
+            } else if (language == "elisp") {
+                if (startsWith(t, "(require '")) {
+                    auto start = t.find('\'');
+                    auto end = t.find(')', start);
+                    if (start != std::string::npos && end != std::string::npos) {
+                        std::string lib = t.substr(start + 1, end - start - 1);
+                        out.push_back({i, lib});
+                    }
+                }
+            } else if (language == "cpp") {
+                if (startsWith(t, "#include")) {
+                    auto lt = t.find('<');
+                    auto gt = t.find('>');
+                    if (lt != std::string::npos && gt != std::string::npos && gt > lt) {
+                        out.push_back({i, t.substr(lt + 1, gt - lt - 1)});
+                    } else {
+                        auto q = t.find('"');
+                        if (q != std::string::npos) {
+                            auto q2 = t.find('"', q + 1);
+                            if (q2 != std::string::npos) {
+                                out.push_back({i, t.substr(q + 1, q2 - q - 1)});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    std::string dependencyVersionFor(const std::string& osvEco,
+                                     const std::string& package) const {
+        if (package.empty()) return "";
+        for (const auto& dep : library.dependencyPanel.deps) {
+            if (dep.name != package) continue;
+            PackageEcosystem eco = ecosystemForSource(dep.source);
+            if (osvEcosystem(eco) != osvEco) continue;
+            return dep.version;
+        }
+        return "";
+    }
+
+    void appendVulnerabilityDiagnostics(std::vector<EditorDiagnostic>& diags) {
+        if (!active()) return;
+        PackageEcosystem eco = ecosystemForLanguage(active()->language);
+        std::string osvEco = osvEcosystem(eco);
+        if (osvEco.empty()) return;
+        auto imports = collectImportLocations(active()->editBuf, active()->language);
+        if (imports.empty()) return;
+        std::string uri = toFileUri(active()->path);
+        for (const auto& imp : imports) {
+            std::string key = vulnKey(osvEco, imp.library);
+            if (library.dependencyPanel.vulnIgnore.find(key) !=
+                library.dependencyPanel.vulnIgnore.end()) {
+                continue;
+            }
+            std::string version = dependencyVersionFor(osvEco, imp.library);
+            auto vulns = library.vulnDb.query(osvEco, imp.library, version);
+            if (vulns.empty()) continue;
+            const auto& top = vulns.front();
+            int severity = 3;
+            if (top.severity == "Critical" || top.severity == "High") severity = 1;
+            else if (top.severity == "Medium") severity = 2;
+            EditorDiagnostic ed;
+            ed.uri = uri;
+            ed.line = imp.line;
+            ed.character = 0;
+            ed.severity = severity;
+            ed.message = "[Security] " + imp.library + ": " + top.summary;
+            if (!top.cveId.empty()) ed.message += " (" + top.cveId + ")";
+            ed.source = "VulnerabilityDB";
             diags.push_back(std::move(ed));
         }
     }
@@ -785,6 +939,7 @@ struct EditorState {
         keys.setProfile(KeybindingManager::profileFromName(settings.getKeybindingProfile()));
         registerCommands();
         applyTabSizeToBuffers(settings.getTabSize());
+        library.primitives.setBlockVulnerableImports(settings.getBlockVulnerableImports());
     }
 
     void loadSettingsFromDisk() {

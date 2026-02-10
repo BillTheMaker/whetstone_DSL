@@ -89,6 +89,8 @@ static void renderDependenciesPanel(EditorState& state) {
                           state.library.vulnDb);
     ImGui::PopFont();
     ImGui::End();
+    state.library.primitives.setVulnerableLibraries(
+        state.library.dependencyPanel.vulnerableLibraries);
     if (state.library.dependencyPanel.needsIndex) {
         state.requestLibraryIndex();
         state.library.dependencyPanel.needsIndex = false;

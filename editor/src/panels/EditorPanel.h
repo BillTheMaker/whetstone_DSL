@@ -374,6 +374,7 @@ static void renderEditorPanel(EditorState& state) {
                                                                     result.violations,
                                                                     EditorState::toFileUri(state.active()->path));
                                     state.appendUnusedImportDiagnostics(state.whetstoneDiagnostics);
+                                    state.appendVulnerabilityDiagnostics(state.whetstoneDiagnostics);
                                 } else {
                                     state.whetstoneDiagnostics.clear();
                                 }

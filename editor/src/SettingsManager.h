@@ -58,6 +58,8 @@ public:
     void setShowLineNumbers(bool value) { showLineNumbers_ = value; }
     bool getReduceMotion() const { return reduceMotion_; }
     void setReduceMotion(bool value) { reduceMotion_ = value; }
+    bool getBlockVulnerableImports() const { return blockVulnerableImports_; }
+    void setBlockVulnerableImports(bool value) { blockVulnerableImports_ = value; }
     const std::string& getLayoutPreset() const { return layoutPreset_; }
     void setLayoutPreset(const std::string& name) { layoutPreset_ = name; }
     const std::string& getKeybindingProfile() const { return keybindingProfile_; }
@@ -83,6 +85,7 @@ public:
             showMinimap_ = j.value("showMinimap", showMinimap_);
             showLineNumbers_ = j.value("showLineNumbers", showLineNumbers_);
             reduceMotion_ = j.value("reduceMotion", reduceMotion_);
+            blockVulnerableImports_ = j.value("blockVulnerableImports", blockVulnerableImports_);
             layoutPreset_ = j.value("layoutPreset", layoutPreset_);
             keybindingProfile_ = j.value("keybindingProfile", keybindingProfile_);
             emacsConfigPath_ = j.value("emacsConfigPath", emacsConfigPath_);
@@ -121,6 +124,7 @@ public:
             j["showMinimap"] = showMinimap_;
             j["showLineNumbers"] = showLineNumbers_;
             j["reduceMotion"] = reduceMotion_;
+            j["blockVulnerableImports"] = blockVulnerableImports_;
             j["layoutPreset"] = layoutPreset_;
             j["keybindingProfile"] = keybindingProfile_;
             j["emacsConfigPath"] = emacsConfigPath_;
@@ -196,6 +200,7 @@ private:
     bool showMinimap_ = false;
     bool showLineNumbers_ = true;
     bool reduceMotion_ = false;
+    bool blockVulnerableImports_ = false;
     std::string layoutPreset_ = "VSCode";
     std::string keybindingProfile_ = "VSCode";
 

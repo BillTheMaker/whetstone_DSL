@@ -349,6 +349,11 @@ static void renderSettingsPanel(EditorState& state) {
         state.settings.setReduceMotion(reduceMotionSetting);
         settingsChanged = true;
     }
+    bool blockVulnImports = state.settings.getBlockVulnerableImports();
+    if (ImGui::Checkbox("Block Vulnerable Imports", &blockVulnImports)) {
+        state.settings.setBlockVulnerableImports(blockVulnImports);
+        settingsChanged = true;
+    }
 
     LayoutPreset preset = state.ui.layoutPreset;
     int presetIndex = 0;

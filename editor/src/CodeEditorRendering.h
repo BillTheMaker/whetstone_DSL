@@ -326,6 +326,23 @@ public:
                 ImVec2 center(origin.x + 3.0f, y + lineHeight * 0.5f);
                 drawList->AddCircleFilled(center, 3.0f, color);
             }
+            DiagnosticRange securityDiag;
+            bool hasSecurity = options.diagnostics &&
+                               securityDiagnosticAtLine(*options.diagnostics, ln, securityDiag);
+            if (hasSecurity) {
+                ImU32 secColor = (securityDiag.severity == 1)
+                    ? ThemeEngine::instance().editorColor("diag_error", IM_COL32(220, 80, 80, 255))
+                    : (securityDiag.severity == 2)
+                        ? ThemeEngine::instance().editorColor("diag_warning", IM_COL32(220, 160, 60, 255))
+                        : ThemeEngine::instance().editorColor("diag_info", IM_COL32(90, 160, 220, 255));
+                ImVec2 center(origin.x + 12.0f, y + lineHeight * 0.5f);
+                ImVec2 top(center.x, center.y - 4.0f);
+                ImVec2 left(center.x - 4.0f, center.y - 1.0f);
+                ImVec2 right(center.x + 4.0f, center.y - 1.0f);
+                ImVec2 bottom(center.x, center.y + 4.0f);
+                drawList->AddTriangleFilled(top, left, right, secColor);
+                drawList->AddTriangleFilled(left, right, bottom, secColor);
+            }
             if (options.diagnostics) {
                 std::string msg = diagnosticMessageAtLine(*options.diagnostics, ln);
                 ImVec2 gutterA(origin.x, y);
@@ -334,6 +351,14 @@ public:
                     bool hover = ImGui::IsMouseHoveringRect(gutterA, gutterB);
                     renderRichTooltip("diag_gutter_" + std::to_string(ln),
                                       msg,
+                                      hover,
+                                      options.reduceMotion,
+                                      font);
+                }
+                if (hasSecurity && !securityDiag.message.empty()) {
+                    bool hover = ImGui::IsMouseHoveringRect(gutterA, gutterB);
+                    renderRichTooltip("security_gutter_" + std::to_string(ln),
+                                      securityDiag.message,
                                       hover,
                                       options.reduceMotion,
                                       font);

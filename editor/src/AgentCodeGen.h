@@ -56,6 +56,9 @@ private:
                                           bool preferImports) {
         if (preferImports) {
             for (const auto& sym : funcs) {
+                if (sym.source == "import" && !sym.vulnerable) return sym;
+            }
+            for (const auto& sym : funcs) {
                 if (sym.source == "import") return sym;
             }
         }

@@ -334,7 +334,7 @@ feature requests with polished UX.
   - "Ignore" option with reason (persisted to `.whetstone/vuln_ignore.json`)
   *Modifies:* `DependencyPanel.h`, `VulnerabilityDatabase.h`
 
-- [ ] **Step 192: Security diagnostics integration**
+- [x] **Step 192: Security diagnostics integration**
   Security findings appear alongside other diagnostics:
   - Problems panel: `[Security]` tagged diagnostics with severity
   - Gutter: shield icon on `import` lines of vulnerable packages

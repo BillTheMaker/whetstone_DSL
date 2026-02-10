@@ -14,12 +14,17 @@ struct PrimitiveSymbol {
     std::string kind;   // function, type, constant, variable
     std::string source; // builtin, import, user
     std::string library;
+    bool vulnerable = false;
 };
 
 class PrimitivesRegistry {
 public:
     void setRoot(Module* root) { root_ = root; }
     void setLanguage(const std::string& lang) { language_ = lang; }
+    void setVulnerableLibraries(const std::unordered_set<std::string>& libs) {
+        vulnerableLibraries_ = libs;
+    }
+    void setBlockVulnerableImports(bool block) { blockVulnerableImports_ = block; }
 
     std::vector<PrimitiveSymbol> getAvailableFunctions(const std::string& nodeId = "") {
         return collect(nodeId, "function");
@@ -55,8 +60,10 @@ private:
                     ps.name = sig->name;
                     ps.source = "import";
                     ps.library = ext->name;
+                    ps.vulnerable = (vulnerableLibraries_.find(ps.library) != vulnerableLibraries_.end());
                     ps.kind = classifySymbol(ps.name);
                     if (!filterKind.empty() && ps.kind != filterKind) continue;
+                    if (ps.vulnerable && blockVulnerableImports_) continue;
                     if (seen.insert(ps.name).second) out.push_back(ps);
                 }
             }
@@ -78,6 +85,17 @@ private:
             }
         }
 
+        if (!out.empty()) {
+            std::stable_sort(out.begin(), out.end(),
+                             [](const PrimitiveSymbol& a, const PrimitiveSymbol& b) {
+                                 if (a.source == "import" && b.source == "import") {
+                                     if (a.vulnerable != b.vulnerable) {
+                                         return !a.vulnerable && b.vulnerable;
+                                     }
+                                 }
+                                 return false;
+                             });
+        }
         return out;
     }
 
@@ -132,4 +150,6 @@ private:
 
     Module* root_ = nullptr;
     std::string language_ = "python";
+    std::unordered_set<std::string> vulnerableLibraries_;
+    bool blockVulnerableImports_ = false;
 };
