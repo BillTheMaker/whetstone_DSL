@@ -1,0 +1,16 @@
+﻿{
+    "id":  "basic_01",
+    "description":  "Read AST and summarize structure",
+    "language":  "python",
+    "setupAst":  "def f(x):\\n    return x + 1\\n",
+    "expectedOutcome":  {
+                            "toolCalls":  [
+                                              "whetstone_get_ast"
+                                          ]
+                        },
+    "tools":  [
+                  "whetstone_get_ast"
+              ],
+    "maxSteps":  8,
+    "allowPartial":  false
+}

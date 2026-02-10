@@ -1,0 +1,16 @@
+﻿{
+    "id":  "basic_28",
+    "description":  "",
+    "language":  "python",
+    "setupAst":  "def f(x):\\n    return x + 1\\n",
+    "expectedOutcome":  {
+                            "toolCalls":  [
+
+                                          ]
+                        },
+    "tools":  [
+
+              ],
+    "maxSteps":  8,
+    "allowPartial":  false
+}

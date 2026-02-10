@@ -302,7 +302,7 @@ Test suites that measure how accurately an LLM can use Whetstone tools.
   - Scoring: binary pass/fail + partial credit for intermediate progress
   *New:* `editor/src/EvalHarness.h`
 
-- [ ] **Step 221: Evaluation task suite — basic operations**
+- [x] **Step 221: Evaluation task suite — basic operations**
   30 basic tasks testing individual tool use:
   - 5 tasks: read AST and answer questions about structure
   - 5 tasks: apply a single mutation (rename function, change type, etc.)

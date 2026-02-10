@@ -1,0 +1,18 @@
+﻿{
+    "id":  "basic_21",
+    "description":  "Generate code from spec and run pipeline",
+    "language":  "python",
+    "setupAst":  "def f(x):\\n    return x + 1\\n",
+    "expectedOutcome":  {
+                            "toolCalls":  [
+                                              "whetstone_generate_code",
+                                              "whetstone_run_pipeline"
+                                          ]
+                        },
+    "tools":  [
+                  "whetstone_generate_code",
+                  "whetstone_run_pipeline"
+              ],
+    "maxSteps":  8,
+    "allowPartial":  false
+}

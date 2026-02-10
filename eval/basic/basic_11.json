@@ -1,0 +1,18 @@
+﻿{
+    "id":  "basic_11",
+    "description":  "Add a specific annotation",
+    "language":  "python",
+    "setupAst":  "def f(x):\\n    return x + 1\\n",
+    "expectedOutcome":  {
+                            "toolCalls":  [
+                                              "whetstone_get_ast",
+                                              "whetstone_apply_annotation"
+                                          ]
+                        },
+    "tools":  [
+                  "whetstone_get_ast",
+                  "whetstone_apply_annotation"
+              ],
+    "maxSteps":  8,
+    "allowPartial":  false
+}

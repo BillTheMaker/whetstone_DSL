@@ -1,0 +1,18 @@
+﻿{
+    "id":  "basic_04",
+    "description":  "Apply a single mutation",
+    "language":  "python",
+    "setupAst":  "def f(x):\\n    return x + 1\\n",
+    "expectedOutcome":  {
+                            "toolCalls":  [
+                                              "whetstone_get_ast",
+                                              "whetstone_mutate"
+                                          ]
+                        },
+    "tools":  [
+                  "whetstone_get_ast",
+                  "whetstone_mutate"
+              ],
+    "maxSteps":  8,
+    "allowPartial":  false
+}
