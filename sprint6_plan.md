@@ -356,7 +356,7 @@ feature requests with polished UX.
   - Tags attached to `ExternalModule` / `TypeSignature` AST nodes
   *New:* `SemanticTags.h`
 
-- [ ] **Step 194: Semantic-filtered library browser**
+- [x] **Step 194: Semantic-filtered library browser**
   Enhance Library Browser with tag-based discovery:
   - Tag filter bar above symbol list: click tags to filter
   - Active tags shown as chips, click X to remove

@@ -94,6 +94,10 @@ public:
         return dedupe(out);
     }
 
+    TagList inferTagsFromText(const std::string& text) const {
+        return dedupe(inferTagsFromName(text));
+    }
+
 private:
     bool loaded_ = false;
     std::unordered_map<std::string, std::unordered_map<std::string, TagList>> tags_;

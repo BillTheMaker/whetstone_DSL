@@ -1365,6 +1365,7 @@ struct EditorState {
             library.primitives.setLanguage(active()->language);
 
             AgentCodeGen gen;
+            library.primitives.setContextTags(library.semanticTags.inferTagsFromText(spec));
             AgentCodeGenResult genRes = gen.generate(spec, library.primitives, active()->language, preferImports);
             if (!genRes.node) {
                 response["error"] = {{"code", -32020}, {"message", "Code generation failed"}};

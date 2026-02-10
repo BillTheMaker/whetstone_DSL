@@ -15,6 +15,7 @@ struct PrimitiveSymbol {
     std::string source; // builtin, import, user
     std::string library;
     bool vulnerable = false;
+    std::vector<std::string> tags;
 };
 
 class PrimitivesRegistry {
@@ -24,6 +25,7 @@ public:
     void setVulnerableLibraries(const std::unordered_set<std::string>& libs) {
         vulnerableLibraries_ = libs;
     }
+    void setContextTags(const std::vector<std::string>& tags) { contextTags_ = tags; }
     void setBlockVulnerableImports(bool block) { blockVulnerableImports_ = block; }
 
     std::vector<PrimitiveSymbol> getAvailableFunctions(const std::string& nodeId = "") {
@@ -61,6 +63,10 @@ private:
                     ps.source = "import";
                     ps.library = ext->name;
                     ps.vulnerable = (vulnerableLibraries_.find(ps.library) != vulnerableLibraries_.end());
+                    ps.tags = sig->semanticTags;
+                    ps.tags.insert(ps.tags.end(),
+                                   ext->semanticTags.begin(),
+                                   ext->semanticTags.end());
                     ps.kind = classifySymbol(ps.name);
                     if (!filterKind.empty() && ps.kind != filterKind) continue;
                     if (ps.vulnerable && blockVulnerableImports_) continue;
@@ -86,13 +92,25 @@ private:
         }
 
         if (!out.empty()) {
+            auto score = [this](const PrimitiveSymbol& sym) {
+                int s = 0;
+                if (!contextTags_.empty()) {
+                    for (const auto& tag : sym.tags) {
+                        if (std::find(contextTags_.begin(), contextTags_.end(), tag) != contextTags_.end()) {
+                            s += 5;
+                            break;
+                        }
+                    }
+                }
+                if (sym.source == "import") s += 1;
+                if (sym.vulnerable) s -= 5;
+                return s;
+            };
             std::stable_sort(out.begin(), out.end(),
-                             [](const PrimitiveSymbol& a, const PrimitiveSymbol& b) {
-                                 if (a.source == "import" && b.source == "import") {
-                                     if (a.vulnerable != b.vulnerable) {
-                                         return !a.vulnerable && b.vulnerable;
-                                     }
-                                 }
+                             [&](const PrimitiveSymbol& a, const PrimitiveSymbol& b) {
+                                 int sa = score(a);
+                                 int sb = score(b);
+                                 if (sa != sb) return sa > sb;
                                  return false;
                              });
         }
@@ -151,5 +169,6 @@ private:
     Module* root_ = nullptr;
     std::string language_ = "python";
     std::unordered_set<std::string> vulnerableLibraries_;
+    std::vector<std::string> contextTags_;
     bool blockVulnerableImports_ = false;
 };

@@ -79,6 +79,13 @@ private:
         std::string note = "Generated using " + sym.name + " (" + sym.source + ")";
         if (!spec.empty()) note += " for spec: " + spec;
         if (!language.empty()) note += " in " + language;
+        if (!sym.tags.empty()) {
+            note += " | tags: ";
+            for (size_t i = 0; i < sym.tags.size(); ++i) {
+                if (i > 0) note += ", ";
+                note += sym.tags[i];
+            }
+        }
         return note;
     }
 

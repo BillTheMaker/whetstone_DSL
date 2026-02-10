@@ -5,6 +5,7 @@
 #include "../CompletionUtils.h"
 #include "../AnimationUtils.h"
 #include "../RichTooltip.h"
+#include "../ast/Function.h"
 #include <map>
 
 static void renderEditorPanel(EditorState& state) {
@@ -397,12 +398,24 @@ static void renderEditorPanel(EditorState& state) {
                             int cursor = state.active()->widget.getCursor();
                             std::string prefix = EditorState::wordPrefixAt(state.active()->editBuf, cursor);
                             std::string nodeId;
+                            std::vector<std::string> contextTags;
                             if (state.activeAST()) {
                                 ASTNode* scopeNode = findNodeAtPosition(state.activeAST(),
                                                                         std::max(0, state.active()->cursorLine - 1),
                                                                         std::max(0, state.active()->cursorCol - 1));
-                                if (scopeNode) nodeId = scopeNode->id;
+                                if (scopeNode) {
+                                    nodeId = scopeNode->id;
+                                    ASTNode* cursorNode = scopeNode;
+                                    while (cursorNode && cursorNode->conceptType != "Function") {
+                                        cursorNode = cursorNode->parent;
+                                    }
+                                    if (cursorNode && cursorNode->conceptType == "Function") {
+                                        auto* fn = static_cast<Function*>(cursorNode);
+                                        contextTags = state.library.semanticTags.inferTagsFromText(fn->name);
+                                    }
+                                }
                             }
+                            state.library.primitives.setContextTags(contextTags);
                             std::vector<PrimitiveSymbol> primitives;
                             auto funcs = state.library.primitives.getAvailableFunctions(nodeId);
                             auto types = state.library.primitives.getAvailableTypes(nodeId);
