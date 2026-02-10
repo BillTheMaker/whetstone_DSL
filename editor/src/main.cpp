@@ -308,6 +308,7 @@ int main(int, char**) {
                 ImGui::MenuItem("Dependencies", nullptr, &state.showDependencyPanel);
                 ImGui::MenuItem("Libraries", nullptr, &state.showLibraryBrowserPanel);
                 ImGui::MenuItem("Compose", nullptr, &state.showCompositionPanel);
+                ImGui::MenuItem("Emacs Packages", nullptr, &state.showEmacsPackagesPanel);
                 ImGui::MenuItem("Settings", nullptr, &state.showSettingsPanel);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
@@ -606,6 +607,14 @@ int main(int, char**) {
             if (renderCompositionPanel(state.compositionPanel, primitives, code, state.outputLog)) {
                 state.insertTextAtCursor(code);
             }
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        if (state.showEmacsPackagesPanel) {
+            ImGui::Begin("Emacs Packages", &state.showEmacsPackagesPanel);
+            ImGui::PushFont(uiFont);
+            renderEmacsPackageBrowser(state.emacsPackages, state.emacs, state.outputLog);
             ImGui::PopFont();
             ImGui::End();
         }

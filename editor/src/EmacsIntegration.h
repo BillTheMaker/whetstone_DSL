@@ -133,7 +133,7 @@ public:
     }
 
     // Send command to Emacs and get result
-    std::string sendCommand(const std::string& elispCommand) {
+    virtual std::string sendCommand(const std::string& elispCommand) {
         lastError_.clear();
 
         if (!daemonRunning_ && !isDaemonAlive()) {
@@ -255,7 +255,7 @@ public:
 
     bool isDaemonAlive() const { return daemonRunning_; }
 
-    std::string sendCommand(const std::string& elispCommand) {
+    std::string sendCommand(const std::string& elispCommand) override {
         lastSentCommand_ = elispCommand;
 
         // Simulate responses for known commands
@@ -267,6 +267,17 @@ public:
         }
         if (elispCommand == "(+ 1 1)") {
             return "2";
+        }
+        if (elispCommand.find("package-alist") != std::string::npos) {
+            return "use-package|2.4.1|Declarative package configuration\n"
+                   "cl-lib|1.0|Common Lisp extensions for Emacs";
+        }
+        if (elispCommand.find("package-archive-contents") != std::string::npos) {
+            return "magit|3.4.0|Git porcelain inside Emacs\n"
+                   "projectile|2.7.0|Project interaction library";
+        }
+        if (elispCommand.find("(require '") != std::string::npos) {
+            return "t";
         }
 
         // Unknown command — simulate error

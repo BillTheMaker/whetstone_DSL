@@ -52,6 +52,7 @@
 #include "CompositionPanel.h"
 #include "IncrementalOptimizer.h"
 #include "EmacsIntegration.h"
+#include "EmacsPackageBrowser.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -179,6 +180,8 @@ struct EditorState {
     LibraryBrowserState libraryBrowser;
     bool              showCompositionPanel = false;
     CompositionPanelState compositionPanel;
+    bool              showEmacsPackagesPanel = false;
+    EmacsPackageBrowserState emacsPackages;
     struct LibraryIndexRequest {
         std::string name;
         std::string version;

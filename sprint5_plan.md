@@ -179,7 +179,7 @@ functionality through the Whetstone UI.
   Startup log shown in Output panel. Errors in init.el reported as diagnostics.
   *Modifies:* `EmacsIntegration.h`, `Orchestrator.h`
 
-- [ ] **Step 142: Elisp package browser**
+- [x] **Step 142: Elisp package browser**
   New panel section for Emacs users: "Emacs Packages". Lists loaded packages
   from the running daemon (query via `package-alist`). Shows: package name,
   version, description. "Load Package" button sends `(require 'package-name)`
