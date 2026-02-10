@@ -2,6 +2,20 @@
 #include "../EditorState.h"
 #include "../EditorUtils.h"
 #include "../ThemeEngine.h"
+#include <cstdlib>
+
+static void openThemesFolder(const std::string& path) {
+#ifdef _WIN32
+    std::string cmd = "start \"\" \"" + path + "\"";
+    std::system(cmd.c_str());
+#elif __APPLE__
+    std::string cmd = "open \"" + path + "\"";
+    std::system(cmd.c_str());
+#else
+    std::string cmd = "xdg-open \"" + path + "\"";
+    std::system(cmd.c_str());
+#endif
+}
 
 static void renderSettingsPanel(EditorState& state) {
     if (!state.ui.showSettingsPanel) return;
@@ -74,6 +88,17 @@ static void renderSettingsPanel(EditorState& state) {
                     ImGui::SameLine();
                     ImGui::TextDisabled("Selected");
                 }
+                if (name == savedTheme) {
+                    ImDrawList* draw = ImGui::GetWindowDrawList();
+                    ImVec2 pos = ImGui::GetWindowPos();
+                    ImVec2 size = ImGui::GetWindowSize();
+                    ImVec2 a(pos.x + size.x - 18.0f, pos.y + 10.0f);
+                    ImVec2 b(pos.x + size.x - 12.0f, pos.y + 16.0f);
+                    ImVec2 c(pos.x + size.x - 4.0f, pos.y + 6.0f);
+                    ImU32 color = IM_COL32(80, 200, 120, 255);
+                    draw->AddLine(a, b, color, 2.0f);
+                    draw->AddLine(b, c, color, 2.0f);
+                }
 
                 ImU32 swatch[4] = {
                     IM_COL32(40, 40, 40, 255),
@@ -143,6 +168,10 @@ static void renderSettingsPanel(EditorState& state) {
             selectedTheme = savedTheme;
             ThemeEngine::instance().applyTheme(savedTheme);
             previewActive = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Open Themes Folder")) {
+            openThemesFolder(ThemeEngine::userThemeDirectory());
         }
     }
 

@@ -24,6 +24,7 @@ int main() {
     assertContains(settingsPanel, "Hover to preview");
     assertContains(settingsPanel, "Apply");
     assertContains(settingsPanel, "Reset");
+    assertContains(settingsPanel, "Open Themes Folder");
 
     printf("step173_test: all assertions passed\n");
     return 0;
