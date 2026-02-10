@@ -214,7 +214,7 @@ static void renderProjectSearchPanel(EditorState& state) {
                         std::to_string(match.col + 1) + "  " + match.lineText;
                     if (ImGui::Selectable(lineLabel.c_str())) {
                         if (state.buffers.hasBuffer(fileRes.path)) state.switchToBuffer(fileRes.path);
-                        else state.doOpen(fileRes.path);
+                        else state.doOpen(fileRes.path, state.defaultBufferMode());
                         state.jumpTo(state.active(), match.line, match.col);
                     }
                 }

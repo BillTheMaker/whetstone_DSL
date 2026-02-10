@@ -37,6 +37,7 @@ public:
             "Use the Language menu to switch between Python, C++, and Elisp.",
             "The AST tab shows your code's abstract syntax tree in real time.",
             "The Generated tab shows target-language output from the AST.",
+            "Toggle Text/Structured mode from the status bar or View menu.",
             "Switch keybinding profiles from the Keybindings menu.",
             "Whetstone annotations (@Reclaim, @Owner, @Lifetime) express memory intent.",
             "The Highlighted tab shows syntax coloring via tree-sitter.",

@@ -12,6 +12,7 @@ struct FirstRunWizardState {
     int layoutIndex = 0;
     int themeIndex = 0;
     int keyIndex = 0;
+    int modeIndex = 0;
 };
 
 static void renderFirstRunWizard(EditorState& state, FirstRunWizardState& wizard) {
@@ -62,6 +63,17 @@ static void renderFirstRunWizard(EditorState& state, FirstRunWizardState& wizard
             }
         }
     } else if (wizard.step == 4) {
+        ImGui::TextUnformatted("Choose editor mode");
+        ImGui::Separator();
+        ImGui::TextWrapped("Text mode is recommended for a familiar editor experience. "
+                           "Structured mode enables AST-driven features.");
+        if (ImGui::RadioButton("Text (Recommended)", wizard.modeIndex == 0)) {
+            wizard.modeIndex = 0;
+        }
+        if (ImGui::RadioButton("Structured", wizard.modeIndex == 1)) {
+            wizard.modeIndex = 1;
+        }
+    } else if (wizard.step == 5) {
         ImGui::TextUnformatted("Get started");
         ImGui::Separator();
         if (ImGui::Button("Open Example Project")) {
@@ -78,7 +90,7 @@ static void renderFirstRunWizard(EditorState& state, FirstRunWizardState& wizard
         }
         if (ImGui::Button("New File")) {
             std::string lang = state.active() ? state.active()->language : "python";
-            state.createBuffer(state.makeUntitledName(), "", lang);
+            state.createBuffer(state.makeUntitledName(), "", lang, state.defaultBufferMode());
         }
     }
 
@@ -89,9 +101,9 @@ static void renderFirstRunWizard(EditorState& state, FirstRunWizardState& wizard
         }
         ImGui::SameLine();
     }
-    if (wizard.step < 4) {
+    if (wizard.step < 5) {
         if (ImGui::Button("Next")) {
-            wizard.step = std::min(4, wizard.step + 1);
+            wizard.step = std::min(5, wizard.step + 1);
         }
     } else {
         if (ImGui::Button("Finish")) {
@@ -106,6 +118,7 @@ static void renderFirstRunWizard(EditorState& state, FirstRunWizardState& wizard
                 state.settings.setTheme(themeNames[wizard.themeIndex]);
                 ThemeEngine::instance().applyTheme(themeNames[wizard.themeIndex]);
             }
+            state.settings.setDefaultBufferMode(wizard.modeIndex == 1 ? "structured" : "text");
             state.saveSettingsToDisk();
             wizard.open = false;
             state.ui.showFirstRunWizard = false;

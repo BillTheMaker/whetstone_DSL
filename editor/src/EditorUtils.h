@@ -661,7 +661,7 @@ static void RenderHighlightedText(const std::string& text,
 static void RenderFileTree(const FileNode& node, EditorState& state) {
     if (!node.isDir) {
         if (ImGui::Selectable(node.name.c_str())) {
-            state.doOpen(node.path);
+            state.doOpen(node.path, state.defaultBufferMode());
         }
         return;
     }
@@ -686,14 +686,14 @@ static void RenderWelcome(WelcomeScreen& welcome, EditorState& state, std::strin
     ImGui::Text("Quick Actions");
     if (ImGui::Button("New File")) {
         std::string lang = state.active() ? state.active()->language : "python";
-        state.createBuffer(state.makeUntitledName(), "", lang);
+        state.createBuffer(state.makeUntitledName(), "", lang, state.defaultBufferMode());
     }
     ImGui::SameLine();
     if (ImGui::Button("Open File")) {
         auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go"}, lastDialogPath});
         if (!path.empty()) {
             lastDialogPath = path;
-            state.doOpen(path);
+            state.doOpen(path, state.defaultBufferMode());
         }
     }
     ImGui::SameLine();

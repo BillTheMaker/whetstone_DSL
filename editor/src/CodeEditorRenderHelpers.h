@@ -218,6 +218,7 @@
         return "";
     }
 
+
     void updateFolds(const std::string& text, const std::string& language) {
         if (text == lastFoldText_ && language == lastFoldLang_) return;
         lastFoldText_ = text;

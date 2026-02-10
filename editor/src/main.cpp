@@ -222,7 +222,7 @@ int main(int, char**) {
                 char* droppedFile = event.drop.file;
                 if (droppedFile) {
                     DragDropHandler::handleDrop(droppedFile,
-                        [&](const std::string& p) { state.doOpen(p); },
+                        [&](const std::string& p) { state.doOpen(p, state.defaultBufferMode()); },
                         [&](const std::string& p) {
                             state.workspaceRoot = p;
                             state.fileTreeDirty = true;
@@ -310,7 +310,7 @@ int main(int, char**) {
                     else if (action == "file.save")   state.doSave();
                     else if (action == "file.new") {
                         std::string lang = state.active() ? state.active()->language : "python";
-                        state.createBuffer(state.makeUntitledName(), "", lang);
+                        state.createBuffer(state.makeUntitledName(), "", lang, state.defaultBufferMode());
                     }
                     else if (action == "build.run")    state.runActiveFile(false);
                     else if (action == "build.build")  state.runActiveFile(true);

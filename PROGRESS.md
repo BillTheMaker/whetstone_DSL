@@ -754,3 +754,4 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Codex | Step 232: Session-to-trace converter (events->user msgs, RPC->tool calls/results, gap splitting, synthetic thinking). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 233: Training data pipeline CLI (load/anonymize/convert/filter/dedup/export + stats). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 234: Session pipeline tests (anonymizer round-trip, no PII, trace conversion, pipeline output count, quality filter, dedup). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 241: Text-first default mode (default buffer mode Text, settings preference, wizard step, tips updated). 1/1 tests pass (`file_limits_test`). |

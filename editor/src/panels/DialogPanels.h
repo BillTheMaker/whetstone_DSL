@@ -528,7 +528,7 @@ static void renderCommandPalette(EditorState& state) {
         }
 
         if (accept && !fileMatches.empty()) {
-            state.doOpen(fileMatches[state.commandSelected].path);
+            state.doOpen(fileMatches[state.commandSelected].path, state.defaultBufferMode());
             state.showCommandPalette = false;
         }
     }

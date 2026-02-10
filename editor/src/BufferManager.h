@@ -21,7 +21,7 @@ public:
         std::string content;
         std::string language;
         bool modified = false;
-        BufferMode mode = BufferMode::Structured;
+        BufferMode mode = BufferMode::Text;
     };
 
     BufferManager() = default;
@@ -29,7 +29,7 @@ public:
     // Open a file into a buffer (makes it active)
     bool openBuffer(const std::string& path, const std::string& content,
                     const std::string& language,
-                    BufferMode mode = BufferMode::Structured) {
+                    BufferMode mode = BufferMode::Text) {
         if (hasBuffer(path)) return false;  // already open
         BufferInfo info{path, content, language, false, mode};
         buffers_[path] = info;
@@ -87,7 +87,7 @@ public:
     BufferMode getBufferMode(const std::string& path) const {
         auto it = buffers_.find(path);
         if (it != buffers_.end()) return it->second.mode;
-        return BufferMode::Structured;
+        return BufferMode::Text;
     }
 
     // Get list of all open buffer paths

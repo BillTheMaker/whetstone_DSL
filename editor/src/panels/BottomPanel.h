@@ -204,7 +204,7 @@ static void renderBottomPanel(EditorState& state) {
                             ? p.string()
                             : (std::filesystem::path(state.workspaceRoot) / p).string();
                         if (state.buffers.hasBuffer(path)) state.switchToBuffer(path);
-                        else state.doOpen(path);
+                        else state.doOpen(path, state.defaultBufferMode());
                         if (state.active()) {
                             state.jumpTo(state.active(),
                                          std::max(0, err.line - 1),
@@ -286,7 +286,7 @@ static void renderBottomPanel(EditorState& state) {
                                 if (ImGui::Selectable(d.message.c_str(), false, ImGuiSelectableFlags_SpanAllColumns)) {
                                     if (!d.file.empty() && d.line >= 0) {
                                         if (state.buffers.hasBuffer(d.file)) state.switchToBuffer(d.file);
-                                        else state.doOpen(d.file);
+                                        else state.doOpen(d.file, state.defaultBufferMode());
                                         state.jumpTo(state.active(), d.line, d.col);
                                     }
                                 }

@@ -344,6 +344,13 @@ static void renderSettingsPanel(EditorState& state) {
         state.ui.showLineNumbers = showLineNumbers;
         settingsChanged = true;
     }
+    std::string defaultMode = state.settings.getDefaultBufferMode();
+    int modeIndex = (defaultMode == "structured") ? 1 : 0;
+    const char* modeLabels[] = {"Text (Recommended)", "Structured"};
+    if (ImGui::Combo("Default Buffer Mode", &modeIndex, modeLabels, 2)) {
+        state.settings.setDefaultBufferMode(modeIndex == 1 ? "structured" : "text");
+        settingsChanged = true;
+    }
     bool reduceMotionSetting = state.settings.getReduceMotion();
     if (ImGui::Checkbox("Reduce Motion", &reduceMotionSetting)) {
         state.settings.setReduceMotion(reduceMotionSetting);

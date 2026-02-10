@@ -121,7 +121,8 @@ static inline std::string bufferModeToString(BufferManager::BufferMode mode) {
 
 static inline BufferManager::BufferMode bufferModeFromString(const std::string& mode) {
     if (mode == "text") return BufferManager::BufferMode::Text;
-    return BufferManager::BufferMode::Structured;
+    if (mode == "structured") return BufferManager::BufferMode::Structured;
+    return BufferManager::BufferMode::Text;
 }
 
 // ---------------------------------------------------------------------------
@@ -138,7 +139,7 @@ struct BufferState {
     std::string       generatedLanguage = "python";
     std::string       path        = "(untitled)";
     bool              readOnly    = false;
-    BufferManager::BufferMode bufferMode = BufferManager::BufferMode::Structured;
+    BufferManager::BufferMode bufferMode = BufferManager::BufferMode::Text;
     bool              modified    = false;
     int               cursorLine  = 1;
     int               cursorCol   = 1;
@@ -282,73 +283,21 @@ struct EditorState {
         return "file:///" + p.generic_string();
     }
 
-    static std::string fromFileUri(const std::string& uri) {
-        const std::string prefix = "file:///";
-        if (uri.rfind(prefix, 0) != 0) return uri;
-        std::string path = uri.substr(prefix.size());
-        std::replace(path.begin(), path.end(), '/', '\\');
-        return path;
-    }
+    static std::string fromFileUri(const std::string& uri);
 
-    static int byteOffsetForLineCol(const std::string& text, int lineZero, int colZero) {
-        if (lineZero < 0) lineZero = 0;
-        if (colZero < 0) colZero = 0;
-        int line = 0;
-        int pos = 0;
-        while (pos < (int)text.size() && line < lineZero) {
-            if (text[pos] == '\n') ++line;
-            ++pos;
-        }
-        int col = 0;
-        while (pos < (int)text.size() && text[pos] != '\n' && col < colZero) {
-            ++pos;
-            ++col;
-        }
-        return pos;
-    }
+    static int byteOffsetForLineCol(const std::string& text, int lineZero, int colZero);
 
-    static int wordStartAt(const std::string& text, int pos) {
-        pos = std::max(0, std::min(pos, (int)text.size()));
-        while (pos > 0) {
-            char c = text[pos - 1];
-            if (std::isalnum((unsigned char)c) || c == '_') {
-                --pos;
-            } else {
-                break;
-            }
-        }
-        return pos;
-    }
+    static int wordStartAt(const std::string& text, int pos);
 
     static bool isWordChar(char c) {
         return std::isalnum((unsigned char)c) || c == '_';
     }
 
-    static std::string wordAt(const std::string& text, int pos) {
-        if (text.empty()) return "";
-        pos = std::max(0, std::min(pos, (int)text.size()));
-        if (pos == (int)text.size()) pos = (int)text.size() - 1;
-        if (pos < 0) return "";
-        if (!isWordChar(text[pos]) && pos > 0 && isWordChar(text[pos - 1])) {
-            --pos;
-        }
-        if (!isWordChar(text[pos])) return "";
-        int start = pos;
-        while (start > 0 && isWordChar(text[start - 1])) --start;
-        int end = pos;
-        while (end < (int)text.size() && isWordChar(text[end])) ++end;
-        return text.substr(start, end - start);
-    }
+    static std::string wordAt(const std::string& text, int pos);
 
-    static std::string wordAtLineCol(const std::string& text, int lineZero, int colZero) {
-        int pos = byteOffsetForLineCol(text, lineZero, colZero);
-        return wordAt(text, pos);
-    }
+    static std::string wordAtLineCol(const std::string& text, int lineZero, int colZero);
 
-    static std::string wordPrefixAt(const std::string& text, int pos) {
-        int start = wordStartAt(text, pos);
-        return text.substr(start, pos - start);
-    }
+    static std::string wordPrefixAt(const std::string& text, int pos);
 
     void notify(NotificationLevel level, const std::string& message) {
         notifications.notify(level, message);
@@ -360,17 +309,7 @@ struct EditorState {
         events.publish(UIEventType::NotificationPosted, target.path, message, ImGui::GetTime());
     }
 
-    void navigateToTarget(const NotificationTarget& target) {
-        if (target.path.empty()) return;
-        std::string path = target.path;
-        if (buffers.hasBuffer(path)) switchToBuffer(path);
-        else doOpen(path);
-        if (active()) {
-            int line = std::max(0, target.line);
-            int col = std::max(0, target.col);
-            jumpTo(active(), line, col);
-        }
-    }
+    void navigateToTarget(const NotificationTarget& target);
 
     void jumpTo(BufferState* buf, int lineZero, int colZero) {
         if (!buf) return;
@@ -380,1878 +319,175 @@ struct EditorState {
         buf->cursorCol = colZero + 1;
     }
 
-    void applyCompletion(BufferState* buf, const std::string& insertText, int replaceStart, int replaceEnd) {
-        if (!buf) return;
-        replaceStart = std::max(0, std::min(replaceStart, (int)buf->editBuf.size()));
-        replaceEnd = std::max(replaceStart, std::min(replaceEnd, (int)buf->editBuf.size()));
-        buf->editBuf.replace(replaceStart, replaceEnd - replaceStart, insertText);
-        int newPos = replaceStart + (int)insertText.size();
-        buf->widget.setCursor(newPos);
-        activeBuffer = buf;
-        onTextChanged();
-    }
+    void applyCompletion(BufferState* buf, const std::string& insertText, int replaceStart, int replaceEnd);
 
-    void insertTextAtCursor(const std::string& text) {
-        if (!active() || text.empty()) return;
-        int cursor = active()->widget.getCursor();
-        cursor = std::max(0, std::min(cursor, (int)active()->editBuf.size()));
-        active()->editBuf.insert(cursor, text);
-        active()->widget.setCursor(cursor + (int)text.size());
-        onTextChanged();
-    }
+    void insertTextAtCursor(const std::string& text);
 
-    void ensureImportForSymbol(const std::string& library, const std::string& symbol) {
-        if (!active() || library.empty()) return;
-        if (settings.getBlockVulnerableImports()) {
-            PackageEcosystem eco = ecosystemForLanguage(active()->language);
-            std::string osvEco = osvEcosystem(eco);
-            if (!osvEco.empty()) {
-                std::string key = vulnKey(osvEco, library);
-                if (library.dependencyPanel.vulnIgnore.find(key) ==
-                    library.dependencyPanel.vulnIgnore.end()) {
-                    std::string version = dependencyVersionFor(osvEco, library);
-                    auto vulns = library.vulnDb.query(osvEco, library, version);
-                    if (!vulns.empty()) {
-                        notify(NotificationLevel::Warning,
-                               "Blocked vulnerable import: " + library);
-                        return;
-                    }
-                }
-            }
-        }
-        std::string clean = symbol;
-        auto paren = clean.find('(');
-        if (paren != std::string::npos) clean = clean.substr(0, paren);
-        ImportEditResult result = ensureImport(active()->editBuf,
-                                               active()->language,
-                                               library,
-                                               clean);
-        if (result.changed) {
-            active()->editBuf = result.text;
-            onTextChanged();
-        }
-    }
+    void ensureImportForSymbol(const std::string& library, const std::string& symbol);
 
-    void appendUnusedImportDiagnostics(std::vector<EditorDiagnostic>& diags) {
-        if (!active()) return;
-        auto issues = findUnusedImports(active()->editBuf, active()->language);
-        std::string uri = toFileUri(active()->path);
-        for (const auto& issue : issues) {
-            EditorDiagnostic ed;
-            ed.uri = uri;
-            ed.line = issue.line;
-            ed.character = 0;
-            ed.severity = 2;
-            ed.message = "[Imports] " + issue.message;
-            ed.source = "ImportManager";
-            diags.push_back(std::move(ed));
-        }
-    }
+    void appendUnusedImportDiagnostics(std::vector<EditorDiagnostic>& diags);
 
     struct ImportLocation {
         int line = 0;
         std::string library;
     };
 
-    static PackageEcosystem ecosystemForLanguage(const std::string& language) {
-        if (language == "python") return PackageEcosystem::Python;
-        if (language == "javascript" || language == "typescript") return PackageEcosystem::Npm;
-        if (language == "rust") return PackageEcosystem::Rust;
-        if (language == "go") return PackageEcosystem::Go;
-        if (language == "java") return PackageEcosystem::Java;
-        return PackageEcosystem::Cpp;
-    }
+    static PackageEcosystem ecosystemForLanguage(const std::string& language);
 
     static std::vector<ImportLocation> collectImportLocations(const std::string& text,
-                                                              const std::string& language) {
-        std::vector<ImportLocation> out;
-        auto lines = importSplitLines(text);
-        for (int i = 0; i < (int)lines.size(); ++i) {
-            std::string t = trimStr(lines[i]);
-            if (language == "python") {
-                if (startsWith(t, "import ")) {
-                    std::string lib = trimStr(t.substr(7));
-                    auto comma = lib.find(',');
-                    if (comma != std::string::npos) lib = trimStr(lib.substr(0, comma));
-                    out.push_back({i, lib});
-                } else if (startsWith(t, "from ")) {
-                    auto pos = t.find("import");
-                    if (pos != std::string::npos) {
-                        std::string lib = trimStr(t.substr(5, pos - 5));
-                        out.push_back({i, lib});
-                    }
-                }
-            } else if (language == "javascript" || language == "typescript") {
-                if (startsWith(t, "import ")) {
-                    auto pos = t.find(" from ");
-                    if (pos != std::string::npos) {
-                        auto quote = t.find('\'', pos);
-                        if (quote == std::string::npos) quote = t.find('\"', pos);
-                        if (quote != std::string::npos) {
-                            auto end = t.find(t[quote], quote + 1);
-                            if (end != std::string::npos) {
-                                std::string lib = t.substr(quote + 1, end - quote - 1);
-                                out.push_back({i, lib});
-                            }
-                        }
-                    }
-                }
-            } else if (language == "rust") {
-                if (startsWith(t, "use ")) {
-                    std::string lib = trimStr(t.substr(4));
-                    auto pos = lib.find("::");
-                    if (pos != std::string::npos) lib = lib.substr(0, pos);
-                    if (!lib.empty() && lib.back() == ';') lib.pop_back();
-                    out.push_back({i, lib});
-                }
-            } else if (language == "go") {
-                if (startsWith(t, "import \"")) {
-                    std::string path = t.substr(8);
-                    if (!path.empty() && path.back() == '"') path.pop_back();
-                    out.push_back({i, path});
-                }
-            } else if (language == "elisp") {
-                if (startsWith(t, "(require '")) {
-                    auto start = t.find('\'');
-                    auto end = t.find(')', start);
-                    if (start != std::string::npos && end != std::string::npos) {
-                        std::string lib = t.substr(start + 1, end - start - 1);
-                        out.push_back({i, lib});
-                    }
-                }
-            } else if (language == "cpp") {
-                if (startsWith(t, "#include")) {
-                    auto lt = t.find('<');
-                    auto gt = t.find('>');
-                    if (lt != std::string::npos && gt != std::string::npos && gt > lt) {
-                        out.push_back({i, t.substr(lt + 1, gt - lt - 1)});
-                    } else {
-                        auto q = t.find('"');
-                        if (q != std::string::npos) {
-                            auto q2 = t.find('"', q + 1);
-                            if (q2 != std::string::npos) {
-                                out.push_back({i, t.substr(q + 1, q2 - q - 1)});
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return out;
-    }
+                                                              const std::string& language);
 
     std::string dependencyVersionFor(const std::string& osvEco,
-                                     const std::string& package) const {
-        if (package.empty()) return "";
-        for (const auto& dep : library.dependencyPanel.deps) {
-            if (dep.name != package) continue;
-            PackageEcosystem eco = ecosystemForSource(dep.source);
-            if (osvEcosystem(eco) != osvEco) continue;
-            return dep.version;
-        }
-        return "";
-    }
+                                     const std::string& package) const;
 
-    void appendVulnerabilityDiagnostics(std::vector<EditorDiagnostic>& diags) {
-        if (!active()) return;
-        PackageEcosystem eco = ecosystemForLanguage(active()->language);
-        std::string osvEco = osvEcosystem(eco);
-        if (osvEco.empty()) return;
-        auto imports = collectImportLocations(active()->editBuf, active()->language);
-        if (imports.empty()) return;
-        std::string uri = toFileUri(active()->path);
-        for (const auto& imp : imports) {
-            std::string key = vulnKey(osvEco, imp.library);
-            if (library.dependencyPanel.vulnIgnore.find(key) !=
-                library.dependencyPanel.vulnIgnore.end()) {
-                continue;
-            }
-            std::string version = dependencyVersionFor(osvEco, imp.library);
-            auto vulns = library.vulnDb.query(osvEco, imp.library, version);
-            if (vulns.empty()) continue;
-            const auto& top = vulns.front();
-            int severity = 3;
-            if (top.severity == "Critical" || top.severity == "High") severity = 1;
-            else if (top.severity == "Medium") severity = 2;
-            EditorDiagnostic ed;
-            ed.uri = uri;
-            ed.line = imp.line;
-            ed.character = 0;
-            ed.severity = severity;
-            ed.message = "[Security] " + imp.library + ": " + top.summary;
-            if (!top.cveId.empty()) ed.message += " (" + top.cveId + ")";
-            ed.source = "VulnerabilityDB";
-            diags.push_back(std::move(ed));
-        }
-    }
+    void appendVulnerabilityDiagnostics(std::vector<EditorDiagnostic>& diags);
 
-    std::string makeUntitledName() const {
-        if (!buffers.hasBuffer("(untitled)")) return "(untitled)";
-        int i = 1;
-        while (true) {
-            std::string name = "(untitled-" + std::to_string(i) + ")";
-            if (!buffers.hasBuffer(name)) return name;
-            ++i;
-        }
-    }
+    std::string makeUntitledName() const;
 
     void createBuffer(const std::string& path, const std::string& content,
                       const std::string& language,
-                      BufferManager::BufferMode mode = BufferManager::BufferMode::Structured,
+                      BufferManager::BufferMode mode = BufferManager::BufferMode::Text,
                       size_t fileSizeBytes = 0,
                       bool largeFileMode = false,
                       bool disableSyntaxHighlight = false,
-                      bool deferAstSync = false) {
-        BufferManager::BufferMode effectiveMode = mode;
-        if (language == "org") effectiveMode = BufferManager::BufferMode::Text;
-        if (buffers.hasBuffer(path)) {
-            buffers.switchToBuffer(path);
-            activeBuffer = bufferStates[path].get();
-            return;
-        }
-        auto state = std::make_unique<BufferState>();
-        state->path = path;
-        state->language = language;
-        state->generatedLanguage = language;
-        state->fileSizeBytes = fileSizeBytes;
-        state->largeFileMode = largeFileMode;
-        state->disableSyntaxHighlight = disableSyntaxHighlight;
-        state->mode.setLanguage(language);
-        state->generatedMode.setLanguage(language);
-        state->editor.setContent(content, language);
-        if (effectiveMode == BufferManager::BufferMode::Structured) {
-            if (deferAstSync) {
-                state->pendingAstSync = true;
-                state->pendingAstStart = ImGui::GetTime();
-            } else {
-                state->sync.setText(content, language);
-                state->sync.syncNow();
-                state->incrementalOptimizer.setRoot(state->sync.getAST());
-            }
-        }
-        state->editBuf = content;
-        state->highlightsDirty = true;
-        state->generatedHighlightsDirty = true;
-        state->modified = false;
-        state->lspVersion = 1;
-        buffers.openBuffer(path, content, language, effectiveMode);
-        state->bufferMode = effectiveMode;
-        activeBuffer = state.get();
-        bufferStates[path] = std::move(state);
-        active()->orchestratorDirty = true;
-        recordUndoSnapshot();
-        if (language == "elisp") {
-            emacsState.emacsFunctionIndexDirty = true;
-        }
-        if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
-        if (lsp && path.rfind("(untitled", 0) != 0) {
-            lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
-        }
-        events.publish(UIEventType::BufferSwitched, path, {}, ImGui::GetTime());
-        uiAnimations.recordTabSwitch(path, ImGui::GetTime());
-    }
-
-    bool jumpToDefinitionLocation(const LSPClient::DefinitionLocation& loc) {
-        if (loc.uri.empty()) return false;
-        std::string path = fromFileUri(loc.uri);
-        if (path.empty()) return false;
-        if (buffers.hasBuffer(path)) switchToBuffer(path);
-        else doOpen(path);
-        jumpTo(active(), loc.range.start.line, loc.range.start.character);
-        return true;
-    }
-
-    bool goToDefinitionFallback(int lineZero, int colZero) {
-        if (!isStructured()) return false;
-        Module* ast = activeAST();
-        if (!ast || !active()) return false;
-        std::string word = wordAtLineCol(active()->editBuf, lineZero, colZero);
-        if (word.empty()) return false;
-
-        ASTNode* scopeNode = findNodeAtPosition(ast, lineZero, colZero);
-        if (!scopeNode) scopeNode = ast;
-
-        ContextAPI ctx;
-        ctx.setRoot(ast);
-        auto symbols = ctx.getInScopeSymbols(scopeNode->id);
-        for (const auto& sym : symbols) {
-            if (sym.name != word) continue;
-            ASTNode* target = findNodeById(ast, sym.nodeId);
-            if (target && target->hasSpan()) {
-                jumpTo(active(), target->spanStartLine, target->spanStartCol);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool goToDefinitionAt(int lineZero, int colZero) {
-        if (!active()) return false;
-        if (lsp && lspTransport && lspTransport->isOpen() &&
-            active()->path.rfind("(untitled", 0) != 0) {
-            definitionPreviewValid = false;
-            definitionPending = true;
-            definitionLastRequest = ImGui::GetTime();
-            definitionRequestLine = lineZero;
-            definitionRequestCol = colZero;
-            definitionRequestPath = active()->path;
-            lsp->clearDefinitionLocations();
-            lsp->requestDefinition(toFileUri(active()->path), lineZero, colZero);
-            return true;
-        }
-        return goToDefinitionFallback(lineZero, colZero);
-    }
-
-    bool previewDefinitionAt(int lineZero, int colZero, std::string& outLabel) {
-        if (!isStructured() || !active()) return false;
-        Module* ast = activeAST();
-        if (!ast) return false;
-        std::string word = wordAtLineCol(active()->editBuf, lineZero, colZero);
-        if (word.empty()) return false;
-        ASTNode* scopeNode = findNodeAtPosition(ast, lineZero, colZero);
-        if (!scopeNode) scopeNode = ast;
-        ContextAPI ctx;
-        ctx.setRoot(ast);
-        auto symbols = ctx.getInScopeSymbols(scopeNode->id);
-        for (const auto& sym : symbols) {
-            if (sym.name != word) continue;
-            ASTNode* target = findNodeById(ast, sym.nodeId);
-            if (target && target->hasSpan()) {
-                outLabel = word + " -> line " + std::to_string(target->spanStartLine + 1);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void switchToBuffer(const std::string& path) {
-        if (!buffers.hasBuffer(path)) return;
-        buffers.switchToBuffer(path);
-        activeBuffer = bufferStates[path].get();
-        if (active()) active()->orchestratorDirty = true;
-        events.publish(UIEventType::BufferSwitched, path, {}, ImGui::GetTime());
-        uiAnimations.recordTabSwitch(path, ImGui::GetTime());
-    }
-
-    static std::string osLabel() {
-#ifdef _WIN32
-        return "windows";
-#elif __APPLE__
-        return "macos";
-#else
-        return "linux";
-#endif
-    }
-
-    std::string detectProjectType() const {
-        std::filesystem::path root(workspaceRoot);
-        std::error_code ec;
-        auto exists = [&](const std::string& name) {
-            return std::filesystem::exists(root / name, ec);
-        };
-        if (exists("CMakeLists.txt")) return "cmake";
-        if (exists("package.json")) return "node";
-        if (exists("pyproject.toml") || exists("requirements.txt")) return "python";
-        if (exists("Cargo.toml")) return "rust";
-        if (exists("go.mod")) return "go";
-        if (exists("pom.xml") || exists("build.gradle")) return "java";
-        return "unknown";
-    }
-
-    json buildSessionMetadata(bool autoRecording) const {
-        json meta;
-        meta["editorVersion"] = welcome.getVersion();
-        meta["os"] = osLabel();
-        meta["language"] = active() ? active()->language : std::string("unknown");
-        meta["projectType"] = detectProjectType();
-        meta["autoRecording"] = autoRecording;
-        return meta;
-    }
-
-    void startSessionRecording(const std::string& name, bool autoRecording) {
-        WorkflowRecorder::RecordingConfig cfg;
-        cfg.recordAllSessions = true;
-        cfg.recordControlMethods = true;
-        cfg.recordEditorEvents = true;
-        cfg.autoRecording = autoRecording;
-        agent.workflowRecorder.startRecording(name, "", cfg, buildSessionMetadata(autoRecording));
-        agent.workflowRecorder.recordEvent("session_start", {{"name", name}, {"autoRecording", autoRecording}});
-        notify(NotificationLevel::Info, "Session recording started.");
-    }
-
-    void stopSessionRecording() {
-        if (!agent.workflowRecorder.isRecording()) return;
-        agent.workflowRecorder.recordEvent("session_stop", json::object());
-        agent.workflowRecorder.stopRecording();
-        notify(NotificationLevel::Info, "Session recording stopped.");
-    }
-
-    void toggleSessionRecording() {
-        if (agent.workflowRecorder.isRecording()) stopSessionRecording();
-        else startSessionRecording("session", false);
-    }
-
-    static std::string uiEventLabel(UIEventType type) {
-        switch (type) {
-            case UIEventType::ASTChanged: return "ast_changed";
-            case UIEventType::BufferSwitched: return "buffer_switched";
-            case UIEventType::DiagnosticsUpdated: return "diagnostics_updated";
-            case UIEventType::ThemeChanged: return "theme_changed";
-            case UIEventType::SettingsChanged: return "settings_changed";
-            case UIEventType::FileModified: return "file_modified";
-            case UIEventType::AgentConnected: return "agent_connected";
-            case UIEventType::NotificationPosted: return "notification_posted";
-        }
-        return "unknown";
-    }
-
-    void recordUIEvent(const UIEvent& ev) {
-        json payload = {
-            {"path", ev.path},
-            {"detail", ev.detail},
-            {"uiTimestamp", ev.timestamp}
-        };
-        agent.workflowRecorder.recordEvent(uiEventLabel(ev.type), payload);
-    }
-
-    void recordEditorEvent(const std::string& type, const json& payload) {
-        agent.workflowRecorder.recordEvent(type, payload);
-    }
-
-    std::filesystem::path configDir() const {
-        const char* home = std::getenv("USERPROFILE");
-        if (!home) home = std::getenv("HOME");
-        std::filesystem::path base = home ? std::filesystem::path(home) : std::filesystem::current_path();
-        return base / ".whetstone";
-    }
-
-    std::filesystem::path recentFilePath() const {
-        return configDir() / "recent.json";
-    }
-
-    void loadRecentFiles() {
-        std::filesystem::path p = recentFilePath();
-        if (!std::filesystem::exists(p)) return;
-        std::ifstream in(p.string());
-        if (!in.is_open()) return;
-        nlohmann::json j;
-        in >> j;
-        if (!j.is_array()) return;
-        for (const auto& item : j) {
-            if (!item.contains("path")) continue;
-            std::string path = item.value("path", "");
-            std::string lang = item.value("language", "");
-            std::string mode = item.value("mode", "structured");
-            if (!path.empty()) welcome.addRecentFile(path, lang, mode);
-        }
-    }
-
-    void saveRecentFiles() {
-        std::filesystem::path p = recentFilePath();
-        std::filesystem::create_directories(p.parent_path());
-        nlohmann::json j = nlohmann::json::array();
-        for (const auto& rf : welcome.getRecentFiles()) {
-            j.push_back({{"path", rf.path}, {"language", rf.language}, {"mode", rf.mode}});
-        }
-        std::ofstream out(p.string(), std::ios::binary);
-        out << j.dump(2);
-    }
-
-    void closeAllBuffers() {
-        auto open = buffers.getOpenBuffers();
-        for (const auto& path : open) {
-            buffers.closeBuffer(path);
-            bufferStates.erase(path);
-            if (path.rfind("(untitled", 0) != 0) watcher.unwatch(path);
-        }
-        activeBuffer = nullptr;
-    }
-
-    bool renameBufferPath(const std::string& oldPath, const std::string& newPath) {
-        if (oldPath == newPath) return false;
-        if (!buffers.hasBuffer(oldPath) || buffers.hasBuffer(newPath)) return false;
-        auto it = bufferStates.find(oldPath);
-        if (it == bufferStates.end()) return false;
-        auto node = std::move(it->second);
-        bufferStates.erase(it);
-        node->path = newPath;
-        bufferStates[newPath] = std::move(node);
-        buffers.renameBuffer(oldPath, newPath);
-        if (oldPath.rfind("(untitled", 0) != 0) watcher.unwatch(oldPath);
-        if (newPath.rfind("(untitled", 0) != 0) watcher.watch(newPath);
-        if (active() && active()->path == oldPath) {
-            active()->path = newPath;
-        }
-        notify(NotificationLevel::Success, "Renamed buffer to " + newPath);
-        return true;
-    }
-
-    bool saveProject(const std::string& path) {
-        ProjectFile project;
-        project.workspaceRoot = workspaceRoot;
-        project.activePath = active() ? active()->path : "";
-        for (const auto& bufPath : buffers.getOpenBuffers()) {
-            auto it = bufferStates.find(bufPath);
-            if (it == bufferStates.end()) continue;
-            ProjectBufferInfo info;
-            info.path = bufPath;
-            info.language = it->second->language;
-            info.mode = bufferModeToString(it->second->bufferMode);
-            project.buffers.push_back(std::move(info));
-        }
-        if (isStructured() && active()) {
-            syncOrchestratorFromActive();
-            if (active()->orchestrator.getAST()) {
-                project.ast = cloneModule(active()->orchestrator.getAST());
-            }
-        }
-
-        try {
-            nlohmann::json j = projectToJson(project);
-            std::ofstream out(path, std::ios::binary);
-            if (!out.is_open()) return false;
-            out << j.dump(2);
-            return true;
-        } catch (...) {
-            return false;
-        }
-    }
-
-    bool loadProject(const std::string& path) {
-        try {
-            std::ifstream in(path, std::ios::binary);
-            if (!in.is_open()) return false;
-            nlohmann::json j;
-            in >> j;
-            ProjectFile project = projectFromJson(j);
-            closeAllBuffers();
-
-            if (!project.workspaceRoot.empty()) {
-                workspaceRoot = project.workspaceRoot;
-                fileTreeDirty = true;
-                search.projectSearch.setRoot(workspaceRoot);
-            }
-
-            std::string activePath = project.activePath;
-            for (const auto& buf : project.buffers) {
-                if (buf.path == activePath && project.ast) {
-                    std::string lang = buf.language.empty() ? project.ast->targetLanguage : buf.language;
-                    std::string generated = generateForLanguage(project.ast.get(), lang);
-                    createBuffer(buf.path, generated, lang, bufferModeFromString(buf.mode));
-                    if (active()) {
-                        active()->sync.setAST(std::move(project.ast));
-                        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-                        active()->editBuf = active()->sync.getText();
-                        active()->editor.setContent(active()->editBuf, lang);
-                        active()->mode.setLanguage(lang);
-                        active()->highlightsDirty = true;
-                        active()->generatedHighlightsDirty = true;
-                        active()->modified = false;
-                        recordUndoSnapshot();
-                    }
-                } else {
-                    doOpen(buf.path, bufferModeFromString(buf.mode));
-                }
-            }
-
-            if (!activePath.empty() && buffers.hasBuffer(activePath)) {
-                switchToBuffer(activePath);
-            }
-            if (active()) active()->orchestratorDirty = true;
-            return true;
-        } catch (...) {
-            return false;
-        }
-    }
-
-    std::filesystem::path sessionFilePath() const {
-        return configDir() / "session.json";
-    }
-
-    std::filesystem::path settingsFilePath() const {
-        return configDir() / "settings.json";
-    }
-
-    bool saveSession(const std::string& imguiIni) {
-        SessionData session;
-        session.workspaceRoot = workspaceRoot;
-        session.activePath = active() ? active()->path : "";
-        session.layoutPreset = LayoutManager::presetName(ui.layoutPreset);
-        session.imguiIni = imguiIni;
-        for (const auto& bufPath : buffers.getOpenBuffers()) {
-            auto it = bufferStates.find(bufPath);
-            if (it == bufferStates.end()) continue;
-            const auto* buf = it->second.get();
-            SessionBufferState entry;
-            entry.path = bufPath;
-            entry.language = buf->language;
-            entry.mode = bufferModeToString(buf->bufferMode);
-            entry.cursorLine = buf->cursorLine;
-            entry.cursorCol = buf->cursorCol;
-            entry.foldedLines = buf->widget.getFoldedLines();
-            session.buffers.push_back(std::move(entry));
-        }
-        try {
-            std::ofstream out(sessionFilePath().string(), std::ios::binary);
-            if (!out.is_open()) return false;
-            out << sessionToJson(session).dump(2);
-            return true;
-        } catch (...) {
-            return false;
-        }
-    }
-
-    bool loadSession(SessionData& out) {
-        try {
-            std::ifstream in(sessionFilePath().string(), std::ios::binary);
-            if (!in.is_open()) return false;
-            nlohmann::json j;
-            in >> j;
-            out = sessionFromJson(j);
-            return true;
-        } catch (...) {
-            return false;
-        }
-    }
-
-    void applySession(const SessionData& session) {
-        closeAllBuffers();
-        if (!session.workspaceRoot.empty()) {
-            workspaceRoot = session.workspaceRoot;
-            fileTreeDirty = true;
-            search.projectSearch.setRoot(workspaceRoot);
-        }
-        ui.layoutPreset = LayoutManager::presetFromName(session.layoutPreset);
-        for (const auto& buf : session.buffers) {
-            doOpen(buf.path, bufferModeFromString(buf.mode), true);
-            auto it = bufferStates.find(buf.path);
-            if (it != bufferStates.end()) {
-                auto* bs = it->second.get();
-                bs->cursorLine = buf.cursorLine;
-                bs->cursorCol = buf.cursorCol;
-                bs->widget.setDesiredFoldedLines(buf.foldedLines);
-                jumpTo(bs, std::max(0, buf.cursorLine - 1), std::max(0, buf.cursorCol - 1));
-            }
-        }
-        if (!session.activePath.empty() && buffers.hasBuffer(session.activePath)) {
-            switchToBuffer(session.activePath);
-        }
-    }
-
-    void applyTabSizeToBuffers(int size) {
-        for (auto& kv : bufferStates) {
-            kv.second->mode.setTabSize(size);
-            kv.second->generatedMode.setTabSize(size);
-        }
-    }
-
-    void setActiveBufferMode(BufferManager::BufferMode mode) {
-        if (!active()) return;
-        if (active()->bufferMode == mode) return;
-        active()->bufferMode = mode;
-        buffers.setBufferMode(active()->path, active()->bufferMode);
-        if (active()->bufferMode == BufferManager::BufferMode::Text) {
-            suggestions.clear();
-            whetstoneDiagnostics.clear();
-            analysisPending = false;
-        } else {
-            onTextChanged();
-        }
-    }
-
-    void queueLspDidChange() {
-        if (!lsp || !active()) return;
-        if (active()->path.rfind("(untitled", 0) == 0) return;
-        active()->lspVersion += 1;
-        lspChangePending = true;
-        lspChangeLast = ImGui::GetTime();
-        lspChangePath = active()->path;
-    }
-
-    void flushLspDidChange(double nowSeconds) {
-        if (!lsp || !lspChangePending) return;
-        double delay = settings.getLspDebounceMs() / 1000.0;
-        if ((nowSeconds - lspChangeLast) < delay) return;
-        auto it = bufferStates.find(lspChangePath);
-        if (it == bufferStates.end()) {
-            lspChangePending = false;
-            return;
-        }
-        auto* buf = it->second.get();
-        lsp->didChange(toFileUri(buf->path), buf->editBuf, buf->lspVersion);
-        lspChangePending = false;
-    }
-
-    void flushDeferredAstSync(double nowSeconds) {
-        (void)nowSeconds;
-        for (auto& kv : bufferStates) {
-            auto* buf = kv.second.get();
-            if (!buf->pendingAstSync) continue;
-            buf->sync.setText(buf->editBuf, buf->language);
-            buf->sync.syncNow();
-            buf->incrementalOptimizer.setRoot(buf->sync.getAST());
-            buf->pendingAstSync = false;
-            buf->highlightsDirty = true;
-            buf->generatedHighlightsDirty = true;
-            break;
-        }
-    }
-
-    bool hasSidePanels() const {
-        if (ui.showOutline) return true;
-        if (library.showDependencyPanel) return true;
-        if (library.showLibraryBrowserPanel) return true;
-        if (library.showCompositionPanel) return true;
-        if (emacsState.showEmacsPackagesPanel) return true;
-        if (emacsState.showEmacsBridgePanel) return true;
-        return true; // Memory Strategies panel is always present.
-    }
-
-    void cyclePanelFocus() {
-        FocusRegion order[] = {
-            FocusRegion::Editor,
-            FocusRegion::Explorer,
-            FocusRegion::Side,
-            FocusRegion::Bottom
-        };
-        int current = 0;
-        for (int i = 0; i < 4; ++i) {
-            if (ui.focusedRegion == order[i]) {
-                current = i;
-                break;
-            }
-        }
-        for (int step = 1; step <= 4; ++step) {
-            FocusRegion next = order[(current + step) % 4];
-            if (next == FocusRegion::Side && !hasSidePanels()) continue;
-            ui.focusTarget = next;
-            return;
-        }
-    }
-
-    void applySettingsToState() {
-        ui.showMinimap = settings.getShowMinimap();
-        ui.showLineNumbers = settings.getShowLineNumbers();
-        ui.layoutPreset = LayoutManager::presetFromName(settings.getLayoutPreset());
-        keys.setProfile(KeybindingManager::profileFromName(settings.getKeybindingProfile()));
-        registerCommands();
-        applyTabSizeToBuffers(settings.getTabSize());
-        library.primitives.setBlockVulnerableImports(settings.getBlockVulnerableImports());
-    }
-
-    void loadSettingsFromDisk() {
-        settings.loadFromFile(settingsFilePath().string());
-        applySettingsToState();
-    }
-
-    void saveSettingsToDisk() {
-        settings.setShowMinimap(ui.showMinimap);
-        settings.setShowLineNumbers(ui.showLineNumbers);
-        settings.setLayoutPreset(LayoutManager::presetName(ui.layoutPreset));
-        settings.setKeybindingProfile(KeybindingManager::profileName(keys.getProfile()));
-        std::filesystem::create_directories(settingsFilePath().parent_path());
-        settings.saveToFile(settingsFilePath().string());
-    }
-
-    void init() {
-        notify(NotificationLevel::Info, "Whetstone Editor ready.");
-        workspaceRoot = std::filesystem::current_path().string();
-        search.projectSearch.setRoot(workspaceRoot);
-        fileTreeDirty = true;
-        loadRecentFiles();
-        loadFeatureHints(featureHints, workspaceRoot);
-        loadSettingsFromDisk();
-        if (settings.getAutoRecordSessions() && !agent.workflowRecorder.isRecording()) {
-            startSessionRecording("auto-session", true);
-        }
-        registerCommands();
-        library.vulnDb.startBackgroundRefresh();
-        library.semanticTags.load();
-        events.subscribe(UIEventType::BufferSwitched, [this](const UIEvent& ev) {
-            if (!active()) return;
-            library.primitives.setRoot(activeAST());
-            library.primitives.setLanguage(active()->language);
-            symbolsPending = true;
-            symbolsLastChange = ImGui::GetTime();
-            if (lsp) lsp->clearDocumentSymbols();
-            if (active()->language == "elisp") {
-                emacsState.emacsFunctionIndexDirty = true;
-            }
-            recordUIEvent(ev);
-        });
-        events.subscribe(UIEventType::ASTChanged, [this](const UIEvent&) {
-            if (!active()) return;
-            library.primitives.setRoot(activeAST());
-            library.primitives.setLanguage(active()->language);
-            symbolsPending = true;
-            symbolsLastChange = ImGui::GetTime();
-            if (lsp) lsp->clearDocumentSymbols();
-        });
-        events.subscribe(UIEventType::SettingsChanged, [this](const UIEvent& ev) {
-            applySettingsToState();
-            recordUIEvent(ev);
-        });
-        events.subscribe(UIEventType::ThemeChanged, [this](const UIEvent& ev) {
-            recordUIEvent(ev);
-        });
-        events.subscribe(UIEventType::FileModified, [this](const UIEvent& ev) {
-            recordUIEvent(ev);
-        });
-        events.subscribe(UIEventType::NotificationPosted, [this](const UIEvent& ev) {
-            recordUIEvent(ev);
-        });
-        startEmacsDaemonFromSettings();
-        initAgentServer();
-        refreshBuildSystem();
-        telemetry.initialize(workspaceRoot, settings.getTelemetryOptIn());
-        telemetry.installCrashHandler();
-    }
-
-    std::string orgTempExtension(const std::string& language) const {
-        if (language == "python") return ".py";
-        if (language == "cpp") return ".cpp";
-        if (language == "elisp") return ".el";
-        if (language == "javascript") return ".js";
-        if (language == "typescript") return ".ts";
-        if (language == "java") return ".java";
-        if (language == "rust") return ".rs";
-        if (language == "go") return ".go";
-        return ".txt";
-    }
-
-    std::string writeOrgTempFile(const std::string& language, const std::string& code) {
-        std::filesystem::path root = workspaceRoot.empty()
-            ? std::filesystem::current_path()
-            : std::filesystem::path(workspaceRoot);
-        std::filesystem::path dir = root / ".whetstone_org";
-        std::filesystem::create_directories(dir);
-        std::string name = "org_block_" + std::to_string(++emacsState.orgTempCounter) +
-                           orgTempExtension(language);
-        std::filesystem::path filePath = dir / name;
-        std::ofstream out(filePath.string(), std::ios::binary);
-        out << code;
-        return filePath.string();
-    }
-
-    std::string runOrgBlock(const std::string& language, const std::string& code) {
-        if (language == "elisp") {
-            std::string result = emacsState.emacs.sendCommand(ElispCommandBuilder::eval(code));
-            if (!emacsState.emacs.getLastError().empty() && result == "error") {
-                return emacsState.emacs.getLastError();
-            }
-            return result.empty() ? "OK" : result;
-        }
-        std::string path = writeOrgTempFile(language, code);
-        std::string cmd = buildRunCommand(path, language, false);
-        if (cmd.empty()) return "No runner for language: " + language;
-        build.showTerminalPanel = true;
-        std::string output;
-        int codeExit = build.terminal.runAndCapture(workspaceRoot, cmd, output);
-        output += "[exit code: " + std::to_string(codeExit) + "]";
-        return output;
-    }
-
-    void startEmacsDaemonFromSettings() {
-        emacsDiagnostics.clear();
-        std::string initPath = resolveEmacsInitPath();
-        std::string log;
-        bool ok = emacsState.emacs.startDaemonWithConfig(initPath, log);
-        if (!log.empty()) {
-            notify(NotificationLevel::Info, "[emacs] " + log);
-        }
-        if (!ok) {
-            EditorDiagnostic d;
-            d.uri = "emacs://init";
-            d.severity = 1;
-            d.message = "[Emacs] " + emacsState.emacs.getLastError();
-            d.source = "EmacsDaemon";
-            emacsDiagnostics.push_back(d);
-            return;
-        }
-        if (!log.empty()) {
-            addEmacsLogDiagnostics(log);
-        }
-    }
-
-    std::string resolveEmacsInitPath() const {
-        return ::resolveEmacsInitPath(settings.getEmacsConfigPath());
-    }
-
-    void addEmacsLogDiagnostics(const std::string& log) {
-        std::istringstream ss(log);
-        std::string line;
-        while (std::getline(ss, line)) {
-            std::string lower = line;
-            std::transform(lower.begin(), lower.end(), lower.begin(),
-                           [](unsigned char c) { return (char)std::tolower(c); });
-            if (lower.find("error") != std::string::npos) {
-                EditorDiagnostic d;
-                d.uri = "emacs://init";
-                d.severity = 1;
-                d.message = "[Emacs] " + line;
-                d.source = "EmacsDaemon";
-                emacsDiagnostics.push_back(d);
-            }
-        }
-    }
-
-    void initAgentServer() {
-        auto transport = std::make_unique<MockWebSocketTransport>();
-        agent.transport = transport.get();
-        agent.server = std::make_unique<WebSocketAgentServer>(std::move(transport));
-        agent.server->setRequestHandler([this](const json& request,
-                                               const std::string& sessionId) {
-            return processAgentRequest(request, sessionId);
-        });
-        agent.server->setSessionEventCallback([this](const AgentSession& s,
-                                                    const std::string& event) {
-            logAgentEvent("Agent " + s.sessionId + " " + event);
-            if (event == "connected") {
-                agent.roles[s.sessionId] = agent.defaultRole;
-                recordEditorEvent("agent_connected", {{"sessionId", s.sessionId}, {"agentName", s.agentName}});
-            } else if (event == "disconnected") {
-                agent.roles.erase(s.sessionId);
-                recordEditorEvent("agent_disconnected", {{"sessionId", s.sessionId}});
-            }
-        });
-        agent.server->setRequestLogCallback([this](const std::string& sid,
-                                                   const json& req,
-                                                   const json& res) {
-            std::string method = req.value("method", "");
-            bool ok = !res.contains("error");
-            logAgentEvent("RPC " + sid + " " + method + (ok ? " ok" : " error"));
-            agent.workflowRecorder.record(sid, req, res);
-        });
-        if (agent.server->start(agent.port)) {
-            logAgentEvent("Agent server started on port " + std::to_string(agent.port));
-        } else {
-            logAgentEvent("Agent server failed to start on port " + std::to_string(agent.port));
-        }
-    }
-
-    void shutdownAgentServer() {
-        if (agent.server) agent.server->stop();
-    }
-
-    void logAgentEvent(const std::string& msg) {
-        agent.log.push_back(msg);
-    }
-
-    AgentRole getAgentRole(const std::string& sessionId) const {
-        auto it = agent.roles.find(sessionId);
-        return it != agent.roles.end() ? it->second : AgentRole::Linter;
-    }
-
-    void setAgentRole(const std::string& sessionId, AgentRole role) {
-        agent.roles[sessionId] = role;
-    }
-
-    std::string agentActorLabel(const std::string& sessionId) const {
-        std::string label = "agent:" + sessionId;
-        if (agent.server) {
-            if (const auto* sess = agent.server->getSession(sessionId)) {
-                if (!sess->agentName.empty()) {
-                    label = "agent:" + sess->agentName;
-                }
-            }
-        }
-        return label;
-    }
-
-    void refreshBuildSystem() {
-        build.buildType = BuildSystem::detect(workspaceRoot);
-    }
-
-    int runBuildCommand(const BuildCommand& cmd) {
-        if (workspaceRoot.empty()) {
-            build.terminal.append("[build] No workspace root set.\n");
-            return -1;
-        }
-        build.showTerminalPanel = true;
-        build.lastBuildCommand = cmd.command;
-        int code = build.terminal.runAndCapture(workspaceRoot, cmd.command, build.lastBuildOutput);
-        build.buildErrors = BuildSystem::parseErrors(build.lastBuildOutput);
-        notify(NotificationLevel::Info,
-               "[build] " + cmd.label + " => exit " + std::to_string(code));
-        return code;
-    }
-
-    void pollLspMessages() {
-        if (!lsp || !lspTransport || !lspTransport->isOpen()) return;
-        std::string msg;
-        while (lspTransport->receive(msg)) {
-            lsp->handleMessage(msg);
-        }
-    }
-
-    void requestLibraryIndex() {
-        library.libraryIndex.symbolsByLibrary.clear();
-        library.libraryIndex.completionsByLibrary.clear();
-        library.libraryIndexRequests.clear();
-        if (!isStructured() || !activeAST()) {
-            notify(NotificationLevel::Warning,
-                   "[deps] Library index skipped: no structured AST.");
-            return;
-        }
-        if (!lsp || !lspTransport || !lspTransport->isOpen()) {
-            applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
-            rebuildExternalModulesFromIndex();
-            notify(NotificationLevel::Warning,
-                   "[deps] Library index uses cached symbols (LSP offline).");
-            return;
-        }
-
-        for (const auto& dep : library.dependencyPanel.deps) {
-            if (dep.name.empty()) continue;
-            LibraryState::LibraryIndexRequest req;
-            req.name = dep.name;
-            req.version = dep.version;
-            req.source = dep.source;
-            req.symbolsRequestId = lsp->requestWorkspaceSymbols(dep.name);
-            if (active() && active()->path.rfind("(untitled", 0) != 0) {
-                int line = std::max(0, active()->cursorLine - 1);
-                int col = std::max(0, active()->cursorCol - 1);
-                req.completionRequestId = lsp->requestLibraryCompletion(
-                    toFileUri(active()->path), line, col, dep.name + ".");
-            }
-            library.libraryIndexRequests.push_back(req);
-        }
-        applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
-        rebuildExternalModulesFromIndex();
-        notify(NotificationLevel::Info,
-               "[deps] Library index requests queued: " +
-               std::to_string(library.libraryIndexRequests.size()));
-    }
-
-    void processLibraryIndexResponses() {
-        if (!lsp) return;
-        bool updated = false;
-        for (auto& req : library.libraryIndexRequests) {
-            if (req.symbolsRequestId >= 0) {
-                std::vector<LSPClient::WorkspaceSymbol> symbols;
-                if (lsp->takeWorkspaceSymbols(req.symbolsRequestId, symbols)) {
-                    library.libraryIndex.symbolsByLibrary[req.name] = std::move(symbols);
-                    req.symbolsRequestId = -1;
-                    updated = true;
-                }
-            }
-            if (req.completionRequestId >= 0) {
-                std::vector<LSPClient::CompletionItem> items;
-                if (lsp->takeLibraryCompletions(req.completionRequestId, items)) {
-                    std::vector<std::string> labels;
-                    labels.reserve(items.size());
-                    for (const auto& item : items) {
-                        if (!item.label.empty()) labels.push_back(item.label);
-                    }
-                    if (!labels.empty()) {
-                        library.libraryIndex.completionsByLibrary[req.name] = std::move(labels);
-                    }
-                    req.completionRequestId = -1;
-                    updated = true;
-                }
-            }
-        }
-        if (updated) {
-            applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
-            rebuildExternalModulesFromIndex();
-            notify(NotificationLevel::Info, "[deps] Library index updated.");
-        }
-    }
-
-    void updateEmacsFunctionIndex() {
-        if (!active() || active()->language != "elisp") return;
-        std::string error;
-        auto packages = queryEmacsPackageList(emacsState.emacs, false, notifications, error);
-        if (!error.empty()) return;
-        refreshEmacsFunctionIndex(emacsState.emacsFunctionIndex, emacsState.emacs, packages, notifications);
-        addEmacsSymbolsToLibraryIndex(library.libraryIndex, emacsState.emacsFunctionIndex);
-        emacsState.emacsFunctionIndexDirty = false;
-        rebuildExternalModulesFromIndex();
-        notify(NotificationLevel::Info,
-               "[emacs] Indexed functions for " +
-               std::to_string(emacsState.emacsFunctionIndex.functionsByPackage.size()) +
-               " packages.");
-    }
-
-    void rebuildExternalModulesFromIndex() {
-        Module* ast = activeAST();
-        if (!ast) return;
-        rebuildExternalModules(ast,
-                               library.dependencyPanel.deps,
-                               library.libraryIndex,
-                               &library.semanticTags);
-        if (active() && active()->language == "elisp") {
-            int signatureId = 0;
-            appendEmacsExternalModules(ast, emacsState.emacsFunctionIndex, signatureId);
-        }
-        if (active()) active()->orchestratorDirty = true;
-    }
-
-    json buildDiagnosticsJson() const {
-        json out;
-        json lspArr = json::array();
-        auto diags = lsp ? lsp->getDiagnostics() : std::vector<LSPClient::Diagnostic>{};
-        for (const auto& d : diags) {
-            lspArr.push_back({
-                {"uri", d.uri},
-                {"message", d.message},
-                {"severity", d.severity},
-                {"range", {
-                    {"start", {{"line", d.range.start.line}, {"character", d.range.start.character}}},
-                    {"end", {{"line", d.range.end.line}, {"character", d.range.end.character}}}
-                }}
-            });
-        }
-
-        json whetArr = json::array();
-        for (const auto& d : whetstoneDiagnostics) {
-            whetArr.push_back({
-                {"uri", d.uri},
-                {"message", d.message},
-                {"severity", d.severity},
-                {"line", d.line},
-                {"character", d.character}
-            });
-        }
-
-        json emacsArr = json::array();
-        for (const auto& d : emacsDiagnostics) {
-            emacsArr.push_back({
-                {"uri", d.uri},
-                {"message", d.message},
-                {"severity", d.severity},
-                {"line", d.line},
-                {"character", d.character}
-            });
-        }
-
-        out["lsp"] = lspArr;
-        out["whetstone"] = whetArr;
-        out["emacs"] = emacsArr;
-        return out;
-    }
-
-    json processAgentRequest(const json& request, const std::string& sessionId) {
-        json response;
-        response["jsonrpc"] = "2.0";
-        response["id"] = request.contains("id") ? request["id"] : json(nullptr);
-
-        std::string method = request.value("method", "");
-        AgentRole role = getAgentRole(sessionId);
-        if (method == "getAST") {
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            response["result"] = {
-                {"ast", toJson(ast)},
-                {"annotationCount", countAnnotationNodes(ast)},
-                {"diagnostics", buildDiagnosticsJson()}
-            };
-            return response;
-        }
-
-        if (method == "generateCode") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string spec = params.value("spec", "");
-            bool preferImports = params.value("preferImports", true);
-
-            library.primitives.setRoot(ast);
-            library.primitives.setLanguage(active()->language);
-
-            AgentCodeGen gen;
-            library.primitives.setContextTags(library.semanticTags.inferTagsFromText(spec));
-            AgentCodeGenResult genRes = gen.generate(spec, library.primitives, active()->language, preferImports);
-            if (!genRes.node) {
-                response["error"] = {{"code", -32020}, {"message", "Code generation failed"}};
-                return response;
-            }
-
-            json nodeJson = toJson(genRes.node);
-            deleteTree(genRes.node);
-
-            response["result"] = {
-                {"node", nodeJson},
-                {"note", genRes.note},
-                {"usedSymbols", genRes.usedSymbols},
-                {"language", active()->language}
-            };
-            return response;
-        }
-
-        if (method == "setAgentRole") {
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string roleName = params.value("role", "linter");
-            AgentRole newRole = AgentPermissionPolicy::roleFromString(roleName);
-            setAgentRole(sessionId, newRole);
-            response["result"] = {
-                {"role", AgentPermissionPolicy::roleLabel(newRole)}
-            };
-            return response;
-        }
-
-        if (method == "startWorkflowRecording") {
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string name = params.value("name", "workflow");
-            agent.workflowRecorder.startRecording(name, sessionId, WorkflowRecorder::RecordingConfig{},
-                                                 buildSessionMetadata(false));
-            response["result"] = {
-                {"recording", true},
-                {"name", name}
-            };
-            return response;
-        }
-
-        if (method == "stopWorkflowRecording") {
-            response["result"] = agent.workflowRecorder.stopRecording();
-            return response;
-        }
-
-        if (method == "getWorkflowRecording") {
-            response["result"] = agent.workflowRecorder.exportWorkflow();
-            return response;
-        }
-
-        if (method == "replayWorkflow") {
-            auto params = request.contains("params") ? request["params"] : json::object();
-            if (!params.contains("workflow")) {
-                response["error"] = {{"code", -32602}, {"message", "Missing workflow payload"}};
-                return response;
-            }
-            WorkflowRecorder temp;
-            if (!temp.loadWorkflow(params["workflow"])) {
-                response["error"] = {{"code", -32602}, {"message", "Invalid workflow payload"}};
-                return response;
-            }
-            auto requests = temp.buildReplayRequests();
-            json results = json::array();
-            agent.workflowRecorder.setReplaying(true);
-            for (auto& req : requests) {
-                results.push_back(processAgentRequest(req, sessionId));
-            }
-            agent.workflowRecorder.setReplaying(false);
-            response["result"] = {
-                {"count", results.size()},
-                {"responses", results}
-            };
-            return response;
-        }
-
-        if (method == "getAnnotationSuggestions") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string nodeId = params.value("nodeId", "");
-            int line = params.value("line", -1);
-            int col = params.value("col", -1);
-
-            if (!nodeId.empty()) {
-                if (!findNodeById(ast, nodeId)) {
-                    response["error"] = {{"code", -32002}, {"message", "Node not found: " + nodeId}};
-                    return response;
-                }
-            } else if (line >= 0 && col >= 0) {
-                ASTNode* posNode = findNodeAtPosition(ast, line, col);
-                if (posNode) nodeId = posNode->id;
-            }
-
-            AgentAnnotationAssistant assistant;
-            auto result = assistant.suggest(ast, nodeId);
-
-            json suggArr = json::array();
-            for (const auto& s : result.suggestions) {
-                suggArr.push_back({
-                    {"nodeId", s.nodeId},
-                    {"annotationType", s.annotationType},
-                    {"strategy", s.strategy},
-                    {"reason", s.reason},
-                    {"confidence", s.confidence}
-                });
-            }
-
-            json diagArr = json::array();
-            for (const auto& d : result.diagnostics) {
-                diagArr.push_back({
-                    {"severity", d.severity},
-                    {"message", d.message},
-                    {"nodeId", d.nodeId}
-                });
-            }
-
-            response["result"] = {
-                {"scopeId", result.scopeNodeId},
-                {"suggestions", suggArr},
-                {"diagnostics", diagArr}
-            };
-            return response;
-        }
-
-        if (method == "applyAnnotationSuggestion") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = mutationAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-
-            auto params = request.contains("params") ? request["params"] : json::object();
-            MemoryStrategyInference::Suggestion suggestion;
-            suggestion.nodeId = params.value("nodeId", "");
-            suggestion.annotationType = params.value("annotationType", "");
-            suggestion.strategy = params.value("strategy", "");
-            suggestion.reason = params.value("reason", "");
-            suggestion.confidence = params.value("confidence", 0.0);
-
-            AgentAnnotationAssistant assistant;
-            auto res = assistant.applySuggestion(ast, suggestion);
-            if (!res.success) {
-                response["error"] = {{"code", -32010}, {"message", res.error}};
-                return response;
-            }
-
-            if (params.contains("accepted")) {
-                bool accepted = params.value("accepted", true);
-                assistant.recordFeedback(suggestion, accepted);
-            }
-
-            applyOrchestratorToActive();
-            if (active()) {
-                std::vector<std::string> affected;
-                if (!suggestion.nodeId.empty()) affected.push_back(suggestion.nodeId);
-                if (!suggestion.annotationType.empty() && !suggestion.nodeId.empty()) {
-                    affected.push_back("anno_" + suggestion.annotationType + "_" + suggestion.nodeId);
-                }
-                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-                active()->incrementalOptimizer.recordExternalTransform(
-                    "agent-annotation",
-                    affected,
-                    agentActorLabel(sessionId));
-            }
-            response["result"] = {
-                {"success", true},
-                {"warning", res.warning}
-            };
-            return response;
-        }
-
-        if (method == "recordAnnotationFeedback") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            MemoryStrategyInference::Suggestion suggestion;
-            suggestion.nodeId = params.value("nodeId", "");
-            suggestion.annotationType = params.value("annotationType", "");
-            suggestion.strategy = params.value("strategy", "");
-            suggestion.reason = params.value("reason", "");
-            suggestion.confidence = params.value("confidence", 0.0);
-
-            bool accepted = params.value("accepted", false);
-            AgentAnnotationAssistant assistant;
-            assistant.recordFeedback(suggestion, accepted);
-            response["result"] = true;
-            return response;
-        }
-
-        if (method == "applyMutation") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string type = params.value("type", "");
-            bool preferImports = params.value("preferImports", false);
-            bool strictMode = params.value("strictMode", false);
-            Module* ast = mutationAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            ASTMutationAPI mut;
-            mut.setRoot(ast);
-            ASTMutationAPI::MutationResult res;
-            LibraryPolicyResult policy;
-            std::vector<std::string> affectedIds;
-
-            if (type == "setProperty") {
-                std::string nodeId = params.value("nodeId", "");
-                if (!nodeId.empty()) affectedIds.push_back(nodeId);
-                res = mut.setProperty(params.value("nodeId", ""),
-                                      params.value("property", ""),
-                                      params.value("value", ""));
-            } else if (type == "updateNode") {
-                std::map<std::string, std::string> props;
-                if (params.contains("properties")) {
-                    for (auto& [k, v] : params["properties"].items()) {
-                        props[k] = v.get<std::string>();
-                    }
-                }
-                std::string nodeId = params.value("nodeId", "");
-                if (!nodeId.empty()) affectedIds.push_back(nodeId);
-                res = mut.updateNode(params.value("nodeId", ""), props);
-            } else if (type == "deleteNode") {
-                std::string nodeId = params.value("nodeId", "");
-                if (!nodeId.empty()) affectedIds.push_back(nodeId);
-                res = mut.deleteNode(params.value("nodeId", ""));
-            } else if (type == "insertNode") {
-                ASTNode* node = nullptr;
-                std::string insertedId;
-                if (params.contains("node")) {
-                    node = fromJson(params["node"]);
-                    if (node) insertedId = node->id;
-                }
-                if (node) {
-                    policy = checkMutationLibraryPolicy(node, ast, preferImports, strictMode);
-                    if (!policy.ok) {
-                        response["error"] = {{"code", -32011}, {"message", policy.error}};
-                        deleteTree(node);
-                        return response;
-                    }
-                }
-                res = mut.insertNode(params.value("parentId", ""),
-                                     params.value("role", ""), node);
-                if (!res.success && node) {
-                    deleteTree(node);
-                } else if (res.success && !insertedId.empty()) {
-                    affectedIds.push_back(insertedId);
-                }
-            } else {
-                response["error"] = {{"code", -32602}, {"message", "Unknown mutation type"}};
-                return response;
-            }
-
-            if (!res.success) {
-                response["error"] = {{"code", -32010}, {"message", res.error}};
-                return response;
-            }
-
-            applyOrchestratorToActive();
-            if (active()) {
-                if (affectedIds.empty() && !params.value("nodeId", "").empty()) {
-                    affectedIds.push_back(params.value("nodeId", ""));
-                }
-                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-                active()->incrementalOptimizer.recordExternalTransform(
-                    "agent-mutation:" + type,
-                    affectedIds,
-                    agentActorLabel(sessionId));
-            }
-            response["result"] = {
-                {"success", true},
-                {"warning", res.warning},
-                {"libraryWarning", policy.warning},
-                {"unknownFunctions", policy.unknownFunctions}
-            };
-            return response;
-        }
-
-        // --- Step 204: ContextAPI methods ---
-
-        if (method == "getInScopeSymbols") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string nodeId = params.value("nodeId", "");
-            if (nodeId.empty()) {
-                response["error"] = {{"code", -32602}, {"message", "Missing nodeId parameter"}};
-                return response;
-            }
-            ContextAPI ctx;
-            ctx.setRoot(ast);
-            auto symbols = ctx.getInScopeSymbols(nodeId);
-            json arr = json::array();
-            for (const auto& s : symbols) {
-                arr.push_back({{"name", s.name}, {"kind", s.kind}, {"nodeId", s.nodeId}});
-            }
-            response["result"] = {{"symbols", arr}};
-            return response;
-        }
-
-        if (method == "getCallHierarchy") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string functionId = params.value("functionId", "");
-            if (functionId.empty()) {
-                response["error"] = {{"code", -32602}, {"message", "Missing functionId parameter"}};
-                return response;
-            }
-            ContextAPI ctx;
-            ctx.setRoot(ast);
-            auto info = ctx.getCallHierarchy(functionId);
-            response["result"] = {
-                {"functionId", info.functionId},
-                {"functionName", info.functionName},
-                {"callerIds", info.callerIds},
-                {"calleeIds", info.calleeIds}
-            };
-            return response;
-        }
-
-        if (method == "getDependencyGraph") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string nodeId = params.value("nodeId", "");
-            if (nodeId.empty()) {
-                response["error"] = {{"code", -32602}, {"message", "Missing nodeId parameter"}};
-                return response;
-            }
-            ContextAPI ctx;
-            ctx.setRoot(ast);
-            auto deps = ctx.getDependencyGraph(nodeId);
-            response["result"] = {{"dependencies", deps}};
-            return response;
-        }
-
-        if (method == "applyBatch") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = mutationAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            if (!params.contains("mutations") || !params["mutations"].is_array()) {
-                response["error"] = {{"code", -32602}, {"message", "Missing mutations array"}};
-                return response;
-            }
-
-            BatchMutationAPI batch;
-            batch.setRoot(ast);
-            std::vector<BatchMutationAPI::Mutation> mutations;
-            std::vector<ASTNode*> ownedNodes; // track nodes we allocate for cleanup on error
-            for (const auto& m : params["mutations"]) {
-                BatchMutationAPI::Mutation mut;
-                mut.type = m.value("type", "");
-                mut.nodeId = m.value("nodeId", "");
-                mut.property = m.value("property", "");
-                mut.value = m.value("value", "");
-                mut.parentId = m.value("parentId", "");
-                mut.role = m.value("role", "");
-                if (m.contains("node")) {
-                    mut.newNode = fromJson(m["node"]);
-                    if (mut.newNode) ownedNodes.push_back(mut.newNode);
-                }
-                mutations.push_back(mut);
-            }
-            auto batchRes = batch.applySequence(mutations);
-            if (!batchRes.success) {
-                // Clean up any allocated nodes that weren't inserted
-                for (auto* n : ownedNodes) {
-                    if (n->parent == nullptr) deleteTree(n);
-                }
-                response["error"] = {{"code", -32010}, {"message", batchRes.error}};
-                return response;
-            }
-            applyOrchestratorToActive();
-            if (active()) {
-                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-                active()->incrementalOptimizer.recordExternalTransform(
-                    "agent-batch",
-                    {},
-                    agentActorLabel(sessionId));
-            }
-            response["result"] = {
-                {"success", true},
-                {"appliedCount", batchRes.appliedCount}
-            };
-            return response;
-        }
-
-        // --- Step 205: Pipeline methods ---
-
-        if (method == "runPipeline") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string source = params.value("source", "");
-            std::string srcLang = params.value("sourceLanguage", "");
-            std::string tgtLang = params.value("targetLanguage", "");
-            if (source.empty() || srcLang.empty() || tgtLang.empty()) {
-                response["error"] = {{"code", -32602}, {"message", "Missing source, sourceLanguage, or targetLanguage"}};
-                return response;
-            }
-            Pipeline pipeline;
-            auto pr = pipeline.run(source, srcLang, tgtLang);
-            json diagArr = json::array();
-            for (const auto& d : pr.parseDiags) {
-                diagArr.push_back({{"line", d.line}, {"column", d.column}, {"message", d.message}, {"severity", d.severity}});
-            }
-            json valDiagArr = json::array();
-            for (const auto& d : pr.validationDiags) {
-                valDiagArr.push_back({{"severity", d.severity}, {"message", d.message}, {"nodeId", d.nodeId}});
-            }
-            json violArr = json::array();
-            for (const auto& v : pr.violations) {
-                violArr.push_back({{"type", v.type}, {"message", v.message}, {"nodeId", v.nodeId}});
-            }
-            json suggArr = json::array();
-            for (const auto& s : pr.suggestions) {
-                suggArr.push_back({
-                    {"nodeId", s.nodeId}, {"annotationType", s.annotationType},
-                    {"strategy", s.strategy}, {"reason", s.reason}, {"confidence", s.confidence}
-                });
-            }
-            response["result"] = {
-                {"success", pr.success},
-                {"generatedCode", pr.generatedCode},
-                {"parseDiagnostics", diagArr},
-                {"validationDiagnostics", valDiagArr},
-                {"violations", violArr},
-                {"suggestions", suggArr},
-                {"foldCount", pr.foldResult.transformCount},
-                {"dceCount", pr.dceResult.transformCount}
-            };
-            if (pr.ast) {
-                response["result"]["ast"] = toJson(pr.ast.get());
-            }
-            return response;
-        }
-
-        if (method == "parseSource") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string source = params.value("source", "");
-            std::string language = params.value("language", "");
-            if (source.empty() || language.empty()) {
-                response["error"] = {{"code", -32602}, {"message", "Missing source or language"}};
-                return response;
-            }
-            Pipeline pipeline;
-            std::vector<ParseDiagnostic> diags;
-            auto mod = pipeline.parse(source, language, diags);
-            json diagArr = json::array();
-            for (const auto& d : diags) {
-                diagArr.push_back({{"line", d.line}, {"column", d.column}, {"message", d.message}, {"severity", d.severity}});
-            }
-            json result = {{"diagnostics", diagArr}};
-            if (mod) {
-                result["ast"] = toJson(mod.get());
-            }
-            response["result"] = result;
-            return response;
-        }
-
-        if (method == "generateFromAST") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string language = params.value("language", active()->language);
-            Pipeline pipeline;
-            std::string code = pipeline.generate(ast, language);
-            response["result"] = {{"code", code}, {"language", language}};
-            return response;
-        }
-
-        if (method == "projectLanguage") {
-            if (!AgentPermissionPolicy::canInvoke(role, method)) {
-                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
-                return response;
-            }
-            if (!active() || !isStructured()) {
-                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
-                return response;
-            }
-            Module* ast = activeAST();
-            if (!ast) {
-                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
-                return response;
-            }
-            auto params = request.contains("params") ? request["params"] : json::object();
-            std::string targetLanguage = params.value("targetLanguage", "");
-            if (targetLanguage.empty()) {
-                response["error"] = {{"code", -32602}, {"message", "Missing targetLanguage"}};
-                return response;
-            }
-            CrossLanguageProjector projector;
-            auto projected = projector.project(ast, targetLanguage);
-            if (!projected) {
-                response["error"] = {{"code", -32020}, {"message", "Projection failed"}};
-                return response;
-            }
-            Pipeline pipeline;
-            std::string code = pipeline.generate(projected.get(), targetLanguage);
-            response["result"] = {
-                {"ast", toJson(projected.get())},
-                {"generatedCode", code},
-                {"sourceLanguage", active()->language},
-                {"targetLanguage", targetLanguage}
-            };
-            return response;
-        }
-
-        response["error"] = {{"code", -32601}, {"message", "Method not found"}};
-        return response;
-    }
-
-    void syncOrchestratorFromActive() {
-        if (!active()) return;
-        if (!isStructured()) return;
-        Module* ast = active()->sync.getAST();
-        if (!ast) return;
-        active()->orchestrator.setAST(cloneModule(ast));
-        active()->orchestratorDirty = false;
-    }
-
-    void applyOrchestratorToActive() {
-        if (!active()) return;
-        if (!isStructured()) return;
-        Module* ast = active()->orchestrator.getAST();
-        if (!ast) return;
-        active()->sync.setAST(cloneModule(ast));
-        active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-        refreshActiveTextFromAST();
-        active()->orchestratorDirty = false;
-        recordUndoSnapshot();
-    }
-
-    Module* mutationAST() {
-        if (!active()) return nullptr;
-        if (!isStructured()) return nullptr;
-        if (active()->orchestratorDirty || !active()->orchestrator.getAST()) {
-            syncOrchestratorFromActive();
-        }
-        return active()->orchestrator.getAST();
-    }
-
-    void recordUndoSnapshot() {
-        if (!active()) return;
-        Module* ast = isStructured() ? active()->sync.getAST() : nullptr;
-        active()->orchestrator.recordSnapshot(active()->editBuf, ast);
-        active()->undoDepth = active()->orchestrator.getUndoDepth();
-    }
-
-    void applySnapshotToActive(const std::string& text, std::unique_ptr<Module> ast) {
-        if (!active()) return;
-        active()->editBuf = text;
-        active()->editor.setContent(active()->editBuf, active()->language);
-        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
-            if (ast) {
-                active()->orchestrator.setAST(cloneModule(ast.get()));
-                active()->sync.setAST(std::move(ast));
-            } else {
-                active()->sync.setText(active()->editBuf, active()->language);
-                active()->sync.syncNow();
-                active()->orchestrator.setAST(cloneModule(active()->sync.getAST()));
-            }
-            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-        }
-        active()->orchestratorDirty = false;
-        active()->highlightsDirty = true;
-        active()->highlightRequestTime = ImGui::GetTime();
-        active()->generatedHighlightsDirty = true;
-        active()->modified = true;
-        queueLspDidChange();
-    }
+                      bool deferAstSync = false);
+    BufferManager::BufferMode defaultBufferMode() const;
+
+    bool jumpToDefinitionLocation(const LSPClient::DefinitionLocation& loc);
+
+    bool goToDefinitionFallback(int lineZero, int colZero);
+
+    bool goToDefinitionAt(int lineZero, int colZero);
+
+    bool previewDefinitionAt(int lineZero, int colZero, std::string& outLabel);
+
+    void switchToBuffer(const std::string& path);
+
+    static std::string osLabel();
+
+    std::string detectProjectType() const;
+
+    json buildSessionMetadata(bool autoRecording) const;
+
+    void startSessionRecording(const std::string& name, bool autoRecording);
+
+    void stopSessionRecording();
+
+    void toggleSessionRecording();
+
+    static std::string uiEventLabel(UIEventType type);
+
+    void recordUIEvent(const UIEvent& ev);
+
+    void recordEditorEvent(const std::string& type, const json& payload);
+
+    std::filesystem::path configDir() const;
+
+    std::filesystem::path recentFilePath() const;
+
+    void loadRecentFiles();
+
+    void saveRecentFiles();
+
+    void closeAllBuffers();
+
+    bool renameBufferPath(const std::string& oldPath, const std::string& newPath);
+
+    bool saveProject(const std::string& path);
+
+    bool loadProject(const std::string& path);
+
+    std::filesystem::path sessionFilePath() const;
+
+    std::filesystem::path settingsFilePath() const;
+
+    bool saveSession(const std::string& imguiIni);
+
+    bool loadSession(SessionData& out);
+
+    void applySession(const SessionData& session);
+
+    void applyTabSizeToBuffers(int size);
+
+    void setActiveBufferMode(BufferManager::BufferMode mode);
+
+    void queueLspDidChange();
+
+    void flushLspDidChange(double nowSeconds);
+
+    void flushDeferredAstSync(double nowSeconds);
+
+    bool hasSidePanels() const;
+
+    void cyclePanelFocus();
+
+    void applySettingsToState();
+
+    void loadSettingsFromDisk();
+
+    void saveSettingsToDisk();
+
+    void init();
+
+    std::string orgTempExtension(const std::string& language) const;
+
+    std::string writeOrgTempFile(const std::string& language, const std::string& code);
+
+    std::string runOrgBlock(const std::string& language, const std::string& code);
+
+    void startEmacsDaemonFromSettings();
+
+    std::string resolveEmacsInitPath() const;
+
+    void addEmacsLogDiagnostics(const std::string& log);
+
+    void initAgentServer();
+
+    void shutdownAgentServer();
+
+    void logAgentEvent(const std::string& msg);
+
+    AgentRole getAgentRole(const std::string& sessionId) const;
+
+    void setAgentRole(const std::string& sessionId, AgentRole role);
+
+    std::string agentActorLabel(const std::string& sessionId) const;
+
+    void refreshBuildSystem();
+
+    int runBuildCommand(const BuildCommand& cmd);
+
+    void pollLspMessages();
+
+    void requestLibraryIndex();
+
+    void processLibraryIndexResponses();
+
+    void updateEmacsFunctionIndex();
+
+    void rebuildExternalModulesFromIndex();
+
+    json buildDiagnosticsJson() const;
+
+    json processAgentRequest(const json& request, const std::string& sessionId);
+
+
+    void syncOrchestratorFromActive();
+
+    void applyOrchestratorToActive();
+
+    Module* mutationAST();
+
+    void recordUndoSnapshot();
+
+    void applySnapshotToActive(const std::string& text, std::unique_ptr<Module> ast);
 
     void registerCommand(const std::string& id,
                          const std::string& label,
                          const std::string& shortcut,
                          const std::string& category,
                          int contextMask,
-                         std::function<void()> fn) {
-        commandPalette.registerCommand(id, label, shortcut, category, contextMask, "", false);
-        commandHandlers[id] = [fn](const std::string&) { fn(); };
-    }
+                         std::function<void()> fn);
 
     void registerCommand(const std::string& id,
                          const std::string& label,
@@ -2259,845 +495,105 @@ struct EditorState {
                          const std::string& category,
                          int contextMask,
                          const std::string& inputHint,
-                         std::function<void(const std::string&)> fn) {
-        commandPalette.registerCommand(id, label, shortcut, category, contextMask, inputHint, true);
-        commandHandlers[id] = std::move(fn);
-    }
+                         std::function<void(const std::string&)> fn);
 
-    void registerCommands() {
-        commandPalette = CommandPalette();
-        commandHandlers.clear();
+    void registerCommands();
 
-        registerCommand("file.new", "File: New File",
-                        keys.getBinding("file.new").toString(),
-                        "File", CommandContext_Editor,
-                        [this]() {
-                            std::string lang = active() ? active()->language : "python";
-                            createBuffer(makeUntitledName(), "", lang);
-                        });
-        registerCommand("file.open", "File: Open...",
-                        keys.getBinding("file.open").toString(),
-                        "File", CommandContext_Editor,
-                        [this]() {
-                            std::string path = FileDialog::openFile(
-                                {"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go"},
-                                 std::string()});
-                            if (!path.empty()) doOpen(path);
-                        });
-        registerCommand("file.save", "File: Save",
-                        keys.getBinding("file.save").toString(),
-                        "File", CommandContext_Editor,
-                        [this]() { doSave(); });
-        registerCommand("project.open", "Project: Open...",
-                        "",
-                        "Project", CommandContext_Editor,
-                        [this]() {
-                            std::string path = FileDialog::openFile(
-                                {"Open Project", {"*.whetstone"}, std::string()});
-                            if (!path.empty()) {
-                                if (!loadProject(path)) {
-                                    notify(NotificationLevel::Error,
-                                           "Failed to open project: " + path);
-                                }
-                            }
-                        });
-        registerCommand("project.save", "Project: Save...",
-                        "",
-                        "Project", CommandContext_Editor,
-                        [this]() {
-                            std::string path = FileDialog::saveFile(
-                                {"Save Project", {"*.whetstone"}, std::string()});
-                            if (!path.empty()) {
-                                if (!saveProject(path)) {
-                                    notify(NotificationLevel::Error,
-                                           "Failed to save project: " + path);
-                                }
-                            }
-                        });
-        registerCommand("edit.undo", "Edit: Undo",
-                        keys.getBinding("edit.undo").toString(),
-                        "Edit", CommandContext_Editor,
-                        [this]() { doUndo(); });
-        registerCommand("edit.redo", "Edit: Redo",
-                        keys.getBinding("edit.redo").toString(),
-                        "Edit", CommandContext_Editor,
-                        [this]() { doRedo(); });
-        registerCommand("search.find", "Search: Find/Replace",
-                        keys.getBinding("search.find").toString(),
-                        "Search", CommandContext_Editor,
-                        [this]() {
-                            search.showFind = true;
-                            search.showReplace = false;
-                        });
-        registerCommand("search.replace", "Search: Replace",
-                        keys.getBinding("search.replace").toString(),
-                        "Search", CommandContext_Editor,
-                        [this]() {
-                            search.showFind = true;
-                            search.showReplace = true;
-                        });
-        registerCommand("search.findNext", "Search: Find Next",
-                        keys.getBinding("search.findNext").toString(),
-                        "Search", CommandContext_Editor,
-                        [this]() { doFindNext(false); });
-        registerCommand("search.findPrev", "Search: Find Previous",
-                        keys.getBinding("search.findPrev").toString(),
-                        "Search", CommandContext_Editor,
-                        [this]() { doFindNext(true); });
-        registerCommand("search.findInFiles", "Search: Find in Files",
-                        keys.getBinding("search.findInFiles").toString(),
-                        "Search", CommandContext_Search,
-                        [this]() { search.showProjectSearch = !search.showProjectSearch; });
-        registerCommand("nav.goToLine", "Navigate: Go to Line",
-                        keys.getBinding("nav.goToLine").toString(),
-                        "Navigate", CommandContext_Editor, "line[:col]",
-                        [this](const std::string& arg) {
-                            if (!arg.empty()) {
-                                int line = 0;
-                                int col = 0;
-                                if (parseLineColInput(arg, line, col)) {
-                                    if (active()) {
-                                        int totalLines = countLines(active()->editBuf);
-                                        if (totalLines > 0) line = std::max(1, std::min(line, totalLines));
-                                        col = std::max(1, col);
-                                        jumpTo(active(), line - 1, col - 1);
-                                    }
-                                } else {
-                                    notify(NotificationLevel::Warning, "Go to Line: invalid input.");
-                                }
-                                return;
-                            }
-                            search.showGoToLine = true;
-                            search.goToLineBuf[0] = '\0';
-                            search.goToLineError = false;
-                        });
-        registerCommand("view.whitespace", "View: Toggle Whitespace", "",
-                        "View", CommandContext_Editor,
-                        [this]() { ui.showWhitespace = !ui.showWhitespace; });
-        registerCommand("view.minimap", "View: Toggle Minimap", "",
-                        "View", CommandContext_Editor,
-                        [this]() { ui.showMinimap = !ui.showMinimap; });
-        registerCommand("view.annotations", "View: Toggle Annotations", "",
-                        "View", CommandContext_Editor,
-                        [this]() { ui.showAnnotations = !ui.showAnnotations; });
-        registerCommand("view.outline", "View: Toggle Outline", "",
-                        "View", CommandContext_Editor,
-                        [this]() { ui.showOutline = !ui.showOutline; });
-        registerCommand("view.toggleTerminal", "View: Toggle Terminal",
-                        keys.getBinding("view.toggleTerminal").toString(),
-                        "View", CommandContext_Terminal,
-                        [this]() { build.showTerminalPanel = !build.showTerminalPanel; });
-        registerCommand("view.lsp", "View: LSP Servers...", "",
-                        "View", CommandContext_Settings,
-                        [this]() { ui.showLspSettings = !ui.showLspSettings; });
-        registerCommand("mode.toggle", "Mode: Toggle Text/Structured", "",
-                        "Mode", CommandContext_Editor,
-                        [this]() {
-                            if (!active()) return;
-                            active()->bufferMode = active()->bufferMode == BufferManager::BufferMode::Text ?
-                                BufferManager::BufferMode::Structured : BufferManager::BufferMode::Text;
-                            buffers.setBufferMode(active()->path, active()->bufferMode);
-                            if (active()->bufferMode == BufferManager::BufferMode::Text) {
-                                suggestions.clear();
-                                whetstoneDiagnostics.clear();
-                                analysisPending = false;
-                            } else {
-                                onTextChanged();
-                            }
-                        });
-        registerCommand("refactor.rename", "Refactor: Rename Variable", "",
-                        "Refactor", CommandContext_Editor,
-                        [this]() {
-                            refactorAction = 1;
-                            showRefactorPopup = true;
-                            refactorNameA[0] = '\0';
-                            refactorNameB[0] = '\0';
-                        });
-        registerCommand("refactor.extract", "Refactor: Extract Function", "",
-                        "Refactor", CommandContext_Editor,
-                        [this]() {
-                            refactorAction = 2;
-                            showRefactorPopup = true;
-                            refactorNameA[0] = '\0';
-                            refactorNameB[0] = '\0';
-                        });
-        registerCommand("refactor.inline", "Refactor: Inline Variable", "",
-                        "Refactor", CommandContext_Editor,
-                        [this]() {
-                            refactorAction = 3;
-                            showRefactorPopup = true;
-                            refactorNameA[0] = '\0';
-                            refactorNameB[0] = '\0';
-                        });
-        registerCommand("wizard.annotate", "Wizard: Annotate File", "",
-                        "Workflow", CommandContext_Editor,
-                        [this]() { ui.showAnnotateWizard = true; });
-        registerCommand("wizard.project", "Wizard: Cross-Language Project", "",
-                        "Workflow", CommandContext_Editor,
-                        [this]() { ui.showProjectWizard = true; });
-        registerCommand("wizard.agent", "Wizard: Connect Agent", "",
-                        "Workflow", CommandContext_Editor,
-                        [this]() { ui.showAgentWizard = true; });
-        registerCommand("build.run", "Build: Run", keys.getBinding("build.run").toString(),
-                        "Build", CommandContext_Terminal,
-                        [this]() { runActiveFile(false); });
-        registerCommand("build.build", "Build: Build", keys.getBinding("build.build").toString(),
-                        "Build", CommandContext_Terminal,
-                        [this]() { runActiveFile(true); });
-    }
+    void executeCommand(const std::string& id, const std::string& arg = {});
 
-    void executeCommand(const std::string& id, const std::string& arg = {}) {
-        auto it = commandHandlers.find(id);
-        if (it == commandHandlers.end()) return;
-        it->second(arg);
-        commandPalette.markUsed(id);
-    }
+    void setLanguage(const std::string& lang);
 
-    void setLanguage(const std::string& lang) {
-        if (!active()) return;
-        std::string prevLang = active()->language;
-        active()->language = lang;
-        active()->mode.setLanguage(lang);
-        if (activeAST()) {
-            library.primitives.setRoot(activeAST());
-        }
-        library.primitives.setLanguage(lang);
-        if (active()->generatedLanguage == prevLang) {
-            active()->generatedLanguage = lang;
-            active()->generatedMode.setLanguage(lang);
-            active()->generatedHighlightsDirty = true;
-        }
-        active()->editor.setContent(active()->editBuf, lang);
-        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
-            active()->sync.setText(active()->editBuf, lang);
-            active()->sync.syncNow();
-            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-        }
-        active()->orchestratorDirty = true;
-        active()->highlightsDirty = true;
-        if (lang == "elisp") {
-            emacsState.emacsFunctionIndexDirty = true;
-        }
-        if (lang == "org") {
-            active()->bufferMode = BufferManager::BufferMode::Text;
-            buffers.setBufferMode(active()->path, active()->bufferMode);
-        }
-        events.publishDebounced(UIEventType::ASTChanged,
-                                active()->path,
-                                {},
-                                ImGui::GetTime(),
-                                0.1);
-    }
+    bool handleEmacsKeyChord(const std::string& chord);
 
-    bool handleEmacsKeyChord(const std::string& chord) {
-        if (ui.layoutPreset != LayoutPreset::Emacs) return false;
-        return emacsHandleKeySequence(emacsState.emacsKeys, emacsState.emacs, chord, notifications);
-    }
+    void refreshEmacsModeLine(double nowSeconds);
 
-    void refreshEmacsModeLine(double nowSeconds) {
-        if (ui.layoutPreset != LayoutPreset::Emacs) return;
-        updateEmacsModeLine(emacsState.emacsKeys, emacsState.emacs, nowSeconds, notifications);
-    }
+    void pullFromEmacs();
 
-    void pullFromEmacs() {
-        if (!active()) return;
-        if (active()->path.rfind("(untitled", 0) == 0) {
-            notify(NotificationLevel::Warning, "[emacs] Save file before syncing.");
-            return;
-        }
-        std::string text = emacsState.emacs.getBufferText(active()->path);
-        if (!emacsState.emacs.getLastError().empty() && text == "error") {
-            notify(NotificationLevel::Error,
-                   "[emacs] " + emacsState.emacs.getLastError());
-            return;
-        }
-        active()->editBuf = text;
-        onTextChanged();
-        notify(NotificationLevel::Success, "[emacs] Pulled buffer from Emacs.");
-    }
+    void pushToEmacs();
 
-    void pushToEmacs() {
-        if (!active()) return;
-        if (active()->path.rfind("(untitled", 0) == 0) {
-            notify(NotificationLevel::Warning, "[emacs] Save file before syncing.");
-            return;
-        }
-        if (!emacsState.emacs.setBufferText(active()->path, active()->editBuf)) {
-            notify(NotificationLevel::Error,
-                   "[emacs] " + emacsState.emacs.getLastError());
-            return;
-        }
-        notify(NotificationLevel::Success, "[emacs] Pushed buffer to Emacs.");
-    }
-
-    void openInEmacsFrame() {
-        if (!active()) return;
-        if (active()->path.rfind("(untitled", 0) == 0) {
-            notify(NotificationLevel::Warning,
-                   "[emacs] Save file before opening in Emacs.");
-            return;
-        }
-        if (!emacsState.emacs.openFileInEmacsFrame(active()->path)) {
-            notify(NotificationLevel::Error,
-                   "[emacs] " + emacsState.emacs.getLastError());
-            return;
-        }
-        notify(NotificationLevel::Success, "[emacs] Opened in Emacs frame.");
-    }
+    void openInEmacsFrame();
 
     std::string buildRunCommand(const std::string& path,
                                 const std::string& language,
-                                bool buildOnly) const {
-        std::filesystem::path p(path);
-        std::string ext = p.extension().string();
-        std::string quoted = "\"" + path + "\"";
-        if (language == "python" || ext == ".py") {
-            return buildOnly ? "python -m py_compile " + quoted : "python " + quoted;
-        }
-        if (language == "cpp" || ext == ".cpp" || ext == ".cc" || ext == ".cxx") {
-            std::string out = (p.parent_path() / p.stem()).string();
-#ifdef _WIN32
-            out += ".exe";
-#endif
-            std::string compile = "g++ " + quoted + " -std=c++20 -o \"" + out + "\"";
-            if (buildOnly) return compile;
-            return compile + " && \"" + out + "\"";
-        }
-        if (language == "rust" || ext == ".rs") {
-            return buildOnly ? "cargo build" : "cargo run";
-        }
-        if (language == "go" || ext == ".go") {
-            return buildOnly ? "go build " + quoted : "go run " + quoted;
-        }
-        if (language == "javascript" || ext == ".js") {
-            return buildOnly ? "node --check " + quoted : "node " + quoted;
-        }
-        if (language == "typescript" || ext == ".ts") {
-            return buildOnly ? "tsc " + quoted : "node " + quoted;
-        }
-        return "";
-    }
+                                bool buildOnly) const;
 
-    bool runActiveFile(bool buildOnly) {
-        if (!active()) return false;
-        if (active()->path.rfind("(untitled", 0) == 0) {
-            build.terminal.append("[terminal] Save the file before running.\n");
-            build.showTerminalPanel = true;
-            return false;
-        }
-        if (active()->modified) {
-            doSave();
-        }
-        std::string cmd = buildRunCommand(active()->path, active()->language, buildOnly);
-        if (cmd.empty()) {
-            build.terminal.append("[terminal] No runner for language: " + active()->language + "\n");
-            build.showTerminalPanel = true;
-            return false;
-        }
-        std::string cwd = workspaceRoot.empty()
-            ? std::filesystem::path(active()->path).parent_path().string()
-            : workspaceRoot;
-        build.showTerminalPanel = true;
-        build.runInProgress = true;
-        build.hasRunResult = false;
-        build.lastRunCommand = cmd;
-        int code = build.terminal.runAndAppend(cwd, cmd);
-        build.terminal.append("[exit code: " + std::to_string(code) + "]\n");
-        build.runInProgress = false;
-        build.hasRunResult = true;
-        build.lastRunExitCode = code;
-        return code == 0;
-    }
+    bool runActiveFile(bool buildOnly);
 
     // Called after editBuf changes (from ImGui input)
-    void onTextChanged() {
-        if (!active()) return;
-        active()->editor.setContent(active()->editBuf, active()->language);
-        if (active()->bufferMode == BufferManager::BufferMode::Structured) {
-            active()->sync.setText(active()->editBuf, active()->language);
-            active()->sync.syncNow();
-            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-        }
-        active()->orchestratorDirty = true;
-        active()->highlightsDirty = true;
-        active()->highlightRequestTime = ImGui::GetTime();
-        active()->generatedHighlightsDirty = true;
-        active()->modified = true;
-        queueLspDidChange();
-        events.publish(UIEventType::FileModified, active()->path, {}, ImGui::GetTime());
-        events.publishDebounced(UIEventType::ASTChanged,
-                                active()->path,
-                                {},
-                                ImGui::GetTime(),
-                                0.15);
-        recordUndoSnapshot();
-    }
+    void onTextChanged();
 
-    void doUndo() {
-        if (!active()) return;
-        std::string text;
-        std::unique_ptr<Module> ast;
-        if (active()->orchestrator.undoSnapshot(text, ast)) {
-            applySnapshotToActive(text, std::move(ast));
-        }
-        active()->undoDepth = active()->orchestrator.getUndoDepth();
-    }
+    void doUndo();
 
-    void doRedo() {
-        if (!active()) return;
-        std::string text;
-        std::unique_ptr<Module> ast;
-        if (active()->orchestrator.redoSnapshot(text, ast)) {
-            applySnapshotToActive(text, std::move(ast));
-        }
-        active()->undoDepth = active()->orchestrator.getUndoDepth();
-    }
+    void doRedo();
 
-    SearchOptions currentSearchOptions() const {
-        SearchOptions opts;
-        opts.matchCase = search.matchCase;
-        opts.wholeWord = search.wholeWord;
-        opts.useRegex = search.useRegex;
-        return opts;
-    }
+    SearchOptions currentSearchOptions() const;
 
-    void addSearchHistory(const std::string& query) {
-        if (query.empty()) return;
-        auto it = std::find(search.findHistory.begin(), search.findHistory.end(), query);
-        if (it != search.findHistory.end()) {
-            search.findHistory.erase(it);
-        }
-        search.findHistory.insert(search.findHistory.begin(), query);
-        if (search.findHistory.size() > 10) {
-            search.findHistory.resize(10);
-        }
-    }
+    void addSearchHistory(const std::string& query);
 
-    bool selectionRange(int& outStart, int& outEnd) {
-        if (!active()) return false;
-        if (!active()->widget.hasSelectionRange()) return false;
-        active()->widget.getSelectionRange(outStart, outEnd);
-        return outStart >= 0 && outEnd > outStart;
-    }
+    bool selectionRange(int& outStart, int& outEnd);
 
-    void refreshSearchMatches() {
-        search.matches.clear();
-        search.currentMatchIndex = -1;
-        if (!active()) return;
-        std::string query = search.findBuf;
-        if (query.empty()) return;
-        int rangeStart = 0;
-        int rangeEnd = (int)active()->editBuf.size();
-        if (search.findInSelection) {
-            int selStart = -1;
-            int selEnd = -1;
-            if (selectionRange(selStart, selEnd)) {
-                rangeStart = selStart;
-                rangeEnd = selEnd;
-            }
-        }
-        search.matches = SearchUtils::collectMatches(active()->editBuf,
-                                                     query,
-                                                     currentSearchOptions(),
-                                                     rangeStart,
-                                                     rangeEnd);
-    }
+    void refreshSearchMatches();
 
-    bool moveToMatchIndex(int index) {
-        if (!active()) return false;
-        if (index < 0 || index >= (int)search.matches.size()) return false;
-        const auto& match = search.matches[index];
-        active()->widget.setSelectionRange(match.start, match.end);
-        active()->widget.setCursor(match.end);
-        updateCursorPos(match.start);
-        search.currentMatchIndex = index;
-        search.lastFindPos = match.end;
-        search.pulseLine = match.line;
-        search.pulseStart = ImGui::GetTime();
-        return true;
-    }
+    bool moveToMatchIndex(int index);
 
-    void doFindNext(bool backwards = false) {
-        if (!active()) return;
-        if (strlen(search.findBuf) == 0) return;
-        refreshSearchMatches();
-        if (search.matches.empty()) {
-            search.lastFindPos = 0;
-            search.pulseLine = -1;
-            search.pulseStart = 0.0;
-            notify(NotificationLevel::Warning,
-                   "\"" + std::string(search.findBuf) + "\" not found.");
-            return;
-        }
+    void doFindNext(bool backwards = false);
 
-        int cursorPos = active()->widget.getCursor();
-        int chosenIndex = -1;
-        if (backwards) {
-            for (int i = (int)search.matches.size() - 1; i >= 0; --i) {
-                if (search.matches[i].end < cursorPos) {
-                    chosenIndex = i;
-                    break;
-                }
-            }
-            if (chosenIndex < 0) chosenIndex = (int)search.matches.size() - 1;
-        } else {
-            for (int i = 0; i < (int)search.matches.size(); ++i) {
-                if (search.matches[i].start > cursorPos) {
-                    chosenIndex = i;
-                    break;
-                }
-            }
-            if (chosenIndex < 0) chosenIndex = 0;
-        }
+    void doReplaceCurrent();
 
-        if (moveToMatchIndex(chosenIndex)) {
-            addSearchHistory(search.findBuf);
-            const auto& m = search.matches[chosenIndex];
-            NotificationTarget target;
-            target.path = active()->path;
-            target.line = m.line;
-            target.col = m.col;
-            notify(NotificationLevel::Info,
-                   "Found \"" + std::string(search.findBuf) + "\" at line " +
-                   std::to_string(m.line + 1) + ", col " + std::to_string(m.col + 1),
-                   target);
-        }
-    }
+    void doFind();
 
-    void doReplaceCurrent() {
-        if (!active()) return;
-        if (strlen(search.findBuf) == 0) return;
-        refreshSearchMatches();
-        if (search.matches.empty()) {
-            notify(NotificationLevel::Warning,
-                   "\"" + std::string(search.findBuf) + "\" not found.");
-            return;
-        }
+    void doReplaceAll();
 
-        int index = search.currentMatchIndex;
-        if (index < 0 || index >= (int)search.matches.size()) {
-            int cursorPos = active()->widget.getCursor();
-            for (int i = 0; i < (int)search.matches.size(); ++i) {
-                if (search.matches[i].start >= cursorPos) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index < 0) index = 0;
-        }
-
-        const auto& match = search.matches[index];
-        std::string replacement = SearchUtils::applyReplacement(match.matchText,
-                                                                search.findBuf,
-                                                                search.replaceBuf,
-                                                                currentSearchOptions());
-        active()->editBuf.replace(match.start, match.end - match.start, replacement);
-        onTextChanged();
-        active()->widget.setCursor(match.start + (int)replacement.size());
-        updateCursorPos(match.start + (int)replacement.size());
-        addSearchHistory(search.findBuf);
-    }
-
-    void doFind() {
-        doFindNext(false);
-    }
-
-    void doReplaceAll() {
-        if (!active()) return;
-        if (strlen(search.findBuf) == 0) return;
-        int rangeStart = 0;
-        int rangeEnd = (int)active()->editBuf.size();
-        if (search.findInSelection) {
-            int selStart = -1;
-            int selEnd = -1;
-            if (selectionRange(selStart, selEnd)) {
-                rangeStart = selStart;
-                rangeEnd = selEnd;
-            }
-        }
-        int count = 0;
-        std::string replaced = SearchUtils::replaceAll(active()->editBuf,
-                                                       search.findBuf,
-                                                       search.replaceBuf,
-                                                       currentSearchOptions(),
-                                                       rangeStart,
-                                                       rangeEnd,
-                                                       count);
-        if (count > 0) {
-            active()->editBuf = replaced;
-            onTextChanged();
-        }
-        addSearchHistory(search.findBuf);
-        notify(NotificationLevel::Info,
-               "Replaced " + std::to_string(count) + " occurrence(s).");
-    }
-
-    void doSave() {
-        if (!active()) return;
-        if (active()->path.rfind("(untitled", 0) == 0) return;
-        std::ofstream out(active()->path);
-        if (out.is_open()) {
-            out << active()->editBuf;
-            out.close();
-            active()->modified = false;
-            notify(NotificationLevel::Success,
-                   "Saved: " + active()->path);
-            recordEditorEvent("file_saved", {{"path", active()->path}});
-            if (lsp) lsp->didSave(toFileUri(active()->path), active()->editBuf);
-        } else {
-            notify(NotificationLevel::Error,
-                   "Error saving: " + active()->path);
-        }
-    }
+    void doSave();
 
     void doOpen(const std::string& path,
-                BufferManager::BufferMode modeOverride = BufferManager::BufferMode::Structured,
-                bool deferAstSync = false) {
-        std::error_code sizeErr;
-        size_t fileSizeBytes = 0;
-        if (!path.empty()) {
-            auto bytes = std::filesystem::file_size(path, sizeErr);
-            if (!sizeErr) fileSizeBytes = static_cast<size_t>(bytes);
-        }
-        const size_t mb = 1024 * 1024;
-        const size_t warnBytes = (size_t)std::max(1, settings.getLargeFileWarnMB()) * mb;
-        const size_t textBytes = (size_t)std::max(1, settings.getLargeFileTextMB()) * mb;
-        const size_t disableHlBytes =
-            (size_t)std::max(1, settings.getLargeFileDisableHighlightMB()) * mb;
-        bool warnLarge = fileSizeBytes >= warnBytes;
-        bool autoText = fileSizeBytes >= textBytes;
-        bool disableHighlight = fileSizeBytes >= disableHlBytes;
-        bool largeFileMode = disableHighlight;
-        BufferManager::BufferMode effectiveMode = modeOverride;
-        if (autoText && modeOverride == BufferManager::BufferMode::Structured) {
-            effectiveMode = BufferManager::BufferMode::Text;
-        }
-        std::ifstream in(path);
-        if (in.is_open()) {
-            std::ostringstream ss;
-            ss << in.rdbuf();
-            std::string content = ss.str();
-            std::string language = "python";
-            if (path.size() > 3 && path.substr(path.size() - 3) == ".py")
-                language = "python";
-            else if (path.size() > 4 && path.substr(path.size() - 4) == ".cpp")
-                language = "cpp";
-            else if (path.size() > 2 && path.substr(path.size() - 2) == ".h")
-                language = "cpp";
-            else if (path.size() > 3 && path.substr(path.size() - 3) == ".el")
-                language = "elisp";
-            else if (path.size() > 3 && path.substr(path.size() - 3) == ".js")
-                language = "javascript";
-            else if (path.size() > 3 && path.substr(path.size() - 3) == ".ts")
-                language = "typescript";
-            else if (path.size() > 5 && path.substr(path.size() - 5) == ".java")
-                language = "java";
-            else if (path.size() > 3 && path.substr(path.size() - 3) == ".rs")
-                language = "rust";
-            else if (path.size() > 3 && path.substr(path.size() - 3) == ".go")
-                language = "go";
-            else if (path.size() > 4 && path.substr(path.size() - 4) == ".org")
-                language = "org";
-            createBuffer(path, content, language, effectiveMode,
-                         fileSizeBytes, largeFileMode, disableHighlight, deferAstSync);
-            welcome.addRecentFile(path, language, bufferModeToString(effectiveMode));
-            saveRecentFiles();
-            if (autoText && modeOverride == BufferManager::BufferMode::Structured) {
-                notify(NotificationLevel::Warning,
-                       "Large file opened in Text mode (" +
-                       std::to_string(fileSizeBytes / mb) + " MB).");
-            } else if (warnLarge && modeOverride == BufferManager::BufferMode::Structured) {
-                showLargeFilePrompt = true;
-                largeFilePromptPath = path;
-                largeFilePromptBytes = fileSizeBytes;
-            }
-            notify(NotificationLevel::Success, "Opened: " + path);
-            recordEditorEvent("file_opened", {
-                {"path", path},
-                {"language", language},
-                {"mode", bufferModeToString(effectiveMode)},
-                {"sizeBytes", fileSizeBytes}
-            });
-        } else {
-            notify(NotificationLevel::Error, "Error opening: " + path);
-        }
-    }
+                BufferManager::BufferMode modeOverride = BufferManager::BufferMode::Text,
+                bool deferAstSync = false);
 
-    void reloadBuffer(const std::string& path) {
-        auto it = bufferStates.find(path);
-        if (it == bufferStates.end()) return;
-        std::ifstream in(path);
-        if (!in.is_open()) return;
-        std::ostringstream ss;
-        ss << in.rdbuf();
-        auto* buf = it->second.get();
-        buf->editBuf = ss.str();
-        buf->editor.setContent(buf->editBuf, buf->language);
-        if (buf->bufferMode == BufferManager::BufferMode::Structured) {
-            buf->sync.setText(buf->editBuf, buf->language);
-            buf->sync.syncNow();
-            buf->incrementalOptimizer.setRoot(buf->sync.getAST());
-        }
-        buf->highlightsDirty = true;
-        buf->highlightRequestTime = ImGui::GetTime();
-        buf->generatedHighlightsDirty = true;
-        buf->modified = false;
-        notify(NotificationLevel::Info, "Reloaded: " + path);
-    }
+    void reloadBuffer(const std::string& path);
 
-    void handleFileChanges() {
-        auto changed = watcher.poll();
-        for (const auto& path : changed) {
-            auto it = bufferStates.find(path);
-            if (it == bufferStates.end()) continue;
-            if (it->second->modified) {
-                notify(NotificationLevel::Warning,
-                       "File changed on disk (dirty): " + path);
-            } else {
-                reloadBuffer(path);
-            }
-        }
-    }
+    void handleFileChanges();
 
-    void updateHighlights() {
-        if (!active()) return;
-        if (!active()->highlightsDirty) return;
-        double now = ImGui::GetTime();
-        double delay = settings.getHighlightDebounceMs() / 1000.0;
-        if (active()->highlightRequestTime > 0.0 &&
-            (now - active()->highlightRequestTime) < delay) {
-            return;
-        }
-        if (active()->disableSyntaxHighlight) {
-            active()->highlights.clear();
-            active()->highlightsDirty = false;
-            return;
-        }
-        active()->highlights = SyntaxHighlighter::highlight(active()->editBuf, active()->language);
-        active()->highlightsDirty = false;
-    }
+    void updateHighlights();
 
-    void updateGenerated() {
-        if (!active()) return;
-        if (active()->bufferMode == BufferManager::BufferMode::Text) return;
-        Module* ast = active()->sync.getAST();
-        std::string generated = generateForLanguage(ast, active()->generatedLanguage);
-        if (generated != active()->generatedBuf) {
-            active()->generatedBuf = generated;
-            active()->generatedHighlightsDirty = true;
-        }
-        if (active()->disableSyntaxHighlight) {
-            active()->generatedHighlights.clear();
-            active()->generatedHighlightsDirty = false;
-            return;
-        }
-        if (active()->generatedHighlightsDirty) {
-            active()->generatedHighlights =
-                SyntaxHighlighter::highlight(active()->generatedBuf, active()->generatedLanguage);
-            active()->generatedHighlightsDirty = false;
-        }
-    }
+    void updateGenerated();
 
-    void projectToLanguage(const std::string& targetLanguage) {
-        if (!active()) return;
-        Module* ast = activeAST();
-        if (!ast) {
-            notify(NotificationLevel::Error,
-                   "Project to " + targetLanguage + ": no AST available.");
-            return;
-        }
+    void projectToLanguage(const std::string& targetLanguage);
 
-        CrossLanguageProjector projector;
-        auto projected = projector.project(ast, targetLanguage);
-        if (!projected) {
-            notify(NotificationLevel::Error,
-                   "Project to " + targetLanguage + ": failed to project AST.");
-            return;
-        }
-
-        const int srcAnnoCount = countAnnotationNodes(ast);
-        const int projAnnoCount = countAnnotationNodes(projected.get());
-        const bool preserved = projector.annotationsPreserved(ast, projected.get());
-        std::string generated = generateForLanguage(projected.get(), targetLanguage);
-
-        std::string baseName = "(untitled-projection:" + targetLanguage + ")";
-        std::string projName = baseName;
-        int suffix = 1;
-        while (buffers.hasBuffer(projName)) {
-            projName = baseName + "-" + std::to_string(suffix++);
-        }
-
-        createBuffer(projName, generated, targetLanguage);
-        if (active()) {
-            active()->readOnly = true;
-            active()->sync.setText(generated, targetLanguage);
-            active()->sync.setAST(std::move(projected));
-            active()->incrementalOptimizer.setRoot(active()->sync.getAST());
-            active()->editBuf = generated;
-            active()->editor.setContent(active()->editBuf, targetLanguage);
-            active()->mode.setLanguage(targetLanguage);
-            active()->highlightsDirty = true;
-            active()->generatedLanguage = targetLanguage;
-            active()->generatedMode.setLanguage(targetLanguage);
-            active()->generatedHighlightsDirty = true;
-            active()->modified = false;
-        }
-
-        notify(NotificationLevel::Success,
-               "Projected to " + targetLanguage + " in " + projName +
-               " (annotations " + std::to_string(srcAnnoCount) + " -> " +
-               std::to_string(projAnnoCount) + ", types preserved: " +
-               (preserved ? "yes" : "no") + ").");
-    }
-
-    void refreshActiveTextFromAST() {
-        if (!active()) return;
-        if (!isStructured()) return;
-        active()->editBuf = active()->sync.getText();
-        active()->editor.setContent(active()->editBuf, active()->language);
-        active()->highlightsDirty = true;
-        active()->highlightRequestTime = ImGui::GetTime();
-        active()->modified = true;
-        queueLspDidChange();
-        analysisPending = true;
-        analysisLastChange = ImGui::GetTime();
-    }
+    void refreshActiveTextFromAST();
 
     void openDiff(const std::string& beforeText,
                   const std::string& afterText,
                   bool preview,
                   int action,
                   const std::vector<std::string>& transformIds,
-                  const std::vector<BatchMutationAPI::Mutation>& batchMutations = {}) {
-        diff.active = true;
-        diff.preview = preview;
-        diff.action = action;
-        diff.batch = !batchMutations.empty();
-        diff.beforeText = beforeText;
-        diff.afterText = afterText;
-        diff.transformIds = transformIds;
-        diff.batchMutations = batchMutations;
-        LineDiff lineDiff = buildLineDiff(beforeText, afterText);
-        diff.beforeLines = std::move(lineDiff.beforeLines);
-        diff.afterLines = std::move(lineDiff.afterLines);
-    }
+                  const std::vector<BatchMutationAPI::Mutation>& batchMutations = {});
 
-    void updateCursorPos(int bytePos) {
-        if (!active()) return;
-        active()->cursorLine = 1;
-        active()->cursorCol = 1;
-        for (int i = 0; i < bytePos && i < (int)active()->editBuf.size(); ++i) {
-            if (active()->editBuf[i] == '\n') { ++active()->cursorLine; active()->cursorCol = 1; }
-            else { ++active()->cursorCol; }
-        }
-    }
+    void updateCursorPos(int bytePos);
 
-    void refreshFileTree() {
-        if (!fileTreeDirty) return;
-        fileTreeRoot = fileTree.build(workspaceRoot);
-        fileTreeDirty = false;
-    }
+    void refreshFileTree();
 };
+
+// --- LspOps (extracted Step 238) ---
+#include "LspOps.h"
+
+// --- EmacsOps (extracted Step 239) ---
+#include "EmacsOps.h"
+
+// --- EditOps (extracted Step 237) ---
+#include "EditOps.h"
+
+// --- BufferOps (extracted Step 236) ---
+#include "BufferOps.h"
+
+// --- AgentRPCHandler (extracted Step 235) ---
+#include "AgentRPCHandler.h"
+
+inline json EditorState::processAgentRequest(const json& request,
+                                             const std::string& sessionId) {
+    return handleAgentRequest(*this, request, sessionId);
+}
+
 
 struct NullLSPTransport : public LSPTransport {
     void send(const std::string& msg) override { (void)msg; }
@@ -3105,3 +601,4 @@ struct NullLSPTransport : public LSPTransport {
     bool isOpen() const override { return false; }
     void close() override {}
 };
+

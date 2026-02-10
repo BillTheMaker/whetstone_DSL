@@ -10,14 +10,14 @@ static void renderMenuBar(EditorState& state) {
         if (ImGui::MenuItem("New", state.keys.getBinding("file.new").toString().c_str()))
         {
             std::string lang = state.active() ? state.active()->language : "python";
-            state.createBuffer(state.makeUntitledName(), "", lang);
+            state.createBuffer(state.makeUntitledName(), "", lang, state.defaultBufferMode());
         }
         if (ImGui::MenuItem("Open...", state.keys.getBinding("file.open").toString().c_str()))
         {
             auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go","*.org"}, state.lastDialogPath});
             if (!path.empty()) {
                 state.lastDialogPath = path;
-                state.doOpen(path);
+                state.doOpen(path, state.defaultBufferMode());
             }
         }
         if (ImGui::MenuItem("Open Project...")) {
