@@ -307,6 +307,7 @@ int main(int, char**) {
                                 &state.showTerminalPanel);
                 ImGui::MenuItem("Dependencies", nullptr, &state.showDependencyPanel);
                 ImGui::MenuItem("Libraries", nullptr, &state.showLibraryBrowserPanel);
+                ImGui::MenuItem("Compose", nullptr, &state.showCompositionPanel);
                 ImGui::MenuItem("Settings", nullptr, &state.showSettingsPanel);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
@@ -583,6 +584,27 @@ int main(int, char**) {
                                      state.outputLog)) {
                 state.ensureImportForSymbol(insertLibrary, insertText);
                 state.insertTextAtCursor(insertText);
+            }
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        if (state.showCompositionPanel) {
+            ImGui::Begin("Compose", &state.showCompositionPanel);
+            ImGui::PushFont(uiFont);
+            std::string nodeId;
+            if (state.activeAST()) {
+                ASTNode* scopeNode = findNodeAtPosition(state.activeAST(),
+                                                        std::max(0, state.active()->cursorLine - 1),
+                                                        std::max(0, state.active()->cursorCol - 1));
+                if (scopeNode) nodeId = scopeNode->id;
+            }
+            std::vector<PrimitiveSymbol> primitives;
+            auto funcs = state.primitives.getAvailableFunctions(nodeId);
+            primitives.insert(primitives.end(), funcs.begin(), funcs.end());
+            std::string code;
+            if (renderCompositionPanel(state.compositionPanel, primitives, code, state.outputLog)) {
+                state.insertTextAtCursor(code);
             }
             ImGui::PopFont();
             ImGui::End();

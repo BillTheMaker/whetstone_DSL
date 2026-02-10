@@ -131,7 +131,7 @@ what's already available.
   hard enforcement, but it defaults to off.
   *Modifies:* `ASTMutationAPI.h`, `WebSocketServer.h`
 
-- [ ] **Step 137: Function composition builder**
+- [x] **Step 137: Function composition builder**
   New UI mode: "Compose". Shows a visual flow of available library functions.
   User picks a function → sees its inputs/outputs → picks the next function
   whose input matches the previous output. Builds a pipeline/chain visually.

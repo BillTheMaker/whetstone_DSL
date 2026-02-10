@@ -49,6 +49,7 @@
 #include "ImportManager.h"
 #include "PrimitivesRegistry.h"
 #include "AgentLibraryPolicy.h"
+#include "CompositionPanel.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -173,6 +174,8 @@ struct EditorState {
     DependencyPanelState dependencyPanel;
     bool              showLibraryBrowserPanel = true;
     LibraryBrowserState libraryBrowser;
+    bool              showCompositionPanel = false;
+    CompositionPanelState compositionPanel;
     struct LibraryIndexRequest {
         std::string name;
         std::string version;
