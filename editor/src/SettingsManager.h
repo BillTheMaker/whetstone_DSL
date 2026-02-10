@@ -68,6 +68,12 @@ public:
     void setLargeFileTextMB(int value) { largeFileTextMB_ = value; }
     int getLargeFileDisableHighlightMB() const { return largeFileDisableHighlightMB_; }
     void setLargeFileDisableHighlightMB(int value) { largeFileDisableHighlightMB_ = value; }
+    int getLspDebounceMs() const { return lspDebounceMs_; }
+    void setLspDebounceMs(int value) { lspDebounceMs_ = value; }
+    int getDiagnosticsDebounceMs() const { return diagnosticsDebounceMs_; }
+    void setDiagnosticsDebounceMs(int value) { diagnosticsDebounceMs_ = value; }
+    int getHighlightDebounceMs() const { return highlightDebounceMs_; }
+    void setHighlightDebounceMs(int value) { highlightDebounceMs_ = value; }
     const std::string& getLayoutPreset() const { return layoutPreset_; }
     void setLayoutPreset(const std::string& name) { layoutPreset_ = name; }
     const std::string& getKeybindingProfile() const { return keybindingProfile_; }
@@ -98,6 +104,9 @@ public:
             largeFileWarnMB_ = j.value("largeFileWarnMB", largeFileWarnMB_);
             largeFileTextMB_ = j.value("largeFileTextMB", largeFileTextMB_);
             largeFileDisableHighlightMB_ = j.value("largeFileDisableHighlightMB", largeFileDisableHighlightMB_);
+            lspDebounceMs_ = j.value("lspDebounceMs", lspDebounceMs_);
+            diagnosticsDebounceMs_ = j.value("diagnosticsDebounceMs", diagnosticsDebounceMs_);
+            highlightDebounceMs_ = j.value("highlightDebounceMs", highlightDebounceMs_);
             layoutPreset_ = j.value("layoutPreset", layoutPreset_);
             keybindingProfile_ = j.value("keybindingProfile", keybindingProfile_);
             emacsConfigPath_ = j.value("emacsConfigPath", emacsConfigPath_);
@@ -141,6 +150,9 @@ public:
             j["largeFileWarnMB"] = largeFileWarnMB_;
             j["largeFileTextMB"] = largeFileTextMB_;
             j["largeFileDisableHighlightMB"] = largeFileDisableHighlightMB_;
+            j["lspDebounceMs"] = lspDebounceMs_;
+            j["diagnosticsDebounceMs"] = diagnosticsDebounceMs_;
+            j["highlightDebounceMs"] = highlightDebounceMs_;
             j["layoutPreset"] = layoutPreset_;
             j["keybindingProfile"] = keybindingProfile_;
             j["emacsConfigPath"] = emacsConfigPath_;
@@ -221,6 +233,9 @@ private:
     int largeFileWarnMB_ = 1;
     int largeFileTextMB_ = 5;
     int largeFileDisableHighlightMB_ = 10;
+    int lspDebounceMs_ = 120;
+    int diagnosticsDebounceMs_ = 500;
+    int highlightDebounceMs_ = 120;
     std::string layoutPreset_ = "VSCode";
     std::string keybindingProfile_ = "VSCode";
 

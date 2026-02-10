@@ -372,7 +372,8 @@ static void renderEditorPanel(EditorState& state) {
                             state.symbolsPending = false;
                         }
 
-                        if (state.analysisPending && (now - state.analysisLastChange) > 0.5) {
+                        double diagDelay = state.settings.getDiagnosticsDebounceMs() / 1000.0;
+                        if (state.analysisPending && (now - state.analysisLastChange) > diagDelay) {
                             if (state.isStructured()) {
                                 auto result = state.pipeline.run(state.active()->editBuf,
                                                                  state.active()->language,

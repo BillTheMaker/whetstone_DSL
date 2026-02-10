@@ -330,12 +330,22 @@ int main(int, char**) {
             }
         }
         state.pollLspMessages();
+        state.flushLspDidChange(ImGui::GetTime());
+        state.flushDeferredAstSync(ImGui::GetTime());
         state.processLibraryIndexResponses();
         if (state.emacsState.emacsFunctionIndexDirty) {
             state.updateEmacsFunctionIndex();
         }
         state.refreshEmacsModeLine(ImGui::GetTime());
         state.events.tick(ImGui::GetTime());
+#ifdef _DEBUG
+        double now = ImGui::GetTime();
+        if (io.DeltaTime > 0.016 && (now - state.lastFrameBudgetWarning) > 1.0) {
+            state.notify(NotificationLevel::Warning,
+                         "[perf] Frame time exceeded 16ms budget.");
+            state.lastFrameBudgetWarning = now;
+        }
+#endif
         themes.refreshWatchedThemes();
         if (state.fontsDirty) {
             reloadFonts();

@@ -424,7 +424,7 @@ Make Whetstone usable by everyone and fast with large files.
   - "Reopen in Structured Mode" option if user wants full features
   *Modifies:* buffer opening logic, `panels/StatusBarPanel.h`
 
-- [ ] **Step 200: Startup and panel performance**
+- [x] **Step 200: Startup and panel performance**
   Faster startup and smoother runtime:
   - Lazy-load panels: only parse/render on first show
   - Background grammar loading (don't block editor open for tree-sitter init)

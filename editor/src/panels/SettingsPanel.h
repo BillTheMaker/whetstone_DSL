@@ -381,6 +381,27 @@ static void renderSettingsPanel(EditorState& state) {
         settingsChanged = true;
     }
 
+    ImGui::Separator();
+    ImGui::TextUnformatted("Debounce (ms)");
+    int lspDebounce = state.settings.getLspDebounceMs();
+    if (ImGui::InputInt("LSP Change", &lspDebounce)) {
+        lspDebounce = std::max(0, lspDebounce);
+        state.settings.setLspDebounceMs(lspDebounce);
+        settingsChanged = true;
+    }
+    int diagDebounce = state.settings.getDiagnosticsDebounceMs();
+    if (ImGui::InputInt("Diagnostics", &diagDebounce)) {
+        diagDebounce = std::max(0, diagDebounce);
+        state.settings.setDiagnosticsDebounceMs(diagDebounce);
+        settingsChanged = true;
+    }
+    int highlightDebounce = state.settings.getHighlightDebounceMs();
+    if (ImGui::InputInt("Highlighting", &highlightDebounce)) {
+        highlightDebounce = std::max(0, highlightDebounce);
+        state.settings.setHighlightDebounceMs(highlightDebounce);
+        settingsChanged = true;
+    }
+
     LayoutPreset preset = state.ui.layoutPreset;
     int presetIndex = 0;
     if (preset == LayoutPreset::Emacs) presetIndex = 1;

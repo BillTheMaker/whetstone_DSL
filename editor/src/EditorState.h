@@ -158,6 +158,9 @@ struct BufferState {
     size_t            fileSizeBytes = 0;
     bool              largeFileMode = false;
     bool              disableSyntaxHighlight = false;
+    double            highlightRequestTime = 0.0;
+    bool              pendingAstSync = false;
+    double            pendingAstStart = 0.0;
 };
 
 struct EditorState {
@@ -205,6 +208,9 @@ struct EditorState {
     bool              completionVisible = false;
     int               completionSelected = 0;
     double            completionLastChange = 0.0;
+    bool              lspChangePending = false;
+    double            lspChangeLast = 0.0;
+    std::string       lspChangePath;
     bool              hoverPending = false;
     double            hoverLastMove = 0.0;
     ImVec2            hoverLastMouse = ImVec2(-1.0f, -1.0f);
@@ -213,6 +219,7 @@ struct EditorState {
     int               definitionRequestLine = 0;
     int               definitionRequestCol = 0;
     std::string       definitionRequestPath;
+    double            lastFrameBudgetWarning = 0.0;
     LSPClient::DefinitionLocation definitionPreview;
     bool              definitionPreviewValid = false;
     Pipeline          pipeline;
@@ -592,7 +599,8 @@ struct EditorState {
                       BufferManager::BufferMode mode = BufferManager::BufferMode::Structured,
                       size_t fileSizeBytes = 0,
                       bool largeFileMode = false,
-                      bool disableSyntaxHighlight = false) {
+                      bool disableSyntaxHighlight = false,
+                      bool deferAstSync = false) {
         BufferManager::BufferMode effectiveMode = mode;
         if (language == "org") effectiveMode = BufferManager::BufferMode::Text;
         if (buffers.hasBuffer(path)) {
@@ -611,9 +619,14 @@ struct EditorState {
         state->generatedMode.setLanguage(language);
         state->editor.setContent(content, language);
         if (effectiveMode == BufferManager::BufferMode::Structured) {
-            state->sync.setText(content, language);
-            state->sync.syncNow();
-            state->incrementalOptimizer.setRoot(state->sync.getAST());
+            if (deferAstSync) {
+                state->pendingAstSync = true;
+                state->pendingAstStart = ImGui::GetTime();
+            } else {
+                state->sync.setText(content, language);
+                state->sync.syncNow();
+                state->incrementalOptimizer.setRoot(state->sync.getAST());
+            }
         }
         state->editBuf = content;
         state->highlightsDirty = true;
@@ -924,7 +937,7 @@ struct EditorState {
         }
         ui.layoutPreset = LayoutManager::presetFromName(session.layoutPreset);
         for (const auto& buf : session.buffers) {
-            doOpen(buf.path, bufferModeFromString(buf.mode));
+            doOpen(buf.path, bufferModeFromString(buf.mode), true);
             auto it = bufferStates.find(buf.path);
             if (it != bufferStates.end()) {
                 auto* bs = it->second.get();
@@ -957,6 +970,44 @@ struct EditorState {
             analysisPending = false;
         } else {
             onTextChanged();
+        }
+    }
+
+    void queueLspDidChange() {
+        if (!lsp || !active()) return;
+        if (active()->path.rfind("(untitled", 0) == 0) return;
+        active()->lspVersion += 1;
+        lspChangePending = true;
+        lspChangeLast = ImGui::GetTime();
+        lspChangePath = active()->path;
+    }
+
+    void flushLspDidChange(double nowSeconds) {
+        if (!lsp || !lspChangePending) return;
+        double delay = settings.getLspDebounceMs() / 1000.0;
+        if ((nowSeconds - lspChangeLast) < delay) return;
+        auto it = bufferStates.find(lspChangePath);
+        if (it == bufferStates.end()) {
+            lspChangePending = false;
+            return;
+        }
+        auto* buf = it->second.get();
+        lsp->didChange(toFileUri(buf->path), buf->editBuf, buf->lspVersion);
+        lspChangePending = false;
+    }
+
+    void flushDeferredAstSync(double nowSeconds) {
+        (void)nowSeconds;
+        for (auto& kv : bufferStates) {
+            auto* buf = kv.second.get();
+            if (!buf->pendingAstSync) continue;
+            buf->sync.setText(buf->editBuf, buf->language);
+            buf->sync.syncNow();
+            buf->incrementalOptimizer.setRoot(buf->sync.getAST());
+            buf->pendingAstSync = false;
+            buf->highlightsDirty = true;
+            buf->generatedHighlightsDirty = true;
+            break;
         }
     }
 
@@ -1791,12 +1842,10 @@ struct EditorState {
         }
         active()->orchestratorDirty = false;
         active()->highlightsDirty = true;
+        active()->highlightRequestTime = ImGui::GetTime();
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
-        if (lsp && active()->path.rfind("(untitled", 0) != 0) {
-            active()->lspVersion += 1;
-            lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
-        }
+        queueLspDidChange();
     }
 
     void registerCommand(const std::string& id,
@@ -2176,12 +2225,10 @@ struct EditorState {
         }
         active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
+        active()->highlightRequestTime = ImGui::GetTime();
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
-        if (lsp && active()->path.rfind("(untitled", 0) != 0) {
-            active()->lspVersion += 1;
-            lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
-        }
+        queueLspDidChange();
         events.publish(UIEventType::FileModified, active()->path, {}, ImGui::GetTime());
         events.publishDebounced(UIEventType::ASTChanged,
                                 active()->path,
@@ -2408,7 +2455,8 @@ struct EditorState {
     }
 
     void doOpen(const std::string& path,
-                BufferManager::BufferMode modeOverride = BufferManager::BufferMode::Structured) {
+                BufferManager::BufferMode modeOverride = BufferManager::BufferMode::Structured,
+                bool deferAstSync = false) {
         std::error_code sizeErr;
         size_t fileSizeBytes = 0;
         if (!path.empty()) {
@@ -2455,7 +2503,7 @@ struct EditorState {
             else if (path.size() > 4 && path.substr(path.size() - 4) == ".org")
                 language = "org";
             createBuffer(path, content, language, effectiveMode,
-                         fileSizeBytes, largeFileMode, disableHighlight);
+                         fileSizeBytes, largeFileMode, disableHighlight, deferAstSync);
             welcome.addRecentFile(path, language, bufferModeToString(effectiveMode));
             saveRecentFiles();
             if (autoText && modeOverride == BufferManager::BufferMode::Structured) {
@@ -2489,6 +2537,7 @@ struct EditorState {
             buf->incrementalOptimizer.setRoot(buf->sync.getAST());
         }
         buf->highlightsDirty = true;
+        buf->highlightRequestTime = ImGui::GetTime();
         buf->generatedHighlightsDirty = true;
         buf->modified = false;
         notify(NotificationLevel::Info, "Reloaded: " + path);
@@ -2511,6 +2560,12 @@ struct EditorState {
     void updateHighlights() {
         if (!active()) return;
         if (!active()->highlightsDirty) return;
+        double now = ImGui::GetTime();
+        double delay = settings.getHighlightDebounceMs() / 1000.0;
+        if (active()->highlightRequestTime > 0.0 &&
+            (now - active()->highlightRequestTime) < delay) {
+            return;
+        }
         if (active()->disableSyntaxHighlight) {
             active()->highlights.clear();
             active()->highlightsDirty = false;
@@ -2599,11 +2654,9 @@ struct EditorState {
         active()->editBuf = active()->sync.getText();
         active()->editor.setContent(active()->editBuf, active()->language);
         active()->highlightsDirty = true;
+        active()->highlightRequestTime = ImGui::GetTime();
         active()->modified = true;
-        if (lsp && active()->path.rfind("(untitled", 0) != 0) {
-            active()->lspVersion += 1;
-            lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
-        }
+        queueLspDidChange();
         analysisPending = true;
         analysisLastChange = ImGui::GetTime();
     }
