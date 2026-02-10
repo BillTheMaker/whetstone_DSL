@@ -155,8 +155,9 @@ static void renderRefactorPopup(EditorState& state) {
                 if (!res.success) {
                     state.refactorError = res.error;
                 } else {
-                    state.outputLog += "Refactor applied (" +
-                                       std::to_string(res.appliedCount) + " mutations).\n";
+                    state.notify(NotificationLevel::Success,
+                                 "Refactor applied (" +
+                                 std::to_string(res.appliedCount) + " mutations).");
                     state.applyOrchestratorToActive();
                     state.showRefactorPopup = false;
                 }

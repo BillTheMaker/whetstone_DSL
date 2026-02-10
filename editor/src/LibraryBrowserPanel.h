@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "LibraryIndexer.h"
 #include "ast/ExternalModule.h"
+#include "NotificationSystem.h"
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -58,7 +59,7 @@ static bool renderLibraryBrowser(LibraryBrowserState& state,
                                  const LibraryIndexData& index,
                                  std::string& outInsert,
                                  std::string& outLibrary,
-                                 std::string& outputLog) {
+                                 NotificationSystem& notifications) {
     outInsert.clear();
     outLibrary.clear();
     if (!ast) {
@@ -112,7 +113,8 @@ static bool renderLibraryBrowser(LibraryBrowserState& state,
         if (ImGui::Button("Insert")) {
             outInsert = usage;
             outLibrary = state.selectedLibrary;
-            outputLog += "[libs] Inserted " + usage + "\n";
+            notifications.notify(NotificationLevel::Success,
+                                 "[libs] Inserted " + usage);
             inserted = true;
         }
         ImGui::SameLine();

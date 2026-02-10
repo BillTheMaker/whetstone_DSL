@@ -13,8 +13,30 @@ static void renderBottomPanel(EditorState& state) {
         if (ImGui::BeginTabItem("Output")) {
             ImGui::PushFont(state.monoFont);
             ImGui::BeginChild("##outputScroll", ImVec2(0, 0), false);
-            ImGui::TextUnformatted(state.outputLog.c_str());
-            // Auto-scroll to bottom
+            for (const auto& note : state.notifications.getHistory()) {
+                const char* label = "Info";
+                ImVec4 color = ImVec4(0.40f, 0.70f, 0.95f, 1.0f);
+                switch (note.level) {
+                case NotificationLevel::Success:
+                    label = "Success";
+                    color = ImVec4(0.25f, 0.78f, 0.35f, 1.0f);
+                    break;
+                case NotificationLevel::Warning:
+                    label = "Warning";
+                    color = ImVec4(0.95f, 0.72f, 0.28f, 1.0f);
+                    break;
+                case NotificationLevel::Error:
+                    label = "Error";
+                    color = ImVec4(0.90f, 0.35f, 0.35f, 1.0f);
+                    break;
+                case NotificationLevel::Info:
+                default:
+                    break;
+                }
+                ImGui::TextColored(color, "[%s]", label);
+                ImGui::SameLine();
+                ImGui::TextWrapped("%s", note.message.c_str());
+            }
             if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 20)
                 ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
@@ -86,7 +108,7 @@ static void renderBottomPanel(EditorState& state) {
             ImGui::PushFont(state.monoFont);
             renderAgentMarketplace(state.agent.marketplace,
                                    state.agent.registry,
-                                   state.outputLog,
+                                   state.notifications,
                                    state.workspaceRoot);
             ImGui::PopFont();
             ImGui::EndTabItem();
@@ -261,10 +283,10 @@ static void renderBottomPanel(EditorState& state) {
                         }
                         if (!warning.empty()) {
                             summary += " — warning: " + warning;
-                            state.outputLog += warning + "\n";
+                            state.notify(NotificationLevel::Warning, warning);
                         }
                         state.optimizeFoldSummary = summary;
-                        state.outputLog += summary + "\n";
+                        state.notify(NotificationLevel::Info, summary);
                         if (nodes > 0) state.applyOrchestratorToActive();
                         std::string afterText = state.active()->editBuf;
                         state.openDiff(beforeText, afterText, false, 1, {tid});
@@ -308,7 +330,7 @@ static void renderBottomPanel(EditorState& state) {
                             summary += "no changes";
                         }
                         state.optimizeDeadCodeSummary = summary;
-                        state.outputLog += summary + "\n";
+                        state.notify(NotificationLevel::Info, summary);
                         if (nodes > 0) state.applyOrchestratorToActive();
                         std::string afterText = state.active()->editBuf;
                         state.openDiff(beforeText, afterText, false, 2, {tid});
@@ -354,10 +376,10 @@ static void renderBottomPanel(EditorState& state) {
                         }
                         if (!warning.empty()) {
                             summary += " — warning: " + warning;
-                            state.outputLog += warning + "\n";
+                            state.notify(NotificationLevel::Warning, warning);
                         }
                         state.optimizeApplySummary = summary;
-                        state.outputLog += summary + "\n";
+                        state.notify(NotificationLevel::Info, summary);
                         if (totalNodes > 0) state.applyOrchestratorToActive();
                         std::string afterText = state.active()->editBuf;
                         state.openDiff(beforeText, afterText, false, 3, {tidFold, tidDce});
@@ -460,10 +482,11 @@ static void renderBottomPanel(EditorState& state) {
                                 batch.setRoot(ast);
                                 auto res = batch.applySequence(state.diff.batchMutations);
                                 if (!res.success) {
-                                    state.outputLog += res.error + "\n";
+                                    state.notify(NotificationLevel::Error, res.error);
                                 } else {
-                                    state.outputLog += "Refactor applied (" +
-                                                       std::to_string(res.appliedCount) + " mutations).\n";
+                                    state.notify(NotificationLevel::Success,
+                                                 "Refactor applied (" +
+                                                 std::to_string(res.appliedCount) + " mutations).");
                                     state.applyOrchestratorToActive();
                                 }
                             } else {

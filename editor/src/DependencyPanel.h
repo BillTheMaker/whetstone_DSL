@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "DependencyParser.h"
 #include "PackageRegistry.h"
+#include "NotificationSystem.h"
 #include <filesystem>
 #include <fstream>
 #include <cstdio>
@@ -132,23 +133,25 @@ static std::string formatRequirementLine(const DependencySpec& dep) {
 
 static bool writeRequirementsFile(const std::string& path,
                                   const std::vector<DependencySpec>& deps,
-                                  std::string& logOut) {
+                                  NotificationSystem& notifications) {
     std::ofstream out(path);
     if (!out.is_open()) {
-        logOut += "[deps] Failed to write " + path + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[deps] Failed to write " + path);
         return false;
     }
     for (const auto& dep : deps) {
         if (dep.name.empty()) continue;
         out << formatRequirementLine(dep) << "\n";
     }
-    logOut += "[deps] Wrote " + path + "\n";
+    notifications.notify(NotificationLevel::Success,
+                         "[deps] Wrote " + path);
     return true;
 }
 
 static bool writePackageJson(const std::string& path,
                              const std::vector<DependencySpec>& deps,
-                             std::string& logOut) {
+                             NotificationSystem& notifications) {
     nlohmann::json j;
     if (std::filesystem::exists(path)) {
         std::ifstream in(path);
@@ -175,17 +178,19 @@ static bool writePackageJson(const std::string& path,
 
     std::ofstream out(path);
     if (!out.is_open()) {
-        logOut += "[deps] Failed to write " + path + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[deps] Failed to write " + path);
         return false;
     }
     out << j.dump(2);
-    logOut += "[deps] Wrote " + path + "\n";
+    notifications.notify(NotificationLevel::Success,
+                         "[deps] Wrote " + path);
     return true;
 }
 
 static bool writeCargoToml(const std::string& path,
                            const std::vector<DependencySpec>& deps,
-                           std::string& logOut) {
+                           NotificationSystem& notifications) {
     std::vector<std::string> prefix;
     bool foundDeps = false;
     if (std::filesystem::exists(path)) {
@@ -201,7 +206,8 @@ static bool writeCargoToml(const std::string& path,
     }
     std::ofstream out(path);
     if (!out.is_open()) {
-        logOut += "[deps] Failed to write " + path + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[deps] Failed to write " + path);
         return false;
     }
     for (const auto& line : prefix) {
@@ -214,13 +220,14 @@ static bool writeCargoToml(const std::string& path,
         std::string version = dep.version.empty() ? "*" : dep.version;
         out << dep.name << " = \"" << version << "\"\n";
     }
-    logOut += "[deps] Wrote " + path + "\n";
+    notifications.notify(NotificationLevel::Success,
+                         "[deps] Wrote " + path);
     return true;
 }
 
 static bool writeGoMod(const std::string& path,
                        const std::vector<DependencySpec>& deps,
-                       std::string& logOut) {
+                       NotificationSystem& notifications) {
     std::string moduleLine;
     std::string goLine;
     if (std::filesystem::exists(path)) {
@@ -236,7 +243,8 @@ static bool writeGoMod(const std::string& path,
 
     std::ofstream out(path);
     if (!out.is_open()) {
-        logOut += "[deps] Failed to write " + path + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[deps] Failed to write " + path);
         return false;
     }
     out << moduleLine << "\n" << goLine << "\n\n";
@@ -247,13 +255,14 @@ static bool writeGoMod(const std::string& path,
         out << "    " << dep.name << " " << version << "\n";
     }
     out << ")\n";
-    logOut += "[deps] Wrote " + path + "\n";
+    notifications.notify(NotificationLevel::Success,
+                         "[deps] Wrote " + path);
     return true;
 }
 
 static bool writeVcpkgJson(const std::string& path,
                            const std::vector<DependencySpec>& deps,
-                           std::string& logOut) {
+                           NotificationSystem& notifications) {
     nlohmann::json j;
     if (std::filesystem::exists(path)) {
         std::ifstream in(path);
@@ -274,39 +283,43 @@ static bool writeVcpkgJson(const std::string& path,
     j["dependencies"] = depsArr;
     std::ofstream out(path);
     if (!out.is_open()) {
-        logOut += "[deps] Failed to write " + path + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[deps] Failed to write " + path);
         return false;
     }
     out << j.dump(2);
-    logOut += "[deps] Wrote " + path + "\n";
+    notifications.notify(NotificationLevel::Success,
+                         "[deps] Wrote " + path);
     return true;
 }
 
 static bool writeDependenciesForSource(const std::string& source,
                                        const std::string& workspaceRoot,
                                        const std::vector<DependencySpec>& deps,
-                                       std::string& logOut) {
+                                       NotificationSystem& notifications) {
     if (workspaceRoot.empty()) {
-        logOut += "[deps] No workspace root set.\n";
+        notifications.notify(NotificationLevel::Warning,
+                             "[deps] No workspace root set.");
         return false;
     }
     std::string base = sourceBase(source);
     std::string path = resolveSourcePath(workspaceRoot, base);
     auto filtered = depsForSource(deps, base);
 
-    if (base == "requirements.txt") return writeRequirementsFile(path, filtered, logOut);
-    if (base == "package.json") return writePackageJson(path, filtered, logOut);
-    if (base == "Cargo.toml") return writeCargoToml(path, filtered, logOut);
-    if (base == "go.mod") return writeGoMod(path, filtered, logOut);
-    if (base == "vcpkg.json") return writeVcpkgJson(path, filtered, logOut);
+    if (base == "requirements.txt") return writeRequirementsFile(path, filtered, notifications);
+    if (base == "package.json") return writePackageJson(path, filtered, notifications);
+    if (base == "Cargo.toml") return writeCargoToml(path, filtered, notifications);
+    if (base == "go.mod") return writeGoMod(path, filtered, notifications);
+    if (base == "vcpkg.json") return writeVcpkgJson(path, filtered, notifications);
 
-    logOut += "[deps] Writeback not implemented for " + base + "\n";
+    notifications.notify(NotificationLevel::Warning,
+                         "[deps] Writeback not implemented for " + base);
     return false;
 }
 
 static void refreshDependencies(DependencyPanelState& state,
                                 const std::string& workspaceRoot,
-                                std::string& logOut) {
+                                NotificationSystem& notifications) {
     state.deps.clear();
     state.sources = discoverDependencyFiles(workspaceRoot);
     state.selected = -1;
@@ -325,24 +338,25 @@ static void refreshDependencies(DependencyPanelState& state,
     } else {
         state.sourceSelected = -1;
     }
-    logOut += "[deps] Loaded " + std::to_string(state.deps.size()) + " dependencies.\n";
+    notifications.notify(NotificationLevel::Info,
+                         "[deps] Loaded " + std::to_string(state.deps.size()) + " dependencies.");
 }
 
 static void renderDependencyPanel(DependencyPanelState& state,
                                   const std::string& workspaceRoot,
-                                  std::string& logOut) {
+                                  NotificationSystem& notifications) {
     if (workspaceRoot.empty()) {
         ImGui::TextDisabled("Open a workspace to manage dependencies.");
         return;
     }
     if (state.lastWorkspaceRoot != workspaceRoot || state.deps.empty()) {
-        refreshDependencies(state, workspaceRoot, logOut);
+        refreshDependencies(state, workspaceRoot, notifications);
     }
 
     ImGui::InputText("Search", state.searchBuf, sizeof(state.searchBuf));
     ImGui::SameLine();
     if (ImGui::Button("Refresh")) {
-        refreshDependencies(state, workspaceRoot, logOut);
+        refreshDependencies(state, workspaceRoot, notifications);
     }
     ImGui::SameLine();
     if (ImGui::Button("Add Package")) {
@@ -388,8 +402,9 @@ static void renderDependencyPanel(DependencyPanelState& state,
         }
         if (ImGui::Button("Search Registry")) {
             state.lastLookup = PackageRegistry::query(state.addEcosystem, state.addBuf);
-            logOut += "[deps] Registry: " + state.lastLookup.name + " - " +
-                      state.lastLookup.description + "\n";
+            notifications.notify(NotificationLevel::Info,
+                                 "[deps] Registry: " + state.lastLookup.name + " - " +
+                                 state.lastLookup.description);
         }
         if (!state.lastLookup.name.empty()) {
             ImGui::TextWrapped("Found: %s", state.lastLookup.name.c_str());
@@ -397,7 +412,8 @@ static void renderDependencyPanel(DependencyPanelState& state,
         ImGui::Separator();
         if (ImGui::Button("Add")) {
             if (state.addBuf[0] == '\0') {
-                logOut += "[deps] Add aborted: empty package name.\n";
+                notifications.notify(NotificationLevel::Warning,
+                                     "[deps] Add aborted: empty package name.");
             } else {
                 DependencySpec dep;
                 dep.name = state.addBuf;
@@ -408,8 +424,8 @@ static void renderDependencyPanel(DependencyPanelState& state,
                     dep.source = "requirements.txt";
                 }
                 state.deps.push_back(dep);
-                if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, logOut)) {
-                    refreshDependencies(state, workspaceRoot, logOut);
+                if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, notifications)) {
+                    refreshDependencies(state, workspaceRoot, notifications);
                     state.needsIndex = true;
                 }
             }
@@ -450,8 +466,8 @@ static void renderDependencyPanel(DependencyPanelState& state,
         ImGui::InputText("Version", state.editVersionBuf, sizeof(state.editVersionBuf));
         if (ImGui::Button("Apply Version")) {
             dep.version = state.editVersionBuf;
-            if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, logOut)) {
-                refreshDependencies(state, workspaceRoot, logOut);
+            if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, notifications)) {
+                refreshDependencies(state, workspaceRoot, notifications);
                 state.needsIndex = true;
             }
         }
@@ -460,8 +476,8 @@ static void renderDependencyPanel(DependencyPanelState& state,
             std::string src = dep.source;
             state.deps.erase(state.deps.begin() + state.selected);
             state.selected = -1;
-            if (writeDependenciesForSource(src, workspaceRoot, state.deps, logOut)) {
-                refreshDependencies(state, workspaceRoot, logOut);
+            if (writeDependenciesForSource(src, workspaceRoot, state.deps, notifications)) {
+                refreshDependencies(state, workspaceRoot, notifications);
                 state.needsIndex = true;
             }
         }
@@ -471,12 +487,13 @@ static void renderDependencyPanel(DependencyPanelState& state,
             auto info = PackageRegistry::query(eco, dep.name);
             if (!info.versions.empty()) {
                 dep.version = info.versions.back();
-                if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, logOut)) {
-                    refreshDependencies(state, workspaceRoot, logOut);
+                if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, notifications)) {
+                    refreshDependencies(state, workspaceRoot, notifications);
                     state.needsIndex = true;
                 }
             } else {
-                logOut += "[deps] No version info for " + dep.name + "\n";
+                notifications.notify(NotificationLevel::Warning,
+                                     "[deps] No version info for " + dep.name);
             }
         }
     }

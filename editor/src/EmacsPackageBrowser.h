@@ -1,6 +1,7 @@
 #pragma once
 #include "imgui.h"
 #include "EmacsIntegration.h"
+#include "NotificationSystem.h"
 #include "StringUtils.h"
 #include <string>
 #include <vector>
@@ -118,13 +119,14 @@ static std::vector<EmacsPackageEntry> mergePackageLists(const std::vector<EmacsP
 
 static std::vector<EmacsPackageEntry> queryEmacsPackageList(EmacsConnection& emacs,
                                                             bool includeAvailable,
-                                                            std::string& logOut,
+                                                            NotificationSystem& notifications,
                                                             std::string& outError) {
     outError.clear();
     std::string loadedText = emacs.sendCommand(buildPackageListCommand("package-alist"));
     if (loadedText.empty() && !emacs.getLastError().empty()) {
         outError = emacs.getLastError();
-        logOut += "[emacs] " + outError + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[emacs] " + outError);
     }
     auto loaded = parsePackageListText(loadedText);
     std::vector<EmacsPackageEntry> available;
@@ -132,7 +134,8 @@ static std::vector<EmacsPackageEntry> queryEmacsPackageList(EmacsConnection& ema
         std::string availText = emacs.sendCommand(buildPackageListCommand("package-archive-contents"));
         if (availText.empty() && !emacs.getLastError().empty()) {
             outError = emacs.getLastError();
-            logOut += "[emacs] " + outError + "\n";
+            notifications.notify(NotificationLevel::Error,
+                                 "[emacs] " + outError);
         }
         available = parsePackageListText(availText);
     }
@@ -141,23 +144,26 @@ static std::vector<EmacsPackageEntry> queryEmacsPackageList(EmacsConnection& ema
 
 static void refreshEmacsPackages(EmacsPackageBrowserState& state,
                                  EmacsConnection& emacs,
-                                 std::string& logOut) {
+                                 NotificationSystem& notifications) {
     state.lastError.clear();
-    state.packages = queryEmacsPackageList(emacs, state.showAvailable, logOut, state.lastError);
+    state.packages = queryEmacsPackageList(emacs, state.showAvailable, notifications, state.lastError);
     state.needsRefresh = false;
 }
 
 static bool loadEmacsPackage(EmacsConnection& emacs,
                              const std::string& packageName,
-                             std::string& logOut) {
+                             NotificationSystem& notifications) {
     if (packageName.empty()) return false;
     std::string cmd = "(require '" + packageName + ")";
     std::string result = emacs.sendCommand(cmd);
     if (!emacs.getLastError().empty() && result == "error") {
-        logOut += "[emacs] Failed to load " + packageName + ": " + emacs.getLastError() + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[emacs] Failed to load " + packageName + ": " +
+                             emacs.getLastError());
         return false;
     }
-    logOut += "[emacs] Loaded package: " + packageName + "\n";
+    notifications.notify(NotificationLevel::Success,
+                         "[emacs] Loaded package: " + packageName);
     return true;
 }
 
@@ -170,7 +176,7 @@ static bool emacsPackageMatchesFilter(const EmacsPackageEntry& entry, const std:
 
 static bool renderEmacsPackageBrowser(EmacsPackageBrowserState& state,
                                       EmacsConnection& emacs,
-                                      std::string& logOut) {
+                                      NotificationSystem& notifications) {
     bool updated = false;
     if (ImGui::Button("Refresh")) {
         state.needsRefresh = true;
@@ -183,7 +189,7 @@ static bool renderEmacsPackageBrowser(EmacsPackageBrowserState& state,
     ImGui::InputText("Filter", state.filterBuf, sizeof(state.filterBuf));
 
     if (state.needsRefresh) {
-        refreshEmacsPackages(state, emacs, logOut);
+        refreshEmacsPackages(state, emacs, notifications);
         updated = true;
     }
 
@@ -236,11 +242,13 @@ static bool renderEmacsPackageBrowser(EmacsPackageBrowserState& state,
     }
     if (ImGui::Button("Load")) {
         if (loadTarget.empty()) {
-            logOut += "[emacs] No package selected.\n";
+            notifications.notify(NotificationLevel::Warning,
+                                 "[emacs] No package selected.");
         } else {
-            bool ok = loadEmacsPackage(emacs, loadTarget, logOut);
+            bool ok = loadEmacsPackage(emacs, loadTarget, notifications);
             if (!ok) {
-                logOut += "[emacs] Package not installed: " + loadTarget + "\n";
+                notifications.notify(NotificationLevel::Warning,
+                                     "[emacs] Package not installed: " + loadTarget);
             }
             state.needsRefresh = true;
             updated = true;

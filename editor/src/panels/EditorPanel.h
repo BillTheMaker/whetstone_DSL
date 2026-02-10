@@ -452,7 +452,7 @@ static void renderEditorPanel(EditorState& state) {
                                                 }
                                                 state.mutator.setRoot(ast);
                                                 auto res2 = state.mutator.insertNode(target->id, "annotations", anno);
-                                                if (!res2.error.empty()) state.outputLog += res2.error + "\n";
+                                                if (!res2.error.empty()) state.notify(NotificationLevel::Error, res2.error);
                                                 state.applyOrchestratorToActive();
                                             }
                                         }
@@ -555,7 +555,7 @@ static void renderEditorPanel(EditorState& state) {
                                                           target->spanEndLine, target->spanEndCol);
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                     }
@@ -566,7 +566,7 @@ static void renderEditorPanel(EditorState& state) {
                                                           target->spanEndLine, target->spanEndCol);
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                     }
@@ -577,7 +577,7 @@ static void renderEditorPanel(EditorState& state) {
                                                           target->spanEndLine, target->spanEndCol);
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                     }
@@ -588,7 +588,7 @@ static void renderEditorPanel(EditorState& state) {
                                                           target->spanEndLine, target->spanEndCol);
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                     }
@@ -599,7 +599,7 @@ static void renderEditorPanel(EditorState& state) {
                                                           target->spanEndLine, target->spanEndCol);
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.insertNode(target->id, "annotations", anno);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                     }
@@ -615,35 +615,35 @@ static void renderEditorPanel(EditorState& state) {
                                                 if (ImGui::MenuItem("Tracing")) {
                                                     state.mutator.setRoot(ast);
                                                     auto res = state.mutator.setProperty(anno->id, "strategy", "Tracing");
-                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                                     if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "OwnerAnnotation") {
                                                 if (ImGui::MenuItem("Single")) {
                                                     state.mutator.setRoot(ast);
                                                     auto res = state.mutator.setProperty(anno->id, "strategy", "Single");
-                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                                     if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "DeallocateAnnotation") {
                                                 if (ImGui::MenuItem("Explicit")) {
                                                     state.mutator.setRoot(ast);
                                                     auto res = state.mutator.setProperty(anno->id, "strategy", "Explicit");
-                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                                     if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "LifetimeAnnotation") {
                                                 if (ImGui::MenuItem("RAII")) {
                                                     state.mutator.setRoot(ast);
                                                     auto res = state.mutator.setProperty(anno->id, "strategy", "RAII");
-                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                                     if (res.error.empty()) mutated = true;
                                                 }
                                             } else if (anno->conceptType == "AllocateAnnotation") {
                                                 if (ImGui::MenuItem("Static")) {
                                                     state.mutator.setRoot(ast);
                                                     auto res = state.mutator.setProperty(anno->id, "strategy", "Static");
-                                                    if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                                    if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                                     if (res.error.empty()) mutated = true;
                                                 }
                                             }
@@ -659,7 +659,7 @@ static void renderEditorPanel(EditorState& state) {
                                         if (ImGui::MenuItem(label.c_str())) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.deleteNode(anno->id);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                     }
@@ -682,7 +682,7 @@ static void renderEditorPanel(EditorState& state) {
                                         if (ImGui::MenuItem("Remove child annotation")) {
                                             state.mutator.setRoot(ast);
                                             auto res = state.mutator.deleteNode(lineConflict.childAnnoId);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                         if (ImGui::MenuItem("Match parent strategy")) {
@@ -690,7 +690,7 @@ static void renderEditorPanel(EditorState& state) {
                                             auto res = state.mutator.setProperty(lineConflict.childAnnoId,
                                                                                 "strategy",
                                                                                 lineConflict.parentStrategy);
-                                            if (!res.error.empty()) state.outputLog += res.error + "\n";
+                                            if (!res.error.empty()) state.notify(NotificationLevel::Error, res.error);
                                             if (res.error.empty()) mutated = true;
                                         }
                                     }

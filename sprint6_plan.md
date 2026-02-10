@@ -63,7 +63,7 @@ first — all UX work becomes easier when panels are modular.
   All files under 600 lines after split.
   *Modifies:* 5+ oversized headers
 
-- [ ] **Step 169: Notification / toast system**
+- [x] **Step 169: Notification / toast system**
   Replace ad-hoc `outputLog +=` with a structured notification system.
   `NotificationSystem.h`:
   - Notification types: Success, Warning, Error, Info

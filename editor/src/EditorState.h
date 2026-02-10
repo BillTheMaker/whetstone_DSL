@@ -49,6 +49,7 @@
 #include "HelpPanel.h"
 #include "Telemetry.h"
 #include "UpdateChecker.h"
+#include "NotificationSystem.h"
 #include "state/SearchState.h"
 #include "state/AgentState.h"
 #include "state/BuildState.h"
@@ -172,8 +173,7 @@ struct EditorState {
     EmacsState        emacsState;
     UIFlags           ui;
 
-    // Bottom panel + global log
-    std::string       outputLog;
+    NotificationSystem notifications;
     HelpPanelState helpPanel;
     Telemetry telemetry;
     char              outlineFilter[128] = {};
@@ -324,6 +324,26 @@ struct EditorState {
     static std::string wordPrefixAt(const std::string& text, int pos) {
         int start = wordStartAt(text, pos);
         return text.substr(start, pos - start);
+    }
+
+    void notify(NotificationLevel level, const std::string& message) {
+        notifications.notify(level, message);
+    }
+
+    void notify(NotificationLevel level, const std::string& message, const NotificationTarget& target) {
+        notifications.notify(level, message, target);
+    }
+
+    void navigateToTarget(const NotificationTarget& target) {
+        if (target.path.empty()) return;
+        std::string path = target.path;
+        if (buffers.hasBuffer(path)) switchToBuffer(path);
+        else doOpen(path);
+        if (active()) {
+            int line = std::max(0, target.line);
+            int col = std::max(0, target.col);
+            jumpTo(active(), line, col);
+        }
     }
 
     void jumpTo(BufferState* buf, int lineZero, int colZero) {
@@ -760,7 +780,7 @@ struct EditorState {
     }
 
     void init() {
-        outputLog = "Whetstone Editor ready.\n";
+        notify(NotificationLevel::Info, "Whetstone Editor ready.");
         workspaceRoot = std::filesystem::current_path().string();
         search.projectSearch.setRoot(workspaceRoot);
         fileTreeDirty = true;
@@ -824,7 +844,7 @@ struct EditorState {
         std::string log;
         bool ok = emacsState.emacs.startDaemonWithConfig(initPath, log);
         if (!log.empty()) {
-            outputLog += "[emacs] " + log + "\n";
+            notify(NotificationLevel::Info, "[emacs] " + log);
         }
         if (!ok) {
             EditorDiagnostic d;
@@ -936,7 +956,8 @@ struct EditorState {
         build.lastBuildCommand = cmd.command;
         int code = build.terminal.runAndCapture(workspaceRoot, cmd.command, build.lastBuildOutput);
         build.buildErrors = BuildSystem::parseErrors(build.lastBuildOutput);
-        outputLog += "[build] " + cmd.label + " => exit " + std::to_string(code) + "\n";
+        notify(NotificationLevel::Info,
+               "[build] " + cmd.label + " => exit " + std::to_string(code));
         return code;
     }
 
@@ -953,13 +974,15 @@ struct EditorState {
         library.libraryIndex.completionsByLibrary.clear();
         library.libraryIndexRequests.clear();
         if (!isStructured() || !activeAST()) {
-            outputLog += "[deps] Library index skipped: no structured AST.\n";
+            notify(NotificationLevel::Warning,
+                   "[deps] Library index skipped: no structured AST.");
             return;
         }
         if (!lsp || !lspTransport || !lspTransport->isOpen()) {
             applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
             rebuildExternalModulesFromIndex();
-            outputLog += "[deps] Library index uses cached symbols (LSP offline).\n";
+            notify(NotificationLevel::Warning,
+                   "[deps] Library index uses cached symbols (LSP offline).");
             return;
         }
 
@@ -980,8 +1003,9 @@ struct EditorState {
         }
         applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
         rebuildExternalModulesFromIndex();
-        outputLog += "[deps] Library index requests queued: " +
-                     std::to_string(library.libraryIndexRequests.size()) + "\n";
+        notify(NotificationLevel::Info,
+               "[deps] Library index requests queued: " +
+               std::to_string(library.libraryIndexRequests.size()));
     }
 
     void processLibraryIndexResponses() {
@@ -1015,22 +1039,23 @@ struct EditorState {
         if (updated) {
             applyStubFallback(library.libraryIndex, library.dependencyPanel.deps, workspaceRoot);
             rebuildExternalModulesFromIndex();
-            outputLog += "[deps] Library index updated.\n";
+            notify(NotificationLevel::Info, "[deps] Library index updated.");
         }
     }
 
     void updateEmacsFunctionIndex() {
         if (!active() || active()->language != "elisp") return;
         std::string error;
-        auto packages = queryEmacsPackageList(emacsState.emacs, false, outputLog, error);
+        auto packages = queryEmacsPackageList(emacsState.emacs, false, notifications, error);
         if (!error.empty()) return;
-        refreshEmacsFunctionIndex(emacsState.emacsFunctionIndex, emacsState.emacs, packages, outputLog);
+        refreshEmacsFunctionIndex(emacsState.emacsFunctionIndex, emacsState.emacs, packages, notifications);
         addEmacsSymbolsToLibraryIndex(library.libraryIndex, emacsState.emacsFunctionIndex);
         emacsState.emacsFunctionIndexDirty = false;
         rebuildExternalModulesFromIndex();
-        outputLog += "[emacs] Indexed functions for " +
-                     std::to_string(emacsState.emacsFunctionIndex.functionsByPackage.size()) +
-                     " packages.\n";
+        notify(NotificationLevel::Info,
+               "[emacs] Indexed functions for " +
+               std::to_string(emacsState.emacsFunctionIndex.functionsByPackage.size()) +
+               " packages.");
     }
 
     void rebuildExternalModulesFromIndex() {
@@ -1544,7 +1569,8 @@ struct EditorState {
                                 {"Open Project", {"*.whetstone"}, std::string()});
                             if (!path.empty()) {
                                 if (!loadProject(path)) {
-                                    outputLog += "Failed to open project: " + path + "\n";
+                                    notify(NotificationLevel::Error,
+                                           "Failed to open project: " + path);
                                 }
                             }
                         });
@@ -1555,7 +1581,8 @@ struct EditorState {
                                 {"Save Project", {"*.whetstone"}, std::string()});
                             if (!path.empty()) {
                                 if (!saveProject(path)) {
-                                    outputLog += "Failed to save project: " + path + "\n";
+                                    notify(NotificationLevel::Error,
+                                           "Failed to save project: " + path);
                                 }
                             }
                         });
@@ -1669,54 +1696,58 @@ struct EditorState {
 
     bool handleEmacsKeyChord(const std::string& chord) {
         if (ui.layoutPreset != LayoutPreset::Emacs) return false;
-        return emacsHandleKeySequence(emacsState.emacsKeys, emacsState.emacs, chord, outputLog);
+        return emacsHandleKeySequence(emacsState.emacsKeys, emacsState.emacs, chord, notifications);
     }
 
     void refreshEmacsModeLine(double nowSeconds) {
         if (ui.layoutPreset != LayoutPreset::Emacs) return;
-        updateEmacsModeLine(emacsState.emacsKeys, emacsState.emacs, nowSeconds, outputLog);
+        updateEmacsModeLine(emacsState.emacsKeys, emacsState.emacs, nowSeconds, notifications);
     }
 
     void pullFromEmacs() {
         if (!active()) return;
         if (active()->path.rfind("(untitled", 0) == 0) {
-            outputLog += "[emacs] Save file before syncing.\n";
+            notify(NotificationLevel::Warning, "[emacs] Save file before syncing.");
             return;
         }
         std::string text = emacsState.emacs.getBufferText(active()->path);
         if (!emacsState.emacs.getLastError().empty() && text == "error") {
-            outputLog += "[emacs] " + emacsState.emacs.getLastError() + "\n";
+            notify(NotificationLevel::Error,
+                   "[emacs] " + emacsState.emacs.getLastError());
             return;
         }
         active()->editBuf = text;
         onTextChanged();
-        outputLog += "[emacs] Pulled buffer from Emacs.\n";
+        notify(NotificationLevel::Success, "[emacs] Pulled buffer from Emacs.");
     }
 
     void pushToEmacs() {
         if (!active()) return;
         if (active()->path.rfind("(untitled", 0) == 0) {
-            outputLog += "[emacs] Save file before syncing.\n";
+            notify(NotificationLevel::Warning, "[emacs] Save file before syncing.");
             return;
         }
         if (!emacsState.emacs.setBufferText(active()->path, active()->editBuf)) {
-            outputLog += "[emacs] " + emacsState.emacs.getLastError() + "\n";
+            notify(NotificationLevel::Error,
+                   "[emacs] " + emacsState.emacs.getLastError());
             return;
         }
-        outputLog += "[emacs] Pushed buffer to Emacs.\n";
+        notify(NotificationLevel::Success, "[emacs] Pushed buffer to Emacs.");
     }
 
     void openInEmacsFrame() {
         if (!active()) return;
         if (active()->path.rfind("(untitled", 0) == 0) {
-            outputLog += "[emacs] Save file before opening in Emacs.\n";
+            notify(NotificationLevel::Warning,
+                   "[emacs] Save file before opening in Emacs.");
             return;
         }
         if (!emacsState.emacs.openFileInEmacsFrame(active()->path)) {
-            outputLog += "[emacs] " + emacsState.emacs.getLastError() + "\n";
+            notify(NotificationLevel::Error,
+                   "[emacs] " + emacsState.emacs.getLastError());
             return;
         }
-        outputLog += "[emacs] Opened in Emacs frame.\n";
+        notify(NotificationLevel::Success, "[emacs] Opened in Emacs frame.");
     }
 
     std::string buildRunCommand(const std::string& path,
@@ -1840,11 +1871,18 @@ struct EditorState {
             }
             active()->cursorLine = line;
             active()->cursorCol = col;
-            outputLog += "Found \"" + std::string(search.findBuf) + "\" at line " +
-                         std::to_string(line) + ", col " + std::to_string(col) + "\n";
+            NotificationTarget target;
+            target.path = active()->path;
+            target.line = std::max(0, line - 1);
+            target.col = std::max(0, col - 1);
+            notify(NotificationLevel::Info,
+                   "Found \"" + std::string(search.findBuf) + "\" at line " +
+                   std::to_string(line) + ", col " + std::to_string(col),
+                   target);
         } else {
             search.lastFindPos = 0;
-            outputLog += "\"" + std::string(search.findBuf) + "\" not found.\n";
+            notify(NotificationLevel::Warning,
+                   "\"" + std::string(search.findBuf) + "\" not found.");
         }
     }
 
@@ -1863,7 +1901,8 @@ struct EditorState {
             active()->generatedHighlightsDirty = true;
             active()->modified = true;
         }
-        outputLog += "Replaced " + std::to_string(count) + " occurrence(s).\n";
+        notify(NotificationLevel::Info,
+               "Replaced " + std::to_string(count) + " occurrence(s).");
     }
 
     void doSave() {
@@ -1874,10 +1913,12 @@ struct EditorState {
             out << active()->editBuf;
             out.close();
             active()->modified = false;
-            outputLog += "Saved: " + active()->path + "\n";
+            notify(NotificationLevel::Success,
+                   "Saved: " + active()->path);
             if (lsp) lsp->didSave(toFileUri(active()->path), active()->editBuf);
         } else {
-            outputLog += "Error saving: " + active()->path + "\n";
+            notify(NotificationLevel::Error,
+                   "Error saving: " + active()->path);
         }
     }
 
@@ -1912,9 +1953,9 @@ struct EditorState {
             createBuffer(path, content, language, modeOverride);
             welcome.addRecentFile(path, language, bufferModeToString(modeOverride));
             saveRecentFiles();
-            outputLog += "Opened: " + path + "\n";
+            notify(NotificationLevel::Success, "Opened: " + path);
         } else {
-            outputLog += "Error opening: " + path + "\n";
+            notify(NotificationLevel::Error, "Error opening: " + path);
         }
     }
 
@@ -1936,7 +1977,7 @@ struct EditorState {
         buf->highlightsDirty = true;
         buf->generatedHighlightsDirty = true;
         buf->modified = false;
-        outputLog += "Reloaded: " + path + "\n";
+        notify(NotificationLevel::Info, "Reloaded: " + path);
     }
 
     void handleFileChanges() {
@@ -1945,7 +1986,8 @@ struct EditorState {
             auto it = bufferStates.find(path);
             if (it == bufferStates.end()) continue;
             if (it->second->modified) {
-                outputLog += "File changed on disk (dirty): " + path + "\n";
+                notify(NotificationLevel::Warning,
+                       "File changed on disk (dirty): " + path);
             } else {
                 reloadBuffer(path);
             }
@@ -1979,14 +2021,16 @@ struct EditorState {
         if (!active()) return;
         Module* ast = activeAST();
         if (!ast) {
-            outputLog += "Project to " + targetLanguage + ": no AST available.\n";
+            notify(NotificationLevel::Error,
+                   "Project to " + targetLanguage + ": no AST available.");
             return;
         }
 
         CrossLanguageProjector projector;
         auto projected = projector.project(ast, targetLanguage);
         if (!projected) {
-            outputLog += "Project to " + targetLanguage + ": failed to project AST.\n";
+            notify(NotificationLevel::Error,
+                   "Project to " + targetLanguage + ": failed to project AST.");
             return;
         }
 
@@ -2018,10 +2062,11 @@ struct EditorState {
             active()->modified = false;
         }
 
-        outputLog += "Projected to " + targetLanguage + " in " + projName +
-                     " (annotations " + std::to_string(srcAnnoCount) + " -> " +
-                     std::to_string(projAnnoCount) + ", types preserved: " +
-                     (preserved ? "yes" : "no") + ").\n";
+        notify(NotificationLevel::Success,
+               "Projected to " + targetLanguage + " in " + projName +
+               " (annotations " + std::to_string(srcAnnoCount) + " -> " +
+               std::to_string(projAnnoCount) + ", types preserved: " +
+               (preserved ? "yes" : "no") + ").");
     }
 
     void refreshActiveTextFromAST() {

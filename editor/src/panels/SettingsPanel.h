@@ -80,9 +80,11 @@ static void renderSettingsPanel(EditorState& state) {
         UpdateChecker checker;
         auto info = checker.check(state.settings.getUpdateUrl());
         if (info.available) {
-            state.outputLog += "[update] Available: " + info.version + " (" + info.url + ")\n";
+            state.notify(NotificationLevel::Info,
+                         "[update] Available: " + info.version + " (" + info.url + ")");
         } else {
-            state.outputLog += "[update] No update info (offline/stub).\n";
+            state.notify(NotificationLevel::Info,
+                         "[update] No update info (offline/stub).");
         }
     }
 

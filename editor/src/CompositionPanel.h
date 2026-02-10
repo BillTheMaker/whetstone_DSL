@@ -1,6 +1,7 @@
 #pragma once
 #include "imgui.h"
 #include "CompositionBuilder.h"
+#include "NotificationSystem.h"
 #include <string>
 #include <vector>
 #include <cstdio>
@@ -17,7 +18,7 @@ struct CompositionPanelState {
 static bool renderCompositionPanel(CompositionPanelState& state,
                                    const std::vector<PrimitiveSymbol>& primitives,
                                    std::string& outCode,
-                                   std::string& outputLog) {
+                                   NotificationSystem& notifications) {
     outCode.clear();
     ImGui::InputText("Input Type", state.inputType, sizeof(state.inputType));
     ImGui::InputText("Output Type", state.outputType, sizeof(state.outputType));
@@ -48,7 +49,8 @@ static bool renderCompositionPanel(CompositionPanelState& state,
     if (state.selected >= 0 && state.selected < (int)suggestions.size()) {
         if (ImGui::Button("Add Step")) {
             if (state.steps.size() >= 8) {
-                outputLog += "[compose] Max 8 steps.\n";
+                notifications.notify(NotificationLevel::Warning,
+                                     "[compose] Max 8 steps.");
             } else {
                 state.steps.push_back(suggestions[state.selected]);
             }
@@ -87,7 +89,8 @@ static bool renderCompositionPanel(CompositionPanelState& state,
         ImGui::EndChild();
         if (ImGui::Button("Insert Code")) {
             outCode = code;
-            outputLog += "[compose] Inserted pipeline.\n";
+            notifications.notify(NotificationLevel::Success,
+                                 "[compose] Inserted pipeline.");
             return true;
         }
     }

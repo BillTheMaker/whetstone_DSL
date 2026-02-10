@@ -1,5 +1,6 @@
 #pragma once
 #include "EmacsIntegration.h"
+#include "NotificationSystem.h"
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -29,7 +30,7 @@ static inline bool emacsIsPrefixKey(const std::string& chord) {
 static inline bool emacsHandleKeySequence(EmacsKeybindingState& state,
                                           EmacsConnection& emacs,
                                           const std::string& chord,
-                                          std::string& logOut) {
+                                          NotificationSystem& notifications) {
     if (chord.empty()) return false;
     if (chord == "M-x") {
         state.minibufferActive = true;
@@ -49,22 +50,25 @@ static inline bool emacsHandleKeySequence(EmacsKeybindingState& state,
 
     std::string cmd = emacs.sendCommand(ElispCommandBuilder::keyBinding(sequence));
     if (cmd.empty()) {
-        logOut += "[emacs] Unbound: " + sequence + "\n";
+        notifications.notify(NotificationLevel::Warning,
+                             "[emacs] Unbound: " + sequence);
         return true;
     }
     state.lastCommand = cmd;
     std::string result = emacs.sendCommand(ElispCommandBuilder::callInteractive(cmd));
     if (!emacs.getLastError().empty() && result == "error") {
-        logOut += "[emacs] " + emacs.getLastError() + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[emacs] " + emacs.getLastError());
     } else {
-        logOut += "[emacs] " + cmd + "\n";
+        notifications.notify(NotificationLevel::Info,
+                             "[emacs] " + cmd);
     }
     return true;
 }
 
 static inline bool emacsExecuteMinibuffer(EmacsKeybindingState& state,
                                           EmacsConnection& emacs,
-                                          std::string& logOut) {
+                                          NotificationSystem& notifications) {
     std::string cmd = emacsTrim(state.minibufferBuf);
     if (cmd.empty()) {
         state.minibufferActive = false;
@@ -72,9 +76,11 @@ static inline bool emacsExecuteMinibuffer(EmacsKeybindingState& state,
     }
     std::string result = emacs.sendCommand(ElispCommandBuilder::executeExtendedCommand(cmd));
     if (!emacs.getLastError().empty() && result == "error") {
-        logOut += "[emacs] " + emacs.getLastError() + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[emacs] " + emacs.getLastError());
     } else {
-        logOut += "[emacs] M-x " + cmd + "\n";
+        notifications.notify(NotificationLevel::Info,
+                             "[emacs] M-x " + cmd);
     }
     state.minibufferActive = false;
     state.minibufferBuf[0] = '\0';
@@ -84,11 +90,12 @@ static inline bool emacsExecuteMinibuffer(EmacsKeybindingState& state,
 static inline void updateEmacsModeLine(EmacsKeybindingState& state,
                                        EmacsConnection& emacs,
                                        double nowSeconds,
-                                       std::string& logOut) {
+                                       NotificationSystem& notifications) {
     if (nowSeconds - state.lastModeQuery < 1.0) return;
     std::string mode = emacs.sendCommand(ElispCommandBuilder::modeLine());
     if (!emacs.getLastError().empty() && mode == "error") {
-        logOut += "[emacs] " + emacs.getLastError() + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[emacs] " + emacs.getLastError());
         return;
     }
     if (!mode.empty()) state.modeLine = mode;

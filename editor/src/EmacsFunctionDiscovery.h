@@ -2,6 +2,7 @@
 #include "EmacsIntegration.h"
 #include "EmacsPackageBrowser.h"
 #include "LibraryIndexer.h"
+#include "NotificationSystem.h"
 #include "ast/Module.h"
 #include "ast/ExternalModule.h"
 #include "ast/TypeSignature.h"
@@ -35,11 +36,12 @@ static std::vector<std::string> parseLines(const std::string& text) {
 
 static std::vector<std::string> queryEmacsFunctions(EmacsConnection& emacs,
                                                     const std::string& prefix,
-                                                    std::string& logOut) {
+                                                    NotificationSystem& notifications) {
     std::string cmd = ElispCommandBuilder::aproposFunctions(prefix);
     std::string resp = emacs.sendCommand(cmd);
     if (resp.empty() && !emacs.getLastError().empty()) {
-        logOut += "[emacs] " + emacs.getLastError() + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[emacs] " + emacs.getLastError());
         return {};
     }
     return parseLines(resp);
@@ -47,13 +49,14 @@ static std::vector<std::string> queryEmacsFunctions(EmacsConnection& emacs,
 
 static EmacsFunctionDoc queryEmacsFunctionDoc(EmacsConnection& emacs,
                                               const std::string& name,
-                                              std::string& logOut) {
+                                              NotificationSystem& notifications) {
     EmacsFunctionDoc info;
     info.name = name;
     std::string cmd = ElispCommandBuilder::describeFunction(name);
     std::string resp = emacs.sendCommand(cmd);
     if (resp.empty() && !emacs.getLastError().empty()) {
-        logOut += "[emacs] " + emacs.getLastError() + "\n";
+        notifications.notify(NotificationLevel::Error,
+                             "[emacs] " + emacs.getLastError());
         return info;
     }
     auto pos = resp.find('\n');
@@ -81,20 +84,20 @@ static std::vector<std::string> buildPackageFunctionPrefixes(const std::string& 
 static void refreshEmacsFunctionIndex(EmacsFunctionIndex& index,
                                       EmacsConnection& emacs,
                                       const std::vector<EmacsPackageEntry>& packages,
-                                      std::string& logOut) {
+                                      NotificationSystem& notifications) {
     index.functionsByPackage.clear();
     for (const auto& pkg : packages) {
         if (pkg.status != "loaded") continue;
         std::vector<std::string> functions;
         for (const auto& prefix : buildPackageFunctionPrefixes(pkg.name)) {
-            functions = queryEmacsFunctions(emacs, "^" + prefix, logOut);
+            functions = queryEmacsFunctions(emacs, "^" + prefix, notifications);
             if (!functions.empty()) break;
         }
         if (functions.empty()) continue;
         std::vector<EmacsFunctionDoc> docs;
         docs.reserve(functions.size());
         for (const auto& fn : functions) {
-            docs.push_back(queryEmacsFunctionDoc(emacs, fn, logOut));
+            docs.push_back(queryEmacsFunctionDoc(emacs, fn, notifications));
         }
         index.functionsByPackage[pkg.name] = std::move(docs);
     }

@@ -298,6 +298,12 @@ int main(int, char**) {
         renderBottomPanel(state);
         renderMemoryStrategiesPanel(state);
         renderStatusBar(state);
+        state.notifications.renderHistoryWindow([&](const Notification& note) {
+            if (note.hasTarget) state.navigateToTarget(note.target);
+        });
+        state.notifications.renderToasts([&](const Notification& note) {
+            if (note.hasTarget) state.navigateToTarget(note.target);
+        });
 
         // Check for exit request from menu
         if (state.exitRequested) done = true;

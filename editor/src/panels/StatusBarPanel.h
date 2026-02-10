@@ -68,6 +68,16 @@ static void renderStatusBar(EditorState& state) {
     ImGui::SameLine(0, 30);
     ImGui::Text("UTF-8");
 
+    ImGui::SameLine(0, 30);
+    int unread = state.notifications.unreadCount();
+    std::string notifLabel = "Notifications";
+    if (unread > 0) {
+        notifLabel += " (" + std::to_string(unread) + ")";
+    }
+    if (ImGui::Button(notifLabel.c_str())) {
+        state.notifications.showHistory = !state.notifications.showHistory;
+    }
+
     ImGui::PopFont();
     ImGui::End();
     ImGui::PopStyleVar();

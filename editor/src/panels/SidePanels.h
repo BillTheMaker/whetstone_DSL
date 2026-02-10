@@ -80,7 +80,7 @@ static void renderDependenciesPanel(EditorState& state) {
     if (!state.library.showDependencyPanel) return;
     ImGui::Begin("Dependencies", &state.library.showDependencyPanel);
     ImGui::PushFont(state.uiFont);
-    renderDependencyPanel(state.library.dependencyPanel, state.workspaceRoot, state.outputLog);
+    renderDependencyPanel(state.library.dependencyPanel, state.workspaceRoot, state.notifications);
     ImGui::PopFont();
     ImGui::End();
     if (state.library.dependencyPanel.needsIndex) {
@@ -100,7 +100,7 @@ static void renderLibrariesPanel(EditorState& state) {
                              state.library.libraryIndex,
                              insertText,
                              insertLibrary,
-                             state.outputLog)) {
+                             state.notifications)) {
         state.ensureImportForSymbol(insertLibrary, insertText);
         state.insertTextAtCursor(insertText);
     }
@@ -123,7 +123,7 @@ static void renderCompositionPanel(EditorState& state) {
     auto funcs = state.library.primitives.getAvailableFunctions(nodeId);
     primitives.insert(primitives.end(), funcs.begin(), funcs.end());
     std::string code;
-    if (renderCompositionPanel(state.library.compositionPanel, primitives, code, state.outputLog)) {
+    if (renderCompositionPanel(state.library.compositionPanel, primitives, code, state.notifications)) {
         state.insertTextAtCursor(code);
     }
     ImGui::PopFont();
@@ -134,7 +134,9 @@ static void renderEmacsPackagesPanel(EditorState& state) {
     if (!state.emacsState.showEmacsPackagesPanel) return;
     ImGui::Begin("Emacs Packages", &state.emacsState.showEmacsPackagesPanel);
     ImGui::PushFont(state.uiFont);
-    if (renderEmacsPackageBrowser(state.emacsState.emacsPackages, state.emacsState.emacs, state.outputLog)) {
+    if (renderEmacsPackageBrowser(state.emacsState.emacsPackages,
+                                  state.emacsState.emacs,
+                                  state.notifications)) {
         state.emacsState.emacsFunctionIndexDirty = true;
     }
     ImGui::PopFont();
@@ -188,7 +190,9 @@ static void renderMinibuffer(EditorState& state) {
                          state.emacsState.emacsKeys.minibufferBuf,
                          sizeof(state.emacsState.emacsKeys.minibufferBuf),
                          ImGuiInputTextFlags_EnterReturnsTrue)) {
-        emacsExecuteMinibuffer(state.emacsState.emacsKeys, state.emacsState.emacs, state.outputLog);
+        emacsExecuteMinibuffer(state.emacsState.emacsKeys,
+                               state.emacsState.emacs,
+                               state.notifications);
     }
     ImGui::PopFont();
     ImGui::End();
@@ -237,7 +241,8 @@ static void renderMemoryStrategiesPanel(EditorState& state) {
 
         if (ImGui::Button("Export JSON")) {
             auto j = buildAnnotationSummaryJson(entries);
-            state.outputLog += "Annotation summary:\\n" + j.dump(2) + "\\n";
+            state.notify(NotificationLevel::Info,
+                         "Annotation summary:\\n" + j.dump(2));
         }
     }
     ImGui::PopFont();

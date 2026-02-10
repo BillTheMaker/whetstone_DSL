@@ -24,7 +24,8 @@ static void renderMenuBar(EditorState& state) {
             auto path = FileDialog::openFile({"Open Project", {"*.whetstone"}, state.lastDialogPath});
             if (!path.empty()) {
                 if (!state.loadProject(path)) {
-                    state.outputLog += "Failed to open project: " + path + "\n";
+                    state.notify(NotificationLevel::Error,
+                                 "Failed to open project: " + path);
                 } else {
                     state.lastDialogPath = path;
                 }
@@ -59,7 +60,8 @@ static void renderMenuBar(EditorState& state) {
             auto path = FileDialog::saveFile({"Save Project", {"*.whetstone"}, state.lastDialogPath});
             if (!path.empty()) {
                 if (!state.saveProject(path)) {
-                    state.outputLog += "Failed to save project: " + path + "\n";
+                    state.notify(NotificationLevel::Error,
+                                 "Failed to save project: " + path);
                 } else {
                     state.lastDialogPath = path;
                 }

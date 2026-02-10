@@ -967,6 +967,14 @@ target_link_libraries(step168_integration_test PRIVATE
     tree_sitter_rust
     tree_sitter_go)
 
+add_executable(step169_test tests/step169_test.cpp)
+target_include_directories(step169_test PRIVATE src)
+target_link_libraries(step169_test PRIVATE imgui::imgui)
+
+add_executable(step169_integration_test tests/step169_integration_test.cpp)
+target_include_directories(step169_integration_test PRIVATE src)
+target_link_libraries(step169_integration_test PRIVATE imgui::imgui)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

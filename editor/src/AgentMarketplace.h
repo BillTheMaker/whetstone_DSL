@@ -3,6 +3,7 @@
 
 #include "imgui.h"
 #include "AgentRegistry.h"
+#include "NotificationSystem.h"
 #include <string>
 #include <algorithm>
 
@@ -30,7 +31,7 @@ static bool agentMatchesFilter(const AgentDescriptor& agent,
 
 static void renderAgentMarketplace(AgentMarketplaceState& state,
                                    AgentRegistry& registry,
-                                   std::string& outputLog,
+                                   NotificationSystem& notifications,
                                    const std::string& workspaceRoot) {
     if (state.registryPathBuf[0] == '\0') {
         std::string path = workspaceRoot.empty() ? "agents.json"
@@ -46,30 +47,35 @@ static void renderAgentMarketplace(AgentMarketplaceState& state,
     ImGui::InputText("Registry URL", state.registryUrlBuf, sizeof(state.registryUrlBuf));
     if (ImGui::Button("Set URL")) {
         registry.setRegistryUrl(state.registryUrlBuf);
-        outputLog += "[agents] Registry URL set.\n";
+        notifications.notify(NotificationLevel::Info, "[agents] Registry URL set.");
     }
     ImGui::SameLine();
     if (ImGui::Button("Refresh")) {
-        outputLog += "[agents] STUB: refresh registry from " +
-                     std::string(state.registryUrlBuf) + "\n";
+        notifications.notify(NotificationLevel::Info,
+                             "[agents] STUB: refresh registry from " +
+                             std::string(state.registryUrlBuf));
     }
 
     ImGui::InputText("Registry File", state.registryPathBuf, sizeof(state.registryPathBuf));
     if (ImGui::Button("Load")) {
         std::string error;
         if (!registry.loadFromFile(state.registryPathBuf, error)) {
-            outputLog += "[agents] Load failed: " + error + "\n";
+            notifications.notify(NotificationLevel::Error,
+                                 "[agents] Load failed: " + error);
         } else {
-            outputLog += "[agents] Loaded registry.\n";
+            notifications.notify(NotificationLevel::Success,
+                                 "[agents] Loaded registry.");
         }
     }
     ImGui::SameLine();
     if (ImGui::Button("Save")) {
         std::string error;
         if (!registry.saveToFile(state.registryPathBuf, error)) {
-            outputLog += "[agents] Save failed: " + error + "\n";
+            notifications.notify(NotificationLevel::Error,
+                                 "[agents] Save failed: " + error);
         } else {
-            outputLog += "[agents] Saved registry.\n";
+            notifications.notify(NotificationLevel::Success,
+                                 "[agents] Saved registry.");
         }
     }
 
@@ -114,13 +120,15 @@ static void renderAgentMarketplace(AgentMarketplaceState& state,
             if (!selected->installed) {
                 if (ImGui::Button("Install Agent")) {
                     selected->installed = true;
-                    outputLog += "[agents] Installed " + selected->name +
-                                 " (" + selected->endpoint + ")\n";
+                    notifications.notify(NotificationLevel::Success,
+                                         "[agents] Installed " + selected->name +
+                                         " (" + selected->endpoint + ")");
                 }
             } else {
                 if (ImGui::Button("Uninstall Agent")) {
                     selected->installed = false;
-                    outputLog += "[agents] Uninstalled " + selected->name + "\n";
+                    notifications.notify(NotificationLevel::Success,
+                                         "[agents] Uninstalled " + selected->name);
                 }
             }
         }
