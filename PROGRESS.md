@@ -481,3 +481,4 @@ Sprint 5 in progress. Step 135 (library-aware completion) done. Next: Step 136 (
 | 2026-02-09 | Codex | Step 133: Import statement generation + unused import warnings across Python/JS/Rust/Go/Elisp with auto-insert on library symbol use. 7/7 tests pass. |
 | 2026-02-09 | Codex | Step 134: PrimitivesRegistry aggregating builtins, imports, and in-scope symbols. 6/6 tests pass. |
 | 2026-02-09 | Codex | Step 135: Library-aware completion ordering with auto-import hints for non-primitive symbols. 5/5 tests pass. |
+| 2026-02-09 | Codex | Added FEATURE_REQUESTS.md to track security vulnerability awareness and semantic library annotations for future sprints. |
