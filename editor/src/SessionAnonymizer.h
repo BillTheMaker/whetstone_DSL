@@ -233,6 +233,9 @@ private:
     }
 
     std::string anonymizeStringValue(const std::string& value, const std::string& key) {
+        if (key == "method" || key == "jsonrpc") {
+            return value;
+        }
         if (!key.empty() && keyLooksLikePath(key)) {
             return anonymizePath(value);
         }

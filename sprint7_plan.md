@@ -440,7 +440,7 @@ Capture real editing sessions, anonymize them, and export as training data.
   - Validation: all output traces pass schema validation
   *New:* `editor/src/pipeline_main.cpp`
 
-- [ ] **Step 234: Session pipeline tests**
+- [x] **Step 234: Session pipeline tests**
   Tests for the recording and conversion pipeline:
   1. Recorded session round-trips through anonymizer preserving structure
   2. Anonymized sessions have no file paths or identifiable content
