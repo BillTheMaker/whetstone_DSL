@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/runPipeline.schema.json",
+  "title": "runPipeline",
+  "description": "Run the full Whetstone pipeline from source to target language",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "The source code to process"
+        },
+        "sourceLanguage": {
+          "type": "string",
+          "description": "The source language (e.g., 'python', 'javascript')"
+        },
+        "targetLanguage": {
+          "type": "string",
+          "description": "The target language to generate (e.g., 'cpp', 'rust')"
+        }
+      },
+      "required": ["source", "sourceLanguage", "targetLanguage"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the pipeline completed successfully"
+        },
+        "generatedCode": {
+          "type": "string",
+          "description": "The generated code in the target language"
+        },
+        "ast": {
+          "type": "object",
+          "description": "The intermediate AST representation"
+        },
+        "parseDiagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/ParseDiagnostic.schema.json"
+          },
+          "description": "Array of parse diagnostics"
+        },
+        "validationDiagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/Diagnostic.schema.json"
+          },
+          "description": "Array of validation diagnostics"
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "The type of violation"
+              },
+              "message": {
+                "type": "string",
+                "description": "The violation message"
+              },
+              "nodeId": {
+                "type": "string",
+                "description": "The node ID where the violation occurred"
+              }
+            },
+            "required": ["type", "message", "nodeId"]
+          },
+          "description": "Array of policy violations"
+        },
+        "suggestions": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/Suggestion.schema.json"
+          },
+          "description": "Array of annotation suggestions"
+        },
+        "foldCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of constant folding optimizations applied"
+        },
+        "dceCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of dead code elimination optimizations applied"
+        }
+      },
+      "required": ["success", "generatedCode", "parseDiagnostics", "validationDiagnostics", "violations", "suggestions", "foldCount", "dceCount"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["request", "response"]
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/applyBatch.schema.json",
+  "title": "applyBatch",
+  "description": "Apply a batch of mutations to the AST",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "mutations": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/Mutation.schema.json"
+          },
+          "description": "Array of mutations to apply"
+        }
+      },
+      "required": ["mutations"],
+      "additionalProperties": false
+    },
+    "response": {
+      "$ref": "../types/BatchResult.schema.json"
+    }
+  },
+  "required": ["request", "response"]
+}

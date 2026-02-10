@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/types/BatchResult.schema.json",
+  "title": "BatchResult",
+  "description": "Represents the result of applying a batch of mutations",
+  "type": "object",
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the batch operation was successful"
+    },
+    "appliedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The number of mutations successfully applied"
+    }
+  },
+  "required": ["success", "appliedCount"],
+  "additionalProperties": false
+}

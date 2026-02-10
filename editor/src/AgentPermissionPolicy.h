@@ -30,19 +30,26 @@ struct AgentPermissionPolicy {
     }
 
     static bool canInvoke(AgentRole role, const std::string& method) {
+        // Read-only methods: all roles
         if (method == "getAST" ||
             method == "getAnnotationSuggestions" ||
             method == "recordAnnotationFeedback" ||
-            method == "setAgentRole") {
+            method == "setAgentRole" ||
+            method == "getInScopeSymbols" ||
+            method == "getCallHierarchy" ||
+            method == "getDependencyGraph" ||
+            method == "runPipeline" ||
+            method == "parseSource" ||
+            method == "generateFromAST" ||
+            method == "projectLanguage") {
             return true;
         }
 
-        if (method == "generateCode") {
-            return role == AgentRole::Refactor || role == AgentRole::Generator;
-        }
-
-        if (method == "applyMutation" ||
-            method == "applyAnnotationSuggestion") {
+        // Mutation methods: Refactor and Generator only
+        if (method == "generateCode" ||
+            method == "applyMutation" ||
+            method == "applyAnnotationSuggestion" ||
+            method == "applyBatch") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

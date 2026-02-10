@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/types/Suggestion.schema.json",
+  "title": "Suggestion",
+  "description": "Represents an annotation suggestion for an AST node",
+  "type": "object",
+  "properties": {
+    "nodeId": {
+      "type": "string",
+      "description": "The unique identifier of the AST node for this suggestion"
+    },
+    "annotationType": {
+      "type": "string",
+      "description": "The type of annotation being suggested"
+    },
+    "strategy": {
+      "type": "string",
+      "description": "The strategy used to generate this suggestion"
+    },
+    "reason": {
+      "type": "string",
+      "description": "The reason for this suggestion"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Confidence score for this suggestion (0-1)"
+    }
+  },
+  "required": ["nodeId", "annotationType", "strategy", "reason", "confidence"],
+  "additionalProperties": false
+}

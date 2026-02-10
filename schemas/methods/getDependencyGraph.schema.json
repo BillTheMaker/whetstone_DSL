@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/getDependencyGraph.schema.json",
+  "title": "getDependencyGraph",
+  "description": "Get the dependency graph for a given node",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the AST node to query"
+        }
+      },
+      "required": ["nodeId"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of node IDs that this node depends on"
+        }
+      },
+      "required": ["dependencies"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["request", "response"]
+}

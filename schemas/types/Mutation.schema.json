@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/types/Mutation.schema.json",
+  "title": "Mutation",
+  "description": "Represents a mutation operation on the AST",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["setProperty", "insertNode", "deleteNode"],
+      "description": "The type of mutation operation"
+    },
+    "nodeId": {
+      "type": "string",
+      "description": "The unique identifier of the target node (required for setProperty and deleteNode)"
+    },
+    "property": {
+      "type": "string",
+      "description": "The property name to set (required for setProperty)"
+    },
+    "value": {
+      "type": "string",
+      "description": "The value to set (required for setProperty)"
+    },
+    "parentId": {
+      "type": "string",
+      "description": "The parent node ID (required for insertNode)"
+    },
+    "role": {
+      "type": "string",
+      "description": "The role/relationship to the parent (required for insertNode)"
+    },
+    "node": {
+      "type": "object",
+      "description": "The node object to insert (required for insertNode)"
+    }
+  },
+  "required": ["type"],
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "type": { "const": "setProperty" }
+      },
+      "required": ["nodeId", "property", "value"]
+    },
+    {
+      "properties": {
+        "type": { "const": "insertNode" }
+      },
+      "required": ["parentId", "role", "node"]
+    },
+    {
+      "properties": {
+        "type": { "const": "deleteNode" }
+      },
+      "required": ["nodeId"]
+    }
+  ]
+}

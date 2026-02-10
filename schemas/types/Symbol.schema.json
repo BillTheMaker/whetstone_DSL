@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/types/Symbol.schema.json",
+  "title": "Symbol",
+  "description": "Represents a symbol in the Whetstone AST (function, variable, or parameter)",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the symbol"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["function", "variable", "parameter"],
+      "description": "The kind of symbol"
+    },
+    "nodeId": {
+      "type": "string",
+      "description": "The unique identifier of the AST node representing this symbol"
+    }
+  },
+  "required": ["name", "kind", "nodeId"],
+  "additionalProperties": false
+}

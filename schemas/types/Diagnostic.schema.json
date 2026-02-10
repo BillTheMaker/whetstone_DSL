@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/types/Diagnostic.schema.json",
+  "title": "Diagnostic",
+  "description": "Represents a validation diagnostic for an AST node",
+  "type": "object",
+  "properties": {
+    "severity": {
+      "type": "string",
+      "description": "The severity level of the diagnostic"
+    },
+    "message": {
+      "type": "string",
+      "description": "The diagnostic message"
+    },
+    "nodeId": {
+      "type": "string",
+      "description": "The unique identifier of the AST node related to this diagnostic"
+    }
+  },
+  "required": ["severity", "message", "nodeId"],
+  "additionalProperties": false
+}

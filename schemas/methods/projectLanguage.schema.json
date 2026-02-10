@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/projectLanguage.schema.json",
+  "title": "projectLanguage",
+  "description": "Project the current AST to a target language",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "targetLanguage": {
+          "type": "string",
+          "description": "The target language to project to"
+        }
+      },
+      "required": ["targetLanguage"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "ast": {
+          "type": "object",
+          "description": "The projected AST"
+        },
+        "generatedCode": {
+          "type": "string",
+          "description": "The generated code in the target language"
+        },
+        "sourceLanguage": {
+          "type": "string",
+          "description": "The source language"
+        },
+        "targetLanguage": {
+          "type": "string",
+          "description": "The target language"
+        }
+      },
+      "required": ["ast", "generatedCode", "sourceLanguage", "targetLanguage"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["request", "response"]
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/getInScopeSymbols.schema.json",
+  "title": "getInScopeSymbols",
+  "description": "Get all symbols that are in scope at a given AST node",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the AST node to query"
+        }
+      },
+      "required": ["nodeId"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "symbols": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/Symbol.schema.json"
+          },
+          "description": "Array of symbols in scope at the given node"
+        }
+      },
+      "required": ["symbols"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["request", "response"]
+}

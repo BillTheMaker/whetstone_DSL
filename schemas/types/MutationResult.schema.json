@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/types/MutationResult.schema.json",
+  "title": "MutationResult",
+  "description": "Represents the result of applying a mutation to the AST",
+  "type": "object",
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the mutation was successful"
+    },
+    "warning": {
+      "type": "string",
+      "description": "Optional warning message"
+    },
+    "libraryWarning": {
+      "type": "string",
+      "description": "Optional library-related warning message"
+    },
+    "unknownFunctions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional array of unknown function names encountered"
+    }
+  },
+  "required": ["success"],
+  "additionalProperties": false
+}

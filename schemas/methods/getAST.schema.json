@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/getAST.schema.json",
+  "title": "getAST",
+  "description": "Get the current AST with annotations and diagnostics",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "ast": {
+          "type": "object",
+          "description": "The current AST"
+        },
+        "annotationCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The number of annotations in the AST"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/Diagnostic.schema.json"
+          },
+          "description": "Array of validation diagnostics"
+        }
+      },
+      "required": ["ast", "annotationCount", "diagnostics"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["request", "response"]
+}

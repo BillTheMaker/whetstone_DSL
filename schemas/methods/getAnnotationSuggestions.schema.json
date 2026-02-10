@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/getAnnotationSuggestions.schema.json",
+  "title": "getAnnotationSuggestions",
+  "description": "Get annotation suggestions for a node or source location",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the AST node to query"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The line number in the source code"
+        },
+        "col": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The column number in the source code"
+        }
+      },
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "scopeId": {
+          "type": "string",
+          "description": "The scope ID where suggestions were generated"
+        },
+        "suggestions": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/Suggestion.schema.json"
+          },
+          "description": "Array of annotation suggestions"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "../types/Diagnostic.schema.json"
+          },
+          "description": "Array of diagnostics related to the suggestions"
+        }
+      },
+      "required": ["scopeId", "suggestions", "diagnostics"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["request", "response"]
+}

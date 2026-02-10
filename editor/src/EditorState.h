@@ -33,6 +33,7 @@
 #include "RefactorActions.h"
 #include "CommandPalette.h"
 #include "ContextAPI.h"
+#include "BatchMutationAPI.h"
 #include "Breadcrumbs.h"
 #include "ProjectSearch.h"
 #include "GoToLine.h"
@@ -1780,6 +1781,298 @@ struct EditorState {
                 {"warning", res.warning},
                 {"libraryWarning", policy.warning},
                 {"unknownFunctions", policy.unknownFunctions}
+            };
+            return response;
+        }
+
+        // --- Step 204: ContextAPI methods ---
+
+        if (method == "getInScopeSymbols") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string nodeId = params.value("nodeId", "");
+            if (nodeId.empty()) {
+                response["error"] = {{"code", -32602}, {"message", "Missing nodeId parameter"}};
+                return response;
+            }
+            ContextAPI ctx;
+            ctx.setRoot(ast);
+            auto symbols = ctx.getInScopeSymbols(nodeId);
+            json arr = json::array();
+            for (const auto& s : symbols) {
+                arr.push_back({{"name", s.name}, {"kind", s.kind}, {"nodeId", s.nodeId}});
+            }
+            response["result"] = {{"symbols", arr}};
+            return response;
+        }
+
+        if (method == "getCallHierarchy") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string functionId = params.value("functionId", "");
+            if (functionId.empty()) {
+                response["error"] = {{"code", -32602}, {"message", "Missing functionId parameter"}};
+                return response;
+            }
+            ContextAPI ctx;
+            ctx.setRoot(ast);
+            auto info = ctx.getCallHierarchy(functionId);
+            response["result"] = {
+                {"functionId", info.functionId},
+                {"functionName", info.functionName},
+                {"callerIds", info.callerIds},
+                {"calleeIds", info.calleeIds}
+            };
+            return response;
+        }
+
+        if (method == "getDependencyGraph") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string nodeId = params.value("nodeId", "");
+            if (nodeId.empty()) {
+                response["error"] = {{"code", -32602}, {"message", "Missing nodeId parameter"}};
+                return response;
+            }
+            ContextAPI ctx;
+            ctx.setRoot(ast);
+            auto deps = ctx.getDependencyGraph(nodeId);
+            response["result"] = {{"dependencies", deps}};
+            return response;
+        }
+
+        if (method == "applyBatch") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = mutationAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            if (!params.contains("mutations") || !params["mutations"].is_array()) {
+                response["error"] = {{"code", -32602}, {"message", "Missing mutations array"}};
+                return response;
+            }
+
+            BatchMutationAPI batch;
+            batch.setRoot(ast);
+            std::vector<BatchMutationAPI::Mutation> mutations;
+            std::vector<ASTNode*> ownedNodes; // track nodes we allocate for cleanup on error
+            for (const auto& m : params["mutations"]) {
+                BatchMutationAPI::Mutation mut;
+                mut.type = m.value("type", "");
+                mut.nodeId = m.value("nodeId", "");
+                mut.property = m.value("property", "");
+                mut.value = m.value("value", "");
+                mut.parentId = m.value("parentId", "");
+                mut.role = m.value("role", "");
+                if (m.contains("node")) {
+                    mut.newNode = fromJson(m["node"]);
+                    if (mut.newNode) ownedNodes.push_back(mut.newNode);
+                }
+                mutations.push_back(mut);
+            }
+            auto batchRes = batch.applySequence(mutations);
+            if (!batchRes.success) {
+                // Clean up any allocated nodes that weren't inserted
+                for (auto* n : ownedNodes) {
+                    if (n->parent == nullptr) deleteTree(n);
+                }
+                response["error"] = {{"code", -32010}, {"message", batchRes.error}};
+                return response;
+            }
+            applyOrchestratorToActive();
+            if (active()) {
+                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+                active()->incrementalOptimizer.recordExternalTransform(
+                    "agent-batch",
+                    {},
+                    agentActorLabel(sessionId));
+            }
+            response["result"] = {
+                {"success", true},
+                {"appliedCount", batchRes.appliedCount}
+            };
+            return response;
+        }
+
+        // --- Step 205: Pipeline methods ---
+
+        if (method == "runPipeline") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string source = params.value("source", "");
+            std::string srcLang = params.value("sourceLanguage", "");
+            std::string tgtLang = params.value("targetLanguage", "");
+            if (source.empty() || srcLang.empty() || tgtLang.empty()) {
+                response["error"] = {{"code", -32602}, {"message", "Missing source, sourceLanguage, or targetLanguage"}};
+                return response;
+            }
+            Pipeline pipeline;
+            auto pr = pipeline.run(source, srcLang, tgtLang);
+            json diagArr = json::array();
+            for (const auto& d : pr.parseDiags) {
+                diagArr.push_back({{"line", d.line}, {"column", d.column}, {"message", d.message}, {"severity", d.severity}});
+            }
+            json valDiagArr = json::array();
+            for (const auto& d : pr.validationDiags) {
+                valDiagArr.push_back({{"severity", d.severity}, {"message", d.message}, {"nodeId", d.nodeId}});
+            }
+            json violArr = json::array();
+            for (const auto& v : pr.violations) {
+                violArr.push_back({{"type", v.type}, {"message", v.message}, {"nodeId", v.nodeId}});
+            }
+            json suggArr = json::array();
+            for (const auto& s : pr.suggestions) {
+                suggArr.push_back({
+                    {"nodeId", s.nodeId}, {"annotationType", s.annotationType},
+                    {"strategy", s.strategy}, {"reason", s.reason}, {"confidence", s.confidence}
+                });
+            }
+            response["result"] = {
+                {"success", pr.success},
+                {"generatedCode", pr.generatedCode},
+                {"parseDiagnostics", diagArr},
+                {"validationDiagnostics", valDiagArr},
+                {"violations", violArr},
+                {"suggestions", suggArr},
+                {"foldCount", pr.foldResult.transformCount},
+                {"dceCount", pr.dceResult.transformCount}
+            };
+            if (pr.ast) {
+                response["result"]["ast"] = toJson(pr.ast.get());
+            }
+            return response;
+        }
+
+        if (method == "parseSource") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string source = params.value("source", "");
+            std::string language = params.value("language", "");
+            if (source.empty() || language.empty()) {
+                response["error"] = {{"code", -32602}, {"message", "Missing source or language"}};
+                return response;
+            }
+            Pipeline pipeline;
+            std::vector<ParseDiagnostic> diags;
+            auto mod = pipeline.parse(source, language, diags);
+            json diagArr = json::array();
+            for (const auto& d : diags) {
+                diagArr.push_back({{"line", d.line}, {"column", d.column}, {"message", d.message}, {"severity", d.severity}});
+            }
+            json result = {{"diagnostics", diagArr}};
+            if (mod) {
+                result["ast"] = toJson(mod.get());
+            }
+            response["result"] = result;
+            return response;
+        }
+
+        if (method == "generateFromAST") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string language = params.value("language", active()->language);
+            Pipeline pipeline;
+            std::string code = pipeline.generate(ast, language);
+            response["result"] = {{"code", code}, {"language", language}};
+            return response;
+        }
+
+        if (method == "projectLanguage") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string targetLanguage = params.value("targetLanguage", "");
+            if (targetLanguage.empty()) {
+                response["error"] = {{"code", -32602}, {"message", "Missing targetLanguage"}};
+                return response;
+            }
+            CrossLanguageProjector projector;
+            auto projected = projector.project(ast, targetLanguage);
+            if (!projected) {
+                response["error"] = {{"code", -32020}, {"message", "Projection failed"}};
+                return response;
+            }
+            Pipeline pipeline;
+            std::string code = pipeline.generate(projected.get(), targetLanguage);
+            response["result"] = {
+                {"ast", toJson(projected.get())},
+                {"generatedCode", code},
+                {"sourceLanguage", active()->language},
+                {"targetLanguage", targetLanguage}
             };
             return response;
         }

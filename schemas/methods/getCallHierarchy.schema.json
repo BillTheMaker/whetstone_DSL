@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/getCallHierarchy.schema.json",
+  "title": "getCallHierarchy",
+  "description": "Get the call hierarchy information for a function",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "functionId": {
+          "type": "string",
+          "description": "The unique identifier of the function node"
+        }
+      },
+      "required": ["functionId"],
+      "additionalProperties": false
+    },
+    "response": {
+      "$ref": "../types/CallInfo.schema.json"
+    }
+  },
+  "required": ["request", "response"]
+}

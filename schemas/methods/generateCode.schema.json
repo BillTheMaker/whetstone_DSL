@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://whetstone-dsl.org/schemas/methods/generateCode.schema.json",
+  "title": "generateCode",
+  "description": "Generate code from a natural language specification",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "spec": {
+          "type": "string",
+          "description": "The natural language specification describing the desired code"
+        },
+        "preferImports": {
+          "type": "boolean",
+          "description": "Whether to prefer imports over inline definitions"
+        }
+      },
+      "required": ["spec"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "type": "object",
+          "description": "The generated AST node"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note about the generation process"
+        },
+        "usedSymbols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of symbols used in the generated code"
+        },
+        "language": {
+          "type": "string",
+          "description": "The language of the generated code"
+        }
+      },
+      "required": ["node", "note", "usedSymbols", "language"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["request", "response"]
+}
