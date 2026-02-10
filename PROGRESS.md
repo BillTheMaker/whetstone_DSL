@@ -523,3 +523,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 173: Theme gallery UI with hover preview, apply/reset, and swatches. 2/2 tests pass (step173_test, step173_integration_test). file_limits_test 4/4 passes. |
 | 2026-02-10 | Codex | Step 174: Added IconSet system with theme-aware, zoom-scaled icons + tests. 2/2 tests pass (step174_test, step174_integration_test). file_limits_test 4/4 passes. |
 | 2026-02-10 | Codex | Step 175: Typography controls (fonts, line height, letter spacing) + theme layout spacing. 2/2 tests pass (step175_test, step175_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

@@ -25,7 +25,7 @@ The foundation: main.cpp is 2600+ lines and EditorState.h is 1800+ lines,
 both far over the architecture limits (1500 and 600 respectively). Fix this
 first — all UX work becomes easier when panels are modular.
 
-- [ ] **Step 166: Extract main.cpp into panel headers**
+- [x] **Step 166: Extract main.cpp into panel headers**
   Create `editor/src/panels/` directory. Extract each major UI section from
   main.cpp's render loop into its own header with a `renderXxx(EditorState&)`
   free function:
