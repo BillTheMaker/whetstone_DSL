@@ -11,6 +11,7 @@ public:
         if (!font) font = ImGui::GetFont();
 
         ImGuiIO& io = ImGui::GetIO();
+        syncPrimaryToMulti();
         const double nowSeconds = options.nowSeconds > 0.0 ? options.nowSeconds : ImGui::GetTime();
         auto beginFadingTooltip = [&](const std::string& id, bool hovered) -> bool {
             float alpha = AnimationUtils::tooltipAlpha(id, hovered, nowSeconds, options.reduceMotion);
@@ -116,6 +117,8 @@ public:
                 goto after_mouse;
             }
             bool ctrlClick = io.KeyCtrl || io.KeySuper;
+            bool altClick = io.KeyAlt;
+            bool columnSelect = io.KeyAlt && io.KeyShift;
             int clickCount = ImGui::GetIO().MouseClickedCount[0];
             if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
                 int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
@@ -130,7 +133,23 @@ public:
                 cursor_ = lineStart;
                 selStart_ = lineStart;
                 selEnd_ = lineEnd;
+            } else if (columnSelect) {
+                int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
+                int line = lineFromPos(pos, lineStarts);
+                int col = pos - lineStarts[line];
+                columnSelectActive_ = true;
+                columnAnchorLine_ = line;
+                columnAnchorCol_ = col;
+                updateColumnSelection(text, lineStarts, columnAnchorLine_, columnAnchorCol_, line, col);
+                selecting_ = true;
+                goto after_mouse;
+            } else if (altClick) {
+                int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
+                addCursorAt(pos);
+                selecting_ = false;
+                goto after_mouse;
             } else {
+                clearExtraCursors();
                 int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
                 result.lineClicked = true;
                 result.clickedLine = lineFromPos(pos, lineStarts);
@@ -159,11 +178,18 @@ public:
             const ImVec2 mouse = ImGui::GetMousePos();
             if (mouse.x >= origin.x + gutterWidth) {
                 int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
-                selEnd_ = pos;
+                if (columnSelectActive_ && (io.KeyAlt && io.KeyShift)) {
+                    int line = lineFromPos(pos, lineStarts);
+                    int col = pos - lineStarts[line];
+                    updateColumnSelection(text, lineStarts, columnAnchorLine_, columnAnchorCol_, line, col);
+                } else {
+                    selEnd_ = pos;
+                }
             }
         }
         if (selecting_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
             selecting_ = false;
+            columnSelectActive_ = false;
         }
 
         if (hovered) {
@@ -388,9 +414,10 @@ public:
             }
 
             // Selection background
-            if (hasSelection()) {
-                int selA = std::min(selStart_, selEnd_);
-                int selB = std::max(selStart_, selEnd_);
+            for (const auto& c : cursors_) {
+                if (c.selStart < 0 || c.selEnd < 0 || c.selStart == c.selEnd) continue;
+                int selA = std::min(c.selStart, c.selEnd);
+                int selB = std::max(c.selStart, c.selEnd);
                 int lineSelStart = std::max(selA, start);
                 int lineSelEnd = std::min(selB, end);
                 if (lineSelStart < lineSelEnd) {
@@ -502,17 +529,20 @@ public:
                                                           options.cursorBlinkRate,
                                                           options.reduceMotion);
             if (blinkAlpha > 0.02f) {
-                int curLine = currentLine;
-                int lineStart = lineStarts[curLine];
-                int col = cursor_ - lineStart;
-                float x = textBase.x + col * charAdvance;
-                float y = textBase.y + curLine * lineHeight;
-                ImU32 base = ThemeEngine::instance().editorColor("caret",
-                                                                IM_COL32(240, 240, 240, 255));
-                ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
-                c.w *= blinkAlpha;
-                ImU32 col32 = ImGui::ColorConvertFloat4ToU32(c);
-                drawList->AddLine(ImVec2(x, y), ImVec2(x, y + lineHeight), col32, 1.0f);
+                for (size_t i = 0; i < cursors_.size(); ++i) {
+                    const auto& c = cursors_[i];
+                    int curLine = lineFromPos(c.cursor, lineStarts);
+                    int lineStart = lineStarts[curLine];
+                    int col = c.cursor - lineStart;
+                    float x = textBase.x + col * charAdvance;
+                    float y = textBase.y + curLine * lineHeight;
+                    ImU32 base = ThemeEngine::instance().editorColor("caret",
+                                                                    IM_COL32(240, 240, 240, 255));
+                    ImVec4 color = ImGui::ColorConvertU32ToFloat4(base);
+                    color.w *= (i == 0) ? blinkAlpha : (blinkAlpha * 0.6f);
+                    ImU32 col32 = ImGui::ColorConvertFloat4ToU32(color);
+                    drawList->AddLine(ImVec2(x, y), ImVec2(x, y + lineHeight), col32, 1.0f);
+                }
             }
         }
 
@@ -549,6 +579,7 @@ public:
 
         ImGui::EndChild();
 
+        syncMultiToPrimary();
         result.cursorByte = cursor_;
         result.lineCount = lineCount;
         result.gutterWidth = gutterWidth;
@@ -567,7 +598,10 @@ public:
         return result;
     }
 
-    void setCursor(int pos) { cursor_ = pos; }
+    void setCursor(int pos) {
+        cursor_ = pos;
+        syncPrimaryToMulti();
+    }
     int getCursor() const { return cursor_; }
     bool hasSelectionRange() const { return hasSelection(); }
     void getSelectionRange(int& start, int& end) const {
@@ -610,6 +644,10 @@ private:
     int selStart_ = -1;
     int selEnd_ = -1;
     bool selecting_ = false;
+    std::vector<MultiCursor> cursors_;
+    bool columnSelectActive_ = false;
+    int columnAnchorLine_ = 0;
+    int columnAnchorCol_ = 0;
     std::vector<FoldRegion> folds_;
     std::string lastFoldText_;
     std::string lastFoldLang_;

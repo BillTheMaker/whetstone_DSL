@@ -171,7 +171,7 @@ Core editing improvements that make daily use smooth.
   - Preserve search history (last 10 queries, accessible via dropdown)
   *Modifies:* `CodeEditorWidget.h`, find/replace rendering
 
-- [ ] **Step 178: Multi-cursor editing**
+- [x] **Step 178: Multi-cursor editing**
   Support for multiple simultaneous cursors:
   - Ctrl+D: select next occurrence of current selection (add cursor)
   - Alt+Click: add cursor at click position

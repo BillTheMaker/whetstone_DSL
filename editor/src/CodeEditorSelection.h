@@ -1,7 +1,98 @@
 #pragma once
 // Included inside CodeEditorWidget (selection + editing).
+    struct MultiCursor {
+        int cursor = 0;
+        int selStart = -1;
+        int selEnd = -1;
+    };
+
+    void syncPrimaryToMulti() {
+        if (cursors_.empty()) {
+            cursors_.push_back({cursor_, selStart_, selEnd_});
+            return;
+        }
+        cursors_[0].cursor = cursor_;
+        cursors_[0].selStart = selStart_;
+        cursors_[0].selEnd = selEnd_;
+    }
+
+    void syncMultiToPrimary() {
+        if (cursors_.empty()) return;
+        cursor_ = cursors_[0].cursor;
+        selStart_ = cursors_[0].selStart;
+        selEnd_ = cursors_[0].selEnd;
+    }
+
+    void clearExtraCursors() {
+        if (cursors_.size() > 1) {
+            cursors_.erase(cursors_.begin() + 1, cursors_.end());
+        }
+    }
+
+    void addCursorAt(int pos, int selStart = -1, int selEnd = -1) {
+        for (const auto& c : cursors_) {
+            if (c.cursor == pos) return;
+        }
+        MultiCursor c;
+        c.cursor = pos;
+        c.selStart = selStart >= 0 ? selStart : pos;
+        c.selEnd = selEnd >= 0 ? selEnd : pos;
+        cursors_.push_back(c);
+    }
+
+    void dedupeCursors() {
+        if (cursors_.size() <= 1) return;
+        std::sort(cursors_.begin(), cursors_.end(),
+                  [](const MultiCursor& a, const MultiCursor& b) { return a.cursor < b.cursor; });
+        auto it = std::unique(cursors_.begin(), cursors_.end(),
+                              [](const MultiCursor& a, const MultiCursor& b) {
+                                  return a.cursor == b.cursor &&
+                                         a.selStart == b.selStart &&
+                                         a.selEnd == b.selEnd;
+                              });
+        cursors_.erase(it, cursors_.end());
+    }
+
+    static int positionFromLineCol(const std::vector<int>& lineStarts, int line, int col, const std::string& text) {
+        if (lineStarts.empty()) return 0;
+        line = std::max(0, std::min(line, (int)lineStarts.size() - 1));
+        int start = lineStarts[line];
+        int end = (line + 1 < (int)lineStarts.size()) ? lineStarts[line + 1] - 1 : (int)text.size();
+        int len = std::max(0, end - start);
+        int clampedCol = std::max(0, std::min(col, len));
+        return start + clampedCol;
+    }
+
+    void updateColumnSelection(const std::string& text,
+                               const std::vector<int>& lineStarts,
+                               int anchorLine,
+                               int anchorCol,
+                               int currentLine,
+                               int currentCol) {
+        cursors_.clear();
+        int startLine = std::min(anchorLine, currentLine);
+        int endLine = std::max(anchorLine, currentLine);
+        int col = currentCol;
+        for (int line = startLine; line <= endLine; ++line) {
+            int pos = positionFromLineCol(lineStarts, line, col, text);
+            MultiCursor c;
+            c.cursor = pos;
+            c.selStart = pos;
+            c.selEnd = pos;
+            cursors_.push_back(c);
+        }
+        if (!cursors_.empty()) {
+            cursor_ = cursors_[0].cursor;
+            selStart_ = cursors_[0].selStart;
+            selEnd_ = cursors_[0].selEnd;
+        }
+    }
     bool hasSelection() const {
         return selStart_ >= 0 && selEnd_ >= 0 && selStart_ != selEnd_;
+    }
+
+    static bool cursorHasSelection(const MultiCursor& c) {
+        return c.selStart >= 0 && c.selEnd >= 0 && c.selStart != c.selEnd;
     }
 
     void deleteSelection(std::string& text, bool& changed) {
@@ -14,22 +105,76 @@
             changed = true;
         }
         selStart_ = selEnd_ = -1;
+        syncPrimaryToMulti();
+    }
+
+    void applyEdits(std::string& text,
+                    const std::vector<MultiCursor>& edits,
+                    const std::vector<std::string>& inserts,
+                    bool& changed) {
+        if (edits.empty()) return;
+        struct Plan { int index; int start; int end; std::string insert; };
+        std::vector<Plan> plans;
+        plans.reserve(edits.size());
+        for (size_t i = 0; i < edits.size(); ++i) {
+            const auto& c = edits[i];
+            int start = c.cursor;
+            int end = c.cursor;
+            if (cursorHasSelection(c)) {
+                start = std::min(c.selStart, c.selEnd);
+                end = std::max(c.selStart, c.selEnd);
+            }
+            plans.push_back({(int)i, start, end, inserts[i]});
+        }
+        std::sort(plans.begin(), plans.end(),
+                  [](const Plan& a, const Plan& b) { return a.start > b.start; });
+
+        std::vector<MultiCursor> next = edits;
+        bool didChange = false;
+        for (const auto& plan : plans) {
+            if (plan.start < 0 || plan.start > (int)text.size()) continue;
+            int safeEnd = std::max(plan.start, std::min(plan.end, (int)text.size()));
+            if (safeEnd > plan.start) {
+                text.erase(plan.start, safeEnd - plan.start);
+                didChange = true;
+            }
+            if (!plan.insert.empty()) {
+                text.insert(plan.start, plan.insert);
+                didChange = true;
+            }
+            next[plan.index].cursor = plan.start + (int)plan.insert.size();
+            next[plan.index].selStart = next[plan.index].cursor;
+            next[plan.index].selEnd = next[plan.index].cursor;
+        }
+        if (didChange) {
+            changed = true;
+        }
+        cursors_ = std::move(next);
+        syncMultiToPrimary();
     }
 
     void insertText(std::string& text, const std::string& insert, bool& changed) {
         if (insert.empty()) return;
-        deleteSelection(text, changed);
-        text.insert(cursor_, insert);
-        cursor_ += (int)insert.size();
-        changed = true;
+        syncPrimaryToMulti();
+        std::vector<MultiCursor> edits = cursors_;
+        std::vector<std::string> inserts(edits.size(), insert);
+        applyEdits(text, edits, inserts, changed);
     }
 
     void insertPair(std::string& text, char open, char close, bool& changed) {
-        deleteSelection(text, changed);
-        text.insert(cursor_, 1, open);
-        text.insert(cursor_ + 1, 1, close);
-        cursor_ += 1;
-        changed = true;
+        syncPrimaryToMulti();
+        std::string pair;
+        pair.push_back(open);
+        pair.push_back(close);
+        std::vector<MultiCursor> edits = cursors_;
+        std::vector<std::string> inserts(edits.size(), pair);
+        applyEdits(text, edits, inserts, changed);
+        for (auto& c : cursors_) {
+            c.cursor -= 1;
+            c.selStart = c.cursor;
+            c.selEnd = c.cursor;
+        }
+        syncMultiToPrimary();
     }
 
     static std::string lineTextAt(const std::string& text, const std::vector<int>& lineStarts, int line) {
@@ -67,6 +212,7 @@
                         const std::vector<int>& lineStarts,
                         const EditorMode* mode) {
         ImGuiIO& io = ImGui::GetIO();
+        syncPrimaryToMulti();
 
         // Text input
         for (int n = 0; n < io.InputQueueCharacters.Size; n++) {
@@ -98,76 +244,91 @@
         io.InputQueueCharacters.resize(0);
 
         // Navigation
-        auto moveCursor = [&](int newPos) {
+        auto moveCursor = [&](MultiCursor& c, int newPos) {
             newPos = std::max(0, std::min(newPos, (int)text.size()));
             if (io.KeyShift) {
-                if (!hasSelection()) selStart_ = cursor_;
-                cursor_ = newPos;
-                selEnd_ = cursor_;
+                if (!cursorHasSelection(c)) c.selStart = c.cursor;
+                c.cursor = newPos;
+                c.selEnd = c.cursor;
             } else {
-                cursor_ = newPos;
-                selStart_ = selEnd_ = -1;
+                c.cursor = newPos;
+                c.selStart = c.selEnd = -1;
             }
         };
 
         if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-            if (!io.KeyShift && hasSelection()) {
-                moveCursor(std::min(selStart_, selEnd_));
-            } else if (cursor_ > 0) {
-                moveCursor(cursor_ - 1);
+            for (auto& c : cursors_) {
+                if (!io.KeyShift && cursorHasSelection(c)) {
+                    moveCursor(c, std::min(c.selStart, c.selEnd));
+                } else if (c.cursor > 0) {
+                    moveCursor(c, c.cursor - 1);
+                }
             }
         }
         if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-            if (!io.KeyShift && hasSelection()) {
-                moveCursor(std::max(selStart_, selEnd_));
-            } else if (cursor_ < (int)text.size()) {
-                moveCursor(cursor_ + 1);
+            for (auto& c : cursors_) {
+                if (!io.KeyShift && cursorHasSelection(c)) {
+                    moveCursor(c, std::max(c.selStart, c.selEnd));
+                } else if (c.cursor < (int)text.size()) {
+                    moveCursor(c, c.cursor + 1);
+                }
             }
         }
         if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
-            int curLine = lineFromPos(cursor_, lineStarts);
-            if (curLine > 0) {
-                int curCol = cursor_ - lineStarts[curLine];
-                int prevStart = lineStarts[curLine - 1];
-                int prevEnd = (curLine < (int)lineStarts.size()) ? lineStarts[curLine] - 1 : (int)text.size();
-                int prevLen = std::max(0, prevEnd - prevStart);
-                moveCursor(prevStart + std::min(curCol, prevLen));
+            for (auto& c : cursors_) {
+                int curLine = lineFromPos(c.cursor, lineStarts);
+                if (curLine > 0) {
+                    int curCol = c.cursor - lineStarts[curLine];
+                    int prevStart = lineStarts[curLine - 1];
+                    int prevEnd = (curLine < (int)lineStarts.size()) ? lineStarts[curLine] - 1 : (int)text.size();
+                    int prevLen = std::max(0, prevEnd - prevStart);
+                    moveCursor(c, prevStart + std::min(curCol, prevLen));
+                }
             }
         }
         if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
-            int curLine = lineFromPos(cursor_, lineStarts);
-            if (curLine + 1 < (int)lineStarts.size()) {
-                int curCol = cursor_ - lineStarts[curLine];
-                int nextStart = lineStarts[curLine + 1];
-                int nextEnd = (curLine + 2 < (int)lineStarts.size()) ? lineStarts[curLine + 2] - 1 : (int)text.size();
-                int nextLen = std::max(0, nextEnd - nextStart);
-                moveCursor(nextStart + std::min(curCol, nextLen));
+            for (auto& c : cursors_) {
+                int curLine = lineFromPos(c.cursor, lineStarts);
+                if (curLine + 1 < (int)lineStarts.size()) {
+                    int curCol = c.cursor - lineStarts[curLine];
+                    int nextStart = lineStarts[curLine + 1];
+                    int nextEnd = (curLine + 2 < (int)lineStarts.size()) ? lineStarts[curLine + 2] - 1 : (int)text.size();
+                    int nextLen = std::max(0, nextEnd - nextStart);
+                    moveCursor(c, nextStart + std::min(curCol, nextLen));
+                }
             }
         }
 
         // Editing keys
         if (ImGui::IsKeyPressed(ImGuiKey_Backspace) && !text.empty()) {
-            if (hasSelection()) {
-                deleteSelection(text, changed);
-            } else if (cursor_ > 0) {
-                text.erase(cursor_ - 1, 1);
-                cursor_--;
-                changed = true;
+            std::vector<MultiCursor> edits = cursors_;
+            std::vector<std::string> inserts(edits.size(), "");
+            for (auto& c : edits) {
+                if (!cursorHasSelection(c) && c.cursor > 0) {
+                    c.selStart = c.cursor - 1;
+                    c.selEnd = c.cursor;
+                }
             }
+            applyEdits(text, edits, inserts, changed);
         }
         if (ImGui::IsKeyPressed(ImGuiKey_Delete) && !text.empty()) {
-            if (hasSelection()) {
-                deleteSelection(text, changed);
-            } else if (cursor_ < (int)text.size()) {
-                text.erase(cursor_, 1);
-                changed = true;
+            std::vector<MultiCursor> edits = cursors_;
+            std::vector<std::string> inserts(edits.size(), "");
+            for (auto& c : edits) {
+                if (!cursorHasSelection(c) && c.cursor < (int)text.size()) {
+                    c.selStart = c.cursor;
+                    c.selEnd = c.cursor + 1;
+                }
             }
+            applyEdits(text, edits, inserts, changed);
         }
 
         if ((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_A)) {
+            clearExtraCursors();
             selStart_ = 0;
             selEnd_ = (int)text.size();
             cursor_ = selEnd_;
+            syncPrimaryToMulti();
         }
 
         if ((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_C)) {
@@ -186,6 +347,66 @@
             if (clip && *clip) {
                 insertText(text, std::string(clip), changed);
             }
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            clearExtraCursors();
+            selStart_ = selEnd_ = -1;
+            syncPrimaryToMulti();
+        }
+
+        if ((io.KeyCtrl || io.KeySuper) && ImGui::IsKeyPressed(ImGuiKey_D)) {
+            int start = -1;
+            int end = -1;
+            std::string needle;
+            if (hasSelection()) {
+                start = std::min(selStart_, selEnd_);
+                end = std::max(selStart_, selEnd_);
+                needle = text.substr(start, end - start);
+            } else {
+                int pos = cursor_;
+                if (pos >= (int)text.size()) pos = (int)text.size() - 1;
+                auto isWord = [](char c) { return std::isalnum((unsigned char)c) || c == '_'; };
+                int s = pos;
+                while (s > 0 && isWord(text[s - 1])) --s;
+                int e = pos;
+                while (e < (int)text.size() && isWord(text[e])) ++e;
+                if (e > s) {
+                    start = s;
+                    end = e;
+                    needle = text.substr(start, end - start);
+                }
+            }
+            if (!needle.empty()) {
+                size_t next = text.find(needle, (size_t)end);
+                if (next != std::string::npos) {
+                    addCursorAt((int)next, (int)next, (int)next + (int)needle.size());
+                    dedupeCursors();
+                }
+            }
+        }
+
+        if ((io.KeyCtrl || io.KeySuper) && io.KeyAlt &&
+            ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+            for (const auto& c : cursors_) {
+                int curLine = lineFromPos(c.cursor, lineStarts);
+                if (curLine <= 0) continue;
+                int curCol = c.cursor - lineStarts[curLine];
+                int pos = positionFromLineCol(lineStarts, curLine - 1, curCol, text);
+                addCursorAt(pos);
+            }
+            dedupeCursors();
+        }
+
+        if ((io.KeyCtrl || io.KeySuper) && io.KeyAlt &&
+            ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+            for (const auto& c : cursors_) {
+                int curLine = lineFromPos(c.cursor, lineStarts);
+                if (curLine + 1 >= (int)lineStarts.size()) continue;
+                int curCol = c.cursor - lineStarts[curLine];
+                int pos = positionFromLineCol(lineStarts, curLine + 1, curCol, text);
+                addCursorAt(pos);
+            }
+            dedupeCursors();
         }
     }
 
