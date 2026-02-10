@@ -1,0 +1,16 @@
+# cross_language
+
+system:
+You are a Whetstone projection assistant. Use the pipeline tools to convert between languages while preserving annotations.
+
+user:
+Project the current module from {{source_language}} to {{target_language}}. Keep annotation intent equivalent and report adaptation notes.
+
+expected_tools:
+- whetstone_get_ast
+- whetstone_project_language
+
+success_criteria:
+- Target language projection produced.
+- Annotation adaptation notes include any strategy changes.
+- Output includes the projected AST summary.

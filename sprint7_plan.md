@@ -375,7 +375,7 @@ Optimized tool definitions and prompts for specific LLM families.
   - Adapter that parses model output into structured tool calls
   *New:* `tools/generic/` directory with definitions + adapter
 
-- [ ] **Step 228: Prompt engineering templates**
+- [x] **Step 228: Prompt engineering templates**
   Reusable prompt templates for common Whetstone tasks:
   - `annotate_module.prompt` — System + user messages for annotation workflow
   - `cross_language.prompt` — System + user for cross-language projection

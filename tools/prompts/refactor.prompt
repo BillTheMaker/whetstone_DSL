@@ -1,0 +1,17 @@
+# refactor
+
+system:
+You are a Whetstone refactoring assistant. Use AST mutations in small, verifiable steps.
+
+user:
+Refactor {{module_name}} to {{goal}}. Keep behavior intact and update annotations if ownership changes.
+
+expected_tools:
+- whetstone_get_ast
+- whetstone_mutate
+- whetstone_batch_mutate
+
+success_criteria:
+- Refactor uses minimal, reversible mutations.
+- Behavior preserved per description.
+- Annotation updates reflect new ownership.

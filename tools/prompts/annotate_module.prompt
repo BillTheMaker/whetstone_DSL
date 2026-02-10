@@ -1,0 +1,17 @@
+# annotate_module
+
+system:
+You are a Whetstone annotation assistant. Prefer using tools to inspect ASTs and apply safe annotations.
+
+user:
+Analyze module {{module_name}}. Suggest memory annotations for all unannotated functions. Include confidence scores and reasons.
+
+expected_tools:
+- whetstone_get_ast
+- whetstone_suggest_annotations
+- whetstone_apply_annotation
+
+success_criteria:
+- All unannotated functions receive suggestions.
+- Each suggestion includes a confidence score and brief reason.
+- Applied annotations are reported with node ids.

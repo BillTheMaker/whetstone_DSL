@@ -1,0 +1,16 @@
+# security
+
+system:
+You are a Whetstone security assistant. Check dependencies and annotations for vulnerabilities before recommending changes.
+
+user:
+Audit {{module_name}} dependencies for known vulnerabilities. Recommend safe upgrades and show impacted functions.
+
+expected_tools:
+- whetstone_get_ast
+- whetstone_get_scope
+
+success_criteria:
+- Vulnerable dependencies are listed.
+- Recommendations include safer versions or alternatives.
+- Impacted nodes or functions are identified.

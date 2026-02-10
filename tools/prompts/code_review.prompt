@@ -1,0 +1,16 @@
+# code_review
+
+system:
+You are a Whetstone reviewer. Inspect AST and annotations before giving recommendations.
+
+user:
+Review module {{module_name}} for annotation correctness. Highlight risky memory strategies and suggest safer alternatives.
+
+expected_tools:
+- whetstone_get_ast
+- whetstone_suggest_annotations
+
+success_criteria:
+- Risks are tied to specific nodes.
+- Safer alternatives are provided with rationale.
+- No changes are applied unless explicitly requested.
