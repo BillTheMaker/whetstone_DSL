@@ -292,7 +292,7 @@ the editor.
 
 Test suites that measure how accurately an LLM can use Whetstone tools.
 
-- [ ] **Step 220: Evaluation framework**
+- [x] **Step 220: Evaluation framework**
   Create `EvalHarness.h` with the evaluation infrastructure:
   - `EvalTask` struct: `{id, description, setupAST, expectedOutcome, tools, maxSteps}`
   - `EvalResult` struct: `{taskId, passed, steps, toolCallCount, errors, duration}`

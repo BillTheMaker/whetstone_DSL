@@ -23,6 +23,7 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 | Sprint 4 | 76–126 | **Complete** | Professional editor: layout presets, code editor, LSP, annotation UI, terminal, build |
 | Sprint 5 | 127–165 | **Complete** | Library-aware coding: package registries, constructive coding, Emacs ecosystem, full language coverage, agents |
 | Sprint 6 | 166–201 | **Complete** | UX & editor polish: structural refactor, themes, multi-cursor, onboarding, security, accessibility, performance |
+| Sprint 7 | 202–234 | **In Progress** | MCP Bridge & agent tooling: API docs/schemas, MCP server, synthetic traces, eval harness, model-specific tools |
 
 ---
 
@@ -345,6 +346,38 @@ All 38 steps implemented and passing. Each step has a corresponding test (`step1
 
 ---
 
+## Sprint 7: MCP Bridge & Agent Tooling (Steps 202–234) — IN PROGRESS
+
+### Phase 7a: API Documentation & Schemas (Steps 202–206) — COMPLETE
+- [x] Step 202: JSON-RPC API reference document (`docs/AGENT_API.md`): 23 methods documented with schemas, examples, error codes.
+- [x] Step 203: JSON Schema definitions (`schemas/`): 8 type schemas + 12 method schemas for request/response validation.
+- [x] Step 204: Exposed ContextAPI and BatchMutationAPI via RPC (getInScopeSymbols, getCallHierarchy, getDependencyGraph, applyBatch).
+- [x] Step 205: Exposed Pipeline operations via RPC (runPipeline, parseSource, generateFromAST, projectLanguage).
+- [x] Step 206: API schema validation tests. 51/51 tests pass.
+
+### Phase 7b: MCP Server (Steps 207–213) — COMPLETE
+- [x] Step 207: MCP server core (`MCPServer.h`): JSON-RPC 2.0 with initialize handshake, protocol version "2024-11-05".
+- [x] Step 208: MCP tools — AST query and mutation (5 tools: get_ast, mutate, batch_mutate, get_scope, get_call_hierarchy).
+- [x] Step 209: MCP tools — annotation and generation (5 tools: suggest_annotations, apply_annotation, generate_code, run_pipeline, project_language).
+- [x] Step 210: MCP resources (5 resources: ast, diagnostics, libraries, annotations, settings).
+- [x] Step 211: MCP prompts (4 prompts: annotate_module, cross_language_projection, security_audit, refactor_memory).
+- [x] Step 212: MCP bridge (`MCPBridge.h`): stdio transport with Content-Length framing, embedded mode support.
+- [x] Step 213: MCP server tests. 90/90 tests pass.
+
+### Phase 7c: Synthetic Trace Generation (Steps 214–219) — COMPLETE
+- [x] Step 214: Trace data model (`TraceGenerator.h`): TraceStep (user/assistant/tool_call/tool_result), Trace with metadata.
+- [x] Step 215: 6 scenario templates: ReadAndUnderstand, AddAnnotations, CrossLanguage, Refactor, SecurityAudit, MultiStepDebug.
+- [x] Step 216: Built-in code corpus: 9 samples across 4 languages (Python, C++, JavaScript, Rust).
+- [x] Step 217: Generator engine with deterministic seeding, batch generation, and real Pipeline.parse() integration.
+- [x] Step 218: Trace export pipeline (`TraceExporter.h`): Anthropic Messages, OpenAI Chat, JSONL, Markdown formats. Filtering and statistics.
+- [x] Step 219: Trace generation tests. 294/294 tests pass.
+
+### Phase 7d: Evaluation Harness (Steps 220–224) — PENDING
+### Phase 7e: Model-Specific Tool Definitions (Steps 225–229) — PENDING
+### Phase 7f: Session Recording Pipeline (Steps 230–234) — PENDING
+
+---
+
 ## Build Infrastructure
 
 Created in the most recent session:
@@ -383,13 +416,14 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## Test Results (Last Verified)
 
-**All 201 steps compile and pass.** 347+ test executables in `editor/build/Release/`.
+**All 219 steps compile and pass.** 350+ test executables in `editor/build/Release/`.
 
 **Sprint 2 (Steps 1–38):** All pass.
 **Sprint 3 (Steps 39–75):** All pass. Highlights: step53 6/6, step54 10/10, step72 6/6, step74 6/6.
 **Sprint 4 (Steps 76–126):** All pass. Highlights: step76 10/10, step118 11/11, step125 3/3 integration.
 **Sprint 5 (Steps 127–165):** All pass. Highlights: step144 11/11, step145 11/11, step153 208/208 (cross-language matrix), step161 10/10.
 **Sprint 6 (Steps 166–201):** All pass. Highlights: step168 79/79 (split + integration), step201 integration tests.
+**Sprint 7 (Steps 202–219):** All pass. Highlights: step206 51/51, step213 90/90, step219 294/294.
 **Architecture test:** `file_limits_test` 4/4 passes (enforces header size limits).
 
 ---
@@ -499,6 +533,16 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | `editor/src/FeatureHints.h` | Contextual tip system |
 | `editor/src/ShortcutReference.h` | Keyboard shortcut browser panel |
 
+### MCP & Training Data (Sprint 7)
+| File | Contents |
+|------|----------|
+| `editor/src/MCPServer.h` | MCP protocol server: 10 tools, 5 resources, 4 prompts, JSON-RPC 2.0 |
+| `editor/src/MCPBridge.h` | MCP stdio transport bridge to Whetstone internal RPC |
+| `editor/src/TraceGenerator.h` | Synthetic trace generation: 6 scenarios, code corpus, batch engine |
+| `editor/src/TraceExporter.h` | Multi-format trace export (Anthropic/OpenAI/JSONL/Markdown), filtering, stats |
+| `docs/AGENT_API.md` | Complete JSON-RPC API reference (23 methods) |
+| `schemas/` | 20 JSON Schema files (8 types + 12 methods) |
+
 ### Build & Infrastructure
 | File | Contents |
 |------|----------|
@@ -517,13 +561,14 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 - **Generators**: AST → Python, C++, Elisp, JavaScript/TypeScript, Java, Rust, Go. All generators handle canonical memory annotations with language-appropriate mappings.
 - **Parsers**: Text → AST via tree-sitter for all 8 supported languages. Full CST-to-AST conversion with memory pattern detection and auto-annotation.
 - **Library System**: Package registry abstraction (PyPI, npm, crates.io, Maven, Go, vcpkg). PrimitivesRegistry for constructive coding. Vulnerability database (OSV). Semantic library tags.
-- **Agent System**: WebSocket server with role-based permissions, library context, annotation assistant, workflow recording, agent marketplace.
+- **Agent System**: WebSocket server with role-based permissions, library context, annotation assistant, workflow recording, agent marketplace. MCP server (10 tools, 5 resources, 4 prompts) for LLM integration via stdio transport.
+- **Training Data**: Synthetic trace generator (6 scenario types, 4-language code corpus) with multi-format export (Anthropic Messages, OpenAI Chat, JSONL, Markdown).
 
 ---
 
 ## What's Next
 
-**Sprint 7: MCP Bridge & Synthetic Training Data.** All 6 sprints complete (201 steps). Feature branch `001-core-ast-structure` ready for merge to `main`. Sprint 7 plan: `sprint7_plan.md`.
+**Sprint 7 Phase 7d–7f remaining.** Phases 7a–7c complete (Steps 202–219, 435 combined assertions passing). Next: Phase 7d Evaluation Harness (Steps 220–224), Phase 7e Model-Specific Tool Definitions (Steps 225–229), Phase 7f Session Recording Pipeline (Steps 230–234). Full plan: `sprint7_plan.md`.
 
 ---
 
@@ -690,4 +735,8 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Codex | Step 199: Large file handling (size thresholds, text-mode fallback, large file prompt, highlight disable, memory indicator). 1/1 tests pass (step199_test). |
 | 2026-02-10 | Codex | Step 200: Startup/perf (LSP & highlight debounce, deferred AST sync on session restore, debug frame budget warnings). 1/1 tests pass (step200_test). |
 | 2026-02-10 | Codex | Step 201: Sprint 6 integration checks (panel wiring, theme switching, multicursor, first-run wizard, security badge, keyboard navigation, large file settings, notifications). 1/1 tests pass (step201_test). |
+| 2026-02-10 | Codex | Step 220: Evaluation framework scaffolding (EvalHarness, task/trace loading, scoring). 1/1 tests pass (step220_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |
+| 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7a (Steps 202–206): API docs (AGENT_API.md, 23 methods), JSON schemas (20 files), exposed ContextAPI/BatchMutationAPI/Pipeline via RPC, permission policy updates. 51/51 tests pass. |
+| 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7b (Steps 207–213): MCPServer.h (10 tools, 5 resources, 4 prompts, JSON-RPC 2.0 initialize handshake), MCPBridge.h (stdio transport). 90/90 tests pass. |
+| 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7c (Steps 214–219): TraceGenerator.h (6 scenario templates, 9-sample code corpus, batch engine), TraceExporter.h (Anthropic/OpenAI/JSONL/Markdown export, filtering, statistics). 294/294 tests pass. |
