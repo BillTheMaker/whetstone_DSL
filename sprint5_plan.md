@@ -328,7 +328,7 @@ primitives, and assist with constructive coding.
   workflows on different codebases. Workflows are shareable.
   *New:* `WorkflowRecorder.h`
 
-- [ ] **Step 159: Agent marketplace / plugin registry**
+- [x] **Step 159: Agent marketplace / plugin registry**
   Directory of available Whetstone agents (local + remote). Each agent
   has: name, description, capabilities, required permissions.
   "Install Agent" connects to the agent's WebSocket endpoint.

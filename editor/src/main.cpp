@@ -1939,6 +1939,16 @@ int main(int, char**) {
                 ImGui::EndTabItem();
             }
 
+            if (ImGui::BeginTabItem("Marketplace")) {
+                ImGui::PushFont(monoFont);
+                renderAgentMarketplace(state.agentMarketplace,
+                                       state.agentRegistry,
+                                       state.outputLog,
+                                       state.workspaceRoot);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
             if (ImGui::BeginTabItem("Build")) {
                 ImGui::PushFont(uiFont);
                 ImGui::Text("Detected: %s", BuildSystem::typeName(state.buildType));

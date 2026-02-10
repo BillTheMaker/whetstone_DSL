@@ -43,6 +43,8 @@
 #include "TerminalPanel.h"
 #include "WebSocketServer.h"
 #include "WorkflowRecorder.h"
+#include "AgentRegistry.h"
+#include "AgentMarketplace.h"
 #include "BuildSystem.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
@@ -178,6 +180,8 @@ struct EditorState {
     std::vector<std::string> agentLog;
     std::map<std::string, AgentRole> agentRoles;
     WorkflowRecorder workflowRecorder;
+    AgentRegistry agentRegistry;
+    AgentMarketplaceState agentMarketplace;
     BuildSystem::Type buildType = BuildSystem::Type::None;
     std::vector<BuildError> buildErrors;
     std::string lastBuildOutput;
