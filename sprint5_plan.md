@@ -361,7 +361,7 @@ Final polish, documentation, and ecosystem features.
   library (.dll/.so) with a defined entry point.
   *New:* `PluginAPI.h`, `PluginLoader.h`
 
-- [ ] **Step 162: User documentation**
+- [x] **Step 162: User documentation**
   In-editor help system. Help > Documentation opens a panel with:
   - Getting Started guide
   - Annotation reference (all annotation types with examples)

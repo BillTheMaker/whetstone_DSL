@@ -2016,6 +2016,13 @@ int main(int, char**) {
                 ImGui::EndTabItem();
             }
 
+            if (ImGui::BeginTabItem("Help")) {
+                ImGui::PushFont(uiFont);
+                renderHelpPanel(state.helpPanel, state.workspaceRoot, monoFont);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
             // Problems (LSP diagnostics)
             if (ImGui::BeginTabItem("Problems")) {
                 ImGui::PushFont(monoFont);

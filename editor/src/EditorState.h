@@ -46,6 +46,7 @@
 #include "AgentRegistry.h"
 #include "AgentMarketplace.h"
 #include "BuildSystem.h"
+#include "HelpPanel.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
 #include "LibraryBrowserPanel.h"
@@ -182,6 +183,7 @@ struct EditorState {
     WorkflowRecorder workflowRecorder;
     AgentRegistry agentRegistry;
     AgentMarketplaceState agentMarketplace;
+    HelpPanelState helpPanel;
     BuildSystem::Type buildType = BuildSystem::Type::None;
     std::vector<BuildError> buildErrors;
     std::string lastBuildOutput;
