@@ -131,3 +131,12 @@
 - Fallback interop for unmapped calls (PyCall/JuliaCall)
 - Dual projections: clean surface Julia + preserved optimization annotations
 
+
+## Julia Packaging Strategy — PROPOSED
+
+**Goal:** Define a reliable packaging path for Julia-based artifacts.
+
+**Scope:**
+- Document options: runtime install, PackageCompiler.jl, embedding Julia as a library
+- Provide recommended defaults for CLI tools vs GUI apps
+- Include guidance for minimizing startup latency and bundle size
