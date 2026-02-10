@@ -49,6 +49,7 @@
 #include "ImportManager.h"
 #include "PrimitivesRegistry.h"
 #include "AgentLibraryPolicy.h"
+#include "AgentCodeGen.h"
 #include "CompositionPanel.h"
 #include "IncrementalOptimizer.h"
 #include "EmacsIntegration.h"
@@ -1120,6 +1121,42 @@ struct EditorState {
                 {"ast", toJson(ast)},
                 {"annotationCount", countAnnotationNodes(ast)},
                 {"diagnostics", buildDiagnosticsJson()}
+            };
+            return response;
+        }
+
+        if (method == "generateCode") {
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string spec = params.value("spec", "");
+            bool preferImports = params.value("preferImports", true);
+
+            primitives.setRoot(ast);
+            primitives.setLanguage(active()->language);
+
+            AgentCodeGen gen;
+            AgentCodeGenResult genRes = gen.generate(spec, primitives, active()->language, preferImports);
+            if (!genRes.node) {
+                response["error"] = {{"code", -32020}, {"message", "Code generation failed"}};
+                return response;
+            }
+
+            json nodeJson = toJson(genRes.node);
+            deleteTree(genRes.node);
+
+            response["result"] = {
+                {"node", nodeJson},
+                {"note", genRes.note},
+                {"usedSymbols", genRes.usedSymbols},
+                {"language", active()->language}
             };
             return response;
         }

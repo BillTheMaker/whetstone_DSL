@@ -296,7 +296,7 @@ primitives, and assist with constructive coding.
   limit what they can produce.
   *Modifies:* `WebSocketServer.h`, `ASTQueryAPI`
 
-- [ ] **Step 155: Agent library-aware code generation**
+- [x] **Step 155: Agent library-aware code generation**
   New agent RPC method: `generateCode(spec, preferences)`. Agent provides
   a natural language spec ("sort this list, then filter by threshold"),
   Whetstone generates code preferring available library primitives.
