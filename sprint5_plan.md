@@ -146,7 +146,7 @@ what's already available.
   Cross-language projection respects library type mappings.
   *Modifies:* `CrossLanguageProjector.h`, `Generator.h`
 
-- [ ] **Step 139: Library compatibility matrix**
+- [x] **Step 139: Library compatibility matrix**
   Track which libraries have equivalents across languages. Example:
   `numpy` (Python) ↔ `Eigen` (C++) ↔ `ndarray` (Rust).
   When projecting code cross-language, suggest equivalent libraries.
