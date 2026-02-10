@@ -1,6 +1,14 @@
 #pragma once
 #include "LayoutManager.h"
 
+enum class FocusRegion {
+    None,
+    Editor,
+    Explorer,
+    Side,
+    Bottom
+};
+
 struct UIFlags {
     bool showWhitespace = false;
     bool showMinimap = false;
@@ -17,4 +25,6 @@ struct UIFlags {
     bool showAgentWizard = false;
     int bottomTab = 0; // 0=Output,1=AST,2=Highlighted
     LayoutPreset layoutPreset = LayoutPreset::VSCode;
+    FocusRegion focusTarget = FocusRegion::None;
+    FocusRegion focusedRegion = FocusRegion::Editor;
 };

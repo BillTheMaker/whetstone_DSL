@@ -274,6 +274,8 @@ private:
         if (name == "Separator") return ImGuiCol_Separator;
         if (name == "SeparatorHovered") return ImGuiCol_SeparatorHovered;
         if (name == "SeparatorActive") return ImGuiCol_SeparatorActive;
+        if (name == "NavHighlight") return ImGuiCol_NavHighlight;
+        if (name == "NavWindowingHighlight") return ImGuiCol_NavWindowingHighlight;
         return -1;
     }
 
@@ -344,6 +346,12 @@ private:
             if (colId >= 0 && colId < ImGuiCol_COUNT) {
                 style.Colors[colId] = color;
             }
+        }
+        if (theme.imguiColors.find(ImGuiCol_NavHighlight) == theme.imguiColors.end()) {
+            style.Colors[ImGuiCol_NavHighlight] = ImVec4(1.0f, 0.85f, 0.2f, 1.0f);
+        }
+        if (theme.imguiColors.find(ImGuiCol_NavWindowingHighlight) == theme.imguiColors.end()) {
+            style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 0.85f, 0.2f, 1.0f);
         }
         style.WindowPadding = theme.panelPadding;
         style.ItemSpacing = theme.panelSpacing;

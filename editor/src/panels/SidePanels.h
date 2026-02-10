@@ -4,7 +4,14 @@
 
 static void renderOutlinePanel(EditorState& state) {
     if (!state.ui.showOutline) return;
+    if (state.ui.focusTarget == FocusRegion::Side) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Outline", &state.ui.showOutline);
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Side;
+    }
     queueFeatureHint(state.featureHints,
                      "hint.outline",
                      "Tip: Use the Outline to jump between symbols quickly.");
@@ -81,7 +88,14 @@ static void renderOutlinePanel(EditorState& state) {
 
 static void renderDependenciesPanel(EditorState& state) {
     if (!state.library.showDependencyPanel) return;
+    if (state.ui.focusTarget == FocusRegion::Side) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Dependencies", &state.library.showDependencyPanel);
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Side;
+    }
     ImGui::PushFont(state.uiFont);
     renderDependencyPanel(state.library.dependencyPanel,
                           state.workspaceRoot,
@@ -99,7 +113,14 @@ static void renderDependenciesPanel(EditorState& state) {
 
 static void renderLibrariesPanel(EditorState& state) {
     if (!state.library.showLibraryBrowserPanel) return;
+    if (state.ui.focusTarget == FocusRegion::Side) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Libraries", &state.library.showLibraryBrowserPanel);
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Side;
+    }
     ImGui::PushFont(state.uiFont);
     std::string insertText;
     std::string insertLibrary;
@@ -118,7 +139,14 @@ static void renderLibrariesPanel(EditorState& state) {
 
 static void renderCompositionPanel(EditorState& state) {
     if (!state.library.showCompositionPanel) return;
+    if (state.ui.focusTarget == FocusRegion::Side) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Compose", &state.library.showCompositionPanel);
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Side;
+    }
     ImGui::PushFont(state.uiFont);
     std::string nodeId;
     if (state.activeAST()) {
@@ -140,7 +168,14 @@ static void renderCompositionPanel(EditorState& state) {
 
 static void renderEmacsPackagesPanel(EditorState& state) {
     if (!state.emacsState.showEmacsPackagesPanel) return;
+    if (state.ui.focusTarget == FocusRegion::Side) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Emacs Packages", &state.emacsState.showEmacsPackagesPanel);
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Side;
+    }
     ImGui::PushFont(state.uiFont);
     if (renderEmacsPackageBrowser(state.emacsState.emacsPackages,
                                   state.emacsState.emacs,
@@ -153,7 +188,14 @@ static void renderEmacsPackagesPanel(EditorState& state) {
 
 static void renderEmacsBridgePanel(EditorState& state) {
     if (!state.emacsState.showEmacsBridgePanel) return;
+    if (state.ui.focusTarget == FocusRegion::Side) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Emacs Bridge", &state.emacsState.showEmacsBridgePanel);
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Side;
+    }
     ImGui::PushFont(state.uiFont);
     if (state.active()) {
         ImGui::Text("Active file: %s", state.active()->path.c_str());
@@ -182,7 +224,7 @@ static void renderMinibuffer(EditorState& state) {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGuiWindowFlags mbFlags = ImGuiWindowFlags_NoDecoration |
         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNavFocus;
+        ImGuiWindowFlags_NoScrollbar;
     float mbHeight = ImGui::GetFrameHeight() + 10;
     ImVec2 mbPos(viewport->WorkPos.x,
                  viewport->WorkPos.y + viewport->WorkSize.y - mbHeight - 24.0f);
@@ -207,7 +249,14 @@ static void renderMinibuffer(EditorState& state) {
 }
 
 static void renderMemoryStrategiesPanel(EditorState& state) {
+    if (state.ui.focusTarget == FocusRegion::Side) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Memory Strategies");
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Side;
+    }
     ImGui::PushFont(state.uiFont);
     Module* ast = state.active() ? state.active()->sync.getAST() : nullptr;
     if (state.active() && state.active()->bufferMode == BufferManager::BufferMode::Text) {

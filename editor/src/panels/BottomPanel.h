@@ -52,10 +52,17 @@ static std::vector<SimpleDiagnostic> collectDiagnostics(const EditorState& state
 }
 
 static void renderBottomPanel(EditorState& state) {
+    if (state.ui.focusTarget == FocusRegion::Bottom) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     // ---------------------------------------------------------------
     //  Bottom panel — Output / AST / Highlighted Preview / Terminal
     // ---------------------------------------------------------------
     ImGui::Begin("Panel");
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Bottom;
+    }
 
     if (ImGui::BeginTabBar("PanelTabs")) {
         // Output log

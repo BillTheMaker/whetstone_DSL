@@ -9,6 +9,10 @@
 #include <map>
 
 static void renderEditorPanel(EditorState& state) {
+        if (state.ui.focusTarget == FocusRegion::Editor) {
+            ImGui::SetNextWindowFocus();
+            state.ui.focusTarget = FocusRegion::None;
+        }
         if (state.ui.showAnnotations) {
             queueFeatureHint(state.featureHints,
                              "hint.annotations",
@@ -18,6 +22,9 @@ static void renderEditorPanel(EditorState& state) {
         //  Editor (center) -- editable text area
         // ---------------------------------------------------------------
         ImGui::Begin("Editor");
+        if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+            state.ui.focusedRegion = FocusRegion::Editor;
+        }
         ImGui::PushFont(state.uiFont);
         ImGui::BeginChild("##breadcrumbs", ImVec2(0, 26.0f), false, ImGuiWindowFlags_NoScrollbar);
         if (!state.active()) {

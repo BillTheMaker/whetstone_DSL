@@ -258,6 +258,14 @@ int main(int, char**) {
                 if (sdlMod & KMOD_SHIFT) mods |= WMOD_SHIFT;
                 if (sdlMod & KMOD_ALT)   mods |= WMOD_ALT;
 
+                if (sym == SDLK_ESCAPE && mods == WMOD_NONE) {
+                    state.ui.focusTarget = FocusRegion::Editor;
+                }
+
+                if (sym == SDLK_F6 && mods == WMOD_NONE) {
+                    state.cyclePanelFocus();
+                }
+
                 if ((sdlMod & KMOD_CTRL) && (sdlMod & KMOD_SHIFT) && sym == SDLK_p) {
                     state.showCommandPalette = true;
                     state.commandQuery[0] = '\0';

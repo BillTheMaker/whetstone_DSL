@@ -393,7 +393,7 @@ Make Whetstone usable by everyone and fast with large files.
   - Test: all information conveyed by color also conveyed by shape/pattern
   *New:* High contrast theme. *Modifies:* annotation/diagnostic rendering
 
-- [ ] **Step 197: Keyboard navigation completeness audit**
+- [x] **Step 197: Keyboard navigation completeness audit**
   Ensure every feature is keyboard-accessible:
   - All panels navigable with Tab/Shift+Tab
   - Focus ring indicator on active element (visible in all themes)

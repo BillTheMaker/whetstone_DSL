@@ -932,6 +932,38 @@ struct EditorState {
         }
     }
 
+    bool hasSidePanels() const {
+        if (ui.showOutline) return true;
+        if (library.showDependencyPanel) return true;
+        if (library.showLibraryBrowserPanel) return true;
+        if (library.showCompositionPanel) return true;
+        if (emacsState.showEmacsPackagesPanel) return true;
+        if (emacsState.showEmacsBridgePanel) return true;
+        return true; // Memory Strategies panel is always present.
+    }
+
+    void cyclePanelFocus() {
+        FocusRegion order[] = {
+            FocusRegion::Editor,
+            FocusRegion::Explorer,
+            FocusRegion::Side,
+            FocusRegion::Bottom
+        };
+        int current = 0;
+        for (int i = 0; i < 4; ++i) {
+            if (ui.focusedRegion == order[i]) {
+                current = i;
+                break;
+            }
+        }
+        for (int step = 1; step <= 4; ++step) {
+            FocusRegion next = order[(current + step) % 4];
+            if (next == FocusRegion::Side && !hasSidePanels()) continue;
+            ui.focusTarget = next;
+            return;
+        }
+    }
+
     void applySettingsToState() {
         ui.showMinimap = settings.getShowMinimap();
         ui.showLineNumbers = settings.getShowLineNumbers();

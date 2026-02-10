@@ -3,7 +3,14 @@
 #include "../EditorUtils.h"
 
 static void renderExplorerPanel(EditorState& state) {
+    if (state.ui.focusTarget == FocusRegion::Explorer) {
+        ImGui::SetNextWindowFocus();
+        state.ui.focusTarget = FocusRegion::None;
+    }
     ImGui::Begin("Explorer");
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        state.ui.focusedRegion = FocusRegion::Explorer;
+    }
     ImGui::PushFont(state.uiFont);
     ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "OPEN EDITORS");
     ImGui::Separator();
