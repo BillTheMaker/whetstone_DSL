@@ -1,0 +1,16 @@
+﻿{
+    "id":  "workflow_19",
+    "description":  "",
+    "language":  "python",
+    "setupAst":  "def f(x):\\n    return x + 1\\n\\ndef g(y):\\n    return y * 2\\n",
+    "expectedOutcome":  {
+                            "toolCalls":  [
+
+                                          ]
+                        },
+    "tools":  [
+
+              ],
+    "maxSteps":  12,
+    "allowPartial":  true
+}

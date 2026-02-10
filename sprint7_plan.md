@@ -313,7 +313,7 @@ Test suites that measure how accurately an LLM can use Whetstone tools.
   Each task has: setup AST, natural language instruction, expected outcome.
   *New:* `eval/basic/` directory with 30 task definitions
 
-- [ ] **Step 222: Evaluation task suite — multi-step workflows**
+- [x] **Step 222: Evaluation task suite — multi-step workflows**
   20 advanced tasks requiring multiple tool calls:
   - 5 tasks: annotate all functions in a module (iterate, suggest, apply)
   - 5 tasks: cross-language projection with annotation fixes

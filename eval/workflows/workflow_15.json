@@ -1,0 +1,20 @@
+﻿{
+    "id":  "workflow_15",
+    "description":  "Debug annotation errors and revalidate",
+    "language":  "python",
+    "setupAst":  "def f(x):\\n    return x + 1\\n\\ndef g(y):\\n    return y * 2\\n",
+    "expectedOutcome":  {
+                            "toolCalls":  [
+                                              "whetstone_run_pipeline",
+                                              "whetstone_suggest_annotations",
+                                              "whetstone_apply_annotation"
+                                          ]
+                        },
+    "tools":  [
+                  "whetstone_run_pipeline",
+                  "whetstone_suggest_annotations",
+                  "whetstone_apply_annotation"
+              ],
+    "maxSteps":  12,
+    "allowPartial":  true
+}

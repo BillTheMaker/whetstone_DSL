@@ -737,6 +737,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Codex | Step 201: Sprint 6 integration checks (panel wiring, theme switching, multicursor, first-run wizard, security badge, keyboard navigation, large file settings, notifications). 1/1 tests pass (step201_test). |
 | 2026-02-10 | Codex | Step 220: Evaluation framework scaffolding (EvalHarness, task/trace loading, scoring). 1/1 tests pass (step220_test). |
 | 2026-02-10 | Codex | Step 221: Evaluation basic task suite (30 tasks across core tool flows). 1/1 tests pass (step221_test). |
+| 2026-02-10 | Codex | Step 222: Evaluation workflow task suite (20 multi-step tasks). 1/1 tests pass (step222_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |
 | 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7a (Steps 202–206): API docs (AGENT_API.md, 23 methods), JSON schemas (20 files), exposed ContextAPI/BatchMutationAPI/Pipeline via RPC, permission policy updates. 51/51 tests pass. |
 | 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7b (Steps 207–213): MCPServer.h (10 tools, 5 resources, 4 prompts, JSON-RPC 2.0 initialize handshake), MCPBridge.h (stdio transport). 90/90 tests pass. |
