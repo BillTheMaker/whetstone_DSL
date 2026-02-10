@@ -140,3 +140,25 @@
 - Document options: runtime install, PackageCompiler.jl, embedding Julia as a library
 - Provide recommended defaults for CLI tools vs GUI apps
 - Include guidance for minimizing startup latency and bundle size
+
+## Python/C++/JS-TS Support Enhancements — PROPOSED
+
+**Goal:** Expand first-class support for Python, C++, and JS/TS beyond current parse/generate.
+
+**Scope:**
+- Improve language-specific projection fidelity and diagnostics
+- Expand standard library and ecosystem stubs (pip/npm/vcpkg)
+- Add language-specific refactor recipes and annotation guidance
+- Strengthen test corpus and projection round-trip coverage
+
+---
+
+## Plugin System Enhancements — PROPOSED
+
+**Goal:** Expand plugin support for external tools and language packs.
+
+**Scope:**
+- Standardize plugin packaging format
+- Document plugin API and lifecycle hooks
+- Add plugin discovery and version compatibility checks
+- Provide example plugins for language packs and external analyzers
