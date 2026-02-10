@@ -1110,6 +1110,9 @@ add_executable(step190_test tests/step190_test.cpp)
 target_include_directories(step190_test PRIVATE src)
 target_link_libraries(step190_test PRIVATE nlohmann_json::nlohmann_json)
 
+add_executable(step191_test tests/step191_test.cpp)
+target_include_directories(step191_test PRIVATE src)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

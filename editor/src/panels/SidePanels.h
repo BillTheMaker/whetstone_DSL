@@ -83,7 +83,10 @@ static void renderDependenciesPanel(EditorState& state) {
     if (!state.library.showDependencyPanel) return;
     ImGui::Begin("Dependencies", &state.library.showDependencyPanel);
     ImGui::PushFont(state.uiFont);
-    renderDependencyPanel(state.library.dependencyPanel, state.workspaceRoot, state.notifications);
+    renderDependencyPanel(state.library.dependencyPanel,
+                          state.workspaceRoot,
+                          state.notifications,
+                          state.library.vulnDb);
     ImGui::PopFont();
     ImGui::End();
     if (state.library.dependencyPanel.needsIndex) {

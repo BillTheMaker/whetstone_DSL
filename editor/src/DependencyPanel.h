@@ -3,12 +3,14 @@
 #include "DependencyParser.h"
 #include "PackageRegistry.h"
 #include "NotificationSystem.h"
+#include "VulnerabilityDatabase.h"
 #include <filesystem>
 #include <fstream>
 #include <cstdio>
 #include <sstream>
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include <nlohmann/json.hpp>
 
 struct DependencyFile {
@@ -31,6 +33,9 @@ struct DependencyPanelState {
     PackageInfo lastLookup;
     std::string lastWorkspaceRoot;
     bool needsIndex = false;
+    bool vulnIgnoreLoaded = false;
+    std::unordered_map<std::string, std::string> vulnIgnore;
+    char vulnIgnoreReason[128] = {};
 };
 
 static std::vector<std::string> dependencyFileNames() {
@@ -147,6 +152,136 @@ static bool writeRequirementsFile(const std::string& path,
     notifications.notify(NotificationLevel::Success,
                          "[deps] Wrote " + path);
     return true;
+}
+
+static std::string osvEcosystem(PackageEcosystem eco) {
+    switch (eco) {
+        case PackageEcosystem::Python: return "PyPI";
+        case PackageEcosystem::Npm: return "npm";
+        case PackageEcosystem::Rust: return "crates.io";
+        case PackageEcosystem::Go: return "Go";
+        case PackageEcosystem::Java: return "Maven";
+        case PackageEcosystem::Cpp: return "OSS-Fuzz";
+        default: return "";
+    }
+}
+
+static std::filesystem::path vulnIgnorePath() {
+    const char* home = std::getenv("USERPROFILE");
+    if (!home) home = std::getenv("HOME");
+    std::filesystem::path base = home ? home : ".";
+    return base / ".whetstone" / "vuln_ignore.json";
+}
+
+static std::string vulnKey(const std::string& ecosystem, const std::string& package) {
+    return ecosystem + ":" + package;
+}
+
+static void loadVulnIgnore(DependencyPanelState& state) {
+    state.vulnIgnoreLoaded = true;
+    state.vulnIgnore.clear();
+    auto path = vulnIgnorePath();
+    std::ifstream in(path);
+    if (!in.is_open()) return;
+    nlohmann::json j;
+    try { in >> j; } catch (...) { return; }
+    if (!j.is_object()) return;
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        if (it.value().is_string()) {
+            state.vulnIgnore[it.key()] = it.value().get<std::string>();
+        }
+    }
+}
+
+static void saveVulnIgnore(const DependencyPanelState& state,
+                           NotificationSystem& notifications) {
+    auto path = vulnIgnorePath();
+    std::filesystem::create_directories(path.parent_path());
+    nlohmann::json j = nlohmann::json::object();
+    for (const auto& [key, reason] : state.vulnIgnore) {
+        j[key] = reason;
+    }
+    std::ofstream out(path);
+    if (!out.is_open()) {
+        notifications.notify(NotificationLevel::Error,
+                             "[deps] Failed to write vuln_ignore.json");
+        return;
+    }
+    out << j.dump(2);
+}
+
+static int severityRank(const std::string& severity) {
+    if (severity == "Critical") return 3;
+    if (severity == "High") return 2;
+    if (severity == "Medium") return 1;
+    return 0;
+}
+
+static ImU32 severityColor(const std::string& severity) {
+    if (severity == "Critical" || severity == "High") {
+        return IM_COL32(220, 80, 80, 255);
+    }
+    if (severity == "Medium") {
+        return IM_COL32(230, 150, 60, 255);
+    }
+    return IM_COL32(150, 150, 150, 255);
+}
+
+static void drawSecurityBadge(ImDrawList* draw, ImVec2 pos, float size, ImU32 color) {
+    ImVec2 top(pos.x, pos.y - size * 0.5f);
+    ImVec2 left(pos.x - size * 0.4f, pos.y - size * 0.1f);
+    ImVec2 right(pos.x + size * 0.4f, pos.y - size * 0.1f);
+    ImVec2 bottom(pos.x, pos.y + size * 0.5f);
+    draw->AddTriangleFilled(top, left, right, color);
+    draw->AddTriangleFilled(left, right, bottom, color);
+}
+
+static int compareVersions(const std::string& a, const std::string& b) {
+    auto split = [](const std::string& v) {
+        std::vector<std::string> parts;
+        std::string cur;
+        for (char c : v) {
+            if (std::isalnum(static_cast<unsigned char>(c)) || c == '.') {
+                cur.push_back(c);
+            } else if (!cur.empty()) {
+                parts.push_back(cur);
+                cur.clear();
+            }
+        }
+        if (!cur.empty()) parts.push_back(cur);
+        return parts;
+    };
+    auto pa = split(a);
+    auto pb = split(b);
+    size_t count = std::max(pa.size(), pb.size());
+    for (size_t i = 0; i < count; ++i) {
+        std::string sa = i < pa.size() ? pa[i] : "0";
+        std::string sb = i < pb.size() ? pb[i] : "0";
+        bool na = !sa.empty() && std::all_of(sa.begin(), sa.end(), ::isdigit);
+        bool nb = !sb.empty() && std::all_of(sb.begin(), sb.end(), ::isdigit);
+        if (na && nb) {
+            long long ia = std::stoll(sa);
+            long long ib = std::stoll(sb);
+            if (ia < ib) return -1;
+            if (ia > ib) return 1;
+        } else {
+            if (sa < sb) return -1;
+            if (sa > sb) return 1;
+        }
+    }
+    return 0;
+}
+
+static std::string bestFixedVersion(const std::vector<VulnerabilityRecord>& records) {
+    std::string best;
+    for (const auto& record : records) {
+        for (const auto& fixed : record.fixedVersions) {
+            if (best.empty() || compareVersions(fixed, best) > 0) {
+                best = fixed;
+            }
+        }
+    }
+    return best;
 }
 
 static bool writePackageJson(const std::string& path,
@@ -319,7 +454,8 @@ static bool writeDependenciesForSource(const std::string& source,
 
 static void refreshDependencies(DependencyPanelState& state,
                                 const std::string& workspaceRoot,
-                                NotificationSystem& notifications) {
+                                NotificationSystem& notifications,
+                                VulnerabilityDatabase& vulnDb) {
     state.deps.clear();
     state.sources = discoverDependencyFiles(workspaceRoot);
     state.selected = -1;
@@ -330,6 +466,13 @@ static void refreshDependencies(DependencyPanelState& state,
     for (const auto& file : state.sources) {
         auto parsed = DependencyParser::parseFile(file.path);
         state.deps.insert(state.deps.end(), parsed.begin(), parsed.end());
+    }
+    for (const auto& dep : state.deps) {
+        PackageEcosystem eco = ecosystemForSource(dep.source);
+        std::string osv = osvEcosystem(eco);
+        if (!osv.empty() && !dep.name.empty()) {
+            vulnDb.trackPackage(osv, dep.name);
+        }
     }
     if (!state.sources.empty()) {
         if (state.sourceSelected < 0 || state.sourceSelected >= (int)state.sources.size()) {
@@ -344,19 +487,23 @@ static void refreshDependencies(DependencyPanelState& state,
 
 static void renderDependencyPanel(DependencyPanelState& state,
                                   const std::string& workspaceRoot,
-                                  NotificationSystem& notifications) {
+                                  NotificationSystem& notifications,
+                                  VulnerabilityDatabase& vulnDb) {
     if (workspaceRoot.empty()) {
         ImGui::TextDisabled("Open a workspace to manage dependencies.");
         return;
     }
+    if (!state.vulnIgnoreLoaded) {
+        loadVulnIgnore(state);
+    }
     if (state.lastWorkspaceRoot != workspaceRoot || state.deps.empty()) {
-        refreshDependencies(state, workspaceRoot, notifications);
+        refreshDependencies(state, workspaceRoot, notifications, vulnDb);
     }
 
     ImGui::InputText("Search", state.searchBuf, sizeof(state.searchBuf));
     ImGui::SameLine();
     if (ImGui::Button("Refresh")) {
-        refreshDependencies(state, workspaceRoot, notifications);
+        refreshDependencies(state, workspaceRoot, notifications, vulnDb);
     }
     ImGui::SameLine();
     if (ImGui::Button("Add Package")) {
@@ -425,7 +572,7 @@ static void renderDependencyPanel(DependencyPanelState& state,
                 }
                 state.deps.push_back(dep);
                 if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, notifications)) {
-                    refreshDependencies(state, workspaceRoot, notifications);
+                    refreshDependencies(state, workspaceRoot, notifications, vulnDb);
                     state.needsIndex = true;
                 }
             }
@@ -449,8 +596,34 @@ static void renderDependencyPanel(DependencyPanelState& state,
             std::string q = state.searchBuf;
             if (label.find(q) == std::string::npos) continue;
         }
-        if (ImGui::Selectable(label.c_str(), state.selected == i)) {
+        bool selected = (state.selected == i);
+        if (ImGui::Selectable(label.c_str(), selected)) {
             state.selected = i;
+        }
+        PackageEcosystem eco = ecosystemForSource(dep.source);
+        std::string osv = osvEcosystem(eco);
+        std::string ignoreKey = vulnKey(osv, dep.name);
+        if (!osv.empty() && !dep.name.empty() && state.vulnIgnore.find(ignoreKey) == state.vulnIgnore.end()) {
+            auto vulns = vulnDb.query(osv, dep.name, dep.version);
+            if (!vulns.empty()) {
+                int maxRank = 0;
+                std::string maxSeverity = "Low";
+                for (const auto& v : vulns) {
+                    int rank = severityRank(v.severity);
+                    if (rank > maxRank) {
+                        maxRank = rank;
+                        maxSeverity = v.severity;
+                    }
+                }
+                ImVec2 max = ImGui::GetItemRectMax();
+                ImVec2 min = ImGui::GetItemRectMin();
+                ImVec2 center(max.x - 10.0f, (min.y + max.y) * 0.5f);
+                drawSecurityBadge(ImGui::GetWindowDrawList(), center, 10.0f,
+                                  severityColor(maxSeverity));
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Vulnerabilities detected (%s)", maxSeverity.c_str());
+                }
+            }
         }
     }
     ImGui::EndChild();
@@ -467,7 +640,7 @@ static void renderDependencyPanel(DependencyPanelState& state,
         if (ImGui::Button("Apply Version")) {
             dep.version = state.editVersionBuf;
             if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, notifications)) {
-                refreshDependencies(state, workspaceRoot, notifications);
+                refreshDependencies(state, workspaceRoot, notifications, vulnDb);
                 state.needsIndex = true;
             }
         }
@@ -477,7 +650,7 @@ static void renderDependencyPanel(DependencyPanelState& state,
             state.deps.erase(state.deps.begin() + state.selected);
             state.selected = -1;
             if (writeDependenciesForSource(src, workspaceRoot, state.deps, notifications)) {
-                refreshDependencies(state, workspaceRoot, notifications);
+                refreshDependencies(state, workspaceRoot, notifications, vulnDb);
                 state.needsIndex = true;
             }
         }
@@ -488,12 +661,68 @@ static void renderDependencyPanel(DependencyPanelState& state,
             if (!info.versions.empty()) {
                 dep.version = info.versions.back();
                 if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, notifications)) {
-                    refreshDependencies(state, workspaceRoot, notifications);
+                    refreshDependencies(state, workspaceRoot, notifications, vulnDb);
                     state.needsIndex = true;
                 }
             } else {
                 notifications.notify(NotificationLevel::Warning,
                                      "[deps] No version info for " + dep.name);
+            }
+        }
+
+        PackageEcosystem eco = ecosystemForSource(dep.source);
+        std::string osv = osvEcosystem(eco);
+        std::string ignoreKey = vulnKey(osv, dep.name);
+        if (!osv.empty() && !dep.name.empty()) {
+            ImGui::Separator();
+            ImGui::TextUnformatted("Security");
+            auto vulns = vulnDb.query(osv, dep.name, dep.version);
+            bool ignored = state.vulnIgnore.find(ignoreKey) != state.vulnIgnore.end();
+            if (ignored) {
+                ImGui::TextDisabled("Ignored: %s", state.vulnIgnore[ignoreKey].c_str());
+                if (ImGui::Button("Unignore")) {
+                    state.vulnIgnore.erase(ignoreKey);
+                    saveVulnIgnore(state, notifications);
+                }
+            } else if (vulns.empty()) {
+                ImGui::TextDisabled("No known vulnerabilities.");
+            } else {
+                int maxRank = 0;
+                std::string maxSeverity = "Low";
+                for (const auto& v : vulns) {
+                    int rank = severityRank(v.severity);
+                    if (rank > maxRank) {
+                        maxRank = rank;
+                        maxSeverity = v.severity;
+                    }
+                }
+                ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f),
+                                   "Vulnerabilities found (%s)", maxSeverity.c_str());
+                for (const auto& v : vulns) {
+                    ImGui::BulletText("%s: %s", v.cveId.c_str(), v.summary.c_str());
+                }
+                std::string safeVersion = bestFixedVersion(vulns);
+                bool hasSafe = !safeVersion.empty();
+                if (!hasSafe) ImGui::BeginDisabled();
+                if (ImGui::Button("Upgrade to Safe Version")) {
+                    dep.version = safeVersion;
+                    if (writeDependenciesForSource(dep.source, workspaceRoot, state.deps, notifications)) {
+                        refreshDependencies(state, workspaceRoot, notifications, vulnDb);
+                        state.needsIndex = true;
+                    }
+                }
+                if (!hasSafe) ImGui::EndDisabled();
+                ImGui::SameLine();
+                ImGui::InputTextWithHint("##vulnIgnoreReason",
+                                         "Reason to ignore",
+                                         state.vulnIgnoreReason,
+                                         sizeof(state.vulnIgnoreReason));
+                ImGui::SameLine();
+                if (ImGui::Button("Ignore")) {
+                    state.vulnIgnore[ignoreKey] = state.vulnIgnoreReason;
+                    state.vulnIgnoreReason[0] = '\0';
+                    saveVulnIgnore(state, notifications);
+                }
             }
         }
     }

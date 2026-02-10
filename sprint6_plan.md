@@ -323,7 +323,7 @@ feature requests with polished UX.
   - Background refresh on editor startup (non-blocking)
   *New:* `VulnerabilityDatabase.h`
 
-- [ ] **Step 191: Dependency security badges**
+- [x] **Step 191: Dependency security badges**
   Enhance the Dependencies panel with security awareness:
   - Warning badge (shield icon) on packages with known vulnerabilities
   - Badge color by max severity: red (Critical/High), orange (Medium),
