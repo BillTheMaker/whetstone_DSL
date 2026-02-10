@@ -89,7 +89,7 @@ first — all UX work becomes easier when panels are modular.
 Full visual customization. Ship with popular themes. Make the editor
 look professional and feel personal.
 
-- [ ] **Step 171: Theme engine core**
+- [x] **Step 171: Theme engine core**
   `ThemeEngine.h` with theme data model:
   - Color categories: editor (bg, fg, cursor, selection, currentLine),
     syntax (keyword, string, comment, number, type, function, operator),

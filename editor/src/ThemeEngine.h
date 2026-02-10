@@ -8,17 +8,43 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <cstdlib>
 #include <nlohmann/json.hpp>
 #include "imgui.h"
 #include "SyntaxHighlighter.h"
 
 using json = nlohmann::json;
 
+enum class ThemeColor {
+    EditorBg,
+    EditorFg,
+    EditorCursor,
+    EditorSelection,
+    EditorCurrentLine,
+    SyntaxKeyword,
+    SyntaxString,
+    SyntaxComment,
+    SyntaxNumber,
+    SyntaxType,
+    SyntaxFunction,
+    SyntaxOperator,
+    GutterBg,
+    GutterText,
+    GutterMarkerError,
+    GutterMarkerWarning,
+    PanelBg,
+    PanelBorder,
+    PanelHeader,
+    StatusBarBg,
+    TooltipBg
+};
+
 struct ThemeDefinition {
     std::string name;
     std::unordered_map<std::string, ImU32> syntaxColors;
     std::unordered_map<std::string, ImU32> editorColors;
     std::unordered_map<int, ImVec4> imguiColors;
+    std::string sourcePath;
 };
 
 class ThemeEngine {
@@ -33,10 +59,20 @@ public:
         current_ = -1;
     }
 
-    bool loadThemesFromDirectory(const std::string& dir) {
+    bool loadThemesFromDirectory(const std::string& dir, bool watch = true) {
         namespace fs = std::filesystem;
         std::error_code ec;
         if (!fs::exists(dir, ec)) return false;
+        if (watch) {
+            bool tracked = false;
+            for (const auto& existing : watchedDirs_) {
+                if (existing == dir) {
+                    tracked = true;
+                    break;
+                }
+            }
+            if (!tracked) watchedDirs_.push_back(dir);
+        }
         bool loaded = false;
         for (const auto& entry : fs::directory_iterator(dir)) {
             if (!entry.is_regular_file()) continue;
@@ -52,7 +88,9 @@ public:
         if (!in.is_open()) return false;
         std::ostringstream ss;
         ss << in.rdbuf();
-        return loadThemeFromJson(ss.str());
+        if (!loadThemeFromJson(ss.str())) return false;
+        fileTimes_[path] = std::filesystem::last_write_time(path);
+        return true;
     }
 
     bool loadThemeFromJson(const std::string& text) {
@@ -95,6 +133,19 @@ public:
         return false;
     }
 
+    ImU32 getColor(ThemeColor color, ImU32 fallback) const {
+        const ThemeDefinition* theme = currentTheme();
+        if (!theme) return fallback;
+        const std::string key = colorKey(color);
+        if (key.empty()) return fallback;
+        if (isSyntaxColor(color)) {
+            auto it = theme->syntaxColors.find(key);
+            return it != theme->syntaxColors.end() ? it->second : fallback;
+        }
+        auto it = theme->editorColors.find(key);
+        return it != theme->editorColors.end() ? it->second : fallback;
+    }
+
     std::string currentThemeName() const {
         if (current_ < 0 || current_ >= (int)themes_.size()) return "";
         return themes_[current_].name;
@@ -113,6 +164,41 @@ public:
         if (!theme) return fallback;
         auto it = theme->editorColors.find(key);
         return it != theme->editorColors.end() ? it->second : fallback;
+    }
+
+    bool refreshWatchedThemes() {
+        namespace fs = std::filesystem;
+        bool reloaded = false;
+        for (const auto& dir : watchedDirs_) {
+            std::error_code ec;
+            if (!fs::exists(dir, ec)) continue;
+            for (const auto& entry : fs::directory_iterator(dir)) {
+                if (!entry.is_regular_file()) continue;
+                auto path = entry.path();
+                if (path.extension() != ".json") continue;
+                auto pathStr = path.string();
+                auto ts = fs::last_write_time(path, ec);
+                if (ec) continue;
+                auto it = fileTimes_.find(pathStr);
+                if (it == fileTimes_.end() || it->second != ts) {
+                    if (loadThemeFile(pathStr)) {
+                        reloaded = true;
+                    }
+                }
+            }
+        }
+        if (reloaded && current_ >= 0 && current_ < (int)themes_.size()) {
+            applyToImGui(themes_[current_]);
+        }
+        return reloaded;
+    }
+
+    static std::string userThemeDirectory() {
+        const char* home = std::getenv("USERPROFILE");
+        if (!home) home = std::getenv("HOME");
+        std::filesystem::path base = home ? std::filesystem::path(home)
+                                          : std::filesystem::current_path();
+        return (base / ".whetstone" / "themes").string();
     }
 
 private:
@@ -228,6 +314,45 @@ private:
         }
     }
 
+    static bool isSyntaxColor(ThemeColor color) {
+        return color == ThemeColor::SyntaxKeyword ||
+               color == ThemeColor::SyntaxString ||
+               color == ThemeColor::SyntaxComment ||
+               color == ThemeColor::SyntaxNumber ||
+               color == ThemeColor::SyntaxType ||
+               color == ThemeColor::SyntaxFunction ||
+               color == ThemeColor::SyntaxOperator;
+    }
+
+    static std::string colorKey(ThemeColor color) {
+        switch (color) {
+        case ThemeColor::EditorBg: return "editor_bg";
+        case ThemeColor::EditorFg: return "editor_fg";
+        case ThemeColor::EditorCursor: return "caret";
+        case ThemeColor::EditorSelection: return "selection";
+        case ThemeColor::EditorCurrentLine: return "line_highlight";
+        case ThemeColor::SyntaxKeyword: return "keyword";
+        case ThemeColor::SyntaxString: return "string";
+        case ThemeColor::SyntaxComment: return "comment";
+        case ThemeColor::SyntaxNumber: return "number";
+        case ThemeColor::SyntaxType: return "type";
+        case ThemeColor::SyntaxFunction: return "function";
+        case ThemeColor::SyntaxOperator: return "operator";
+        case ThemeColor::GutterBg: return "gutter_bg";
+        case ThemeColor::GutterText: return "gutter_text";
+        case ThemeColor::GutterMarkerError: return "diag_error";
+        case ThemeColor::GutterMarkerWarning: return "diag_warning";
+        case ThemeColor::PanelBg: return "panel_bg";
+        case ThemeColor::PanelBorder: return "panel_border";
+        case ThemeColor::PanelHeader: return "panel_header";
+        case ThemeColor::StatusBarBg: return "status_bg";
+        case ThemeColor::TooltipBg: return "tooltip_bg";
+        default: return "";
+        }
+    }
+
     std::vector<ThemeDefinition> themes_;
+    std::vector<std::string> watchedDirs_;
+    std::unordered_map<std::string, std::filesystem::file_time_type> fileTimes_;
     int current_ = -1;
 };

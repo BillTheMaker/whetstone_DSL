@@ -981,6 +981,13 @@ target_include_directories(step170_test PRIVATE src)
 add_executable(step170_integration_test tests/step170_integration_test.cpp)
 target_include_directories(step170_integration_test PRIVATE src)
 
+add_executable(step171_test tests/step171_test.cpp)
+target_include_directories(step171_test PRIVATE src)
+target_link_libraries(step171_test PRIVATE imgui::imgui)
+
+add_executable(step171_integration_test tests/step171_integration_test.cpp)
+target_include_directories(step171_integration_test PRIVATE src)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

@@ -123,6 +123,7 @@ int main(int, char**) {
     ThemeEngine& themes = ThemeEngine::instance();
     themes.loadThemesFromDirectory("themes");
     themes.loadThemesFromDirectory("editor/themes");
+    themes.loadThemesFromDirectory(ThemeEngine::userThemeDirectory());
     std::string themeName = state.settings.getTheme();
     if (themeName == "Dark") themeName = "VSCode Dark";
     if (themeName == "Light") themeName = "VSCode Light";
@@ -254,6 +255,7 @@ int main(int, char**) {
         }
         state.refreshEmacsModeLine(ImGui::GetTime());
         state.events.tick(ImGui::GetTime());
+        themes.refreshWatchedThemes();
 
         // --- Start frame ---
         ImGui_ImplOpenGL3_NewFrame();
