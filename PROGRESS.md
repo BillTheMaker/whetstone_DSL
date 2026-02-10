@@ -382,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 5 in progress. Step 133 (import statement generation) done. Next: Step 134 (available primitives registry).
+Sprint 5 in progress. Step 134 (available primitives registry) done. Next: Step 135 (library-aware completion).
 
 ---
 
@@ -479,3 +479,4 @@ Sprint 5 in progress. Step 133 (import statement generation) done. Next: Step 13
 | 2026-02-09 | Codex | Step 131: Stub-based library indexing (pyi/d.ts/headers/lib.rs) with workspace scan fallback. 8/8 tests pass. |
 | 2026-02-09 | Codex | Step 132: Library symbol browser panel with filtering, doc detail display, and insert template helpers. 5/5 tests pass. |
 | 2026-02-09 | Codex | Step 133: Import statement generation + unused import warnings across Python/JS/Rust/Go/Elisp with auto-insert on library symbol use. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 134: PrimitivesRegistry aggregating builtins, imports, and in-scope symbols. 6/6 tests pass. |

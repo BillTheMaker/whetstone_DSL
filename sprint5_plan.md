@@ -101,7 +101,7 @@ are a convenience, not a 100% constraint — users can always write any code
 they want, but the system surfaces library functions first and nudges toward
 what's already available.
 
-- [ ] **Step 134: Available primitives registry**
+- [x] **Step 134: Available primitives registry**
   Create `PrimitivesRegistry.h` that aggregates all available symbols:
   - Built-in language primitives (Python builtins, C++ std library, etc.)
   - Imported library symbols (from `ExternalModule` AST nodes)

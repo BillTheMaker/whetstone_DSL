@@ -47,6 +47,7 @@
 #include "LibraryIndexer.h"
 #include "LibraryBrowserPanel.h"
 #include "ImportManager.h"
+#include "PrimitivesRegistry.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -180,6 +181,7 @@ struct EditorState {
     };
     std::vector<LibraryIndexRequest> libraryIndexRequests;
     LibraryIndexData libraryIndex;
+    PrimitivesRegistry primitives;
 
     // Custom editor widget state
     bool              showWhitespace = false;
@@ -437,6 +439,8 @@ struct EditorState {
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         active()->orchestratorDirty = true;
+        primitives.setRoot(activeAST());
+        primitives.setLanguage(active()->language);
         recordUndoSnapshot();
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
         if (lsp && path.rfind("(untitled", 0) != 0) {
@@ -525,6 +529,8 @@ struct EditorState {
         buffers.switchToBuffer(path);
         activeBuffer = bufferStates[path].get();
         if (active()) active()->orchestratorDirty = true;
+        primitives.setRoot(activeAST());
+        primitives.setLanguage(active()->language);
         symbolsPending = true;
         symbolsLastChange = ImGui::GetTime();
         if (lsp) lsp->clearDocumentSymbols();
@@ -1236,6 +1242,7 @@ struct EditorState {
         std::string prevLang = active()->language;
         active()->language = lang;
         active()->mode.setLanguage(lang);
+        primitives.setLanguage(lang);
         if (active()->generatedLanguage == prevLang) {
             active()->generatedLanguage = lang;
             active()->generatedMode.setLanguage(lang);
@@ -1324,6 +1331,8 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
+        primitives.setRoot(activeAST());
+        primitives.setLanguage(active()->language);
         active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
