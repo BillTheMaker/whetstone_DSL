@@ -387,11 +387,29 @@ target_link_libraries(step49_test PRIVATE unofficial::tree-sitter::tree-sitter t
 
 add_executable(step50_test tests/step50_test.cpp)
 target_include_directories(step50_test PRIVATE src)
-target_link_libraries(step50_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+target_link_libraries(step50_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
 
 add_executable(step51_test tests/step51_test.cpp)
 target_include_directories(step51_test PRIVATE src)
-target_link_libraries(step51_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+target_link_libraries(step51_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
 
 add_executable(step52_test tests/step52_test.cpp)
 target_include_directories(step52_test PRIVATE src)
@@ -468,7 +486,16 @@ target_include_directories(step71_test PRIVATE src)
 
 add_executable(step72_test tests/step72_test.cpp)
 target_include_directories(step72_test PRIVATE src)
-target_link_libraries(step72_test PRIVATE unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp)
+target_link_libraries(step72_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
 
 add_executable(step73_test tests/step73_test.cpp)
 target_include_directories(step73_test PRIVATE src)
@@ -1187,6 +1214,9 @@ target_link_libraries(step233_test PRIVATE nlohmann_json::nlohmann_json)
 add_executable(step234_test tests/step234_test.cpp)
 target_include_directories(step234_test PRIVATE src)
 target_link_libraries(step234_test PRIVATE nlohmann_json::nlohmann_json)
+add_executable(step244_test tests/step244_test.cpp)
+target_include_directories(step244_test PRIVATE src)
+target_link_libraries(step244_test PRIVATE nlohmann_json::nlohmann_json)
 add_executable(step213_test tests/step213_test.cpp)
 target_include_directories(step213_test PRIVATE src)
 target_link_libraries(step213_test PRIVATE nlohmann_json::nlohmann_json)

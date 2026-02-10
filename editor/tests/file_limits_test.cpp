@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <algorithm>
 
 static void expect(bool cond, const std::string& name, int& passed, int& failed) {
     if (cond) {

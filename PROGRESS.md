@@ -755,3 +755,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Codex | Step 233: Training data pipeline CLI (load/anonymize/convert/filter/dedup/export + stats). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 234: Session pipeline tests (anonymizer round-trip, no PII, trace conversion, pipeline output count, quality filter, dedup). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 241: Text-first default mode (default buffer mode Text, settings preference, wizard step, tips updated). 1/1 tests pass (`file_limits_test`). |
+| 2026-02-10 | Codex | Step 242: DockBuilder initial layout on first launch + View→Reset Layout (applies preset docking for Explorer/Editor/Panel and tool windows). Tests not run. |
+| 2026-02-10 | Codex | Step 243: First-launch polish — Explorer shows Open Folder prompt when no workspace, status bar shows “Text Mode/Structured Mode”, bottom panel collapses on initial layout/reset. Tests not run. |
+| 2026-02-10 | Codex | Ubuntu 24 build portability pass: fixed Linux/GCC compile/link regressions and validated product target build (`whetstone_editor`, `orchestrator`) via `installer/linux/build.sh`. Updated Linux build/install scripts with explicit prerequisite checks/deps and product-target build mode. |
+| 2026-02-10 | Codex | Step 244: Added integration-style test target `step244_test` validating text-first defaults, mode policy gating, per-buffer mode persistence, VSCode preset layout ratios, and settings-driven default buffer mode mapping. 6/6 checks pass (`./editor/build/step244_test`). |
