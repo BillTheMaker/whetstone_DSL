@@ -42,6 +42,14 @@ static std::string generateForLanguage(const Module* ast, const std::string& lan
         ElispGenerator gen;
         return gen.generate(ast);
     }
+    if (language == "javascript") {
+        JavaScriptGenerator gen;
+        return gen.generate(ast);
+    }
+    if (language == "typescript") {
+        TypeScriptGenerator gen;
+        return gen.generate(ast);
+    }
     PythonGenerator gen;
     return gen.generate(ast);
 }

@@ -16,10 +16,12 @@ public:
         return {
             // Parsers
             {"TreeSitterParser", "parser",
-             "Parses source code (Python, C++, Elisp) into Whetstone AST using tree-sitter grammars",
+             "Parses source code (Python, C++, Elisp, JavaScript, TypeScript) into Whetstone AST using tree-sitter grammars",
              {"parsePython(source)", "parsePythonWithDiagnostics(source)",
               "parseCpp(source)", "parseCppWithDiagnostics(source)",
-              "parseElisp(source)", "parseElispWithDiagnostics(source)"}},
+              "parseElisp(source)", "parseElispWithDiagnostics(source)",
+              "parseJavaScript(source)", "parseJavaScriptWithDiagnostics(source)",
+              "parseTypeScript(source)", "parseTypeScriptWithDiagnostics(source)"}},
 
             // Generators
             {"PythonGenerator", "generator",
@@ -32,6 +34,14 @@ public:
 
             {"ElispGenerator", "generator",
              "Generates Emacs Lisp source code from Whetstone AST",
+             {"generate(node)"}},
+
+            {"JavaScriptGenerator", "generator",
+             "Generates JavaScript source code from Whetstone AST",
+             {"generate(node)"}},
+
+            {"TypeScriptGenerator", "generator",
+             "Generates TypeScript source code from Whetstone AST with type annotations",
              {"generate(node)"}},
 
             // Validators

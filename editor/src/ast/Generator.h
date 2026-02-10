@@ -5,3 +5,4 @@
 #include "PythonGenerator.h"
 #include "ElispGenerator.h"
 #include "CppGenerator.h"
+#include "JavaScriptGenerator.h"

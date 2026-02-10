@@ -86,6 +86,18 @@ public:
             auto pr = TreeSitterParser::parseCppWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "elisp") {
+            auto pr = TreeSitterParser::parseElispWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
+        } else if (language == "javascript") {
+            auto pr = TreeSitterParser::parseJavaScriptWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
+        } else if (language == "typescript") {
+            auto pr = TreeSitterParser::parseTypeScriptWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         }
         return nullptr;
     }
@@ -101,6 +113,12 @@ public:
             return gen.generate(ast);
         } else if (language == "elisp") {
             ElispGenerator gen;
+            return gen.generate(ast);
+        } else if (language == "javascript") {
+            JavaScriptGenerator gen;
+            return gen.generate(ast);
+        } else if (language == "typescript") {
+            TypeScriptGenerator gen;
             return gen.generate(ast);
         }
         return "";

@@ -234,7 +234,7 @@ adds full semantic support.
   TypeScript: type annotations mapped to Whetstone Type AST nodes.
   *Modifies:* `Parser.h`
 
-- [ ] **Step 148: JavaScript/TypeScript generator**
+- [x] **Step 148: JavaScript/TypeScript generator**
   Generate JavaScript and TypeScript source from Whetstone AST.
   Handle: function declarations, arrow functions, classes, async/await,
   destructuring, template literals, import/export statements.

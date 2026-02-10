@@ -396,6 +396,12 @@ public:
             targetLanguage = "cpp";
         } else if (path.substr(path.find_last_of(".") + 1) == "py") {
             targetLanguage = "python";
+        } else if (path.substr(path.find_last_of(".") + 1) == "el" || path.substr(path.find_last_of(".") + 1) == "elisp") {
+            targetLanguage = "elisp";
+        } else if (path.substr(path.find_last_of(".") + 1) == "js") {
+            targetLanguage = "javascript";
+        } else if (path.substr(path.find_last_of(".") + 1) == "ts") {
+            targetLanguage = "typescript";
         }
         
         // Parse the content using the appropriate tree-sitter parser
@@ -404,6 +410,12 @@ public:
             module = TreeSitterParser::parsePython(content);
         } else if (targetLanguage == "cpp") {
             module = TreeSitterParser::parseCpp(content);
+        } else if (targetLanguage == "elisp") {
+            module = TreeSitterParser::parseElisp(content);
+        } else if (targetLanguage == "javascript") {
+            module = TreeSitterParser::parseJavaScript(content);
+        } else if (targetLanguage == "typescript") {
+            module = TreeSitterParser::parseTypeScript(content);
         } else {
             // For unknown languages, create a basic module with the content
             module = std::make_unique<Module>();
@@ -435,6 +447,10 @@ public:
                 targetLanguage = "python";
             } else if (path.substr(path.find_last_of(".") + 1) == "el" || path.substr(path.find_last_of(".") + 1) == "elisp") {
                 targetLanguage = "elisp";
+            } else if (path.substr(path.find_last_of(".") + 1) == "js") {
+                targetLanguage = "javascript";
+            } else if (path.substr(path.find_last_of(".") + 1) == "ts") {
+                targetLanguage = "typescript";
             }
         }
         
@@ -448,6 +464,12 @@ public:
             content = elispGen.generate(ast);
         } else if (targetLanguage == "cpp" || targetLanguage == "c++") {
             CppGenerator gen;
+            content = gen.generate(ast);
+        } else if (targetLanguage == "javascript") {
+            JavaScriptGenerator gen;
+            content = gen.generate(ast);
+        } else if (targetLanguage == "typescript") {
+            TypeScriptGenerator gen;
             content = gen.generate(ast);
         } else {
             // Default to Python generator for unknown languages

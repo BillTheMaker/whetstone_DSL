@@ -41,6 +41,12 @@ public:
         } else if (language_ == "elisp") {
             ElispGenerator gen;
             return gen.generate(module_.get());
+        } else if (language_ == "javascript") {
+            JavaScriptGenerator gen;
+            return gen.generate(module_.get());
+        } else if (language_ == "typescript") {
+            TypeScriptGenerator gen;
+            return gen.generate(module_.get());
         }
         return text_;
     }
