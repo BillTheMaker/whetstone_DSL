@@ -546,4 +546,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 196: High contrast + colorblind modes (high contrast theme, annotation shapes toggle, diagnostic pattern underlines). 1/1 tests pass (step196_test). |
 | 2026-02-10 | Codex | Step 197: Keyboard navigation audit (F6 panel cycle, Esc focus return, focus ring defaults, nav focus enabled on panels). 1/1 tests pass (step197_test). |
 | 2026-02-10 | Codex | Step 198: Virtual scrolling for large files (viewport + buffered rendering, fold hiding optimized). 1/1 tests pass (step198_test). |
+| 2026-02-10 | Codex | Step 199: Large file handling (size thresholds, text-mode fallback, large file prompt, highlight disable, memory indicator). 1/1 tests pass (step199_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

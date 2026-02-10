@@ -155,6 +155,9 @@ struct BufferState {
     Orchestrator      orchestrator;
     bool              orchestratorDirty = true;
     int               undoDepth = 0;
+    size_t            fileSizeBytes = 0;
+    bool              largeFileMode = false;
+    bool              disableSyntaxHighlight = false;
 };
 
 struct EditorState {
@@ -178,6 +181,9 @@ struct EditorState {
     EmacsState        emacsState;
     UIFlags           ui;
     UIAnimationState  uiAnimations;
+    bool              showLargeFilePrompt = false;
+    std::string       largeFilePromptPath;
+    size_t            largeFilePromptBytes = 0;
 
     NotificationSystem notifications;
     UIEventBus         events;
@@ -583,7 +589,10 @@ struct EditorState {
 
     void createBuffer(const std::string& path, const std::string& content,
                       const std::string& language,
-                      BufferManager::BufferMode mode = BufferManager::BufferMode::Structured) {
+                      BufferManager::BufferMode mode = BufferManager::BufferMode::Structured,
+                      size_t fileSizeBytes = 0,
+                      bool largeFileMode = false,
+                      bool disableSyntaxHighlight = false) {
         BufferManager::BufferMode effectiveMode = mode;
         if (language == "org") effectiveMode = BufferManager::BufferMode::Text;
         if (buffers.hasBuffer(path)) {
@@ -595,12 +604,17 @@ struct EditorState {
         state->path = path;
         state->language = language;
         state->generatedLanguage = language;
+        state->fileSizeBytes = fileSizeBytes;
+        state->largeFileMode = largeFileMode;
+        state->disableSyntaxHighlight = disableSyntaxHighlight;
         state->mode.setLanguage(language);
         state->generatedMode.setLanguage(language);
         state->editor.setContent(content, language);
-        state->sync.setText(content, language);
-        state->sync.syncNow();
-        state->incrementalOptimizer.setRoot(state->sync.getAST());
+        if (effectiveMode == BufferManager::BufferMode::Structured) {
+            state->sync.setText(content, language);
+            state->sync.syncNow();
+            state->incrementalOptimizer.setRoot(state->sync.getAST());
+        }
         state->editBuf = content;
         state->highlightsDirty = true;
         state->generatedHighlightsDirty = true;
@@ -929,6 +943,20 @@ struct EditorState {
         for (auto& kv : bufferStates) {
             kv.second->mode.setTabSize(size);
             kv.second->generatedMode.setTabSize(size);
+        }
+    }
+
+    void setActiveBufferMode(BufferManager::BufferMode mode) {
+        if (!active()) return;
+        if (active()->bufferMode == mode) return;
+        active()->bufferMode = mode;
+        buffers.setBufferMode(active()->path, active()->bufferMode);
+        if (active()->bufferMode == BufferManager::BufferMode::Text) {
+            suggestions.clear();
+            whetstoneDiagnostics.clear();
+            analysisPending = false;
+        } else {
+            onTextChanged();
         }
     }
 
@@ -2381,6 +2409,25 @@ struct EditorState {
 
     void doOpen(const std::string& path,
                 BufferManager::BufferMode modeOverride = BufferManager::BufferMode::Structured) {
+        std::error_code sizeErr;
+        size_t fileSizeBytes = 0;
+        if (!path.empty()) {
+            auto bytes = std::filesystem::file_size(path, sizeErr);
+            if (!sizeErr) fileSizeBytes = static_cast<size_t>(bytes);
+        }
+        const size_t mb = 1024 * 1024;
+        const size_t warnBytes = (size_t)std::max(1, settings.getLargeFileWarnMB()) * mb;
+        const size_t textBytes = (size_t)std::max(1, settings.getLargeFileTextMB()) * mb;
+        const size_t disableHlBytes =
+            (size_t)std::max(1, settings.getLargeFileDisableHighlightMB()) * mb;
+        bool warnLarge = fileSizeBytes >= warnBytes;
+        bool autoText = fileSizeBytes >= textBytes;
+        bool disableHighlight = fileSizeBytes >= disableHlBytes;
+        bool largeFileMode = disableHighlight;
+        BufferManager::BufferMode effectiveMode = modeOverride;
+        if (autoText && modeOverride == BufferManager::BufferMode::Structured) {
+            effectiveMode = BufferManager::BufferMode::Text;
+        }
         std::ifstream in(path);
         if (in.is_open()) {
             std::ostringstream ss;
@@ -2407,9 +2454,19 @@ struct EditorState {
                 language = "go";
             else if (path.size() > 4 && path.substr(path.size() - 4) == ".org")
                 language = "org";
-            createBuffer(path, content, language, modeOverride);
-            welcome.addRecentFile(path, language, bufferModeToString(modeOverride));
+            createBuffer(path, content, language, effectiveMode,
+                         fileSizeBytes, largeFileMode, disableHighlight);
+            welcome.addRecentFile(path, language, bufferModeToString(effectiveMode));
             saveRecentFiles();
+            if (autoText && modeOverride == BufferManager::BufferMode::Structured) {
+                notify(NotificationLevel::Warning,
+                       "Large file opened in Text mode (" +
+                       std::to_string(fileSizeBytes / mb) + " MB).");
+            } else if (warnLarge && modeOverride == BufferManager::BufferMode::Structured) {
+                showLargeFilePrompt = true;
+                largeFilePromptPath = path;
+                largeFilePromptBytes = fileSizeBytes;
+            }
             notify(NotificationLevel::Success, "Opened: " + path);
         } else {
             notify(NotificationLevel::Error, "Error opening: " + path);
@@ -2454,6 +2511,11 @@ struct EditorState {
     void updateHighlights() {
         if (!active()) return;
         if (!active()->highlightsDirty) return;
+        if (active()->disableSyntaxHighlight) {
+            active()->highlights.clear();
+            active()->highlightsDirty = false;
+            return;
+        }
         active()->highlights = SyntaxHighlighter::highlight(active()->editBuf, active()->language);
         active()->highlightsDirty = false;
     }
@@ -2466,6 +2528,11 @@ struct EditorState {
         if (generated != active()->generatedBuf) {
             active()->generatedBuf = generated;
             active()->generatedHighlightsDirty = true;
+        }
+        if (active()->disableSyntaxHighlight) {
+            active()->generatedHighlights.clear();
+            active()->generatedHighlightsDirty = false;
+            return;
         }
         if (active()->generatedHighlightsDirty) {
             active()->generatedHighlights =

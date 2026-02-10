@@ -4,6 +4,12 @@
 #include "../ThemeEngine.h"
 #include <fstream>
 #include <filesystem>
+#include <cstdio>
+#include <string>
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>
+#endif
 
 static std::string detectGitBranch(const std::string& root) {
     if (root.empty()) return "-";
@@ -22,22 +28,37 @@ static std::string detectGitBranch(const std::string& root) {
 
 static void toggleBufferMode(EditorState& state) {
     if (!state.active()) return;
-    state.active()->bufferMode = state.active()->bufferMode == BufferManager::BufferMode::Text
-        ? BufferManager::BufferMode::Structured
-        : BufferManager::BufferMode::Text;
-    state.buffers.setBufferMode(state.active()->path, state.active()->bufferMode);
-    if (state.active()->bufferMode == BufferManager::BufferMode::Text) {
-        state.suggestions.clear();
-        state.whetstoneDiagnostics.clear();
-        state.analysisPending = false;
-    } else {
-        state.onTextChanged();
-    }
+    BufferManager::BufferMode next =
+        state.active()->bufferMode == BufferManager::BufferMode::Text
+            ? BufferManager::BufferMode::Structured
+            : BufferManager::BufferMode::Text;
+    state.setActiveBufferMode(next);
 }
 
 static std::string detectLineEnding(const std::string& text) {
     if (text.find("\r\n") != std::string::npos) return "CRLF";
     return "LF";
+}
+
+static size_t processMemoryBytes() {
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS_EX pmc{};
+    if (GetProcessMemoryInfo(GetCurrentProcess(),
+                             reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&pmc),
+                             sizeof(pmc))) {
+        return static_cast<size_t>(pmc.WorkingSetSize);
+    }
+#endif
+    return 0;
+}
+
+static std::string formatMemory(size_t bytes) {
+    if (bytes == 0) return "-";
+    const double mb = 1024.0 * 1024.0;
+    double value = bytes / mb;
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "%.0f MB", value);
+    return buf;
 }
 
 static void renderStatusBar(EditorState& state) {
@@ -76,6 +97,14 @@ static void renderStatusBar(EditorState& state) {
         : "-";
     if (ImGui::Button(modeLabel.c_str())) {
         toggleBufferMode(state);
+    }
+    if (state.active() &&
+        state.active()->bufferMode == BufferManager::BufferMode::Text &&
+        state.active()->fileSizeBytes > 0) {
+        ImGui::SameLine(0, 6);
+        if (ImGui::Button("Reopen Structured")) {
+            state.setActiveBufferMode(BufferManager::BufferMode::Structured);
+        }
     }
     ImGui::SameLine(0, 10);
     const char* langLabel = state.active() ? state.active()->language.c_str() : "-";
@@ -139,6 +168,13 @@ static void renderStatusBar(EditorState& state) {
     if (selChars > 0) {
         rightText += " | Sel " + std::to_string(selChars) + "c " +
                      std::to_string(selLines) + "l";
+    }
+    if (state.active() && state.active()->largeFileMode) {
+        rightText += " | Large File";
+    }
+    size_t memBytes = processMemoryBytes();
+    if (memBytes > 0) {
+        rightText += " | Mem " + formatMemory(memBytes);
     }
     rightText += " | Zoom " + std::to_string(zoomPercent(state.settings.getFontSize(),
                                                          state.baseFontSize)) + "%";

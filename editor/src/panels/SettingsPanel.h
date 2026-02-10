@@ -360,6 +360,27 @@ static void renderSettingsPanel(EditorState& state) {
         settingsChanged = true;
     }
 
+    ImGui::Separator();
+    ImGui::TextUnformatted("Large File Thresholds (MB)");
+    int warnMb = state.settings.getLargeFileWarnMB();
+    if (ImGui::InputInt("Warn > MB", &warnMb)) {
+        warnMb = std::max(1, warnMb);
+        state.settings.setLargeFileWarnMB(warnMb);
+        settingsChanged = true;
+    }
+    int textMb = state.settings.getLargeFileTextMB();
+    if (ImGui::InputInt("Auto Text Mode > MB", &textMb)) {
+        textMb = std::max(1, textMb);
+        state.settings.setLargeFileTextMB(textMb);
+        settingsChanged = true;
+    }
+    int disableHlMb = state.settings.getLargeFileDisableHighlightMB();
+    if (ImGui::InputInt("Disable Highlight > MB", &disableHlMb)) {
+        disableHlMb = std::max(1, disableHlMb);
+        state.settings.setLargeFileDisableHighlightMB(disableHlMb);
+        settingsChanged = true;
+    }
+
     LayoutPreset preset = state.ui.layoutPreset;
     int presetIndex = 0;
     if (preset == LayoutPreset::Emacs) presetIndex = 1;

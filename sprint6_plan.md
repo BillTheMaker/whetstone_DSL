@@ -414,7 +414,7 @@ Make Whetstone usable by everyone and fast with large files.
   - Benchmark: 50k line file opens in <500ms, scrolls at 60fps
   *Modifies:* `CodeEditorWidget.h`
 
-- [ ] **Step 199: Large file handling**
+- [x] **Step 199: Large file handling**
   Graceful degradation for very large files:
   - Files >1MB: show size warning, offer "Open in Text Mode"
   - Files >5MB: auto-open in Text Mode (no AST sync, no annotations)

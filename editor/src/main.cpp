@@ -379,6 +379,7 @@ int main(int, char**) {
         renderProjectSearchPanel(state);
         renderSettingsPanel(state);
         renderGoToLineDialog(state);
+        renderLargeFilePrompt(state);
         renderLspSettingsPanel(state);
         renderRefactorPopup(state);
         renderCommandPalette(state);

@@ -62,6 +62,12 @@ public:
     void setUseAnnotationShapes(bool value) { useAnnotationShapes_ = value; }
     bool getBlockVulnerableImports() const { return blockVulnerableImports_; }
     void setBlockVulnerableImports(bool value) { blockVulnerableImports_ = value; }
+    int getLargeFileWarnMB() const { return largeFileWarnMB_; }
+    void setLargeFileWarnMB(int value) { largeFileWarnMB_ = value; }
+    int getLargeFileTextMB() const { return largeFileTextMB_; }
+    void setLargeFileTextMB(int value) { largeFileTextMB_ = value; }
+    int getLargeFileDisableHighlightMB() const { return largeFileDisableHighlightMB_; }
+    void setLargeFileDisableHighlightMB(int value) { largeFileDisableHighlightMB_ = value; }
     const std::string& getLayoutPreset() const { return layoutPreset_; }
     void setLayoutPreset(const std::string& name) { layoutPreset_ = name; }
     const std::string& getKeybindingProfile() const { return keybindingProfile_; }
@@ -89,6 +95,9 @@ public:
             reduceMotion_ = j.value("reduceMotion", reduceMotion_);
             useAnnotationShapes_ = j.value("useAnnotationShapes", useAnnotationShapes_);
             blockVulnerableImports_ = j.value("blockVulnerableImports", blockVulnerableImports_);
+            largeFileWarnMB_ = j.value("largeFileWarnMB", largeFileWarnMB_);
+            largeFileTextMB_ = j.value("largeFileTextMB", largeFileTextMB_);
+            largeFileDisableHighlightMB_ = j.value("largeFileDisableHighlightMB", largeFileDisableHighlightMB_);
             layoutPreset_ = j.value("layoutPreset", layoutPreset_);
             keybindingProfile_ = j.value("keybindingProfile", keybindingProfile_);
             emacsConfigPath_ = j.value("emacsConfigPath", emacsConfigPath_);
@@ -129,6 +138,9 @@ public:
             j["reduceMotion"] = reduceMotion_;
             j["useAnnotationShapes"] = useAnnotationShapes_;
             j["blockVulnerableImports"] = blockVulnerableImports_;
+            j["largeFileWarnMB"] = largeFileWarnMB_;
+            j["largeFileTextMB"] = largeFileTextMB_;
+            j["largeFileDisableHighlightMB"] = largeFileDisableHighlightMB_;
             j["layoutPreset"] = layoutPreset_;
             j["keybindingProfile"] = keybindingProfile_;
             j["emacsConfigPath"] = emacsConfigPath_;
@@ -206,6 +218,9 @@ private:
     bool reduceMotion_ = false;
     bool useAnnotationShapes_ = true;
     bool blockVulnerableImports_ = false;
+    int largeFileWarnMB_ = 1;
+    int largeFileTextMB_ = 5;
+    int largeFileDisableHighlightMB_ = 10;
     std::string layoutPreset_ = "VSCode";
     std::string keybindingProfile_ = "VSCode";
 

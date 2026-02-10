@@ -3,6 +3,7 @@
 #include "../EditorUtils.h"
 #include <filesystem>
 #include <unordered_set>
+#include <cstdio>
 
 static int buildCommandContextMask(const EditorState& state) {
     int mask = CommandContext_Editor;
@@ -29,6 +30,14 @@ static std::string makeRelativePath(const std::string& path, const std::string& 
     auto rel = std::filesystem::relative(path, root, ec);
     if (ec) return path;
     return rel.generic_string();
+}
+
+static std::string formatBytes(size_t bytes) {
+    const double mb = 1024.0 * 1024.0;
+    double value = bytes / mb;
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "%.2f MB", value);
+    return buf;
 }
 
 static void drawHighlightedText(ImDrawList* drawList,
@@ -524,4 +533,32 @@ static void renderCommandPalette(EditorState& state) {
         }
     }
     ImGui::End();
+}
+
+static void renderLargeFilePrompt(EditorState& state) {
+    if (state.showLargeFilePrompt) {
+        ImGui::OpenPopup("Large File");
+    }
+    if (ImGui::BeginPopupModal("Large File",
+                               &state.showLargeFilePrompt,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextUnformatted("Large file detected.");
+        if (!state.largeFilePromptPath.empty()) {
+            ImGui::TextWrapped("%s", state.largeFilePromptPath.c_str());
+        }
+        ImGui::TextDisabled("Size: %s", formatBytes(state.largeFilePromptBytes).c_str());
+        ImGui::Separator();
+        ImGui::TextUnformatted("Open in Text Mode for better performance?");
+        if (ImGui::Button("Open in Text Mode")) {
+            state.setActiveBufferMode(BufferManager::BufferMode::Text);
+            state.showLargeFilePrompt = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Keep Structured")) {
+            state.showLargeFilePrompt = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
 }
