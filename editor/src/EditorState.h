@@ -45,6 +45,7 @@
 #include "BuildSystem.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
+#include "LibraryBrowserPanel.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -167,6 +168,8 @@ struct EditorState {
     std::string lastBuildCommand;
     bool              showDependencyPanel = true;
     DependencyPanelState dependencyPanel;
+    bool              showLibraryBrowserPanel = true;
+    LibraryBrowserState libraryBrowser;
     struct LibraryIndexRequest {
         std::string name;
         std::string version;
@@ -353,6 +356,15 @@ struct EditorState {
         buf->widget.setCursor(newPos);
         activeBuffer = buf;
         onTextChanged();
+    }
+
+    void insertTextAtCursor(const std::string& text) {
+        if (!active() || text.empty()) return;
+        bool changed = false;
+        active()->widget.insertText(active()->editBuf, text, changed);
+        if (changed) {
+            onTextChanged();
+        }
     }
 
     std::string makeUntitledName() const {

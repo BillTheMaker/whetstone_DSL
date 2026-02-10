@@ -71,7 +71,7 @@ The foundation: import libraries, parse their APIs, index their symbols.
   `TypeSignature` AST nodes attached to `ExternalModule`.
   *New:* `StubParser.h`, modifies `ExternalModule` AST concept
 
-- [ ] **Step 132: Library symbol browser**
+- [x] **Step 132: Library symbol browser**
   New panel or Explorer sub-section: "Libraries". Tree view of imported
   libraries → modules → classes/functions → parameters. Click to see
   documentation (from LSP hover or stub docstrings). Search/filter box.

@@ -305,6 +305,7 @@ int main(int, char**) {
                 ImGui::MenuItem("Terminal", state.keys.getBinding("view.toggleTerminal").toString().c_str(),
                                 &state.showTerminalPanel);
                 ImGui::MenuItem("Dependencies", nullptr, &state.showDependencyPanel);
+                ImGui::MenuItem("Libraries", nullptr, &state.showLibraryBrowserPanel);
                 ImGui::MenuItem("Settings", nullptr, &state.showSettingsPanel);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
@@ -566,6 +567,21 @@ int main(int, char**) {
                 state.requestLibraryIndex();
                 state.dependencyPanel.needsIndex = false;
             }
+        }
+
+        if (state.showLibraryBrowserPanel) {
+            ImGui::Begin("Libraries", &state.showLibraryBrowserPanel);
+            ImGui::PushFont(uiFont);
+            std::string insertText;
+            if (renderLibraryBrowser(state.libraryBrowser,
+                                     state.activeAST(),
+                                     state.libraryIndex,
+                                     insertText,
+                                     state.outputLog)) {
+                state.insertTextAtCursor(insertText);
+            }
+            ImGui::PopFont();
+            ImGui::End();
         }
 
         // ---------------------------------------------------------------
