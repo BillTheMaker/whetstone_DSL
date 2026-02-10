@@ -48,6 +48,7 @@
 #include "BuildSystem.h"
 #include "HelpPanel.h"
 #include "Telemetry.h"
+#include "UpdateChecker.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
 #include "LibraryBrowserPanel.h"

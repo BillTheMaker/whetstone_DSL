@@ -378,7 +378,7 @@ Final polish, documentation, and ecosystem features.
   Data sent to configurable endpoint (or saved locally).
   *New:* `Telemetry.h`
 
-- [ ] **Step 164: Installer and distribution updates**
+- [x] **Step 164: Installer and distribution updates**
   Update the installer (Inno Setup for Windows, .deb/.rpm for Linux) to
   include all new dependencies. Auto-update check on launch (checks a
   release URL). Portable mode (no install, run from folder).

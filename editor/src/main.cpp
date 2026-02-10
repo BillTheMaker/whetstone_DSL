@@ -876,6 +876,23 @@ int main(int, char**) {
                 settingsChanged = true;
             }
 
+            char updateUrlBuf[256];
+            std::snprintf(updateUrlBuf, sizeof(updateUrlBuf), "%s",
+                          state.settings.getUpdateUrl().c_str());
+            if (ImGui::InputText("Update URL", updateUrlBuf, sizeof(updateUrlBuf))) {
+                state.settings.setUpdateUrl(updateUrlBuf);
+                settingsChanged = true;
+            }
+            if (ImGui::Button("Check for Updates")) {
+                UpdateChecker checker;
+                auto info = checker.check(state.settings.getUpdateUrl());
+                if (info.available) {
+                    state.outputLog += "[update] Available: " + info.version + " (" + info.url + ")\n";
+                } else {
+                    state.outputLog += "[update] No update info (offline/stub).\n";
+                }
+            }
+
             int autoSave = state.settings.getAutoSaveSeconds();
             if (ImGui::InputInt("Auto-save (sec)", &autoSave)) {
                 autoSave = std::max(0, autoSave);
