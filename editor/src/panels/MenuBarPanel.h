@@ -200,6 +200,21 @@ static void renderMenuBar(EditorState& state) {
         if (!canRefactor) ImGui::EndDisabled();
         ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("Workflow")) {
+        bool hasAst = state.activeAST() != nullptr;
+        if (!hasAst) ImGui::BeginDisabled();
+        if (ImGui::MenuItem("Annotate File Wizard")) {
+            state.ui.showAnnotateWizard = true;
+        }
+        if (ImGui::MenuItem("Cross-Language Project Wizard")) {
+            state.ui.showProjectWizard = true;
+        }
+        if (!hasAst) ImGui::EndDisabled();
+        if (ImGui::MenuItem("Connect Agent Wizard")) {
+            state.ui.showAgentWizard = true;
+        }
+        ImGui::EndMenu();
+    }
     if (ImGui::BeginMenu("Keybindings")) {
         for (auto p : KeybindingManager::availableProfiles()) {
             if (ImGui::MenuItem(KeybindingManager::profileName(p), nullptr,

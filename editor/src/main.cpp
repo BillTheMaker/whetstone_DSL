@@ -16,6 +16,7 @@
 #include "CompletionUtils.h"
 #include "ThemeEngine.h"
 #include "FirstRunWizard.h"
+#include "panels/WizardPanels.h"
 #include "FeatureHints.h"
 #include "ShortcutReference.h"
 
@@ -381,6 +382,18 @@ int main(int, char**) {
         wizard.open = state.ui.showFirstRunWizard;
         renderFirstRunWizard(state, wizard);
         state.ui.showFirstRunWizard = wizard.open;
+        static AnnotateFileWizardState annotateWizard;
+        annotateWizard.frame.open = state.ui.showAnnotateWizard;
+        renderAnnotateFileWizard(state, annotateWizard);
+        state.ui.showAnnotateWizard = annotateWizard.frame.open;
+        static ProjectWizardState projectWizard;
+        projectWizard.frame.open = state.ui.showProjectWizard;
+        renderProjectWizard(state, projectWizard);
+        state.ui.showProjectWizard = projectWizard.frame.open;
+        static ConnectAgentWizardState agentWizard;
+        agentWizard.frame.open = state.ui.showAgentWizard;
+        renderConnectAgentWizard(state, agentWizard);
+        state.ui.showAgentWizard = agentWizard.frame.open;
         renderFeatureHintBar(state.featureHints, state.workspaceRoot);
         static ShortcutReferenceState shortcutPanel;
         renderShortcutReference(state, shortcutPanel);

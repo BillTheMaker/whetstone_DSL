@@ -535,4 +535,7 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 185: Contextual feature hints with persistence + dismiss/disable. 2/2 tests pass (step185_test, step185_integration_test). |
 | 2026-02-10 | Codex | Step 186: Keyboard shortcut reference panel with filter and live bindings. 2/2 tests pass (step186_test, step186_integration_test). |
 | 2026-02-10 | Codex | Step 187: In-editor help panel window wired from menu with Markdown renderer reuse. 2/2 tests pass (step187_test, step187_integration_test). |
+| 2026-02-10 | Codex | Step 188: Command palette upgrade (command/file modes, categories, recent section, context-aware filtering, inline params, fuzzy highlights). 1/1 tests pass (step188_test). |
+| 2026-02-10 | Codex | Step 189: Guided workflow wizards (annotate file, cross-language project, connect agent) with shared wizard framework. 1/1 tests pass (step189_test). |
+| 2026-02-10 | Codex | Step 190: Vulnerability database (OSV parsing, cache+TTL, offline mode, query/range matching, background refresh hook). 1/1 tests pass (step190_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

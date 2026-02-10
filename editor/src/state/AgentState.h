@@ -12,6 +12,7 @@ struct AgentState {
     std::unique_ptr<WebSocketAgentServer> server;
     MockWebSocketTransport* transport = nullptr;
     int port = 8765;
+    AgentRole defaultRole = AgentRole::Linter;
     std::vector<std::string> log;
     std::map<std::string, AgentRole> roles;
     WorkflowRecorder workflowRecorder;

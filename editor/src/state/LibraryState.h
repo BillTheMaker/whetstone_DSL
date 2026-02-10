@@ -4,6 +4,7 @@
 #include "CompositionPanel.h"
 #include "LibraryIndexer.h"
 #include "PrimitivesRegistry.h"
+#include "VulnerabilityDatabase.h"
 
 struct LibraryState {
     bool showDependencyPanel = true;
@@ -24,4 +25,5 @@ struct LibraryState {
     std::vector<LibraryIndexRequest> libraryIndexRequests;
     LibraryIndexData libraryIndex;
     PrimitivesRegistry primitives;
+    VulnerabilityDatabase vulnDb;
 };

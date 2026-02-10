@@ -284,7 +284,7 @@ without being annoying.
   - "Open in Browser" button for full online docs
   *New:* `HelpPanel.h`, `MarkdownRenderer.h`
 
-- [ ] **Step 188: Enhanced command palette**
+- [x] **Step 188: Enhanced command palette**
   Upgrade the existing command palette:
   - Commands grouped by category with section headers
   - "Recently Used" section pinned at top (last 5 commands)
@@ -294,7 +294,7 @@ without being annoying.
   - Fuzzy matching highlights matched characters
   *Modifies:* `CommandPalette.h`
 
-- [ ] **Step 189: Guided workflow wizards**
+- [x] **Step 189: Guided workflow wizards**
   Multi-step wizards for complex operations:
   - **"Annotate File"** wizard: iterates through unannotated functions,
     shows inference suggestions, user confirms/skips each. Summary at end.
@@ -312,7 +312,7 @@ without being annoying.
 Integrate the security vulnerability awareness and semantic annotation
 feature requests with polished UX.
 
-- [ ] **Step 190: Vulnerability knowledge base**
+- [x] **Step 190: Vulnerability knowledge base**
   `VulnerabilityDatabase.h`:
   - Data model: `VulnerabilityRecord` (ecosystem, package, affected_versions,
     severity, CVE ID, summary, references, fix_versions)

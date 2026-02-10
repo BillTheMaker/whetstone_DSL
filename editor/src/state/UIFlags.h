@@ -12,6 +12,9 @@ struct UIFlags {
     bool showFirstRunWizard = false;
     bool showShortcutReference = false;
     bool showHelpPanel = false;
+    bool showAnnotateWizard = false;
+    bool showProjectWizard = false;
+    bool showAgentWizard = false;
     int bottomTab = 0; // 0=Output,1=AST,2=Highlighted
     LayoutPreset layoutPreset = LayoutPreset::VSCode;
 };

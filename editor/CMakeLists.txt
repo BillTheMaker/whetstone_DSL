@@ -1100,6 +1100,16 @@ add_executable(step187_integration_test tests/step187_integration_test.cpp)
 target_include_directories(step187_integration_test PRIVATE src)
 target_link_libraries(step187_integration_test PRIVATE nlohmann_json::nlohmann_json)
 
+add_executable(step188_test tests/step188_test.cpp)
+target_include_directories(step188_test PRIVATE src)
+
+add_executable(step189_test tests/step189_test.cpp)
+target_include_directories(step189_test PRIVATE src)
+
+add_executable(step190_test tests/step190_test.cpp)
+target_include_directories(step190_test PRIVATE src)
+target_link_libraries(step190_test PRIVATE nlohmann_json::nlohmann_json)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
