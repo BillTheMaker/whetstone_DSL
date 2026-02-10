@@ -212,7 +212,7 @@ Core editing improvements that make daily use smooth.
   - Each segment is clickable for relevant actions
   *Modifies:* `panels/StatusBarPanel.h` (extracted in Step 166)
 
-- [ ] **Step 182: Improved diagnostics experience**
+- [x] **Step 182: Improved diagnostics experience**
   Make errors and warnings easier to understand and act on:
   - Problems panel with sortable columns (Severity, Source, File, Message)
   - Group by file with collapsible sections

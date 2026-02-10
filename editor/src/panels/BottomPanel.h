@@ -1,6 +1,55 @@
 #pragma once
 #include "../EditorState.h"
 #include "../EditorUtils.h"
+#include <map>
+#include <algorithm>
+
+struct SimpleDiagnostic {
+    int severity = 0; // 1=error,2=warning,3=info,4=hint
+    std::string source;
+    std::string file;
+    int line = -1;
+    int col = -1;
+    std::string message;
+    bool fixable = false;
+};
+
+static std::vector<SimpleDiagnostic> collectDiagnostics(const EditorState& state) {
+    std::vector<SimpleDiagnostic> out;
+    if (state.lsp) {
+        for (const auto& d : state.lsp->getDiagnostics()) {
+            SimpleDiagnostic sd;
+            sd.severity = d.severity;
+            sd.source = d.source.empty() ? "LSP" : d.source;
+            sd.file = EditorState::fromFileUri(d.uri);
+            sd.line = d.range.start.line;
+            sd.col = d.range.start.character;
+            sd.message = d.message;
+            out.push_back(std::move(sd));
+        }
+    }
+    for (const auto& d : state.whetstoneDiagnostics) {
+        SimpleDiagnostic sd;
+        sd.severity = d.severity;
+        sd.source = d.source.empty() ? "Whetstone" : d.source;
+        sd.file = EditorState::fromFileUri(d.uri);
+        sd.line = d.line;
+        sd.col = d.character;
+        sd.message = d.message;
+        out.push_back(std::move(sd));
+    }
+    for (const auto& d : state.emacsDiagnostics) {
+        SimpleDiagnostic sd;
+        sd.severity = d.severity > 0 ? d.severity : 1;
+        sd.source = "Emacs";
+        sd.file = d.uri;
+        sd.line = -1;
+        sd.col = -1;
+        sd.message = d.message;
+        out.push_back(std::move(sd));
+    }
+    return out;
+}
 
 static void renderBottomPanel(EditorState& state) {
     // ---------------------------------------------------------------
@@ -166,58 +215,92 @@ static void renderBottomPanel(EditorState& state) {
             ImGui::EndTabItem();
         }
 
-        // Problems (LSP diagnostics)
+        // Problems (diagnostics)
         if (ImGui::BeginTabItem("Problems")) {
             ImGui::PushFont(state.monoFont);
             ImGui::BeginChild("##problemsScroll", ImVec2(0, 0), false);
-            auto diags = state.lsp ? state.lsp->getDiagnostics() : std::vector<LSPClient::Diagnostic>{};
-            const auto& whetDiags = state.whetstoneDiagnostics;
-            const auto& emacsDiags = state.emacsDiagnostics;
-            if (diags.empty() && whetDiags.empty() && emacsDiags.empty()) {
+            static int sortIndex = 0;
+            const char* sortLabels[] = {"Severity", "File", "Source"};
+            ImGui::SetNextItemWidth(140.0f);
+            ImGui::Combo("Sort By", &sortIndex, sortLabels, IM_ARRAYSIZE(sortLabels));
+            ImGui::SameLine();
+            bool anyFixable = false;
+            if (!anyFixable) ImGui::BeginDisabled();
+            if (ImGui::Button("Fix All")) {
+                state.notify(NotificationLevel::Info, "No quick fixes available yet.");
+            }
+            if (!anyFixable) ImGui::EndDisabled();
+            ImGui::Separator();
+
+            auto diags = collectDiagnostics(state);
+            if (diags.empty()) {
                 ImGui::TextDisabled("(no diagnostics)");
             } else {
+                std::sort(diags.begin(), diags.end(),
+                          [&](const SimpleDiagnostic& a, const SimpleDiagnostic& b) {
+                              if (sortIndex == 0) return a.severity < b.severity;
+                              if (sortIndex == 1) return a.file < b.file;
+                              return a.source < b.source;
+                          });
+                std::map<std::string, std::vector<SimpleDiagnostic>> byFile;
                 for (const auto& d : diags) {
-                    const char* sev = "Unknown";
-                    if (d.severity == 1) sev = "Error";
-                    else if (d.severity == 2) sev = "Warning";
-                    else if (d.severity == 3) sev = "Info";
-                    else if (d.severity == 4) sev = "Hint";
-
-                    std::string path = EditorState::fromFileUri(d.uri);
-                    std::string label = "[" + std::string(sev) + "] " + d.message +
-                                        " (" + path + ":" + std::to_string(d.range.start.line + 1) +
-                                        ":" + std::to_string(d.range.start.character + 1) + ")";
-                    if (ImGui::Selectable(label.c_str())) {
-                        if (!path.empty()) {
-                            if (state.buffers.hasBuffer(path)) state.switchToBuffer(path);
-                            else state.doOpen(path);
-                            state.jumpTo(state.active(), d.range.start.line, d.range.start.character);
-                        }
-                    }
+                    byFile[d.file].push_back(d);
                 }
-                for (const auto& d : whetDiags) {
-                    const char* sev = "Unknown";
-                    if (d.severity == 1) sev = "Error";
-                    else if (d.severity == 2) sev = "Warning";
-                    else if (d.severity == 3) sev = "Info";
 
-                    std::string path = EditorState::fromFileUri(d.uri);
-                    std::string label = "[" + std::string(sev) + "] " + d.message +
-                                        " (" + path + ":" + std::to_string(d.line + 1) +
-                                        ":" + std::to_string(d.character + 1) + ")";
-                    if (ImGui::Selectable(label.c_str())) {
-                        if (!path.empty()) {
-                            if (state.buffers.hasBuffer(path)) state.switchToBuffer(path);
-                            else state.doOpen(path);
-                            state.jumpTo(state.active(), d.line, d.character);
+                for (const auto& [file, list] : byFile) {
+                    std::string header = file.empty() ? "(unknown)" : file;
+                    header += " (" + std::to_string(list.size()) + ")";
+                    if (ImGui::TreeNode(header.c_str())) {
+                        if (ImGui::BeginTable("##diagTable", 5,
+                                              ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                            ImGui::TableSetupColumn("Severity");
+                            ImGui::TableSetupColumn("Source");
+                            ImGui::TableSetupColumn("Message");
+                            ImGui::TableSetupColumn("Location");
+                            ImGui::TableSetupColumn("Action");
+                            ImGui::TableHeadersRow();
+
+                            for (const auto& d : list) {
+                                const char* sev = "Info";
+                                if (d.severity == 1) sev = "Error";
+                                else if (d.severity == 2) sev = "Warning";
+                                else if (d.severity == 3) sev = "Info";
+                                else if (d.severity == 4) sev = "Hint";
+
+                                ImGui::TableNextRow();
+                                ImGui::TableSetColumnIndex(0);
+                                ImGui::TextUnformatted(sev);
+                                ImGui::TableSetColumnIndex(1);
+                                ImGui::TextUnformatted(d.source.c_str());
+                                ImGui::TableSetColumnIndex(2);
+                                if (ImGui::Selectable(d.message.c_str(), false, ImGuiSelectableFlags_SpanAllColumns)) {
+                                    if (!d.file.empty() && d.line >= 0) {
+                                        if (state.buffers.hasBuffer(d.file)) state.switchToBuffer(d.file);
+                                        else state.doOpen(d.file);
+                                        state.jumpTo(state.active(), d.line, d.col);
+                                    }
+                                }
+                                ImGui::TableSetColumnIndex(3);
+                                if (d.line >= 0) {
+                                    ImGui::Text("%d:%d", d.line + 1, d.col + 1);
+                                } else {
+                                    ImGui::TextUnformatted("-");
+                                }
+                                ImGui::TableSetColumnIndex(4);
+                                if (d.fixable) {
+                                    if (ImGui::SmallButton("Apply")) {
+                                        state.notify(NotificationLevel::Info, "Quick fix not wired yet.");
+                                    }
+                                } else {
+                                    ImGui::BeginDisabled();
+                                    ImGui::SmallButton("Apply");
+                                    ImGui::EndDisabled();
+                                }
+                            }
+                            ImGui::EndTable();
                         }
+                        ImGui::TreePop();
                     }
-                }
-                for (const auto& d : emacsDiags) {
-                    const char* sev = "Error";
-                    std::string label = "[" + std::string(sev) + "] " + d.message +
-                                        " (" + d.uri + ")";
-                    ImGui::TextUnformatted(label.c_str());
                 }
             }
             ImGui::EndChild();

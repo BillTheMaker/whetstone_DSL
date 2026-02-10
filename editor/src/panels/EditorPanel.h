@@ -5,6 +5,7 @@
 #include "../CompletionUtils.h"
 #include "../AnimationUtils.h"
 #include "../RichTooltip.h"
+#include <map>
 
 static void renderEditorPanel(EditorState& state) {
         // ---------------------------------------------------------------
@@ -60,12 +61,34 @@ static void renderEditorPanel(EditorState& state) {
                     ImGui::EndTabItem();
                 }
             } else {
+                std::map<std::string, std::pair<int, int>> diagCounts;
+                if (state.lsp) {
+                    for (const auto& d : state.lsp->getDiagnostics()) {
+                        std::string path = EditorState::fromFileUri(d.uri);
+                        auto& counts = diagCounts[path];
+                        if (d.severity == 1) counts.first++;
+                        else if (d.severity == 2) counts.second++;
+                    }
+                }
+                for (const auto& d : state.whetstoneDiagnostics) {
+                    std::string path = EditorState::fromFileUri(d.uri);
+                    auto& counts = diagCounts[path];
+                    if (d.severity == 1) counts.first++;
+                    else if (d.severity == 2) counts.second++;
+                }
                 auto openBuffers = state.buffers.getOpenBuffers();
                 for (const auto& path : openBuffers) {
                     auto* buf = state.bufferStates[path].get();
                     if (!buf) continue;
                     std::string tabLabel = path;
                     if (buf->modified) tabLabel += " *";
+                    auto it = diagCounts.find(path);
+                    if (it != diagCounts.end()) {
+                        int err = it->second.first;
+                        int warn = it->second.second;
+                        if (err > 0) tabLabel += " [E" + std::to_string(err) + "]";
+                        else if (warn > 0) tabLabel += " [W" + std::to_string(warn) + "]";
+                    }
                     bool open = true;
                     if (ImGui::BeginTabItem(tabLabel.c_str(), &open)) {
                         if (!state.active() || state.active()->path != path) {
