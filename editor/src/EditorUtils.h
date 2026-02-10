@@ -50,6 +50,10 @@ static std::string generateForLanguage(const Module* ast, const std::string& lan
         TypeScriptGenerator gen;
         return gen.generate(ast);
     }
+    if (language == "java") {
+        JavaGenerator gen;
+        return gen.generate(ast);
+    }
     PythonGenerator gen;
     return gen.generate(ast);
 }

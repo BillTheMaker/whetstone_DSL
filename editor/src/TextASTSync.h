@@ -47,6 +47,9 @@ public:
         } else if (language_ == "typescript") {
             TypeScriptGenerator gen;
             return gen.generate(module_.get());
+        } else if (language_ == "java") {
+            JavaGenerator gen;
+            return gen.generate(module_.get());
         }
         return text_;
     }
@@ -63,6 +66,8 @@ public:
             module_ = TreeSitterParser::parseJavaScript(text_);
         } else if (language_ == "typescript") {
             module_ = TreeSitterParser::parseTypeScript(text_);
+        } else if (language_ == "java") {
+            module_ = TreeSitterParser::parseJava(text_);
         }
         parsePending_ = false;
     }

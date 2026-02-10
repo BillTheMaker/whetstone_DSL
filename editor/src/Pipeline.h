@@ -98,6 +98,10 @@ public:
             auto pr = TreeSitterParser::parseTypeScriptWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "java") {
+            auto pr = TreeSitterParser::parseJavaWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         }
         return nullptr;
     }
@@ -119,6 +123,9 @@ public:
             return gen.generate(ast);
         } else if (language == "typescript") {
             TypeScriptGenerator gen;
+            return gen.generate(ast);
+        } else if (language == "java") {
+            JavaGenerator gen;
             return gen.generate(ast);
         }
         return "";

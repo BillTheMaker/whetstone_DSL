@@ -243,7 +243,7 @@ adds full semantic support.
   for documentation.
   *Modifies:* `Generator.h`
 
-- [ ] **Step 149: Java CST-to-AST and generator**
+- [x] **Step 149: Java CST-to-AST and generator**
   Full tree-sitter Java parsing: classes, interfaces, methods, generics,
   annotations (Java @annotations map to Whetstone annotations), try/catch,
   lambdas. Generator produces compilable Java with proper class wrapping,

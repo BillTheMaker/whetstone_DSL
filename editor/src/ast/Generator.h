@@ -6,3 +6,4 @@
 #include "ElispGenerator.h"
 #include "CppGenerator.h"
 #include "JavaScriptGenerator.h"
+#include "JavaGenerator.h"
