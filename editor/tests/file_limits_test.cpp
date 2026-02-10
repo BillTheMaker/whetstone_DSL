@@ -46,16 +46,12 @@ int main() {
     int headerCount = 0;
     int overs = 0;
     std::vector<std::string> allowlist = {
-        (srcDir / "ast" / "CppGenerator.h").string(),
         (srcDir / "ast" / "JavaGenerator.h").string(),
         (srcDir / "ast" / "JavaScriptGenerator.h").string(),
-        (srcDir / "ast" / "Parser.h").string(),
-        (srcDir / "CodeEditorWidget.h").string(),
         (srcDir / "EditorState.h").string(),
         (srcDir / "EditorUtils.h").string(),
         (srcDir / "panels" / "BottomPanel.h").string(),
-        (srcDir / "panels" / "EditorPanel.h").string(),
-        (srcDir / "SyntaxHighlighter.h").string()
+        (srcDir / "panels" / "EditorPanel.h").string()
     };
     for (const auto& entry : fs::recursive_directory_iterator(srcDir)) {
         if (!entry.is_regular_file()) continue;

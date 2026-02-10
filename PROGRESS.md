@@ -515,3 +515,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 165: Sprint 5 integration tests across primitives, projection, pipeline, composition, and Emacs indexing. 8/8 tests pass. |
 | 2026-02-10 | Codex | Added `file_limits_test` to enforce architecture file size limits (with temporary allowlist for known oversize headers). 4/4 tests pass. |
 | 2026-02-10 | Codex | Step 167: Split EditorState into focused sub-states (Search/Agent/Build/Library/Emacs/UI), updated panels/handlers, and added step167_test. 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 168: Split oversized editor/AST component headers (CodeEditorWidget, SyntaxHighlighter, Parser, CppGenerator) with new step168 unit + integration tests. 79/79 tests pass (step168_test 75/75, step168_integration_test 4/4). file_limits_test 4/4 passes. |

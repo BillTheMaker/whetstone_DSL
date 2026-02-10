@@ -51,7 +51,7 @@ first — all UX work becomes easier when panels are modular.
   400 lines, each sub-state under 200 lines.
   *Modifies:* `EditorState.h`. *New:* sub-state headers or inline structs.
 
-- [ ] **Step 168: Split oversized component headers**
+- [x] **Step 168: Split oversized component headers**
   Enforce the 600-line limit on remaining violators:
   - `CodeEditorWidget.h` (1112 lines): extract rendering helpers into
     `CodeEditorRendering.h`, selection logic into `CodeEditorSelection.h`
