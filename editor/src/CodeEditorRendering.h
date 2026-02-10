@@ -323,24 +323,41 @@ public:
             handleKeyboard(text, result.changed, lineStarts, options.mode);
         }
 
-        // Render visible lines
-        const int firstLine = std::max(0, (int)(scrollY / lineHeight));
-        const int visibleLines = (int)(ImGui::GetContentRegionAvail().y / lineHeight) + 2;
-        const int lastLine = std::min(lineCount - 1, firstLine + visibleLines);
+        // Render visible lines (virtualized with buffer)
+        const int virtualBuffer = 50;
+        const int viewFirst = std::max(0, (int)(scrollY / lineHeight));
+        const int viewLines = (int)(ImGui::GetContentRegionAvail().y / lineHeight) + 2;
+        const int firstLine = std::max(0, viewFirst - virtualBuffer);
+        const int lastLine = std::min(lineCount - 1, viewFirst + viewLines + virtualBuffer);
 
         const float textAreaWidth = std::max(0.0f, windowWidth - gutterWidth - minimapWidth);
         const int currentLine = lineFromPos(cursor_, lineStarts);
 
-        std::vector<bool> hiddenLines(lineCount, false);
-        for (const auto& f : folds_) {
-            if (!f.folded) continue;
-            for (int l = f.startLine + 1; l <= f.endLine && l < lineCount; ++l) {
-                hiddenLines[l] = true;
+        std::vector<bool> hiddenLines;
+        if (lineCount <= 10000) {
+            hiddenLines.assign(lineCount, false);
+            for (const auto& f : folds_) {
+                if (!f.folded) continue;
+                for (int l = f.startLine + 1; l <= f.endLine && l < lineCount; ++l) {
+                    hiddenLines[l] = true;
+                }
             }
         }
 
+        auto isHiddenLine = [&](int ln) {
+            if (lineCount <= 10000) {
+                return ln >= 0 && ln < lineCount && hiddenLines[ln];
+            }
+            for (const auto& f : folds_) {
+                if (!f.folded) continue;
+                if (ln > f.startLine && ln <= f.endLine) return true;
+            }
+            return false;
+        };
+
         for (int ln = firstLine; ln <= lastLine; ++ln) {
-            if (ln >= 0 && ln < lineCount && hiddenLines[ln]) continue;
+            if (ln < 0 || ln >= lineCount) continue;
+            if (isHiddenLine(ln)) continue;
             int start = lineStarts[ln];
             int end = (ln + 1 < lineCount) ? lineStarts[ln + 1] - 1 : (int)text.size();
             int len = std::max(0, end - start);

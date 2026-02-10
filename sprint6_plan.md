@@ -404,7 +404,7 @@ Make Whetstone usable by everyone and fast with large files.
   - Audit checklist: test every panel with mouse unplugged
   *Modifies:* all panels for focus handling
 
-- [ ] **Step 198: Virtual scrolling for large files**
+- [x] **Step 198: Virtual scrolling for large files**
   Performance optimization for files with 10k+ lines:
   - Only render visible lines + small buffer (±50 lines)
   - Virtual scroll: total scroll range = total lines, rendered = viewport
