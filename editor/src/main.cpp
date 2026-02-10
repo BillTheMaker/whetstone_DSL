@@ -14,6 +14,7 @@
 
 #include "EditorState.h"
 #include "EditorUtils.h"
+#include "CompletionUtils.h"
 
 // ---------------------------------------------------------------------------
 //  Main
@@ -1315,9 +1316,25 @@ int main(int, char**) {
                             auto items = state.lsp->getCompletionItems();
                             int cursor = state.active()->widget.getCursor();
                             std::string prefix = EditorState::wordPrefixAt(state.active()->editBuf, cursor);
+                            std::string nodeId;
+                            if (state.activeAST()) {
+                                ASTNode* scopeNode = findNodeAtPosition(state.activeAST(),
+                                                                        std::max(0, state.active()->cursorLine - 1),
+                                                                        std::max(0, state.active()->cursorCol - 1));
+                                if (scopeNode) nodeId = scopeNode->id;
+                            }
+                            std::vector<PrimitiveSymbol> primitives;
+                            auto funcs = state.primitives.getAvailableFunctions(nodeId);
+                            auto types = state.primitives.getAvailableTypes(nodeId);
+                            auto consts = state.primitives.getAvailableConstants(nodeId);
+                            primitives.insert(primitives.end(), funcs.begin(), funcs.end());
+                            primitives.insert(primitives.end(), types.begin(), types.end());
+                            primitives.insert(primitives.end(), consts.begin(), consts.end());
+
+                            auto built = buildLibraryAwareCompletions(items, primitives, prefix);
                             std::vector<LSPClient::CompletionItem> filtered;
-                            filtered.reserve(items.size());
-                            for (const auto& item : items) {
+                            filtered.reserve(built.items.size());
+                            for (const auto& item : built.items) {
                                 const std::string& key = item.filterText.empty() ? item.label : item.filterText;
                                 if (prefix.empty() || key.rfind(prefix, 0) == 0) filtered.push_back(item);
                             }
@@ -1342,20 +1359,44 @@ int main(int, char**) {
                                     state.completionVisible = false;
                                 }
 
+                                auto deriveLibrary = [](const std::string& name) {
+                                    auto pos = name.find("::");
+                                    if (pos != std::string::npos) return name.substr(0, pos);
+                                    pos = name.find('.');
+                                    if (pos != std::string::npos) return name.substr(0, pos);
+                                    return std::string();
+                                };
+
                                 for (int i = 0; i < (int)filtered.size(); ++i) {
                                     std::string itemLabel = filtered[i].label;
                                     if (filtered[i].kind != 0) {
                                         itemLabel = "[" + std::to_string(filtered[i].kind) + "] " + itemLabel;
                                     }
                                     bool selected = (i == state.completionSelected);
+                                    bool preferred = built.preferredNames.count(filtered[i].label) > 0;
+                                    std::string libHint = deriveLibrary(filtered[i].label);
+                                    if (!preferred && !libHint.empty()) itemLabel += "  (auto-import)";
+                                    if (!preferred) {
+                                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+                                    }
                                     if (ImGui::Selectable(itemLabel.c_str(), selected)) {
                                         state.completionSelected = i;
                                         accept = true;
+                                    }
+                                    if (!preferred) {
+                                        ImGui::PopStyleColor();
                                     }
                                 }
 
                                 if (accept && !filtered.empty()) {
                                     const auto& item = filtered[state.completionSelected];
+                                    bool preferred = built.preferredNames.count(item.label) > 0;
+                                    if (!preferred) {
+                                        std::string libHint = deriveLibrary(item.label);
+                                        if (!libHint.empty()) {
+                                            state.ensureImportForSymbol(libHint, item.label);
+                                        }
+                                    }
                                     int start = EditorState::wordStartAt(state.active()->editBuf, cursor);
                                     state.applyCompletion(state.active(), item.insertText, start, cursor);
                                     state.lsp->clearCompletionItems();

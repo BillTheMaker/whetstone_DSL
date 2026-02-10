@@ -110,7 +110,7 @@ what's already available.
   `getAvailableConstants()`, filtered by scope and import state.
   *New:* `PrimitivesRegistry.h`
 
-- [ ] **Step 135: Library-aware completion**
+- [x] **Step 135: Library-aware completion**
   Modify the completion system (LSP + Whetstone) to **prioritize** symbols
   from `PrimitivesRegistry` without excluding others. When an agent or user
   types, completion candidates are ranked: imported library functions first,

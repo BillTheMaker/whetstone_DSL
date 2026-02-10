@@ -754,6 +754,10 @@ add_executable(step134_test tests/step134_test.cpp)
 target_include_directories(step134_test PRIVATE src)
 target_link_libraries(step134_test PRIVATE nlohmann_json::nlohmann_json)
 
+add_executable(step135_test tests/step135_test.cpp)
+target_include_directories(step135_test PRIVATE src)
+target_link_libraries(step135_test PRIVATE nlohmann_json::nlohmann_json)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
