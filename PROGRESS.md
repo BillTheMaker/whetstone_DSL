@@ -500,3 +500,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 150: Rust CST-to-AST parsing + generator with impl methods, imports, and RAII annotations. 7/7 tests pass. |
 | 2026-02-10 | Codex | Step 151: Go CST-to-AST parsing + generator with receivers, imports, and Go-style control flow. 8/8 tests pass. |
 | 2026-02-10 | Codex | Step 152: Cross-language projection extended for new languages with annotation adaptation and richer node cloning. 6/6 tests pass. |
+| 2026-02-10 | Codex | Step 153: Language coverage integration tests across all supported languages + full projection matrix. 208/208 tests pass. |

@@ -274,7 +274,7 @@ adds full semantic support.
   mappings (Phase 5b) used to suggest equivalent libraries.
   *Modifies:* `CrossLanguageProjector.h`
 
-- [ ] **Step 153: Language coverage tests**
+- [x] **Step 153: Language coverage tests**
   End-to-end tests for each new language: parse → annotate → validate →
   optimize → generate. Cross-language projection tests between all supported
   pairs. Verify memory annotation semantics are preserved across projections.

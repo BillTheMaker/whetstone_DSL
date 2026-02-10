@@ -859,6 +859,19 @@ target_link_libraries(step151_test PRIVATE
 add_executable(step152_test tests/step152_test.cpp)
 target_include_directories(step152_test PRIVATE src)
 
+add_executable(step153_test tests/step153_test.cpp)
+target_include_directories(step153_test PRIVATE src)
+target_link_libraries(step153_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
