@@ -251,7 +251,7 @@ adds full semantic support.
   → GC-managed (default), @Owner(Single) → AutoCloseable/try-with-resources.
   *Modifies:* `Parser.h`, `Generator.h`
 
-- [ ] **Step 150: Rust CST-to-AST and generator**
+- [x] **Step 150: Rust CST-to-AST and generator**
   Full tree-sitter Rust parsing: functions, structs, enums, traits, impls,
   lifetimes, pattern matching, Result/Option. Generator produces Rust with
   proper ownership semantics. Memory annotations map naturally: @Owner(Single)

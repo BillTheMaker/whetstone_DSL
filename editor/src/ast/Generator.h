@@ -7,3 +7,4 @@
 #include "CppGenerator.h"
 #include "JavaScriptGenerator.h"
 #include "JavaGenerator.h"
+#include "RustGenerator.h"

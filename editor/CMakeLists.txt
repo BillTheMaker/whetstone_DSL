@@ -842,6 +842,13 @@ target_link_libraries(step149_test PRIVATE
     unofficial::tree-sitter::tree-sitter
     tree_sitter_java)
 
+add_executable(step150_test tests/step150_test.cpp)
+target_include_directories(step150_test PRIVATE src)
+target_link_libraries(step150_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_rust)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

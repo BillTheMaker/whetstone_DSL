@@ -54,6 +54,10 @@ static std::string generateForLanguage(const Module* ast, const std::string& lan
         JavaGenerator gen;
         return gen.generate(ast);
     }
+    if (language == "rust") {
+        RustGenerator gen;
+        return gen.generate(ast);
+    }
     PythonGenerator gen;
     return gen.generate(ast);
 }

@@ -102,6 +102,10 @@ public:
             auto pr = TreeSitterParser::parseJavaWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "rust") {
+            auto pr = TreeSitterParser::parseRustWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         }
         return nullptr;
     }
@@ -126,6 +130,9 @@ public:
             return gen.generate(ast);
         } else if (language == "java") {
             JavaGenerator gen;
+            return gen.generate(ast);
+        } else if (language == "rust") {
+            RustGenerator gen;
             return gen.generate(ast);
         }
         return "";
