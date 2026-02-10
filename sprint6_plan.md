@@ -272,7 +272,7 @@ without being annoying.
   - Export to printable HTML/PDF
   *New:* `ShortcutReference.h`
 
-- [ ] **Step 187: In-editor help system**
+- [x] **Step 187: In-editor help system**
   Help > Documentation opens a dockable panel:
   - Searchable documentation browser
   - Sections: Getting Started, Annotation Reference, Language Support,

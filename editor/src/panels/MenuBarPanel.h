@@ -210,6 +210,10 @@ static void renderMenuBar(EditorState& state) {
         }
         ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("Help")) {
+        ImGui::MenuItem("Documentation", nullptr, &state.ui.showHelpPanel);
+        ImGui::EndMenu();
+    }
 
     const bool canProject = state.activeAST() != nullptr;
     ImGui::SameLine();

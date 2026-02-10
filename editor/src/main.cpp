@@ -29,6 +29,7 @@
 #include "panels/EditorPanel.h"
 #include "panels/BottomPanel.h"
 #include "panels/StatusBarPanel.h"
+#include "panels/HelpPanelWindow.h"
 
 static std::string emacsChordForEvent(SDL_Keycode sym, Uint16 mods) {
     std::string base;
@@ -383,6 +384,7 @@ int main(int, char**) {
         renderFeatureHintBar(state.featureHints, state.workspaceRoot);
         static ShortcutReferenceState shortcutPanel;
         renderShortcutReference(state, shortcutPanel);
+        renderHelpPanelWindow(state);
         state.notifications.renderHistoryWindow([&](const Notification& note) {
             if (note.hasTarget) state.navigateToTarget(note.target);
         });
