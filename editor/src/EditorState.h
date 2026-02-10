@@ -47,6 +47,7 @@
 #include "AgentMarketplace.h"
 #include "BuildSystem.h"
 #include "HelpPanel.h"
+#include "Telemetry.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
 #include "LibraryBrowserPanel.h"
@@ -184,6 +185,7 @@ struct EditorState {
     AgentRegistry agentRegistry;
     AgentMarketplaceState agentMarketplace;
     HelpPanelState helpPanel;
+    Telemetry telemetry;
     BuildSystem::Type buildType = BuildSystem::Type::None;
     std::vector<BuildError> buildErrors;
     std::string lastBuildOutput;
@@ -818,6 +820,8 @@ struct EditorState {
         startEmacsDaemonFromSettings();
         initAgentServer();
         refreshBuildSystem();
+        telemetry.initialize(workspaceRoot, settings.getTelemetryOptIn());
+        telemetry.installCrashHandler();
     }
 
     std::string orgTempExtension(const std::string& language) const {

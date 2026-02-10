@@ -371,7 +371,7 @@ Final polish, documentation, and ecosystem features.
   Content in Markdown, rendered in ImGui.
   *New:* `HelpPanel.h`, markdown renderer
 
-- [ ] **Step 163: Telemetry and crash reporting (opt-in)**
+- [x] **Step 163: Telemetry and crash reporting (opt-in)**
   Optional, anonymous usage telemetry to understand feature adoption.
   Crash handler that captures stack traces on unhandled exceptions.
   User must explicitly opt-in during first launch. Clear privacy policy.

@@ -866,6 +866,16 @@ int main(int, char**) {
                 settingsChanged = true;
             }
 
+            bool telemetryOptIn = state.settings.getTelemetryOptIn();
+            if (ImGui::Checkbox("Telemetry (opt-in)", &telemetryOptIn)) {
+                state.settings.setTelemetryOptIn(telemetryOptIn);
+                state.telemetry.setOptIn(telemetryOptIn);
+                if (telemetryOptIn) {
+                    state.telemetry.recordEvent("telemetry_opt_in", json::object());
+                }
+                settingsChanged = true;
+            }
+
             int autoSave = state.settings.getAutoSaveSeconds();
             if (ImGui::InputInt("Auto-save (sec)", &autoSave)) {
                 autoSave = std::max(0, autoSave);

@@ -510,3 +510,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 160: Theme engine with JSON themes, ImGui styling, and syntax/editor color mapping. 4/4 tests pass. |
 | 2026-02-10 | Codex | Step 161: Plugin API + loader with registry hooks for concepts/generators/grammars/annotations/panels/commands. 10/10 tests pass. |
 | 2026-02-10 | Codex | Step 162: Help panel with Markdown sections + docs/help.md wired in UI. 4/4 tests pass. |
+| 2026-02-10 | Codex | Step 163: Telemetry + crash logging (opt-in), settings toggle, and log writer. 3/3 tests pass. |

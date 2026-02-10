@@ -34,6 +34,12 @@ public:
     void setTabSize(int size) { tabSize_ = size; }
     const std::string& getTheme() const { return theme_; }
     void setTheme(const std::string& theme) { theme_ = theme; }
+
+    bool getTelemetryOptIn() const { return telemetryOptIn_; }
+    void setTelemetryOptIn(bool optIn) { telemetryOptIn_ = optIn; }
+
+    const std::string& getUpdateUrl() const { return updateUrl_; }
+    void setUpdateUrl(const std::string& url) { updateUrl_ = url; }
     int getAutoSaveSeconds() const { return autoSaveSeconds_; }
     void setAutoSaveSeconds(int seconds) { autoSaveSeconds_ = seconds; }
     bool getShowMinimap() const { return showMinimap_; }
@@ -54,6 +60,8 @@ public:
             fontSize_ = j.value("fontSize", fontSize_);
             tabSize_ = j.value("tabSize", tabSize_);
             theme_ = j.value("theme", theme_);
+            telemetryOptIn_ = j.value("telemetryOptIn", telemetryOptIn_);
+            updateUrl_ = j.value("updateUrl", updateUrl_);
             autoSaveSeconds_ = j.value("autoSaveSeconds", autoSaveSeconds_);
             showMinimap_ = j.value("showMinimap", showMinimap_);
             showLineNumbers_ = j.value("showLineNumbers", showLineNumbers_);
@@ -84,6 +92,8 @@ public:
             j["fontSize"] = fontSize_;
             j["tabSize"] = tabSize_;
             j["theme"] = theme_;
+            j["telemetryOptIn"] = telemetryOptIn_;
+            j["updateUrl"] = updateUrl_;
             j["autoSaveSeconds"] = autoSaveSeconds_;
             j["showMinimap"] = showMinimap_;
             j["showLineNumbers"] = showLineNumbers_;
@@ -151,6 +161,8 @@ private:
     int fontSize_ = 15;
     int tabSize_ = 4;
     std::string theme_ = "VSCode Dark";
+    bool telemetryOptIn_ = false;
+    std::string updateUrl_ = "https://example.com/whetstone/releases.json";
     int autoSaveSeconds_ = 0;
     bool showMinimap_ = false;
     bool showLineNumbers_ = true;
