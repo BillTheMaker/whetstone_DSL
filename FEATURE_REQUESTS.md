@@ -57,3 +57,19 @@
 ## Notes
 - Treat these as separate features to schedule independently.
 - Likely Sprint 6/7, after core library-aware flow is stable.
+
+## LLM Tooling & MCP Bridge
+
+**Goal:** Make the agent API easy for LLMs to use and optionally expose it via MCP.
+
+**Concept:**
+- Document JSON-RPC API with schemas and examples.
+- Generate synthetic interaction traces for fine-tuning / tool-use evaluation.
+- Add an MCP server wrapper that exposes current agent methods as MCP tools/resources.
+
+**Candidate Deliverables:**
+- `docs/AGENT_API.md` with request/response schemas
+- Example flows: read AST ? mutate ? verify
+- MCP bridge module (optional): maps JSON-RPC to MCP tools
+
+---
