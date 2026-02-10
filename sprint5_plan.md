@@ -203,7 +203,7 @@ functionality through the Whetstone UI.
   Keybindings loaded from user's Emacs config (key-binding query to daemon).
   *Modifies:* `KeybindingManager.h`, `LayoutManager.h`
 
-- [ ] **Step 145: Org-mode and Literate programming support**
+- [x] **Step 145: Org-mode and Literate programming support**
   Parse `.org` files using a tree-sitter-org grammar. Render org-mode
   documents with headings, source blocks, and prose. Source blocks
   are editable with full syntax highlighting and LSP support.

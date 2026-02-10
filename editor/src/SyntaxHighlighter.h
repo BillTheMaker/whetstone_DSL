@@ -24,6 +24,12 @@ extern "C" {
     const TSLanguage* tree_sitter_java();
     const TSLanguage* tree_sitter_rust();
     const TSLanguage* tree_sitter_go();
+#if !defined(WHETSTONE_ENABLE_ORG)
+#define WHETSTONE_ENABLE_ORG 0
+#endif
+#if WHETSTONE_ENABLE_ORG
+    const TSLanguage* tree_sitter_org();
+#endif
 }
 
 enum class TokenCategory {
@@ -65,6 +71,9 @@ public:
         else if (language == "java") lang = tree_sitter_java();
         else if (language == "rust") lang = tree_sitter_rust();
         else if (language == "go") lang = tree_sitter_go();
+#if WHETSTONE_ENABLE_ORG
+        else if (language == "org") lang = tree_sitter_org();
+#endif
 
         if (!lang) {
             ts_parser_delete(parser);
@@ -85,6 +94,9 @@ public:
         else if (language == "java") walkJava(root, source, spans);
         else if (language == "rust") walkRust(root, source, spans);
         else if (language == "go") walkGo(root, source, spans);
+#if WHETSTONE_ENABLE_ORG
+        else if (language == "org") walkOrgSimple(source, spans);
+#endif
 
         ts_tree_delete(tree);
         ts_parser_delete(parser);
@@ -730,6 +742,30 @@ private:
             for (uint32_t i = 0; i < count; ++i) {
                 walkElisp(ts_node_child(node, i), source, spans);
             }
+        }
+    }
+
+    // --- Org -----------------------------------------------------------
+
+    static void walkOrgSimple(const std::string& source,
+                              std::vector<HighlightSpan>& spans) {
+        size_t start = 0;
+        while (start < source.size()) {
+            size_t end = source.find('\n', start);
+            if (end == std::string::npos) end = source.size();
+            std::string line = source.substr(start, end - start);
+            std::string trimmed = line;
+            while (!trimmed.empty() && (trimmed.back() == '\r' || trimmed.back() == '\n')) {
+                trimmed.pop_back();
+            }
+            if (!trimmed.empty() && trimmed[0] == '*') {
+                spans.push_back({(uint32_t)start, (uint32_t)end, TokenCategory::Keyword});
+            } else if (trimmed.rfind("#+begin_src", 0) == 0 ||
+                       trimmed.rfind("#+end_src", 0) == 0 ||
+                       trimmed.rfind("#+", 0) == 0) {
+                spans.push_back({(uint32_t)start, (uint32_t)end, TokenCategory::Comment});
+            }
+            start = end + 1;
         }
     }
 };

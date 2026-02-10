@@ -55,6 +55,7 @@
 #include "EmacsPackageBrowser.h"
 #include "EmacsFunctionDiscovery.h"
 #include "EmacsKeybinding.h"
+#include "OrgMode.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -187,6 +188,9 @@ struct EditorState {
     EmacsFunctionIndex emacsFunctionIndex;
     bool              emacsFunctionIndexDirty = true;
     EmacsKeybindingState emacsKeys;
+    bool              showOrgPanel = true;
+    OrgDocumentState  orgDoc;
+    int               orgTempCounter = 0;
     struct LibraryIndexRequest {
         std::string name;
         std::string version;
@@ -430,6 +434,8 @@ struct EditorState {
     void createBuffer(const std::string& path, const std::string& content,
                       const std::string& language,
                       BufferManager::BufferMode mode = BufferManager::BufferMode::Structured) {
+        BufferManager::BufferMode effectiveMode = mode;
+        if (language == "org") effectiveMode = BufferManager::BufferMode::Text;
         if (buffers.hasBuffer(path)) {
             buffers.switchToBuffer(path);
             activeBuffer = bufferStates[path].get();
@@ -450,8 +456,8 @@ struct EditorState {
         state->generatedHighlightsDirty = true;
         state->modified = false;
         state->lspVersion = 1;
-        buffers.openBuffer(path, content, language, mode);
-        state->bufferMode = mode;
+        buffers.openBuffer(path, content, language, effectiveMode);
+        state->bufferMode = effectiveMode;
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         active()->orchestratorDirty = true;
@@ -800,6 +806,49 @@ struct EditorState {
         startEmacsDaemonFromSettings();
         initAgentServer();
         refreshBuildSystem();
+    }
+
+    std::string orgTempExtension(const std::string& language) const {
+        if (language == "python") return ".py";
+        if (language == "cpp") return ".cpp";
+        if (language == "elisp") return ".el";
+        if (language == "javascript") return ".js";
+        if (language == "typescript") return ".ts";
+        if (language == "java") return ".java";
+        if (language == "rust") return ".rs";
+        if (language == "go") return ".go";
+        return ".txt";
+    }
+
+    std::string writeOrgTempFile(const std::string& language, const std::string& code) {
+        std::filesystem::path root = workspaceRoot.empty()
+            ? std::filesystem::current_path()
+            : std::filesystem::path(workspaceRoot);
+        std::filesystem::path dir = root / ".whetstone_org";
+        std::filesystem::create_directories(dir);
+        std::string name = "org_block_" + std::to_string(++orgTempCounter) + orgTempExtension(language);
+        std::filesystem::path filePath = dir / name;
+        std::ofstream out(filePath.string(), std::ios::binary);
+        out << code;
+        return filePath.string();
+    }
+
+    std::string runOrgBlock(const std::string& language, const std::string& code) {
+        if (language == "elisp") {
+            std::string result = emacs.sendCommand(ElispCommandBuilder::eval(code));
+            if (!emacs.getLastError().empty() && result == "error") {
+                return emacs.getLastError();
+            }
+            return result.empty() ? "OK" : result;
+        }
+        std::string path = writeOrgTempFile(language, code);
+        std::string cmd = buildRunCommand(path, language, false);
+        if (cmd.empty()) return "No runner for language: " + language;
+        showTerminalPanel = true;
+        std::string output;
+        int codeExit = terminal.runAndCapture(workspaceRoot, cmd, output);
+        output += "[exit code: " + std::to_string(codeExit) + "]";
+        return output;
     }
 
     void startEmacsDaemonFromSettings() {
@@ -1369,6 +1418,10 @@ struct EditorState {
         if (lang == "elisp") {
             emacsFunctionIndexDirty = true;
         }
+        if (lang == "org") {
+            active()->bufferMode = BufferManager::BufferMode::Text;
+            buffers.setBufferMode(active()->path, active()->bufferMode);
+        }
     }
 
     bool handleEmacsKeyChord(const std::string& chord) {
@@ -1569,6 +1622,8 @@ struct EditorState {
                 language = "rust";
             else if (path.size() > 3 && path.substr(path.size() - 3) == ".go")
                 language = "go";
+            else if (path.size() > 4 && path.substr(path.size() - 4) == ".org")
+                language = "org";
             createBuffer(path, content, language, modeOverride);
             welcome.addRecentFile(path, language, bufferModeToString(modeOverride));
             saveRecentFiles();

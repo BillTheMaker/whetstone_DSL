@@ -77,6 +77,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+    tree-sitter-org
+    GIT_REPOSITORY https://github.com/milisims/tree-sitter-org.git
+    GIT_TAG        v1.3.1
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
     tinyfiledialogs
     GIT_REPOSITORY https://github.com/native-toolkit/tinyfiledialogs.git
     GIT_TAG        2.9.3
@@ -122,6 +129,11 @@ endif()
 FetchContent_GetProperties(tree-sitter-go)
 if(NOT tree-sitter-go_POPULATED)
     FetchContent_Populate(tree-sitter-go)
+endif()
+
+FetchContent_GetProperties(tree-sitter-org)
+if(NOT tree-sitter-org_POPULATED)
+    FetchContent_Populate(tree-sitter-org)
 endif()
 
 FetchContent_GetProperties(tinyfiledialogs)
@@ -203,6 +215,15 @@ endif()
 add_library(tree_sitter_go STATIC ${_ts_go_src})
 target_include_directories(tree_sitter_go PUBLIC ${tree-sitter-go_SOURCE_DIR}/src)
 target_link_libraries(tree_sitter_go PUBLIC unofficial::tree-sitter::tree-sitter)
+
+# Build tree-sitter-org grammar as a static C library
+set(_ts_org_src ${tree-sitter-org_SOURCE_DIR}/src/parser.c)
+if(EXISTS "${tree-sitter-org_SOURCE_DIR}/src/scanner.c")
+    list(APPEND _ts_org_src "${tree-sitter-org_SOURCE_DIR}/src/scanner.c")
+endif()
+add_library(tree_sitter_org STATIC ${_ts_org_src})
+target_include_directories(tree_sitter_org PUBLIC ${tree-sitter-org_SOURCE_DIR}/src)
+target_link_libraries(tree_sitter_org PUBLIC unofficial::tree-sitter::tree-sitter)
 
 # tinyfiledialogs (single C file)
 add_library(tinyfiledialogs STATIC ${tinyfiledialogs_SOURCE_DIR}/tinyfiledialogs.c)
@@ -794,6 +815,10 @@ add_executable(step144_test tests/step144_test.cpp)
 target_include_directories(step144_test PRIVATE src)
 target_link_libraries(step144_test PRIVATE nlohmann_json::nlohmann_json imgui::imgui)
 
+add_executable(step145_test tests/step145_test.cpp)
+target_include_directories(step145_test PRIVATE src)
+target_link_libraries(step145_test PRIVATE nlohmann_json::nlohmann_json imgui::imgui tree_sitter_org)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -834,6 +859,7 @@ target_include_directories(whetstone_editor PRIVATE
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/imgui
     ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include
 )
+target_compile_definitions(whetstone_editor PRIVATE WHETSTONE_ENABLE_ORG=1)
 if(IMGUI_SDL2_BACKEND)
     get_filename_component(_sdl2_backend_dir "${IMGUI_SDL2_BACKEND}" DIRECTORY)
     target_include_directories(whetstone_editor PRIVATE "${_sdl2_backend_dir}")
@@ -853,7 +879,8 @@ target_link_libraries(whetstone_editor PRIVATE
     tree_sitter_typescript
     tree_sitter_java
     tree_sitter_rust
-    tree_sitter_go)
+    tree_sitter_go
+    tree_sitter_org)
 target_link_libraries(whetstone_editor PRIVATE tinyfiledialogs)
 
 add_executable(orchestrator src/orchestrator_main.cpp)

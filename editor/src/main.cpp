@@ -280,7 +280,7 @@ int main(int, char**) {
                 }
                 if (ImGui::MenuItem("Open...", state.keys.getBinding("file.open").toString().c_str()))
                 {
-                    auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go"}, lastDialogPath});
+                    auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go","*.org"}, lastDialogPath});
                     if (!path.empty()) {
                         lastDialogPath = path;
                         state.doOpen(path);
@@ -429,6 +429,8 @@ int main(int, char**) {
                     state.setLanguage("rust");
                 if (ImGui::MenuItem("Go", nullptr, state.active() && state.active()->language == "go"))
                     state.setLanguage("go");
+                if (ImGui::MenuItem("Org", nullptr, state.active() && state.active()->language == "org"))
+                    state.setLanguage("org");
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Refactor")) {
@@ -1256,117 +1258,138 @@ int main(int, char**) {
                             }
                         }
 
-                        CodeEditorOptions opts;
-                        opts.showWhitespace = state.showWhitespace;
-                        opts.readOnly = buf->readOnly;
-                        opts.mode = &buf->mode;
-                        opts.enableFolding = true;
-                        opts.showMinimap = state.showMinimap;
-                        opts.showAnnotations = state.showAnnotations;
-                        opts.showLineNumbers = state.showLineNumbers;
-                        if (state.layoutPreset == LayoutPreset::Emacs) opts.annotationLayout = 1;
-                        else if (state.layoutPreset == LayoutPreset::JetBrains) opts.annotationLayout = 2;
-                        else opts.annotationLayout = 0;
-                        opts.errorLines = &errorLines;
-                        opts.warningLines = &warningLines;
-                        opts.diagnostics = &diagRanges;
-                        opts.annotations = &annoMarkers;
-                        opts.suggestions = &suggestionMarkers;
-                        opts.conflicts = &conflictMarkers;
-
                         CodeEditorResult res;
-                        if (buf->bufferMode == BufferManager::BufferMode::Structured) {
-                            opts.syncScrollX = &buf->splitScrollX;
-                            opts.syncScrollY = &buf->splitScrollY;
-                            opts.scrollMaster = true;
-
-                            ImGui::BeginTable("##editorSplit", 2,
-                                              ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp);
-                            ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_WidthStretch, 0.55f);
-                            ImGui::TableSetupColumn("Generated", ImGuiTableColumnFlags_WidthStretch, 0.45f);
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            res = buf->widget.render("##editor",
-                                buf->editBuf, buf->highlights, opts, ImVec2(0, avail.y), monoFont);
-
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::BeginGroup();
-                            ImGui::AlignTextToFramePadding();
-                            ImGui::TextUnformatted("Generated");
-                            ImGui::SameLine();
-                            const char* targetLabels[] = {"Python", "C++", "Elisp"};
-                            const char* targetValues[] = {"python", "cpp", "elisp"};
-                            int targetIndex = 0;
-                            for (int i = 0; i < IM_ARRAYSIZE(targetValues); ++i) {
-                                if (buf->generatedLanguage == targetValues[i]) {
-                                    targetIndex = i;
-                                    break;
-                                }
-                            }
-                            ImGui::SetNextItemWidth(120.0f);
-                            if (ImGui::Combo("##targetLang", &targetIndex,
-                                             targetLabels, IM_ARRAYSIZE(targetLabels))) {
-                                buf->generatedLanguage = targetValues[targetIndex];
-                                buf->generatedMode.setLanguage(buf->generatedLanguage);
-                                buf->generatedHighlightsDirty = true;
-                                state.updateGenerated();
-                            }
-                            ImVec2 genAvail = ImGui::GetContentRegionAvail();
-                            CodeEditorOptions genOpts;
-                            genOpts.readOnly = true;
-                            genOpts.showWhitespace = state.showWhitespace;
-                            genOpts.mode = &buf->generatedMode;
-                            genOpts.showLineNumbers = state.showLineNumbers;
-                            genOpts.showCurrentLine = false;
-                            genOpts.highlightLine = buf->generatedHighlightLine;
-                            genOpts.syncScrollX = &buf->splitScrollX;
-                            genOpts.syncScrollY = &buf->splitScrollY;
-                            genOpts.scrollMaster = false;
-                            buf->generatedWidget.render("##generated",
-                                buf->generatedBuf, buf->generatedHighlights, genOpts,
-                                ImVec2(0, genAvail.y), monoFont);
-                            ImGui::EndGroup();
-                            ImGui::EndTable();
+                        if (buf->language == "org") {
+                            renderOrgDocument(state.orgDoc,
+                                              buf->editBuf,
+                                              state.showWhitespace,
+                                              monoFont,
+                                              uiFont,
+                                              [&](const std::string& newText) {
+                                                  buf->editBuf = newText;
+                                                  state.onTextChanged();
+                                              },
+                                              [&](int, const std::string&, const std::string&) {
+                                                  buf->modified = true;
+                                              },
+                                              [&](const std::string& lang, const std::string& code) {
+                                                  return state.runOrgBlock(lang, code);
+                                              });
+                            res.cursorByte = buf->widget.getCursor();
                         } else {
-                            res = buf->widget.render("##editor",
-                                buf->editBuf, buf->highlights, opts, avail, monoFont);
+                            CodeEditorOptions opts;
+                            opts.showWhitespace = state.showWhitespace;
+                            opts.readOnly = buf->readOnly;
+                            opts.mode = &buf->mode;
+                            opts.enableFolding = true;
+                            opts.showMinimap = state.showMinimap;
+                            opts.showAnnotations = state.showAnnotations;
+                            opts.showLineNumbers = state.showLineNumbers;
+                            if (state.layoutPreset == LayoutPreset::Emacs) opts.annotationLayout = 1;
+                            else if (state.layoutPreset == LayoutPreset::JetBrains) opts.annotationLayout = 2;
+                            else opts.annotationLayout = 0;
+                            opts.errorLines = &errorLines;
+                            opts.warningLines = &warningLines;
+                            opts.diagnostics = &diagRanges;
+                            opts.annotations = &annoMarkers;
+                            opts.suggestions = &suggestionMarkers;
+                            opts.conflicts = &conflictMarkers;
+
+                            if (buf->bufferMode == BufferManager::BufferMode::Structured) {
+                                opts.syncScrollX = &buf->splitScrollX;
+                                opts.syncScrollY = &buf->splitScrollY;
+                                opts.scrollMaster = true;
+
+                                ImGui::BeginTable("##editorSplit", 2,
+                                                  ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp);
+                                ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_WidthStretch, 0.55f);
+                                ImGui::TableSetupColumn("Generated", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+                                ImGui::TableNextRow();
+                                ImGui::TableSetColumnIndex(0);
+                                res = buf->widget.render("##editor",
+                                    buf->editBuf, buf->highlights, opts, ImVec2(0, avail.y), monoFont);
+
+                                ImGui::TableSetColumnIndex(1);
+                                ImGui::BeginGroup();
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::TextUnformatted("Generated");
+                                ImGui::SameLine();
+                                const char* targetLabels[] = {"Python", "C++", "Elisp"};
+                                const char* targetValues[] = {"python", "cpp", "elisp"};
+                                int targetIndex = 0;
+                                for (int i = 0; i < IM_ARRAYSIZE(targetValues); ++i) {
+                                    if (buf->generatedLanguage == targetValues[i]) {
+                                        targetIndex = i;
+                                        break;
+                                    }
+                                }
+                                ImGui::SetNextItemWidth(120.0f);
+                                if (ImGui::Combo("##targetLang", &targetIndex,
+                                                 targetLabels, IM_ARRAYSIZE(targetLabels))) {
+                                    buf->generatedLanguage = targetValues[targetIndex];
+                                    buf->generatedMode.setLanguage(buf->generatedLanguage);
+                                    buf->generatedHighlightsDirty = true;
+                                    state.updateGenerated();
+                                }
+                                ImVec2 genAvail = ImGui::GetContentRegionAvail();
+                                CodeEditorOptions genOpts;
+                                genOpts.readOnly = true;
+                                genOpts.showWhitespace = state.showWhitespace;
+                                genOpts.mode = &buf->generatedMode;
+                                genOpts.showLineNumbers = state.showLineNumbers;
+                                genOpts.showCurrentLine = false;
+                                genOpts.highlightLine = buf->generatedHighlightLine;
+                                genOpts.syncScrollX = &buf->splitScrollX;
+                                genOpts.syncScrollY = &buf->splitScrollY;
+                                genOpts.scrollMaster = false;
+                                buf->generatedWidget.render("##generated",
+                                    buf->generatedBuf, buf->generatedHighlights, genOpts,
+                                    ImVec2(0, genAvail.y), monoFont);
+                                ImGui::EndGroup();
+                                ImGui::EndTable();
+                            } else {
+                                res = buf->widget.render("##editor",
+                                    buf->editBuf, buf->highlights, opts, avail, monoFont);
+                            }
                         }
 
-                        state.updateCursorPos(res.cursorByte);
-                        if (res.ctrlClick && state.active()) {
-                            state.goToDefinitionAt(res.ctrlClickLine, res.ctrlClickCol);
-                        }
-                        if (res.lineClicked && buf->bufferMode == BufferManager::BufferMode::Structured) {
-                            Module* ast = state.activeAST();
-                            if (ast) {
-                                int genLines = countLines(buf->generatedBuf);
-                                int targetLine = std::max(0, std::min(res.clickedLine, genLines - 1));
-                                buf->generatedHighlightLine = targetLine;
-                            } else {
-                                buf->generatedHighlightLine = -1;
+                        if (buf->language != "org") {
+                            state.updateCursorPos(res.cursorByte);
+                            if (res.ctrlClick && state.active()) {
+                                state.goToDefinitionAt(res.ctrlClickLine, res.ctrlClickCol);
                             }
-                        }
-                        if (res.changed) {
-                            state.onTextChanged();
-                            state.completionPending = true;
-                            state.completionLastChange = ImGui::GetTime();
-                            state.completionVisible = false;
-                            state.completionSelected = 0;
-                            if (state.lsp) state.lsp->clearCompletionItems();
-                            if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
-                                int cursor = state.active()->widget.getCursor();
-                                if (cursor > 0 && state.active()->editBuf[cursor - 1] == '(') {
-                                    int lineZero = std::max(0, state.active()->cursorLine - 1);
-                                    int colZero = std::max(0, state.active()->cursorCol - 1);
-                                    state.lsp->requestSignatureHelp(EditorState::toFileUri(state.active()->path),
-                                                                    lineZero, colZero);
-                                } else if (cursor > 0 && state.active()->editBuf[cursor - 1] == ')') {
-                                    state.lsp->clearSignatureHelp();
+                            if (res.lineClicked && buf->bufferMode == BufferManager::BufferMode::Structured) {
+                                Module* ast = state.activeAST();
+                                if (ast) {
+                                    int genLines = countLines(buf->generatedBuf);
+                                    int targetLine = std::max(0, std::min(res.clickedLine, genLines - 1));
+                                    buf->generatedHighlightLine = targetLine;
+                                } else {
+                                    buf->generatedHighlightLine = -1;
                                 }
                             }
-                            if (buf->bufferMode == BufferManager::BufferMode::Structured) {
-                                state.analysisPending = true;
-                                state.analysisLastChange = ImGui::GetTime();
+                            if (res.changed) {
+                                state.onTextChanged();
+                                state.completionPending = true;
+                                state.completionLastChange = ImGui::GetTime();
+                                state.completionVisible = false;
+                                state.completionSelected = 0;
+                                if (state.lsp) state.lsp->clearCompletionItems();
+                                if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
+                                    int cursor = state.active()->widget.getCursor();
+                                    if (cursor > 0 && state.active()->editBuf[cursor - 1] == '(') {
+                                        int lineZero = std::max(0, state.active()->cursorLine - 1);
+                                        int colZero = std::max(0, state.active()->cursorCol - 1);
+                                        state.lsp->requestSignatureHelp(EditorState::toFileUri(state.active()->path),
+                                                                        lineZero, colZero);
+                                    } else if (cursor > 0 && state.active()->editBuf[cursor - 1] == ')') {
+                                        state.lsp->clearSignatureHelp();
+                                    }
+                                }
+                                if (buf->bufferMode == BufferManager::BufferMode::Structured) {
+                                    state.analysisPending = true;
+                                    state.analysisLastChange = ImGui::GetTime();
+                                }
                             }
                         }
 

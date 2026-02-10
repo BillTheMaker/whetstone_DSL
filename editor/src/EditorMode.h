@@ -47,6 +47,7 @@ enum class EditorModeType {
     Java,
     Rust,
     Go,
+    Org,
     PlainText
 };
 
@@ -66,6 +67,7 @@ public:
         else if (language == "java") loadJava();
         else if (language == "rust") loadRust();
         else if (language == "go") loadGo();
+        else if (language == "org") loadOrg();
         else                          loadPlainText();
     }
 
@@ -162,6 +164,7 @@ public:
             case EditorModeType::Java:      return "Java";
             case EditorModeType::Rust:      return "Rust";
             case EditorModeType::Go:        return "Go";
+            case EditorModeType::Org:       return "Org";
             case EditorModeType::PlainText: return "Plain Text";
         }
         return "Unknown";
@@ -176,6 +179,7 @@ public:
         if (lang == "java") return EditorModeType::Java;
         if (lang == "rust") return EditorModeType::Rust;
         if (lang == "go") return EditorModeType::Go;
+        if (lang == "org") return EditorModeType::Org;
         return EditorModeType::PlainText;
     }
 
@@ -305,6 +309,17 @@ private:
         snippets_ = {
             {"fn", "func $1($2) $3 {\\n    $0\\n}", "Function"},
             {"if", "if $1 {\\n    $0\\n}", "If statement"},
+        };
+    }
+
+    void loadOrg() {
+        type_ = EditorModeType::Org;
+        indent_ = {"", "", 2, false};
+        comment_ = {"#", "", ""};
+        brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\"', '\"'}};
+        snippets_ = {
+            {"src", "#+begin_src $1\\n$0\\n#+end_src", "Source block"},
+            {"hdr", "* $1\\n$0", "Heading"},
         };
     }
 
