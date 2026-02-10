@@ -1125,6 +1125,9 @@ target_include_directories(step194_test PRIVATE src)
 add_executable(step195_test tests/step195_test.cpp)
 target_include_directories(step195_test PRIVATE src)
 
+add_executable(step196_test tests/step196_test.cpp)
+target_include_directories(step196_test PRIVATE src)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

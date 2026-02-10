@@ -47,6 +47,8 @@ struct ThemeDefinition {
     std::string sourcePath;
     ImVec2 panelPadding = ImVec2(8.0f, 6.0f);
     ImVec2 panelSpacing = ImVec2(8.0f, 6.0f);
+    float windowBorderSize = 1.0f;
+    float frameBorderSize = 0.0f;
 };
 
 class ThemeEngine {
@@ -326,6 +328,12 @@ private:
                 out.panelSpacing.x = layout["panelSpacing"][0].get<float>();
                 out.panelSpacing.y = layout["panelSpacing"][1].get<float>();
             }
+            if (layout.contains("windowBorderSize")) {
+                out.windowBorderSize = layout["windowBorderSize"].get<float>();
+            }
+            if (layout.contains("frameBorderSize")) {
+                out.frameBorderSize = layout["frameBorderSize"].get<float>();
+            }
         }
         return true;
     }
@@ -339,6 +347,8 @@ private:
         }
         style.WindowPadding = theme.panelPadding;
         style.ItemSpacing = theme.panelSpacing;
+        style.WindowBorderSize = theme.windowBorderSize;
+        style.FrameBorderSize = theme.frameBorderSize;
     }
 
     static bool isSyntaxColor(ThemeColor color) {

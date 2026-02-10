@@ -624,6 +624,7 @@ static void renderBottomPanel(EditorState& state) {
                 leftOpts.showWhitespace = state.ui.showWhitespace;
                 leftOpts.showLineNumbers = state.ui.showLineNumbers;
                 leftOpts.showCurrentLine = false;
+                leftOpts.useAnnotationShapes = state.settings.getUseAnnotationShapes();
                 leftOpts.lineHeightScale = state.settings.getLineHeightScale();
                 leftOpts.letterSpacing = state.settings.getLetterSpacing();
                 leftOpts.highlightLines = &state.diff.beforeLines;
@@ -641,6 +642,7 @@ static void renderBottomPanel(EditorState& state) {
                 rightOpts.showWhitespace = state.ui.showWhitespace;
                 rightOpts.showLineNumbers = state.ui.showLineNumbers;
                 rightOpts.showCurrentLine = false;
+                rightOpts.useAnnotationShapes = state.settings.getUseAnnotationShapes();
                 rightOpts.lineHeightScale = state.settings.getLineHeightScale();
                 rightOpts.letterSpacing = state.settings.getLetterSpacing();
                 rightOpts.highlightLines = &state.diff.afterLines;

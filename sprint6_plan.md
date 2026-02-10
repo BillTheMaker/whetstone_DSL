@@ -383,7 +383,7 @@ feature requests with polished UX.
 
 Make Whetstone usable by everyone and fast with large files.
 
-- [ ] **Step 196: High contrast and colorblind modes**
+- [x] **Step 196: High contrast and colorblind modes**
   Accessibility-first visual options:
   - "High Contrast" theme (WCAG AAA contrast ratios, bold borders)
   - Colorblind-safe annotation markers: use **shapes** (circle, triangle,

@@ -58,6 +58,8 @@ public:
     void setShowLineNumbers(bool value) { showLineNumbers_ = value; }
     bool getReduceMotion() const { return reduceMotion_; }
     void setReduceMotion(bool value) { reduceMotion_ = value; }
+    bool getUseAnnotationShapes() const { return useAnnotationShapes_; }
+    void setUseAnnotationShapes(bool value) { useAnnotationShapes_ = value; }
     bool getBlockVulnerableImports() const { return blockVulnerableImports_; }
     void setBlockVulnerableImports(bool value) { blockVulnerableImports_ = value; }
     const std::string& getLayoutPreset() const { return layoutPreset_; }
@@ -85,6 +87,7 @@ public:
             showMinimap_ = j.value("showMinimap", showMinimap_);
             showLineNumbers_ = j.value("showLineNumbers", showLineNumbers_);
             reduceMotion_ = j.value("reduceMotion", reduceMotion_);
+            useAnnotationShapes_ = j.value("useAnnotationShapes", useAnnotationShapes_);
             blockVulnerableImports_ = j.value("blockVulnerableImports", blockVulnerableImports_);
             layoutPreset_ = j.value("layoutPreset", layoutPreset_);
             keybindingProfile_ = j.value("keybindingProfile", keybindingProfile_);
@@ -124,6 +127,7 @@ public:
             j["showMinimap"] = showMinimap_;
             j["showLineNumbers"] = showLineNumbers_;
             j["reduceMotion"] = reduceMotion_;
+            j["useAnnotationShapes"] = useAnnotationShapes_;
             j["blockVulnerableImports"] = blockVulnerableImports_;
             j["layoutPreset"] = layoutPreset_;
             j["keybindingProfile"] = keybindingProfile_;
@@ -200,6 +204,7 @@ private:
     bool showMinimap_ = false;
     bool showLineNumbers_ = true;
     bool reduceMotion_ = false;
+    bool useAnnotationShapes_ = true;
     bool blockVulnerableImports_ = false;
     std::string layoutPreset_ = "VSCode";
     std::string keybindingProfile_ = "VSCode";

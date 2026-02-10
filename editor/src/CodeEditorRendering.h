@@ -1,6 +1,57 @@
 #pragma once
 // Included inside CodeEditorWidget (rendering + folds).
 public:
+    static int annotationShapeIndex(const std::string& label) {
+        size_t h = 0;
+        for (unsigned char c : label) h = h * 131 + c;
+        return (int)(h % 5);
+    }
+
+    static void drawAnnotationShape(ImDrawList* drawList,
+                                    const ImVec2& center,
+                                    float size,
+                                    ImU32 color,
+                                    int shape) {
+        switch (shape) {
+        case 0: { // circle
+            drawList->AddCircleFilled(center, size, color);
+            break;
+        }
+        case 1: { // triangle
+            ImVec2 top(center.x, center.y - size);
+            ImVec2 left(center.x - size, center.y + size);
+            ImVec2 right(center.x + size, center.y + size);
+            drawList->AddTriangleFilled(top, left, right, color);
+            break;
+        }
+        case 2: { // square
+            ImVec2 a(center.x - size, center.y - size);
+            ImVec2 b(center.x + size, center.y + size);
+            drawList->AddRectFilled(a, b, color, 0.0f);
+            break;
+        }
+        case 3: { // diamond
+            ImVec2 top(center.x, center.y - size);
+            ImVec2 right(center.x + size, center.y);
+            ImVec2 bottom(center.x, center.y + size);
+            ImVec2 left(center.x - size, center.y);
+            drawList->AddQuadFilled(top, right, bottom, left, color);
+            break;
+        }
+        default: { // star (outline)
+            ImVec2 pts[10];
+            for (int i = 0; i < 10; ++i) {
+                float angle = (float)(IM_PI * 0.5 + i * (IM_PI / 5.0));
+                float radius = (i % 2 == 0) ? size : size * 0.5f;
+                pts[i] = ImVec2(center.x + std::cos(angle) * radius,
+                                center.y - std::sin(angle) * radius);
+            }
+            drawList->AddPolyline(pts, 10, color, true, 1.5f);
+            break;
+        }
+        }
+    }
+
     CodeEditorResult render(const char* id,
                              std::string& text,
                              const std::vector<HighlightSpan>& spans,
@@ -370,7 +421,12 @@ public:
                 AnnotationMarker marker;
                 if (annotationAtLine(*options.annotations, ln, marker)) {
                     ImVec2 center(origin.x + 12.0f, y + lineHeight * 0.5f);
-                    drawList->AddCircleFilled(center, 3.0f, marker.color);
+                    if (options.useAnnotationShapes) {
+                        int shape = annotationShapeIndex(marker.message);
+                        drawAnnotationShape(drawList, center, 3.5f, marker.color, shape);
+                    } else {
+                        drawList->AddCircleFilled(center, 3.0f, marker.color);
+                    }
                     ImVec2 a(center.x - 4.0f, center.y - 4.0f);
                     ImVec2 b(center.x + 4.0f, center.y + 4.0f);
                     bool hoverAnno = ImGui::IsMouseHoveringRect(a, b);

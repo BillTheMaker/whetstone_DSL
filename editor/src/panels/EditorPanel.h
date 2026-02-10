@@ -216,6 +216,7 @@ static void renderEditorPanel(EditorState& state) {
                             opts.showMinimap = state.ui.showMinimap;
                             opts.showAnnotations = state.ui.showAnnotations;
                             opts.showLineNumbers = state.ui.showLineNumbers;
+                            opts.useAnnotationShapes = state.settings.getUseAnnotationShapes();
                             opts.lineHeightScale = state.settings.getLineHeightScale();
                             opts.letterSpacing = state.settings.getLetterSpacing();
                             opts.cursorBlinkRate = state.settings.getCursorBlinkRate();

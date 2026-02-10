@@ -174,13 +174,27 @@
             float x = xStart;
             float amp = 2.0f;
             bool up = true;
+            int segment = 0;
+            bool dotted = (d.severity != 1 && d.severity != 2);
             while (x < xEnd) {
+                if (dotted) {
+                    drawList->AddCircleFilled(ImVec2(x, baseY), 1.3f, color);
+                    x += 4.0f;
+                    continue;
+                }
                 float x2 = std::min(x + 4.0f, xEnd);
                 float y1 = baseY + (up ? -amp : amp);
                 float y2 = baseY + (up ? amp : -amp);
-                drawList->AddLine(ImVec2(x, y1), ImVec2(x2, y2), color, 1.0f);
+                bool drawSegment = true;
+                if (d.severity == 2) {
+                    drawSegment = (segment % 2 == 0);
+                }
+                if (drawSegment) {
+                    drawList->AddLine(ImVec2(x, y1), ImVec2(x2, y2), color, 1.0f);
+                }
                 up = !up;
                 x = x2;
+                segment++;
             }
         }
     }

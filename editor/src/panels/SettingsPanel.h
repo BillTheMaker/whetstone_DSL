@@ -349,6 +349,11 @@ static void renderSettingsPanel(EditorState& state) {
         state.settings.setReduceMotion(reduceMotionSetting);
         settingsChanged = true;
     }
+    bool useAnnotationShapes = state.settings.getUseAnnotationShapes();
+    if (ImGui::Checkbox("Use Shapes for Annotations", &useAnnotationShapes)) {
+        state.settings.setUseAnnotationShapes(useAnnotationShapes);
+        settingsChanged = true;
+    }
     bool blockVulnImports = state.settings.getBlockVulnerableImports();
     if (ImGui::Checkbox("Block Vulnerable Imports", &blockVulnImports)) {
         state.settings.setBlockVulnerableImports(blockVulnImports);

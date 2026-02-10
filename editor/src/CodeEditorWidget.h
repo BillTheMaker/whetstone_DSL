@@ -17,6 +17,7 @@
 #include <array>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstring>
 
 struct MultiCursor {
@@ -34,6 +35,7 @@ struct CodeEditorOptions {
     bool showAnnotations = false;
     bool showLineNumbers = true;
     bool showCurrentLine = true;
+    bool useAnnotationShapes = true;
     float lineHeightScale = 1.0f;
     float letterSpacing = 0.0f;
     float cursorBlinkRate = 2.0f;
