@@ -26,37 +26,42 @@ complexity. It is intended for future sprint planning (not tied to Sprint 8).
    - Complexity: Medium (interop with Java).
 
 ### Phase B: Semantic-First Languages (Best AST Fit)
-4. Common Lisp / Scheme
+4. Julia
+   - Rationale: Homoiconic macros + high-performance numeric core; strong AST fit.
+   - Complexity: Medium (metaprogramming + multiple dispatch semantics).
+   - Notes: Prioritize ML/numerical API mappings after core language support.
+
+5. Common Lisp / Scheme
    - Rationale: Homoiconic AST, macros, direct mapping to transformations.
    - Complexity: Medium (macro system and evaluation model).
 
-5. OCaml / F#
+6. OCaml / F#
    - Rationale: Algebraic data types, pattern matching, strong typing.
    - Complexity: Medium (type system mapping).
 
-6. Haskell
+7. Haskell
    - Rationale: Pure FP, strong types; great for semantic transformations.
    - Complexity: High (typeclass system, laziness).
 
 ### Phase C: Concurrency/Logic Models
-7. Erlang / Elixir
+8. Erlang / Elixir
    - Rationale: Actor model, supervision trees; great for explicit execution annotations.
    - Complexity: High (message passing semantics).
 
-8. Prolog
+9. Prolog
    - Rationale: Declarative semantics, unification; fits AST reasoning.
    - Complexity: High (search/backtracking model).
 
 ### Phase D: Long-Tail, Specialized
-9. Swift
+10. Swift
    - Rationale: ARC semantics align with annotations; Apple ecosystem.
    - Complexity: High (toolchain + platform APIs).
 
-10. Ruby / Lua
+11. Ruby / Lua
    - Rationale: Dynamic languages with distinct semantics.
    - Complexity: Medium.
 
-11. Dart
+12. Dart
    - Rationale: Flutter ecosystem.
    - Complexity: Medium.
 

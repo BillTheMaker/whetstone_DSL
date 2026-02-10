@@ -108,3 +108,26 @@
 - Packaging format and plugin discovery/loading
 - Example integration with a Rust binary or shared library
 
+## Julia Language Support (Full Pipeline) — PROPOSED
+
+**Goal:** Add full Julia support (parse, AST, generate, project, and annotations) to Whetstone.
+
+**Scope:**
+- Tree-sitter Julia parser integration
+- Julia AST mapping to SemAnno concepts
+- Julia generator with annotation-aware output
+- Cross-language projection to/from Julia
+- Tests: parse/generate round-trip, annotation preservation, projection matrix coverage
+
+---
+
+## Julia ML Projection Layer — PROPOSED
+
+**Goal:** Map common Python ML/Numerical APIs to Julia equivalents while preserving optimization intent.
+
+**Scope:**
+- API mapping table (NumPy/Pandas/Torch core calls ? Julia equivalents)
+- Semantic tags for numerical/tensor operations
+- Fallback interop for unmapped calls (PyCall/JuliaCall)
+- Dual projections: clean surface Julia + preserved optimization annotations
+
