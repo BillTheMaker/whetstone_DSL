@@ -67,6 +67,9 @@ public:
 
                 current.toolsUsed.push_back(tool);
                 current.toolCallCount++;
+                if (item.response.contains("error")) {
+                    current.success = false;
+                }
             }
         }
 

@@ -431,7 +431,7 @@ Capture real editing sessions, anonymize them, and export as training data.
   - Quality filter: discard sessions with too many errors or no meaningful work
   *New:* `editor/src/SessionToTrace.h`
 
-- [ ] **Step 233: Training data pipeline CLI**
+- [x] **Step 233: Training data pipeline CLI**
   End-to-end pipeline from raw sessions to training data:
   - `whetstone_pipeline --input sessions/ --anonymize medium --format anthropic --output training/`
   - Steps: load sessions → anonymize → convert to traces → filter → export

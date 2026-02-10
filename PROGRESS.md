@@ -752,3 +752,4 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Codex | Step 230: Enhanced session recorder (metadata, event capture, ms timestamps, UI toggle, auto-record setting). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 231: Session anonymizer (paths, secrets, identifier anonymization, comment/string stripping, levels, deterministic seed). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 232: Session-to-trace converter (events->user msgs, RPC->tool calls/results, gap splitting, synthetic thinking). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 233: Training data pipeline CLI (load/anonymize/convert/filter/dedup/export + stats). 1/1 tests pass. |
