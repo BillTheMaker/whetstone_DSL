@@ -750,3 +750,4 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Codex | Step 228: Prompt engineering templates (5 prompt files with system/user templates, expected tools, success criteria). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 229: Tool definition tests (schema alignment, prompt coverage, examples validation, prompt variable checks). 1/1 tests pass. |
 | 2026-02-10 | Codex | Step 230: Enhanced session recorder (metadata, event capture, ms timestamps, UI toggle, auto-record setting). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 231: Session anonymizer (paths, secrets, identifier anonymization, comment/string stripping, levels, deterministic seed). 1/1 tests pass. |

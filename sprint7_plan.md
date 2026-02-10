@@ -411,7 +411,7 @@ Capture real editing sessions, anonymize them, and export as training data.
   - Auto-recording mode: always capture (configurable in settings)
   *Modifies:* `WorkflowRecorder.h`, `panels/StatusBarPanel.h`
 
-- [ ] **Step 231: Session anonymizer**
+- [x] **Step 231: Session anonymizer**
   Strip PII and sensitive data from recorded sessions:
   - Replace file paths with generic paths (`/project/src/module.py`)
   - Replace variable/function names with synthetic names (preserve structure)
