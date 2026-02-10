@@ -349,7 +349,7 @@ Final polish, documentation, and ecosystem features.
   Theme gallery in Settings panel.
   *New:* `ThemeEngine.h`
 
-- [ ] **Step 161: Extension/plugin API**
+- [x] **Step 161: Extension/plugin API**
   Define a stable plugin interface. Plugins can:
   - Register new AST concept types
   - Add generators for new languages

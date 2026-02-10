@@ -898,6 +898,9 @@ add_executable(step160_test tests/step160_test.cpp)
 target_include_directories(step160_test PRIVATE src)
 target_link_libraries(step160_test PRIVATE nlohmann_json::nlohmann_json imgui::imgui)
 
+add_executable(step161_test tests/step161_test.cpp)
+target_include_directories(step161_test PRIVATE src)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
