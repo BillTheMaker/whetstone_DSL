@@ -53,6 +53,10 @@ public:
             module_ = TreeSitterParser::parseCpp(text_);
         } else if (language_ == "elisp") {
             module_ = TreeSitterParser::parseElisp(text_);
+        } else if (language_ == "javascript") {
+            module_ = TreeSitterParser::parseJavaScript(text_);
+        } else if (language_ == "typescript") {
+            module_ = TreeSitterParser::parseTypeScript(text_);
         }
         parsePending_ = false;
     }

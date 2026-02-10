@@ -227,7 +227,7 @@ Complete generators and CST-to-AST conversion for all supported languages.
 Sprint 4 added tree-sitter grammars for syntax highlighting; Sprint 5
 adds full semantic support.
 
-- [ ] **Step 147: JavaScript/TypeScript CST-to-AST**
+- [x] **Step 147: JavaScript/TypeScript CST-to-AST**
   Full tree-sitter CST-to-AST conversion for JavaScript and TypeScript.
   Handle: functions (arrow, declaration, expression), classes, async/await,
   destructuring, template literals, modules (import/export), JSX.
