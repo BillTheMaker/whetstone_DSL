@@ -202,7 +202,7 @@ Core editing improvements that make daily use smooth.
   - Max width/height with scrolling for long content
   *New:* `RichTooltip.h`. *Modifies:* hover handlers in editor/panels
 
-- [ ] **Step 181: Enhanced status bar**
+- [x] **Step 181: Enhanced status bar**
   Context-rich status bar showing everything relevant at a glance:
   - Left: mode indicator (Text/Structured), language selector (clickable),
     encoding (UTF-8, clickable to change), line ending (LF/CRLF, clickable)

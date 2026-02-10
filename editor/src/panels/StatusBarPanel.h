@@ -1,6 +1,44 @@
 #pragma once
 #include "../EditorState.h"
 #include "../EditorUtils.h"
+#include "../ThemeEngine.h"
+#include <fstream>
+#include <filesystem>
+
+static std::string detectGitBranch(const std::string& root) {
+    if (root.empty()) return "-";
+    std::filesystem::path headPath = std::filesystem::path(root) / ".git" / "HEAD";
+    std::ifstream in(headPath.string());
+    if (!in.is_open()) return "-";
+    std::string line;
+    std::getline(in, line);
+    const std::string refPrefix = "ref: refs/heads/";
+    if (line.rfind(refPrefix, 0) == 0) {
+        return line.substr(refPrefix.size());
+    }
+    if (!line.empty()) return line.substr(0, 8);
+    return "-";
+}
+
+static void toggleBufferMode(EditorState& state) {
+    if (!state.active()) return;
+    state.active()->bufferMode = state.active()->bufferMode == BufferManager::BufferMode::Text
+        ? BufferManager::BufferMode::Structured
+        : BufferManager::BufferMode::Text;
+    state.buffers.setBufferMode(state.active()->path, state.active()->bufferMode);
+    if (state.active()->bufferMode == BufferManager::BufferMode::Text) {
+        state.suggestions.clear();
+        state.whetstoneDiagnostics.clear();
+        state.analysisPending = false;
+    } else {
+        state.onTextChanged();
+    }
+}
+
+static std::string detectLineEnding(const std::string& text) {
+    if (text.find("\r\n") != std::string::npos) return "CRLF";
+    return "LF";
+}
 
 static void renderStatusBar(EditorState& state) {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -12,71 +50,103 @@ static void renderStatusBar(EditorState& state) {
     ImVec2 sbSize(viewport->WorkSize.x, sbHeight);
     ImGui::SetNextWindowPos(sbPos);
     ImGui::SetNextWindowSize(sbSize);
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.00f, 0.47f, 0.84f, 1.0f));
+    ImVec4 bg = ImVec4(0.10f, 0.12f, 0.16f, 1.0f);
+    bool hasError = false;
+    for (const auto& d : state.whetstoneDiagnostics) {
+        if (d.severity == 1) { hasError = true; break; }
+    }
+    if (!hasError) {
+        for (const auto& d : state.emacsDiagnostics) {
+            if (d.severity == 1) { hasError = true; break; }
+        }
+    }
+    if (state.build.runInProgress) {
+        bg = ImVec4(0.10f, 0.35f, 0.25f, 1.0f);
+    } else if (hasError) {
+        bg = ImVec4(0.45f, 0.12f, 0.12f, 1.0f);
+    }
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, bg);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 2));
     ImGui::Begin("##StatusBar", nullptr, sbFlags);
     ImGui::PushFont(state.uiFont);
 
-    if (state.active())
-        ImGui::Text("Ln %d, Col %d", state.active()->cursorLine, state.active()->cursorCol);
-    else
-        ImGui::Text("Ln -, Col -");
-    ImGui::SameLine(0, 30);
-
-    if (state.active())
-        ImGui::Text("%s", state.active()->language.c_str());
-    else
-        ImGui::Text("-");
-    ImGui::SameLine(0, 30);
-
-    if (state.active()) {
-        const char* modeLabel =
-            state.active()->bufferMode == BufferManager::BufferMode::Text ? "Text" : "Structured";
-        ImGui::Text("Mode: %s", modeLabel);
-    } else {
-        ImGui::Text("Mode: -");
+    // Left cluster: mode, language, encoding, line ending
+    std::string modeLabel = state.active()
+        ? (state.active()->bufferMode == BufferManager::BufferMode::Text ? "Text" : "Structured")
+        : "-";
+    if (ImGui::Button(modeLabel.c_str())) {
+        toggleBufferMode(state);
     }
-    ImGui::SameLine(0, 30);
-
-    ImGui::Text("Keys: %s", KeybindingManager::profileName(state.keys.getProfile()));
-    ImGui::SameLine(0, 30);
-    if (state.ui.layoutPreset == LayoutPreset::Emacs && !state.emacsState.emacsKeys.modeLine.empty()) {
-        ImGui::Text("Mode: %s", state.emacsState.emacsKeys.modeLine.c_str());
-        ImGui::SameLine(0, 30);
+    ImGui::SameLine(0, 10);
+    const char* langLabel = state.active() ? state.active()->language.c_str() : "-";
+    if (ImGui::Button(langLabel)) {
+        ImGui::OpenPopup("##langPopup");
+    }
+    if (ImGui::BeginPopup("##langPopup")) {
+        const char* langs[] = {"python","cpp","elisp","javascript","typescript","java","rust","go","org"};
+        const char* labels[] = {"Python","C++","Elisp","JavaScript","TypeScript","Java","Rust","Go","Org"};
+        for (int i = 0; i < IM_ARRAYSIZE(langs); ++i) {
+            if (ImGui::MenuItem(labels[i])) state.setLanguage(langs[i]);
+        }
+        ImGui::EndPopup();
+    }
+    ImGui::SameLine(0, 10);
+    if (ImGui::Button("UTF-8")) {
+        state.notify(NotificationLevel::Info, "Encoding settings not yet configurable.");
+    }
+    ImGui::SameLine(0, 10);
+    std::string lineEnding = state.active() ? detectLineEnding(state.active()->editBuf) : "-";
+    if (ImGui::Button(lineEnding.c_str())) {
+        state.notify(NotificationLevel::Info, "Line ending toggle not yet implemented.");
     }
 
-    ImGui::Text("Zoom: %d%%", zoomPercent(state.settings.getFontSize(), state.baseFontSize));
-    ImGui::SameLine(0, 30);
-
-    ImGui::Text("Undo: %d", state.active() ? state.active()->undoDepth : 0);
-    ImGui::SameLine(0, 30);
-
-    if (state.build.runInProgress) {
-        ImGui::Text("Run: Running...");
-    } else if (state.build.hasRunResult) {
-        ImGui::Text("Run: Exit %d", state.build.lastRunExitCode);
-    } else {
-        ImGui::Text("Run: -");
+    // Center: notifications
+    std::string centerText = "(no notifications)";
+    if (const Notification* n = state.notifications.latest()) {
+        centerText = n->message;
     }
-    ImGui::SameLine(0, 30);
-
-    if (state.active() && state.active()->modified)
-        ImGui::Text("Modified");
-    else
-        ImGui::Text("Saved");
-
-    ImGui::SameLine(0, 30);
-    ImGui::Text("UTF-8");
-
-    ImGui::SameLine(0, 30);
-    int unread = state.notifications.unreadCount();
-    std::string notifLabel = "Notifications";
-    if (unread > 0) {
-        notifLabel += " (" + std::to_string(unread) + ")";
-    }
-    if (ImGui::Button(notifLabel.c_str())) {
+    float centerWidth = ImGui::CalcTextSize(centerText.c_str()).x;
+    float windowWidth = ImGui::GetWindowWidth();
+    float centerX = std::max(0.0f, (windowWidth * 0.5f) - (centerWidth * 0.5f));
+    ImGui::SetCursorPosX(centerX);
+    ImGui::TextUnformatted(centerText.c_str());
+    if (ImGui::IsItemClicked()) {
         state.notifications.showHistory = !state.notifications.showHistory;
     }
+
+    // Right cluster: Ln/Col, selection, zoom, git
+    int selStart = -1;
+    int selEnd = -1;
+    int selChars = 0;
+    int selLines = 0;
+    if (state.active() && state.active()->widget.hasSelectionRange()) {
+        state.active()->widget.getSelectionRange(selStart, selEnd);
+        if (selStart >= 0 && selEnd > selStart) {
+            selChars = selEnd - selStart;
+            selLines = 1;
+            for (int i = selStart; i < selEnd && i < (int)state.active()->editBuf.size(); ++i) {
+                if (state.active()->editBuf[i] == '\n') ++selLines;
+            }
+        }
+    }
+    std::string rightText;
+    if (state.active()) {
+        rightText = "Ln " + std::to_string(state.active()->cursorLine) +
+                    ", Col " + std::to_string(state.active()->cursorCol);
+    } else {
+        rightText = "Ln -, Col -";
+    }
+    if (selChars > 0) {
+        rightText += " | Sel " + std::to_string(selChars) + "c " +
+                     std::to_string(selLines) + "l";
+    }
+    rightText += " | Zoom " + std::to_string(zoomPercent(state.settings.getFontSize(),
+                                                         state.baseFontSize)) + "%";
+    rightText += " | Git " + detectGitBranch(state.workspaceRoot);
+
+    float rightWidth = ImGui::CalcTextSize(rightText.c_str()).x;
+    ImGui::SetCursorPosX(std::max(0.0f, windowWidth - rightWidth - 8.0f));
+    ImGui::TextUnformatted(rightText.c_str());
 
     ImGui::PopFont();
     ImGui::End();

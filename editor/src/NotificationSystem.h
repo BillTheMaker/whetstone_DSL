@@ -94,6 +94,11 @@ public:
         return history;
     }
 
+    const Notification* latest() const {
+        if (history.empty()) return nullptr;
+        return &history.back();
+    }
+
     void renderToasts(const std::function<void(const Notification&)>& onNavigate = {},
                       bool reduceMotion = false) {
         const double now = ImGui::GetTime();

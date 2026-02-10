@@ -528,4 +528,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 178: Multi-cursor editing (Alt+Click, Ctrl+D, Ctrl+Alt+Up/Down, column selection) with multi-caret rendering and shared edits. 2/2 tests pass (step178_test, step178_integration_test). |
 | 2026-02-10 | Codex | Step 179: Rainbow brackets, bracket-pair highlight, scope tint, and auto-surround with language-specific auto-close. 2/2 tests pass (step179_test, step179_integration_test). |
 | 2026-02-10 | Codex | Step 180: Rich tooltip system with markdown rendering, pinning, max size/scrolling, and tooltip replacements. 2/2 tests pass (step180_test, step180_integration_test). |
+| 2026-02-10 | Codex | Step 181: Enhanced status bar (mode/language/encoding segments, centered notifications, selection counts, git branch, adaptive background). 2/2 tests pass (step181_test, step181_integration_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |
