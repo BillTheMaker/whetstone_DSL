@@ -20,7 +20,7 @@ inline std::unordered_map<std::string, RichTooltipState>& richTooltipStates() {
     return states;
 }
 
-inline void renderMarkdownLine(const std::string& line, ImFont* monoFont) {
+inline void richRenderMarkdownLine(const std::string& line, ImFont* monoFont) {
     std::string trimmed = line;
     while (!trimmed.empty() && (trimmed.back() == '\r' || trimmed.back() == '\n')) {
         trimmed.pop_back();
@@ -42,11 +42,11 @@ inline void renderMarkdownLine(const std::string& line, ImFont* monoFont) {
     }
 }
 
-inline void renderMarkdown(const std::string& text, ImFont* monoFont) {
+inline void richRenderMarkdown(const std::string& text, ImFont* monoFont) {
     std::istringstream ss(text);
     std::string line;
     while (std::getline(ss, line)) {
-        renderMarkdownLine(line, monoFont);
+        richRenderMarkdownLine(line, monoFont);
     }
 }
 
@@ -64,7 +64,7 @@ inline void renderRichTooltip(const std::string& id,
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * alpha);
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + maxWidth);
-        renderMarkdown(content, monoFont);
+        richRenderMarkdown(content, monoFont);
         ImGui::PopTextWrapPos();
         ImGui::Separator();
         if (ImGui::SmallButton("Pin")) {
@@ -86,7 +86,7 @@ inline void renderRichTooltip(const std::string& id,
         if (ImGui::Begin(("Tooltip##" + id).c_str(), &open, flags)) {
             ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + maxWidth);
             ImGui::BeginChild(("##tip_scroll_" + id).c_str(), ImVec2(maxWidth, maxHeight), false);
-            renderMarkdown(state.pinnedContent, monoFont);
+            richRenderMarkdown(state.pinnedContent, monoFont);
             ImGui::EndChild();
             ImGui::PopTextWrapPos();
             if (ImGui::SmallButton("Close")) {

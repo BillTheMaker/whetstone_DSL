@@ -9,6 +9,7 @@ struct UIFlags {
     bool showLineNumbers = true;
     bool showLspSettings = false;
     bool showSettingsPanel = false;
+    bool showFirstRunWizard = false;
     int bottomTab = 0; // 0=Output,1=AST,2=Highlighted
     LayoutPreset layoutPreset = LayoutPreset::VSCode;
 };

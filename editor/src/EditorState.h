@@ -1943,7 +1943,7 @@ struct EditorState {
         }
     }
 
-    bool selectionRange(int& outStart, int& outEnd) const {
+    bool selectionRange(int& outStart, int& outEnd) {
         if (!active()) return false;
         if (!active()->widget.hasSelectionRange()) return false;
         active()->widget.getSelectionRange(outStart, outEnd);

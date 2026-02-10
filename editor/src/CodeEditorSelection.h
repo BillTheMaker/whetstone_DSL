@@ -1,11 +1,5 @@
 #pragma once
 // Included inside CodeEditorWidget (selection + editing).
-    struct MultiCursor {
-        int cursor = 0;
-        int selStart = -1;
-        int selEnd = -1;
-    };
-
     void syncPrimaryToMulti() {
         if (cursors_.empty()) {
             cursors_.push_back({cursor_, selStart_, selEnd_});

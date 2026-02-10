@@ -239,7 +239,7 @@ Core editing improvements that make daily use smooth.
 Help users discover what Whetstone can do. Reduce the learning curve
 without being annoying.
 
-- [ ] **Step 184: First-run experience**
+- [x] **Step 184: First-run experience**
   Interactive setup wizard on first launch (no session.json found):
   1. "Welcome to Whetstone" splash with logo
   2. Choose layout preset (VSCode/Emacs/JetBrains) with visual previews

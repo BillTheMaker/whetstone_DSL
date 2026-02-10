@@ -15,6 +15,7 @@
 #include "EditorUtils.h"
 #include "CompletionUtils.h"
 #include "ThemeEngine.h"
+#include "FirstRunWizard.h"
 
 // --- Panel headers ---
 #include "panels/MenuBarPanel.h"
@@ -188,12 +189,15 @@ int main(int, char**) {
     }
     io.FontGlobalScale = state.settings.getFontSize() / baseFontSize;
     SessionData session;
-    if (state.loadSession(session)) {
+    bool hasSession = state.loadSession(session);
+    if (hasSession) {
         if (!session.imguiIni.empty()) {
             ImGui::LoadIniSettingsFromMemory(session.imguiIni.c_str(),
                                              session.imguiIni.size());
         }
         state.applySession(session);
+    } else {
+        state.ui.showFirstRunWizard = true;
     }
     state.lspTransport = std::make_shared<NullLSPTransport>();
     state.lsp = std::make_shared<LSPClient>(state.lspTransport);
@@ -370,6 +374,10 @@ int main(int, char**) {
         renderBottomPanel(state);
         renderMemoryStrategiesPanel(state);
         renderStatusBar(state);
+        static FirstRunWizardState wizard;
+        wizard.open = state.ui.showFirstRunWizard;
+        renderFirstRunWizard(state, wizard);
+        state.ui.showFirstRunWizard = wizard.open;
         state.notifications.renderHistoryWindow([&](const Notification& note) {
             if (note.hasTarget) state.navigateToTarget(note.target);
         });

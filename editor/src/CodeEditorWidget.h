@@ -19,6 +19,12 @@
 #include <cctype>
 #include <cstring>
 
+struct MultiCursor {
+    int cursor = 0;
+    int selStart = -1;
+    int selEnd = -1;
+};
+
 struct CodeEditorOptions {
     bool showWhitespace = false;
     bool readOnly = false;
