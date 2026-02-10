@@ -154,7 +154,7 @@ what's already available.
   configurable JSON mapping file.
   *New:* `LibraryCompatibility.h`
 
-- [ ] **Step 140: Constructive coding tests**
+- [x] **Step 140: Constructive coding tests**
   End-to-end tests verifying:
   1. Import numpy → agent prioritizes numpy/builtin functions in suggestions
   2. Remove import → agent's prioritized primitives shrink (but arbitrary code still allowed)
