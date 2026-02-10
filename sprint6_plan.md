@@ -73,7 +73,7 @@ first — all UX work becomes easier when panels are modular.
   - Panels use `notify(level, message)` instead of appending to outputLog
   *New:* `NotificationSystem.h`. *Modifies:* panels that use outputLog
 
-- [ ] **Step 170: UI event bus for decoupled updates**
+- [x] **Step 170: UI event bus for decoupled updates**
   Create `UIEventBus.h` — lightweight pub/sub for UI events:
   - Events: ASTChanged, BufferSwitched, DiagnosticsUpdated, ThemeChanged,
     SettingsChanged, FileModified, AgentConnected, NotificationPosted

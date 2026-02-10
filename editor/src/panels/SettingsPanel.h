@@ -9,6 +9,7 @@ static void renderSettingsPanel(EditorState& state) {
     ImGui::PushFont(state.uiFont);
     bool settingsChanged = false;
     bool emacsConfigChanged = false;
+    bool themeChanged = false;
     ImGuiIO& io = ImGui::GetIO();
 
     int fontSize = state.settings.getFontSize();
@@ -57,6 +58,7 @@ static void renderSettingsPanel(EditorState& state) {
                 SetupVSCodeDarkTheme();
         }
         settingsChanged = true;
+        themeChanged = true;
     }
 
     bool telemetryOptIn = state.settings.getTelemetryOptIn();
@@ -158,9 +160,13 @@ static void renderSettingsPanel(EditorState& state) {
 
     if (settingsChanged) {
         state.saveSettingsToDisk();
+        state.events.publish(UIEventType::SettingsChanged, {}, {}, ImGui::GetTime());
     }
     if (emacsConfigChanged) {
         state.startEmacsDaemonFromSettings();
+    }
+    if (themeChanged) {
+        state.events.publish(UIEventType::ThemeChanged, {}, {}, ImGui::GetTime());
     }
     ImGui::PopFont();
     ImGui::End();

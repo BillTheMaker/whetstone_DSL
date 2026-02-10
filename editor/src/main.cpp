@@ -253,6 +253,7 @@ int main(int, char**) {
             state.updateEmacsFunctionIndex();
         }
         state.refreshEmacsModeLine(ImGui::GetTime());
+        state.events.tick(ImGui::GetTime());
 
         // --- Start frame ---
         ImGui_ImplOpenGL3_NewFrame();

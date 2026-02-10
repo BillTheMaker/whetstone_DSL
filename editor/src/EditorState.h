@@ -50,6 +50,7 @@
 #include "Telemetry.h"
 #include "UpdateChecker.h"
 #include "NotificationSystem.h"
+#include "UIEventBus.h"
 #include "state/SearchState.h"
 #include "state/AgentState.h"
 #include "state/BuildState.h"
@@ -174,6 +175,7 @@ struct EditorState {
     UIFlags           ui;
 
     NotificationSystem notifications;
+    UIEventBus         events;
     HelpPanelState helpPanel;
     Telemetry telemetry;
     char              outlineFilter[128] = {};
@@ -328,10 +330,12 @@ struct EditorState {
 
     void notify(NotificationLevel level, const std::string& message) {
         notifications.notify(level, message);
+        events.publish(UIEventType::NotificationPosted, {}, message, ImGui::GetTime());
     }
 
     void notify(NotificationLevel level, const std::string& message, const NotificationTarget& target) {
         notifications.notify(level, message, target);
+        events.publish(UIEventType::NotificationPosted, target.path, message, ImGui::GetTime());
     }
 
     void navigateToTarget(const NotificationTarget& target) {
@@ -445,8 +449,6 @@ struct EditorState {
         activeBuffer = state.get();
         bufferStates[path] = std::move(state);
         active()->orchestratorDirty = true;
-        library.primitives.setRoot(activeAST());
-        library.primitives.setLanguage(active()->language);
         recordUndoSnapshot();
         if (language == "elisp") {
             emacsState.emacsFunctionIndexDirty = true;
@@ -455,9 +457,7 @@ struct EditorState {
         if (lsp && path.rfind("(untitled", 0) != 0) {
             lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
         }
-        symbolsPending = true;
-        symbolsLastChange = ImGui::GetTime();
-        if (lsp) lsp->clearDocumentSymbols();
+        events.publish(UIEventType::BufferSwitched, path, {}, ImGui::GetTime());
     }
 
     bool jumpToDefinitionLocation(const LSPClient::DefinitionLocation& loc) {
@@ -538,14 +538,7 @@ struct EditorState {
         buffers.switchToBuffer(path);
         activeBuffer = bufferStates[path].get();
         if (active()) active()->orchestratorDirty = true;
-        library.primitives.setRoot(activeAST());
-        library.primitives.setLanguage(active()->language);
-        symbolsPending = true;
-        symbolsLastChange = ImGui::GetTime();
-        if (lsp) lsp->clearDocumentSymbols();
-        if (active() && active()->language == "elisp") {
-            emacsState.emacsFunctionIndexDirty = true;
-        }
+        events.publish(UIEventType::BufferSwitched, path, {}, ImGui::GetTime());
     }
 
     std::filesystem::path configDir() const {
@@ -787,6 +780,28 @@ struct EditorState {
         loadRecentFiles();
         loadSettingsFromDisk();
         registerCommands();
+        events.subscribe(UIEventType::BufferSwitched, [this](const UIEvent&) {
+            if (!active()) return;
+            library.primitives.setRoot(activeAST());
+            library.primitives.setLanguage(active()->language);
+            symbolsPending = true;
+            symbolsLastChange = ImGui::GetTime();
+            if (lsp) lsp->clearDocumentSymbols();
+            if (active()->language == "elisp") {
+                emacsState.emacsFunctionIndexDirty = true;
+            }
+        });
+        events.subscribe(UIEventType::ASTChanged, [this](const UIEvent&) {
+            if (!active()) return;
+            library.primitives.setRoot(activeAST());
+            library.primitives.setLanguage(active()->language);
+            symbolsPending = true;
+            symbolsLastChange = ImGui::GetTime();
+            if (lsp) lsp->clearDocumentSymbols();
+        });
+        events.subscribe(UIEventType::SettingsChanged, [this](const UIEvent&) {
+            applySettingsToState();
+        });
         startEmacsDaemonFromSettings();
         initAgentServer();
         refreshBuildSystem();
@@ -1671,6 +1686,9 @@ struct EditorState {
         std::string prevLang = active()->language;
         active()->language = lang;
         active()->mode.setLanguage(lang);
+        if (activeAST()) {
+            library.primitives.setRoot(activeAST());
+        }
         library.primitives.setLanguage(lang);
         if (active()->generatedLanguage == prevLang) {
             active()->generatedLanguage = lang;
@@ -1692,6 +1710,11 @@ struct EditorState {
             active()->bufferMode = BufferManager::BufferMode::Text;
             buffers.setBufferMode(active()->path, active()->bufferMode);
         }
+        events.publishDebounced(UIEventType::ASTChanged,
+                                active()->path,
+                                {},
+                                ImGui::GetTime(),
+                                0.1);
     }
 
     bool handleEmacsKeyChord(const std::string& chord) {
@@ -1823,19 +1846,20 @@ struct EditorState {
             active()->sync.syncNow();
             active()->incrementalOptimizer.setRoot(active()->sync.getAST());
         }
-        library.primitives.setRoot(activeAST());
-        library.primitives.setLanguage(active()->language);
         active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
         active()->generatedHighlightsDirty = true;
         active()->modified = true;
-        symbolsPending = true;
-        symbolsLastChange = ImGui::GetTime();
-        if (lsp) lsp->clearDocumentSymbols();
         if (lsp && active()->path.rfind("(untitled", 0) != 0) {
             active()->lspVersion += 1;
             lsp->didChange(toFileUri(active()->path), active()->editBuf, active()->lspVersion);
         }
+        events.publish(UIEventType::FileModified, active()->path, {}, ImGui::GetTime());
+        events.publishDebounced(UIEventType::ASTChanged,
+                                active()->path,
+                                {},
+                                ImGui::GetTime(),
+                                0.15);
         recordUndoSnapshot();
     }
 
