@@ -51,6 +51,7 @@
 #include "AgentLibraryPolicy.h"
 #include "AgentCodeGen.h"
 #include "AgentAnnotationAssistant.h"
+#include "AgentPermissionPolicy.h"
 #include "CompositionPanel.h"
 #include "IncrementalOptimizer.h"
 #include "EmacsIntegration.h"
@@ -174,7 +175,7 @@ struct EditorState {
     MockWebSocketTransport* agentTransport = nullptr;
     int               agentPort = 8765;
     std::vector<std::string> agentLog;
-    std::map<std::string, bool> agentMutationPermissions;
+    std::map<std::string, AgentRole> agentRoles;
     BuildSystem::Type buildType = BuildSystem::Type::None;
     std::vector<BuildError> buildErrors;
     std::string lastBuildOutput;
@@ -910,9 +911,9 @@ struct EditorState {
                                                    const std::string& event) {
             logAgentEvent("Agent " + s.sessionId + " " + event);
             if (event == "connected") {
-                agentMutationPermissions[s.sessionId] = false;
+                agentRoles[s.sessionId] = AgentRole::Linter;
             } else if (event == "disconnected") {
-                agentMutationPermissions.erase(s.sessionId);
+                agentRoles.erase(s.sessionId);
             }
         });
         agentServer->setRequestLogCallback([this](const std::string& sid,
@@ -935,6 +936,27 @@ struct EditorState {
 
     void logAgentEvent(const std::string& msg) {
         agentLog.push_back(msg);
+    }
+
+    AgentRole getAgentRole(const std::string& sessionId) const {
+        auto it = agentRoles.find(sessionId);
+        return it != agentRoles.end() ? it->second : AgentRole::Linter;
+    }
+
+    void setAgentRole(const std::string& sessionId, AgentRole role) {
+        agentRoles[sessionId] = role;
+    }
+
+    std::string agentActorLabel(const std::string& sessionId) const {
+        std::string label = "agent:" + sessionId;
+        if (agentServer) {
+            if (const auto* sess = agentServer->getSession(sessionId)) {
+                if (!sess->agentName.empty()) {
+                    label = "agent:" + sess->agentName;
+                }
+            }
+        }
+        return label;
     }
 
     void refreshBuildSystem() {
@@ -1108,6 +1130,7 @@ struct EditorState {
         response["id"] = request.contains("id") ? request["id"] : json(nullptr);
 
         std::string method = request.value("method", "");
+        AgentRole role = getAgentRole(sessionId);
         if (method == "getAST") {
             if (!active() || !isStructured()) {
                 response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
@@ -1127,6 +1150,10 @@ struct EditorState {
         }
 
         if (method == "generateCode") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
             if (!active() || !isStructured()) {
                 response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
                 return response;
@@ -1162,7 +1189,22 @@ struct EditorState {
             return response;
         }
 
+        if (method == "setAgentRole") {
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string roleName = params.value("role", "linter");
+            AgentRole newRole = AgentPermissionPolicy::roleFromString(roleName);
+            setAgentRole(sessionId, newRole);
+            response["result"] = {
+                {"role", AgentPermissionPolicy::roleLabel(newRole)}
+            };
+            return response;
+        }
+
         if (method == "getAnnotationSuggestions") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
             if (!active() || !isStructured()) {
                 response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
                 return response;
@@ -1220,9 +1262,8 @@ struct EditorState {
         }
 
         if (method == "applyAnnotationSuggestion") {
-            auto permIt = agentMutationPermissions.find(sessionId);
-            if (permIt == agentMutationPermissions.end() || !permIt->second) {
-                response["error"] = {{"code", -32030}, {"message", "Mutation not permitted"}};
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
                 return response;
             }
             if (!active() || !isStructured()) {
@@ -1256,6 +1297,18 @@ struct EditorState {
             }
 
             applyOrchestratorToActive();
+            if (active()) {
+                std::vector<std::string> affected;
+                if (!suggestion.nodeId.empty()) affected.push_back(suggestion.nodeId);
+                if (!suggestion.annotationType.empty() && !suggestion.nodeId.empty()) {
+                    affected.push_back("anno_" + suggestion.annotationType + "_" + suggestion.nodeId);
+                }
+                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+                active()->incrementalOptimizer.recordExternalTransform(
+                    "agent-annotation",
+                    affected,
+                    agentActorLabel(sessionId));
+            }
             response["result"] = {
                 {"success", true},
                 {"warning", res.warning}
@@ -1264,6 +1317,10 @@ struct EditorState {
         }
 
         if (method == "recordAnnotationFeedback") {
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
+                return response;
+            }
             auto params = request.contains("params") ? request["params"] : json::object();
             MemoryStrategyInference::Suggestion suggestion;
             suggestion.nodeId = params.value("nodeId", "");
@@ -1280,9 +1337,8 @@ struct EditorState {
         }
 
         if (method == "applyMutation") {
-            auto permIt = agentMutationPermissions.find(sessionId);
-            if (permIt == agentMutationPermissions.end() || !permIt->second) {
-                response["error"] = {{"code", -32030}, {"message", "Mutation not permitted"}};
+            if (!AgentPermissionPolicy::canInvoke(role, method)) {
+                response["error"] = {{"code", -32031}, {"message", "Role not permitted"}};
                 return response;
             }
             if (!active() || !isStructured()) {
@@ -1302,8 +1358,11 @@ struct EditorState {
             mut.setRoot(ast);
             ASTMutationAPI::MutationResult res;
             LibraryPolicyResult policy;
+            std::vector<std::string> affectedIds;
 
             if (type == "setProperty") {
+                std::string nodeId = params.value("nodeId", "");
+                if (!nodeId.empty()) affectedIds.push_back(nodeId);
                 res = mut.setProperty(params.value("nodeId", ""),
                                       params.value("property", ""),
                                       params.value("value", ""));
@@ -1314,13 +1373,19 @@ struct EditorState {
                         props[k] = v.get<std::string>();
                     }
                 }
+                std::string nodeId = params.value("nodeId", "");
+                if (!nodeId.empty()) affectedIds.push_back(nodeId);
                 res = mut.updateNode(params.value("nodeId", ""), props);
             } else if (type == "deleteNode") {
+                std::string nodeId = params.value("nodeId", "");
+                if (!nodeId.empty()) affectedIds.push_back(nodeId);
                 res = mut.deleteNode(params.value("nodeId", ""));
             } else if (type == "insertNode") {
                 ASTNode* node = nullptr;
+                std::string insertedId;
                 if (params.contains("node")) {
                     node = fromJson(params["node"]);
+                    if (node) insertedId = node->id;
                 }
                 if (node) {
                     policy = checkMutationLibraryPolicy(node, ast, preferImports, strictMode);
@@ -1334,6 +1399,8 @@ struct EditorState {
                                      params.value("role", ""), node);
                 if (!res.success && node) {
                     deleteTree(node);
+                } else if (res.success && !insertedId.empty()) {
+                    affectedIds.push_back(insertedId);
                 }
             } else {
                 response["error"] = {{"code", -32602}, {"message", "Unknown mutation type"}};
@@ -1346,6 +1413,16 @@ struct EditorState {
             }
 
             applyOrchestratorToActive();
+            if (active()) {
+                if (affectedIds.empty() && !params.value("nodeId", "").empty()) {
+                    affectedIds.push_back(params.value("nodeId", ""));
+                }
+                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+                active()->incrementalOptimizer.recordExternalTransform(
+                    "agent-mutation:" + type,
+                    affectedIds,
+                    agentActorLabel(sessionId));
+            }
             response["result"] = {
                 {"success", true},
                 {"warning", res.warning},

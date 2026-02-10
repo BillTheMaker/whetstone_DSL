@@ -1901,10 +1901,12 @@ int main(int, char**) {
                         if (!s.agentName.empty()) label += " (" + s.agentName + ")";
                         ImGui::TextUnformatted(label.c_str());
                         ImGui::SameLine(260.0f);
-                        bool canMutate = state.agentMutationPermissions[s.sessionId];
-                        std::string checkId = "Can mutate##" + s.sessionId;
-                        if (ImGui::Checkbox(checkId.c_str(), &canMutate)) {
-                            state.agentMutationPermissions[s.sessionId] = canMutate;
+                        AgentRole role = state.getAgentRole(s.sessionId);
+                        int roleIndex = static_cast<int>(role);
+                        const char* roleLabels[] = {"Linter", "Refactor", "Generator"};
+                        std::string comboId = "Role##" + s.sessionId;
+                        if (ImGui::Combo(comboId.c_str(), &roleIndex, roleLabels, 3)) {
+                            state.setAgentRole(s.sessionId, static_cast<AgentRole>(roleIndex));
                         }
                         ImGui::SameLine(420.0f);
                         ImGui::Text("Msgs: %d", s.messageCount);
@@ -2248,12 +2250,18 @@ int main(int, char**) {
                             ImGui::TextColored(color, "%s", h.transformName.c_str());
                             ImGui::SameLine();
                             ImGui::TextDisabled("@ %s", h.timestamp.c_str());
+                            if (!h.actor.empty()) {
+                                ImGui::SameLine();
+                                ImGui::TextDisabled("by %s", h.actor.c_str());
+                            }
                             ImGui::SameLine();
+                            if (!h.reversible) ImGui::BeginDisabled();
                             if (ImGui::Button("Undo")) {
                                 if (inc.undoTransform(h.transformId)) {
                                     state.applyOrchestratorToActive();
                                 }
                             }
+                            if (!h.reversible) ImGui::EndDisabled();
                             ImGui::Text("Affected: %d", (int)h.affectedNodeIds.size());
                             std::string nodeList;
                             for (size_t i = 0; i < h.affectedNodeIds.size() && i < 5; ++i) {
@@ -2385,10 +2393,12 @@ int main(int, char**) {
                     ImGui::TextDisabled("(disabled in Text mode)");
                 } else if (ast) {
                     std::map<std::string, std::string> transformNames;
+                    std::map<std::string, std::string> transformActors;
                     if (state.active()) {
                         auto history = state.active()->incrementalOptimizer.getTransformHistory();
                         for (const auto& h : history) {
                             transformNames[h.transformId] = h.transformName;
+                            transformActors[h.transformId] = h.actor;
                         }
                     }
                     // Show basic AST info
@@ -2412,7 +2422,13 @@ int main(int, char**) {
                         ImGui::TextColored(fnColor, "  Function: %s", fn->name.c_str());
                         if (!tname.empty() && ImGui::IsItemHovered()) {
                             ImGui::BeginTooltip();
-                            ImGui::Text("Transform: %s (%s)", tname.c_str(), tid.c_str());
+                            std::string actor = transformActors[tid];
+                            if (actor.empty()) {
+                                ImGui::Text("Transform: %s (%s)", tname.c_str(), tid.c_str());
+                            } else {
+                                ImGui::Text("Transform: %s (%s) by %s",
+                                            tname.c_str(), tid.c_str(), actor.c_str());
+                            }
                             ImGui::EndTooltip();
                         }
                         auto params = fn->getChildren("parameters");
@@ -2431,7 +2447,13 @@ int main(int, char**) {
                             ImGui::TextColored(pColor, "    param: %s", param->name.c_str());
                             if (!pname.empty() && ImGui::IsItemHovered()) {
                                 ImGui::BeginTooltip();
-                                ImGui::Text("Transform: %s (%s)", pname.c_str(), pid.c_str());
+                                std::string actor = transformActors[pid];
+                                if (actor.empty()) {
+                                    ImGui::Text("Transform: %s (%s)", pname.c_str(), pid.c_str());
+                                } else {
+                                    ImGui::Text("Transform: %s (%s) by %s",
+                                                pname.c_str(), pid.c_str(), actor.c_str());
+                                }
                                 ImGui::EndTooltip();
                             }
                         }

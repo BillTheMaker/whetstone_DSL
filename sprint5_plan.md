@@ -313,7 +313,7 @@ primitives, and assist with constructive coding.
   to improve future suggestions.
   *Modifies:* `WebSocketServer.h`, `MemoryStrategyInference.h`
 
-- [ ] **Step 157: Multi-agent collaboration**
+- [x] **Step 157: Multi-agent collaboration**
   Support multiple agents connected simultaneously with different roles:
   - "Linter" agent: reads AST, reports issues, doesn't mutate
   - "Refactor" agent: can mutate with user approval

@@ -1,0 +1,55 @@
+#pragma once
+// Step 157: Agent role permissions
+
+#include <string>
+#include <algorithm>
+
+enum class AgentRole {
+    Linter = 0,
+    Refactor = 1,
+    Generator = 2
+};
+
+struct AgentPermissionPolicy {
+    static const char* roleLabel(AgentRole role) {
+        switch (role) {
+            case AgentRole::Linter: return "Linter";
+            case AgentRole::Refactor: return "Refactor";
+            case AgentRole::Generator: return "Generator";
+        }
+        return "Linter";
+    }
+
+    static AgentRole roleFromString(const std::string& role) {
+        std::string lower = role;
+        std::transform(lower.begin(), lower.end(), lower.begin(),
+                       [](unsigned char c) { return (char)std::tolower(c); });
+        if (lower == "refactor") return AgentRole::Refactor;
+        if (lower == "generator") return AgentRole::Generator;
+        return AgentRole::Linter;
+    }
+
+    static bool canInvoke(AgentRole role, const std::string& method) {
+        if (method == "getAST" ||
+            method == "getAnnotationSuggestions" ||
+            method == "recordAnnotationFeedback" ||
+            method == "setAgentRole") {
+            return true;
+        }
+
+        if (method == "generateCode") {
+            return role == AgentRole::Refactor || role == AgentRole::Generator;
+        }
+
+        if (method == "applyMutation" ||
+            method == "applyAnnotationSuggestion") {
+            return role == AgentRole::Refactor || role == AgentRole::Generator;
+        }
+
+        return true;
+    }
+
+    static bool canMutate(AgentRole role) {
+        return role == AgentRole::Refactor || role == AgentRole::Generator;
+    }
+};

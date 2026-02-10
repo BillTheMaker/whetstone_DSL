@@ -18,6 +18,8 @@ public:
         std::string transformName;
         std::vector<std::string> affectedNodeIds;
         std::string timestamp;
+        std::string actor;
+        bool reversible = true;
     };
 
     void setRoot(ASTNode* root) { root_ = root; }
@@ -29,6 +31,7 @@ public:
         record.info.transformId = tid;
         record.info.transformName = transformName;
         record.info.timestamp = currentTimestamp();
+        record.info.actor = "optimizer";
 
         if (transformName == "constant-fold") {
             applyConstantFolding(root_, tid, record);
@@ -48,9 +51,30 @@ public:
         return result;
     }
 
+    std::string recordExternalTransform(const std::string& transformName,
+                                        const std::vector<std::string>& affectedNodeIds,
+                                        const std::string& actor) {
+        std::string tid = "t" + std::to_string(nextId_++);
+        InternalRecord record;
+        record.info.transformId = tid;
+        record.info.transformName = transformName;
+        record.info.timestamp = currentTimestamp();
+        record.info.actor = actor;
+        record.info.reversible = false;
+        record.info.affectedNodeIds = affectedNodeIds;
+
+        for (const auto& nodeId : affectedNodeIds) {
+            provenance_[nodeId] = tid;
+        }
+
+        history_.push_back(std::move(record));
+        return tid;
+    }
+
     bool undoTransform(const std::string& transformId) {
         for (auto it = history_.begin(); it != history_.end(); ++it) {
             if (it->info.transformId == transformId) {
+                if (!it->info.reversible) return false;
                 // Apply undo actions in reverse order
                 for (auto ait = it->undoActions.rbegin(); ait != it->undoActions.rend(); ++ait) {
                     ait->undo();
