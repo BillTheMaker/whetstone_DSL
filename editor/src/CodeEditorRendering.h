@@ -11,6 +11,15 @@ public:
         if (!font) font = ImGui::GetFont();
 
         ImGuiIO& io = ImGui::GetIO();
+        const double nowSeconds = options.nowSeconds > 0.0 ? options.nowSeconds : ImGui::GetTime();
+        auto beginFadingTooltip = [&](const std::string& id, bool hovered) -> bool {
+            float alpha = AnimationUtils::tooltipAlpha(id, hovered, nowSeconds, options.reduceMotion);
+            if (alpha <= 0.01f) return false;
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * alpha);
+            ImGui::BeginTooltip();
+            return true;
+        };
+        static std::string lastDiagHoverMessage;
         // Build line start offsets
         std::vector<int> lineStarts;
         lineStarts.reserve(128);
@@ -233,10 +242,13 @@ public:
                 std::string msg = diagnosticMessageAtLine(*options.diagnostics, ln);
                 ImVec2 gutterA(origin.x, y);
                 ImVec2 gutterB(origin.x + gutterWidth, y + lineHeight);
-                if (!msg.empty() && ImGui::IsMouseHoveringRect(gutterA, gutterB)) {
-                    ImGui::BeginTooltip();
-                    ImGui::TextUnformatted(msg.c_str());
-                    ImGui::EndTooltip();
+                if (!msg.empty()) {
+                    bool hover = ImGui::IsMouseHoveringRect(gutterA, gutterB);
+                    if (beginFadingTooltip("diag_gutter_" + std::to_string(ln), hover)) {
+                        ImGui::TextUnformatted(msg.c_str());
+                        ImGui::EndTooltip();
+                        ImGui::PopStyleVar();
+                    }
                 }
             }
 
@@ -248,14 +260,17 @@ public:
                     drawList->AddCircleFilled(center, 3.0f, marker.color);
                     ImVec2 a(center.x - 4.0f, center.y - 4.0f);
                     ImVec2 b(center.x + 4.0f, center.y + 4.0f);
-                    if (ImGui::IsMouseHoveringRect(a, b)) {
+                    bool hoverAnno = ImGui::IsMouseHoveringRect(a, b);
+                    if (hoverAnno) {
                         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                             annotationPopupMessage_ = marker.message;
                             ImGui::OpenPopup(annoPopupId.c_str());
                         }
-                        ImGui::BeginTooltip();
+                    }
+                    if (beginFadingTooltip("anno_marker_" + std::to_string(ln), hoverAnno)) {
                         ImGui::TextUnformatted(marker.message.c_str());
                         ImGui::EndTooltip();
+                        ImGui::PopStyleVar();
                     }
                 }
             }
@@ -270,16 +285,19 @@ public:
                     drawList->AddCircleFilled(center, 3.0f, color);
                     ImVec2 a(center.x - 4.0f, center.y - 4.0f);
                     ImVec2 b(center.x + 4.0f, center.y + 4.0f);
-                    if (ImGui::IsMouseHoveringRect(a, b)) {
+                    bool hoverSuggestion = ImGui::IsMouseHoveringRect(a, b);
+                    if (hoverSuggestion) {
                         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                             result.suggestionClicked = true;
                             result.clickedSuggestion = suggestion;
                         }
-                        ImGui::BeginTooltip();
+                    }
+                    if (beginFadingTooltip("suggestion_marker_" + std::to_string(ln), hoverSuggestion)) {
                         ImGui::Text("%s (%.2f)", suggestion.label.c_str(), suggestion.confidence);
                         ImGui::Separator();
                         ImGui::TextUnformatted(suggestion.reason.c_str());
                         ImGui::EndTooltip();
+                        ImGui::PopStyleVar();
                     }
                 }
             }
@@ -305,10 +323,11 @@ public:
                     }
                     ImVec2 a(center.x - 5.0f, center.y - 5.0f);
                     ImVec2 b(center.x + 5.0f, center.y + 5.0f);
-                    if (ImGui::IsMouseHoveringRect(a, b)) {
-                        ImGui::BeginTooltip();
+                    bool hoverConflict = ImGui::IsMouseHoveringRect(a, b);
+                    if (beginFadingTooltip("conflict_marker_" + std::to_string(ln), hoverConflict)) {
                         ImGui::TextUnformatted(conflict.message.c_str());
                         ImGui::EndTooltip();
+                        ImGui::PopStyleVar();
                     }
                 }
             }
@@ -349,6 +368,22 @@ public:
                     ImVec2 hlA(textBase.x, y);
                     ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
                     drawList->AddRectFilled(hlA, hlB, options.highlightLineColor);
+                }
+            }
+            if (options.searchPulseLine >= 0 && ln == options.searchPulseLine) {
+                float pulse = AnimationUtils::pulseAlpha(nowSeconds,
+                                                         options.searchPulseStart,
+                                                         0.6f,
+                                                         options.reduceMotion);
+                if (pulse > 0.0f) {
+                    ImU32 base = ThemeEngine::instance().editorColor("search_pulse",
+                                                                     IM_COL32(240, 200, 80, 160));
+                    ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
+                    c.w *= pulse;
+                    ImU32 col = ImGui::ColorConvertFloat4ToU32(c);
+                    ImVec2 hlA(textBase.x, y);
+                    ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
+                    drawList->AddRectFilled(hlA, hlB, col);
                 }
             }
 
@@ -439,10 +474,16 @@ public:
                     ImVec2 mouse = ImGui::GetMousePos();
                     std::string msg = diagnosticMessageAtPoint(*options.diagnostics, ln, mouse,
                                                                y, lineHeight, charAdvance, textBase.x);
-                    if (!msg.empty()) {
-                        ImGui::BeginTooltip();
-                        ImGui::TextUnformatted(msg.c_str());
+                    bool hoverDiag = !msg.empty();
+                    if (hoverDiag) {
+                        lastDiagHoverMessage = msg;
+                    }
+                    if (beginFadingTooltip("diag_point", hoverDiag)) {
+                        if (!lastDiagHoverMessage.empty()) {
+                            ImGui::TextUnformatted(lastDiagHoverMessage.c_str());
+                        }
                         ImGui::EndTooltip();
+                        ImGui::PopStyleVar();
                     }
                 }
             }
@@ -457,18 +498,21 @@ public:
 
         // Cursor
         if (focused) {
-            const double t = ImGui::GetTime();
-            const bool blinkOn = ((int)(t * 2.0)) % 2 == 0;
-            if (blinkOn) {
+            float blinkAlpha = AnimationUtils::blinkAlpha(nowSeconds,
+                                                          options.cursorBlinkRate,
+                                                          options.reduceMotion);
+            if (blinkAlpha > 0.02f) {
                 int curLine = currentLine;
                 int lineStart = lineStarts[curLine];
                 int col = cursor_ - lineStart;
                 float x = textBase.x + col * charAdvance;
                 float y = textBase.y + curLine * lineHeight;
-                drawList->AddLine(ImVec2(x, y), ImVec2(x, y + lineHeight),
-                                  ThemeEngine::instance().editorColor("caret",
-                                                                      IM_COL32(240, 240, 240, 255)),
-                                  1.0f);
+                ImU32 base = ThemeEngine::instance().editorColor("caret",
+                                                                IM_COL32(240, 240, 240, 255));
+                ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
+                c.w *= blinkAlpha;
+                ImU32 col32 = ImGui::ColorConvertFloat4ToU32(c);
+                drawList->AddLine(ImVec2(x, y), ImVec2(x, y + lineHeight), col32, 1.0f);
             }
         }
 

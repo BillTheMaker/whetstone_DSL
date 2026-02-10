@@ -1,11 +1,27 @@
 #pragma once
 #include "../EditorState.h"
 #include "../EditorUtils.h"
+#include "../AnimationUtils.h"
 
 static void renderFindReplaceBar(EditorState& state) {
-    if (!state.search.showFind) return;
-    ImGui::Begin("Find & Replace", &state.search.showFind, ImGuiWindowFlags_AlwaysAutoResize);
+    const double now = ImGui::GetTime();
+    float alpha = 1.0f;
+    float offset = 0.0f;
+    bool render = AnimationUtils::panelTransition("FindReplacePanel",
+                                                  state.search.showFind,
+                                                  now,
+                                                  state.settings.getReduceMotion(),
+                                                  0.14f,
+                                                  12.0f,
+                                                  alpha,
+                                                  offset);
+    if (!render) return;
+    bool open = state.search.showFind;
+    ImGui::SetNextWindowBgAlpha(alpha);
+    ImGui::Begin("Find & Replace", &open, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * alpha);
     ImGui::PushFont(state.uiFont);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
     ImGui::SetNextItemWidth(300);
     if (ImGui::InputText("Find", state.search.findBuf, sizeof(state.search.findBuf),
                          ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -19,13 +35,32 @@ static void renderFindReplaceBar(EditorState& state) {
     ImGui::SameLine();
     if (ImGui::Button("Replace All")) state.doReplaceAll();
     ImGui::PopFont();
+    ImGui::PopStyleVar();
     ImGui::End();
+    if (!open) {
+        state.search.showFind = false;
+    }
 }
 
 static void renderProjectSearchPanel(EditorState& state) {
-    if (!state.search.showProjectSearch) return;
-    ImGui::Begin("Search", &state.search.showProjectSearch);
+    const double now = ImGui::GetTime();
+    float alpha = 1.0f;
+    float offset = 0.0f;
+    bool render = AnimationUtils::panelTransition("ProjectSearchPanel",
+                                                  state.search.showProjectSearch,
+                                                  now,
+                                                  state.settings.getReduceMotion(),
+                                                  0.16f,
+                                                  16.0f,
+                                                  alpha,
+                                                  offset);
+    if (!render) return;
+    bool open = state.search.showProjectSearch;
+    ImGui::SetNextWindowBgAlpha(alpha);
+    ImGui::Begin("Search", &open);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * alpha);
     ImGui::PushFont(state.uiFont);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
     bool doSearch = false;
     ImGui::SetNextItemWidth(420);
     if (ImGui::InputText("Query", state.search.searchQuery, sizeof(state.search.searchQuery),
@@ -76,5 +111,9 @@ static void renderProjectSearchPanel(EditorState& state) {
     }
     ImGui::EndChild();
     ImGui::PopFont();
+    ImGui::PopStyleVar();
     ImGui::End();
+    if (!open) {
+        state.search.showProjectSearch = false;
+    }
 }

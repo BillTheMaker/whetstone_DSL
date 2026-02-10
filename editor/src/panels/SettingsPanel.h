@@ -2,6 +2,7 @@
 #include "../EditorState.h"
 #include "../EditorUtils.h"
 #include "../ThemeEngine.h"
+#include "../AnimationUtils.h"
 #include <cstdlib>
 #include <filesystem>
 #include <vector>
@@ -67,9 +68,26 @@ static int findFontIndex(const std::vector<FontOption>& options, const std::stri
 }
 
 static void renderSettingsPanel(EditorState& state) {
-    if (!state.ui.showSettingsPanel) return;
-    ImGui::Begin("Settings", &state.ui.showSettingsPanel);
+    const double now = ImGui::GetTime();
+    const bool reduceMotion = state.settings.getReduceMotion();
+    float alpha = 1.0f;
+    float offset = 0.0f;
+    const bool render = AnimationUtils::panelTransition("SettingsPanel",
+                                                        state.ui.showSettingsPanel,
+                                                        now,
+                                                        reduceMotion,
+                                                        0.18f,
+                                                        18.0f,
+                                                        alpha,
+                                                        offset);
+    if (!render) return;
+    bool open = state.ui.showSettingsPanel;
+    ImGui::SetNextWindowBgAlpha(alpha);
+    ImGui::Begin("Settings", &open);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * alpha);
     ImGui::PushFont(state.uiFont);
+    float startX = ImGui::GetCursorPosX();
+    ImGui::SetCursorPosX(startX + offset);
     bool settingsChanged = false;
     bool emacsConfigChanged = false;
     bool themeChanged = false;
@@ -130,6 +148,11 @@ static void renderSettingsPanel(EditorState& state) {
     float letterSpacing = state.settings.getLetterSpacing();
     if (ImGui::SliderFloat("Letter Spacing", &letterSpacing, 0.0f, 3.0f, "%.1f")) {
         state.settings.setLetterSpacing(letterSpacing);
+        settingsChanged = true;
+    }
+    float blinkRate = state.settings.getCursorBlinkRate();
+    if (ImGui::SliderFloat("Cursor Blink Rate (Hz)", &blinkRate, 0.0f, 4.0f, "%.1f")) {
+        state.settings.setCursorBlinkRate(blinkRate);
         settingsChanged = true;
     }
 
@@ -321,6 +344,11 @@ static void renderSettingsPanel(EditorState& state) {
         state.ui.showLineNumbers = showLineNumbers;
         settingsChanged = true;
     }
+    bool reduceMotionSetting = state.settings.getReduceMotion();
+    if (ImGui::Checkbox("Reduce Motion", &reduceMotionSetting)) {
+        state.settings.setReduceMotion(reduceMotionSetting);
+        settingsChanged = true;
+    }
 
     LayoutPreset preset = state.ui.layoutPreset;
     int presetIndex = 0;
@@ -386,5 +414,9 @@ static void renderSettingsPanel(EditorState& state) {
         state.events.publish(UIEventType::ThemeChanged, {}, {}, ImGui::GetTime());
     }
     ImGui::PopFont();
+    ImGui::PopStyleVar();
     ImGui::End();
+    if (!open) {
+        state.ui.showSettingsPanel = false;
+    }
 }

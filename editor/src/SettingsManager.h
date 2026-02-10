@@ -38,6 +38,8 @@ public:
     void setLineHeightScale(float value) { lineHeightScale_ = value; }
     float getLetterSpacing() const { return letterSpacing_; }
     void setLetterSpacing(float value) { letterSpacing_ = value; }
+    float getCursorBlinkRate() const { return cursorBlinkRate_; }
+    void setCursorBlinkRate(float value) { cursorBlinkRate_ = value; }
     int getTabSize() const { return tabSize_; }
     void setTabSize(int size) { tabSize_ = size; }
     const std::string& getTheme() const { return theme_; }
@@ -54,6 +56,8 @@ public:
     void setShowMinimap(bool value) { showMinimap_ = value; }
     bool getShowLineNumbers() const { return showLineNumbers_; }
     void setShowLineNumbers(bool value) { showLineNumbers_ = value; }
+    bool getReduceMotion() const { return reduceMotion_; }
+    void setReduceMotion(bool value) { reduceMotion_ = value; }
     const std::string& getLayoutPreset() const { return layoutPreset_; }
     void setLayoutPreset(const std::string& name) { layoutPreset_ = name; }
     const std::string& getKeybindingProfile() const { return keybindingProfile_; }
@@ -70,6 +74,7 @@ public:
             uiFontPath_ = j.value("uiFont", uiFontPath_);
             lineHeightScale_ = j.value("lineHeight", lineHeightScale_);
             letterSpacing_ = j.value("letterSpacing", letterSpacing_);
+            cursorBlinkRate_ = j.value("cursorBlinkRate", cursorBlinkRate_);
             tabSize_ = j.value("tabSize", tabSize_);
             theme_ = j.value("theme", theme_);
             telemetryOptIn_ = j.value("telemetryOptIn", telemetryOptIn_);
@@ -77,6 +82,7 @@ public:
             autoSaveSeconds_ = j.value("autoSaveSeconds", autoSaveSeconds_);
             showMinimap_ = j.value("showMinimap", showMinimap_);
             showLineNumbers_ = j.value("showLineNumbers", showLineNumbers_);
+            reduceMotion_ = j.value("reduceMotion", reduceMotion_);
             layoutPreset_ = j.value("layoutPreset", layoutPreset_);
             keybindingProfile_ = j.value("keybindingProfile", keybindingProfile_);
             emacsConfigPath_ = j.value("emacsConfigPath", emacsConfigPath_);
@@ -106,6 +112,7 @@ public:
             j["uiFont"] = uiFontPath_;
             j["lineHeight"] = lineHeightScale_;
             j["letterSpacing"] = letterSpacing_;
+            j["cursorBlinkRate"] = cursorBlinkRate_;
             j["tabSize"] = tabSize_;
             j["theme"] = theme_;
             j["telemetryOptIn"] = telemetryOptIn_;
@@ -113,6 +120,7 @@ public:
             j["autoSaveSeconds"] = autoSaveSeconds_;
             j["showMinimap"] = showMinimap_;
             j["showLineNumbers"] = showLineNumbers_;
+            j["reduceMotion"] = reduceMotion_;
             j["layoutPreset"] = layoutPreset_;
             j["keybindingProfile"] = keybindingProfile_;
             j["emacsConfigPath"] = emacsConfigPath_;
@@ -179,6 +187,7 @@ private:
     std::string uiFontPath_;
     float lineHeightScale_ = 1.0f;
     float letterSpacing_ = 0.0f;
+    float cursorBlinkRate_ = 2.0f;
     int tabSize_ = 4;
     std::string theme_ = "Whetstone Dark";
     bool telemetryOptIn_ = false;
@@ -186,6 +195,7 @@ private:
     int autoSaveSeconds_ = 0;
     bool showMinimap_ = false;
     bool showLineNumbers_ = true;
+    bool reduceMotion_ = false;
     std::string layoutPreset_ = "VSCode";
     std::string keybindingProfile_ = "VSCode";
 

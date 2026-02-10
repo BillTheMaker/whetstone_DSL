@@ -57,6 +57,7 @@
 #include "state/LibraryState.h"
 #include "state/EmacsState.h"
 #include "state/UIFlags.h"
+#include "state/UIAnimationState.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
 #include "LibraryBrowserPanel.h"
@@ -174,6 +175,7 @@ struct EditorState {
     LibraryState      library;
     EmacsState        emacsState;
     UIFlags           ui;
+    UIAnimationState  uiAnimations;
 
     NotificationSystem notifications;
     UIEventBus         events;
@@ -459,6 +461,7 @@ struct EditorState {
             lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
         }
         events.publish(UIEventType::BufferSwitched, path, {}, ImGui::GetTime());
+        uiAnimations.recordTabSwitch(path, ImGui::GetTime());
     }
 
     bool jumpToDefinitionLocation(const LSPClient::DefinitionLocation& loc) {
@@ -540,6 +543,7 @@ struct EditorState {
         activeBuffer = bufferStates[path].get();
         if (active()) active()->orchestratorDirty = true;
         events.publish(UIEventType::BufferSwitched, path, {}, ImGui::GetTime());
+        uiAnimations.recordTabSwitch(path, ImGui::GetTime());
     }
 
     std::filesystem::path configDir() const {
@@ -1900,12 +1904,16 @@ struct EditorState {
             target.path = active()->path;
             target.line = std::max(0, line - 1);
             target.col = std::max(0, col - 1);
+            search.pulseLine = target.line;
+            search.pulseStart = ImGui::GetTime();
             notify(NotificationLevel::Info,
                    "Found \"" + std::string(search.findBuf) + "\" at line " +
                    std::to_string(line) + ", col " + std::to_string(col),
                    target);
         } else {
             search.lastFindPos = 0;
+            search.pulseLine = -1;
+            search.pulseStart = 0.0;
             notify(NotificationLevel::Warning,
                    "\"" + std::string(search.findBuf) + "\" not found.");
         }

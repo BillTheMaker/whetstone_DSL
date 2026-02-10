@@ -366,7 +366,7 @@ int main(int, char**) {
         });
         state.notifications.renderToasts([&](const Notification& note) {
             if (note.hasTarget) state.navigateToTarget(note.target);
-        });
+        }, state.settings.getReduceMotion());
 
         // Check for exit request from menu
         if (state.exitRequested) done = true;

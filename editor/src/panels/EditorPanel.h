@@ -3,6 +3,7 @@
 #include "../EditorState.h"
 #include "../EditorUtils.h"
 #include "../CompletionUtils.h"
+#include "../AnimationUtils.h"
 
 static void renderEditorPanel(EditorState& state) {
         // ---------------------------------------------------------------
@@ -69,6 +70,12 @@ static void renderEditorPanel(EditorState& state) {
                         if (!state.active() || state.active()->path != path) {
                             state.switchToBuffer(path);
                         }
+                        const double nowSeconds = ImGui::GetTime();
+                        float tabAlpha = state.uiAnimations.tabFadeAlpha(path,
+                                                                         nowSeconds,
+                                                                         state.settings.getReduceMotion());
+                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
+                                            ImGui::GetStyle().Alpha * tabAlpha);
                         // Editable text area fills available space
                         ImVec2 avail = ImGui::GetContentRegionAvail();
                         avail.y -= 4; // small margin
@@ -177,6 +184,9 @@ static void renderEditorPanel(EditorState& state) {
                             opts.showLineNumbers = state.ui.showLineNumbers;
                             opts.lineHeightScale = state.settings.getLineHeightScale();
                             opts.letterSpacing = state.settings.getLetterSpacing();
+                            opts.cursorBlinkRate = state.settings.getCursorBlinkRate();
+                            opts.reduceMotion = state.settings.getReduceMotion();
+                            opts.nowSeconds = nowSeconds;
                             if (state.ui.layoutPreset == LayoutPreset::Emacs) opts.annotationLayout = 1;
                             else if (state.ui.layoutPreset == LayoutPreset::JetBrains) opts.annotationLayout = 2;
                             else opts.annotationLayout = 0;
@@ -186,6 +196,8 @@ static void renderEditorPanel(EditorState& state) {
                             opts.annotations = &annoMarkers;
                             opts.suggestions = &suggestionMarkers;
                             opts.conflicts = &conflictMarkers;
+                            opts.searchPulseLine = state.search.pulseLine;
+                            opts.searchPulseStart = state.search.pulseStart;
 
                             if (buf->bufferMode == BufferManager::BufferMode::Structured) {
                                 opts.syncScrollX = &buf->splitScrollX;
@@ -232,6 +244,9 @@ static void renderEditorPanel(EditorState& state) {
                                 genOpts.showCurrentLine = false;
                                 genOpts.lineHeightScale = state.settings.getLineHeightScale();
                                 genOpts.letterSpacing = state.settings.getLetterSpacing();
+                                genOpts.cursorBlinkRate = state.settings.getCursorBlinkRate();
+                                genOpts.reduceMotion = state.settings.getReduceMotion();
+                                genOpts.nowSeconds = nowSeconds;
                                 genOpts.highlightLine = buf->generatedHighlightLine;
                                 genOpts.syncScrollX = &buf->splitScrollX;
                                 genOpts.syncScrollY = &buf->splitScrollY;
@@ -494,10 +509,20 @@ static void renderEditorPanel(EditorState& state) {
                                     state.hoverPending = false;
                                 }
                                 std::string hover = state.lsp->getHoverContents();
-                                if (!hover.empty()) {
+                                static std::string lastHoverText;
+                                bool hoverActive = !hover.empty();
+                                if (hoverActive) lastHoverText = hover;
+                                float alpha = AnimationUtils::tooltipAlpha("lsp_hover",
+                                                                           hoverActive,
+                                                                           nowSeconds,
+                                                                           state.settings.getReduceMotion());
+                                if (alpha > 0.01f && !lastHoverText.empty()) {
+                                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
+                                                        ImGui::GetStyle().Alpha * alpha);
                                     ImGui::BeginTooltip();
-                                    ImGui::TextUnformatted(hover.c_str());
+                                    ImGui::TextUnformatted(lastHoverText.c_str());
                                     ImGui::EndTooltip();
+                                    ImGui::PopStyleVar();
                                 }
                             }
 
@@ -529,16 +554,34 @@ static void renderEditorPanel(EditorState& state) {
                         if (res.hoverValid && (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
                             std::string preview;
                             if (state.previewDefinitionAt(res.hoverLine, res.hoverCol, preview)) {
-                                ImGui::BeginTooltip();
-                                ImGui::TextUnformatted(preview.c_str());
-                                ImGui::EndTooltip();
+                                float alpha = AnimationUtils::tooltipAlpha("definition_preview",
+                                                                           true,
+                                                                           nowSeconds,
+                                                                           state.settings.getReduceMotion());
+                                if (alpha > 0.01f) {
+                                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
+                                                        ImGui::GetStyle().Alpha * alpha);
+                                    ImGui::BeginTooltip();
+                                    ImGui::TextUnformatted(preview.c_str());
+                                    ImGui::EndTooltip();
+                                    ImGui::PopStyleVar();
+                                }
                             } else if (state.definitionPreviewValid) {
                                 std::string path = EditorState::fromFileUri(state.definitionPreview.uri);
                                 std::string label = path + ":" +
                                     std::to_string(state.definitionPreview.range.start.line + 1);
-                                ImGui::BeginTooltip();
-                                ImGui::TextUnformatted(label.c_str());
-                                ImGui::EndTooltip();
+                                float alpha = AnimationUtils::tooltipAlpha("definition_preview_fallback",
+                                                                           true,
+                                                                           nowSeconds,
+                                                                           state.settings.getReduceMotion());
+                                if (alpha > 0.01f) {
+                                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
+                                                        ImGui::GetStyle().Alpha * alpha);
+                                    ImGui::BeginTooltip();
+                                    ImGui::TextUnformatted(label.c_str());
+                                    ImGui::EndTooltip();
+                                    ImGui::PopStyleVar();
+                                }
                             }
                         }
 
@@ -709,6 +752,7 @@ static void renderEditorPanel(EditorState& state) {
                             ImGui::EndPopup();
                         }
 
+                        ImGui::PopStyleVar();
                         ImGui::EndTabItem();
                     }
                     if (!open) {

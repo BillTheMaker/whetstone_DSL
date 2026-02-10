@@ -142,7 +142,7 @@ look professional and feel personal.
   - Settings UI for all typography options
   *Modifies:* `SettingsManager.h`, `CodeEditorWidget.h`, `ThemeEngine.h`
 
-- [ ] **Step 176: Smooth UI transitions**
+- [x] **Step 176: Smooth UI transitions**
   Subtle animations that make the editor feel polished:
   - Panel open/close: smooth slide (not instant pop)
   - Tab switch: brief cross-fade on editor content

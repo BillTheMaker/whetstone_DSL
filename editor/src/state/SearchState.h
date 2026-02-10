@@ -6,6 +6,8 @@ struct SearchState {
     char findBuf[256] = {};
     char replaceBuf[256] = {};
     int lastFindPos = 0;
+    int pulseLine = -1;
+    double pulseStart = 0.0;
 
     bool showProjectSearch = false;
     char searchQuery[256] = {};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imgui.h"
+#include "AnimationUtils.h"
 
 #include <string>
 #include <vector>
@@ -93,13 +94,17 @@ public:
         return history;
     }
 
-    void renderToasts(const std::function<void(const Notification&)>& onNavigate = {}) {
+    void renderToasts(const std::function<void(const Notification&)>& onNavigate = {},
+                      bool reduceMotion = false) {
         const double now = ImGui::GetTime();
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         const ImVec2 base(viewport->WorkPos.x + viewport->WorkSize.x,
                           viewport->WorkPos.y + viewport->WorkSize.y);
         const float padding = 12.0f;
         const float toastWidth = 360.0f;
+        const float fadeIn = 0.18f;
+        const float fadeOut = 0.25f;
+        const float slidePixels = 28.0f;
         float y = base.y - padding;
 
         for (int i = (int)history.size() - 1; i >= 0; --i) {
@@ -113,9 +118,24 @@ public:
                 ImGuiWindowFlags_NoNav |
                 ImGuiWindowFlags_NoSavedSettings;
 
-            ImGui::SetNextWindowPos(ImVec2(base.x - padding, y), ImGuiCond_Always, ImVec2(1.0f, 1.0f));
+            float age = (float)(now - n.timestamp);
+            float alpha = 1.0f;
+            float slide = 0.0f;
+            if (!reduceMotion) {
+                float inT = AnimationUtils::clamp01(age / fadeIn);
+                float outT = AnimationUtils::clamp01((age - (n.durationSeconds - fadeOut)) / fadeOut);
+                alpha = AnimationUtils::easeOutCubic(inT);
+                if (age > n.durationSeconds - fadeOut) {
+                    alpha *= (1.0f - AnimationUtils::easeOutCubic(outT));
+                }
+                slide = (1.0f - AnimationUtils::easeOutCubic(inT)) * slidePixels;
+            }
+            ImGui::SetNextWindowPos(ImVec2(base.x - padding + slide, y),
+                                    ImGuiCond_Always,
+                                    ImVec2(1.0f, 1.0f));
             ImGui::SetNextWindowSize(ImVec2(toastWidth, 0.0f), ImGuiCond_Always);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 10));
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * alpha);
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.08f, 0.08f, 0.08f, 0.92f));
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.22f, 0.22f, 0.22f, 0.9f));
             ImGui::Begin(("##toast_" + std::to_string(n.id)).c_str(), nullptr, flags);
@@ -138,7 +158,7 @@ public:
             ImVec2 size = ImGui::GetWindowSize();
             ImGui::End();
             ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
+            ImGui::PopStyleVar(2);
 
             if (clicked) {
                 n.read = true;

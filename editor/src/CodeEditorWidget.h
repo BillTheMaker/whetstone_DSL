@@ -9,6 +9,7 @@
 #include "imgui.h"
 #include "SyntaxHighlighter.h"
 #include "ThemeEngine.h"
+#include "AnimationUtils.h"
 #include "EditorMode.h"
 #include <string>
 #include <vector>
@@ -27,6 +28,9 @@ struct CodeEditorOptions {
     bool showCurrentLine = true;
     float lineHeightScale = 1.0f;
     float letterSpacing = 0.0f;
+    float cursorBlinkRate = 2.0f;
+    bool reduceMotion = false;
+    double nowSeconds = 0.0;
     int annotationLayout = 0; // 0=above, 1=margin, 2=beside
     const std::vector<int>* errorLines = nullptr;
     const std::vector<int>* warningLines = nullptr;
@@ -36,6 +40,8 @@ struct CodeEditorOptions {
     const std::vector<struct AnnotationConflictMarker>* conflicts = nullptr;
     int highlightLine = -1;
     const std::vector<int>* highlightLines = nullptr;
+    int searchPulseLine = -1;
+    double searchPulseStart = 0.0;
     ImU32 highlightLineColor = IM_COL32(90, 70, 30, 120);
     float* syncScrollX = nullptr;
     float* syncScrollY = nullptr;
