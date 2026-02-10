@@ -305,7 +305,7 @@ primitives, and assist with constructive coding.
   Returns AST nodes that the agent can review before insertion.
   *New:* `AgentCodeGen.h`
 
-- [ ] **Step 156: Agent annotation assistant**
+- [x] **Step 156: Agent annotation assistant**
   Agent can request annotation suggestions for a code region. Whetstone
   runs `MemoryStrategyInference` and `AnnotationValidator`, returns
   suggestions with confidence scores. Agent can apply suggestions via

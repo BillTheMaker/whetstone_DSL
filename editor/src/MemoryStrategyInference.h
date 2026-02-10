@@ -8,6 +8,8 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
 #include "ast/ASTNode.h"
 #include "ast/Module.h"
 #include "ast/Function.h"
@@ -25,15 +27,32 @@ public:
         double confidence;           // 0.0 – 1.0
     };
 
+    struct FeedbackStats {
+        int accepted = 0;
+        int rejected = 0;
+    };
+
     // Analyse the AST and return suggestions.  Does NOT modify the AST.
     std::vector<Suggestion> inferAnnotations(const ASTNode* root) const {
         std::vector<Suggestion> out;
         if (!root) return out;
         inferNode(root, out);
+        applyFeedback(out);
         return out;
     }
 
+    void recordFeedback(const Suggestion& suggestion, bool accepted) const {
+        auto& stats = feedback_[feedbackKey(suggestion)];
+        if (accepted) {
+            stats.accepted += 1;
+        } else {
+            stats.rejected += 1;
+        }
+    }
+
 private:
+    inline static std::unordered_map<std::string, FeedbackStats> feedback_;
+
     void inferNode(const ASTNode* node,
                    std::vector<Suggestion>& out) const {
         if (!node) return;
@@ -167,6 +186,24 @@ private:
         }
         for (auto* child : node->allChildren()) {
             scanForAllocDealloc(child, hasAlloc, hasDealloc);
+        }
+    }
+
+    static std::string feedbackKey(const Suggestion& suggestion) {
+        return suggestion.annotationType + ":" + suggestion.strategy;
+    }
+
+    void applyFeedback(std::vector<Suggestion>& out) const {
+        for (auto& s : out) {
+            auto it = feedback_.find(feedbackKey(s));
+            if (it == feedback_.end()) continue;
+            const auto& stats = it->second;
+            int total = stats.accepted + stats.rejected;
+            if (total <= 0) continue;
+            double bias = (double)(stats.accepted - stats.rejected) /
+                          (double)total;
+            double factor = 1.0 + 0.25 * bias;
+            s.confidence = std::clamp(s.confidence * factor, 0.0, 1.0);
         }
     }
 };

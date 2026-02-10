@@ -50,6 +50,7 @@
 #include "PrimitivesRegistry.h"
 #include "AgentLibraryPolicy.h"
 #include "AgentCodeGen.h"
+#include "AgentAnnotationAssistant.h"
 #include "CompositionPanel.h"
 #include "IncrementalOptimizer.h"
 #include "EmacsIntegration.h"
@@ -1158,6 +1159,123 @@ struct EditorState {
                 {"usedSymbols", genRes.usedSymbols},
                 {"language", active()->language}
             };
+            return response;
+        }
+
+        if (method == "getAnnotationSuggestions") {
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = activeAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string nodeId = params.value("nodeId", "");
+            int line = params.value("line", -1);
+            int col = params.value("col", -1);
+
+            if (!nodeId.empty()) {
+                if (!findNodeById(ast, nodeId)) {
+                    response["error"] = {{"code", -32002}, {"message", "Node not found: " + nodeId}};
+                    return response;
+                }
+            } else if (line >= 0 && col >= 0) {
+                ASTNode* posNode = findNodeAtPosition(ast, line, col);
+                if (posNode) nodeId = posNode->id;
+            }
+
+            AgentAnnotationAssistant assistant;
+            auto result = assistant.suggest(ast, nodeId);
+
+            json suggArr = json::array();
+            for (const auto& s : result.suggestions) {
+                suggArr.push_back({
+                    {"nodeId", s.nodeId},
+                    {"annotationType", s.annotationType},
+                    {"strategy", s.strategy},
+                    {"reason", s.reason},
+                    {"confidence", s.confidence}
+                });
+            }
+
+            json diagArr = json::array();
+            for (const auto& d : result.diagnostics) {
+                diagArr.push_back({
+                    {"severity", d.severity},
+                    {"message", d.message},
+                    {"nodeId", d.nodeId}
+                });
+            }
+
+            response["result"] = {
+                {"scopeId", result.scopeNodeId},
+                {"suggestions", suggArr},
+                {"diagnostics", diagArr}
+            };
+            return response;
+        }
+
+        if (method == "applyAnnotationSuggestion") {
+            auto permIt = agentMutationPermissions.find(sessionId);
+            if (permIt == agentMutationPermissions.end() || !permIt->second) {
+                response["error"] = {{"code", -32030}, {"message", "Mutation not permitted"}};
+                return response;
+            }
+            if (!active() || !isStructured()) {
+                response["error"] = {{"code", -32000}, {"message", "No structured buffer"}};
+                return response;
+            }
+            Module* ast = mutationAST();
+            if (!ast) {
+                response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
+                return response;
+            }
+
+            auto params = request.contains("params") ? request["params"] : json::object();
+            MemoryStrategyInference::Suggestion suggestion;
+            suggestion.nodeId = params.value("nodeId", "");
+            suggestion.annotationType = params.value("annotationType", "");
+            suggestion.strategy = params.value("strategy", "");
+            suggestion.reason = params.value("reason", "");
+            suggestion.confidence = params.value("confidence", 0.0);
+
+            AgentAnnotationAssistant assistant;
+            auto res = assistant.applySuggestion(ast, suggestion);
+            if (!res.success) {
+                response["error"] = {{"code", -32010}, {"message", res.error}};
+                return response;
+            }
+
+            if (params.contains("accepted")) {
+                bool accepted = params.value("accepted", true);
+                assistant.recordFeedback(suggestion, accepted);
+            }
+
+            applyOrchestratorToActive();
+            response["result"] = {
+                {"success", true},
+                {"warning", res.warning}
+            };
+            return response;
+        }
+
+        if (method == "recordAnnotationFeedback") {
+            auto params = request.contains("params") ? request["params"] : json::object();
+            MemoryStrategyInference::Suggestion suggestion;
+            suggestion.nodeId = params.value("nodeId", "");
+            suggestion.annotationType = params.value("annotationType", "");
+            suggestion.strategy = params.value("strategy", "");
+            suggestion.reason = params.value("reason", "");
+            suggestion.confidence = params.value("confidence", 0.0);
+
+            bool accepted = params.value("accepted", false);
+            AgentAnnotationAssistant assistant;
+            assistant.recordFeedback(suggestion, accepted);
+            response["result"] = true;
             return response;
         }
 
