@@ -100,6 +100,7 @@ static void renderMenuBar(EditorState& state) {
         ImGui::MenuItem("Emacs Packages", nullptr, &state.emacsState.showEmacsPackagesPanel);
         ImGui::MenuItem("Emacs Bridge", nullptr, &state.emacsState.showEmacsBridgePanel);
         ImGui::MenuItem("Settings", nullptr, &state.ui.showSettingsPanel);
+        ImGui::MenuItem("Keyboard Shortcuts", nullptr, &state.ui.showShortcutReference);
         ImGui::MenuItem("LSP Servers...", nullptr, &state.ui.showLspSettings);
         if (state.active()) {
             bool textMode = state.active()->bufferMode == BufferManager::BufferMode::Text;

@@ -17,6 +17,7 @@
 #include "ThemeEngine.h"
 #include "FirstRunWizard.h"
 #include "FeatureHints.h"
+#include "ShortcutReference.h"
 
 // --- Panel headers ---
 #include "panels/MenuBarPanel.h"
@@ -380,6 +381,8 @@ int main(int, char**) {
         renderFirstRunWizard(state, wizard);
         state.ui.showFirstRunWizard = wizard.open;
         renderFeatureHintBar(state.featureHints, state.workspaceRoot);
+        static ShortcutReferenceState shortcutPanel;
+        renderShortcutReference(state, shortcutPanel);
         state.notifications.renderHistoryWindow([&](const Notification& note) {
             if (note.hasTarget) state.navigateToTarget(note.target);
         });

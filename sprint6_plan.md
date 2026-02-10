@@ -261,7 +261,7 @@ without being annoying.
   - Hint state tracked in `~/.whetstone/hints.json`
   *New:* `FeatureHints.h`
 
-- [ ] **Step 186: Keyboard shortcut reference**
+- [x] **Step 186: Keyboard shortcut reference**
   Dedicated shortcut panel (Ctrl+K Ctrl+S to open):
   - Full list grouped by category (File, Edit, View, Navigate, Annotate,
     Agent, Debug)
