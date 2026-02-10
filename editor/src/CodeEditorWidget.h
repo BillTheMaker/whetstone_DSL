@@ -10,9 +10,11 @@
 #include "SyntaxHighlighter.h"
 #include "ThemeEngine.h"
 #include "AnimationUtils.h"
+#include "RichTooltip.h"
 #include "EditorMode.h"
 #include <string>
 #include <vector>
+#include <array>
 #include <algorithm>
 #include <cctype>
 #include <cstring>

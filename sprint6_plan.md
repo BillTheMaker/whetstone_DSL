@@ -192,7 +192,7 @@ Core editing improvements that make daily use smooth.
   - Configurable auto-close per language (e.g., disable for Lisps)
   *Modifies:* `CodeEditorWidget.h`, `EditorMode.h`
 
-- [ ] **Step 180: Rich tooltip system**
+- [x] **Step 180: Rich tooltip system**
   Replace basic ImGui tooltips with rich formatted tooltips:
   - Markdown rendering in tooltips (bold, code, lists)
   - Multi-section tooltips (e.g., type info + docs + source link)

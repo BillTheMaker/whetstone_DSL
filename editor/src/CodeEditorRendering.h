@@ -13,14 +13,6 @@ public:
         ImGuiIO& io = ImGui::GetIO();
         syncPrimaryToMulti();
         const double nowSeconds = options.nowSeconds > 0.0 ? options.nowSeconds : ImGui::GetTime();
-        auto beginFadingTooltip = [&](const std::string& id, bool hovered) -> bool {
-            float alpha = AnimationUtils::tooltipAlpha(id, hovered, nowSeconds, options.reduceMotion);
-            if (alpha <= 0.01f) return false;
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * alpha);
-            ImGui::BeginTooltip();
-            return true;
-        };
-        static std::string lastDiagHoverMessage;
         // Build line start offsets
         std::vector<int> lineStarts;
         lineStarts.reserve(128);
@@ -340,11 +332,11 @@ public:
                 ImVec2 gutterB(origin.x + gutterWidth, y + lineHeight);
                 if (!msg.empty()) {
                     bool hover = ImGui::IsMouseHoveringRect(gutterA, gutterB);
-                    if (beginFadingTooltip("diag_gutter_" + std::to_string(ln), hover)) {
-                        ImGui::TextUnformatted(msg.c_str());
-                        ImGui::EndTooltip();
-                        ImGui::PopStyleVar();
-                    }
+                    renderRichTooltip("diag_gutter_" + std::to_string(ln),
+                                      msg,
+                                      hover,
+                                      options.reduceMotion,
+                                      font);
                 }
             }
 
@@ -363,11 +355,11 @@ public:
                             ImGui::OpenPopup(annoPopupId.c_str());
                         }
                     }
-                    if (beginFadingTooltip("anno_marker_" + std::to_string(ln), hoverAnno)) {
-                        ImGui::TextUnformatted(marker.message.c_str());
-                        ImGui::EndTooltip();
-                        ImGui::PopStyleVar();
-                    }
+                    renderRichTooltip("anno_marker_" + std::to_string(ln),
+                                      marker.message,
+                                      hoverAnno,
+                                      options.reduceMotion,
+                                      font);
                 }
             }
 
@@ -388,12 +380,15 @@ public:
                             result.clickedSuggestion = suggestion;
                         }
                     }
-                    if (beginFadingTooltip("suggestion_marker_" + std::to_string(ln), hoverSuggestion)) {
-                        ImGui::Text("%s (%.2f)", suggestion.label.c_str(), suggestion.confidence);
-                        ImGui::Separator();
-                        ImGui::TextUnformatted(suggestion.reason.c_str());
-                        ImGui::EndTooltip();
-                        ImGui::PopStyleVar();
+                    if (hoverSuggestion) {
+                        std::string tip = suggestion.label + " (" +
+                            std::to_string(suggestion.confidence) + ")\n" +
+                            suggestion.reason;
+                        renderRichTooltip("suggestion_marker_" + std::to_string(ln),
+                                          tip,
+                                          hoverSuggestion,
+                                          options.reduceMotion,
+                                          font);
                     }
                 }
             }
@@ -420,11 +415,11 @@ public:
                     ImVec2 a(center.x - 5.0f, center.y - 5.0f);
                     ImVec2 b(center.x + 5.0f, center.y + 5.0f);
                     bool hoverConflict = ImGui::IsMouseHoveringRect(a, b);
-                    if (beginFadingTooltip("conflict_marker_" + std::to_string(ln), hoverConflict)) {
-                        ImGui::TextUnformatted(conflict.message.c_str());
-                        ImGui::EndTooltip();
-                        ImGui::PopStyleVar();
-                    }
+                    renderRichTooltip("conflict_marker_" + std::to_string(ln),
+                                      conflict.message,
+                                      hoverConflict,
+                                      options.reduceMotion,
+                                      font);
                 }
             }
 
@@ -608,14 +603,11 @@ public:
                                                                y, lineHeight, charAdvance, textBase.x);
                     bool hoverDiag = !msg.empty();
                     if (hoverDiag) {
-                        lastDiagHoverMessage = msg;
-                    }
-                    if (beginFadingTooltip("diag_point", hoverDiag)) {
-                        if (!lastDiagHoverMessage.empty()) {
-                            ImGui::TextUnformatted(lastDiagHoverMessage.c_str());
-                        }
-                        ImGui::EndTooltip();
-                        ImGui::PopStyleVar();
+                        renderRichTooltip("diag_point",
+                                          msg,
+                                          hoverDiag,
+                                          options.reduceMotion,
+                                          font);
                     }
                 }
             }

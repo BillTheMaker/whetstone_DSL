@@ -4,6 +4,7 @@
 #include "../EditorUtils.h"
 #include "../CompletionUtils.h"
 #include "../AnimationUtils.h"
+#include "../RichTooltip.h"
 
 static void renderEditorPanel(EditorState& state) {
         // ---------------------------------------------------------------
@@ -512,17 +513,12 @@ static void renderEditorPanel(EditorState& state) {
                                 static std::string lastHoverText;
                                 bool hoverActive = !hover.empty();
                                 if (hoverActive) lastHoverText = hover;
-                                float alpha = AnimationUtils::tooltipAlpha("lsp_hover",
-                                                                           hoverActive,
-                                                                           nowSeconds,
-                                                                           state.settings.getReduceMotion());
-                                if (alpha > 0.01f && !lastHoverText.empty()) {
-                                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
-                                                        ImGui::GetStyle().Alpha * alpha);
-                                    ImGui::BeginTooltip();
-                                    ImGui::TextUnformatted(lastHoverText.c_str());
-                                    ImGui::EndTooltip();
-                                    ImGui::PopStyleVar();
+                                if (!lastHoverText.empty()) {
+                                    renderRichTooltip("lsp_hover",
+                                                      lastHoverText,
+                                                      hoverActive,
+                                                      state.settings.getReduceMotion(),
+                                                      state.monoFont);
                                 }
                             }
 
@@ -554,34 +550,20 @@ static void renderEditorPanel(EditorState& state) {
                         if (res.hoverValid && (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
                             std::string preview;
                             if (state.previewDefinitionAt(res.hoverLine, res.hoverCol, preview)) {
-                                float alpha = AnimationUtils::tooltipAlpha("definition_preview",
-                                                                           true,
-                                                                           nowSeconds,
-                                                                           state.settings.getReduceMotion());
-                                if (alpha > 0.01f) {
-                                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
-                                                        ImGui::GetStyle().Alpha * alpha);
-                                    ImGui::BeginTooltip();
-                                    ImGui::TextUnformatted(preview.c_str());
-                                    ImGui::EndTooltip();
-                                    ImGui::PopStyleVar();
-                                }
+                                renderRichTooltip("definition_preview",
+                                                  preview,
+                                                  true,
+                                                  state.settings.getReduceMotion(),
+                                                  state.monoFont);
                             } else if (state.definitionPreviewValid) {
                                 std::string path = EditorState::fromFileUri(state.definitionPreview.uri);
                                 std::string label = path + ":" +
                                     std::to_string(state.definitionPreview.range.start.line + 1);
-                                float alpha = AnimationUtils::tooltipAlpha("definition_preview_fallback",
-                                                                           true,
-                                                                           nowSeconds,
-                                                                           state.settings.getReduceMotion());
-                                if (alpha > 0.01f) {
-                                    ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
-                                                        ImGui::GetStyle().Alpha * alpha);
-                                    ImGui::BeginTooltip();
-                                    ImGui::TextUnformatted(label.c_str());
-                                    ImGui::EndTooltip();
-                                    ImGui::PopStyleVar();
-                                }
+                                renderRichTooltip("definition_preview_fallback",
+                                                  label,
+                                                  true,
+                                                  state.settings.getReduceMotion(),
+                                                  state.monoFont);
                             }
                         }
 
