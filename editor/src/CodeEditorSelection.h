@@ -163,17 +163,54 @@
 
     void insertPair(std::string& text, char open, char close, bool& changed) {
         syncPrimaryToMulti();
-        std::string pair;
-        pair.push_back(open);
-        pair.push_back(close);
-        std::vector<MultiCursor> edits = cursors_;
-        std::vector<std::string> inserts(edits.size(), pair);
-        applyEdits(text, edits, inserts, changed);
-        for (auto& c : cursors_) {
-            c.cursor -= 1;
-            c.selStart = c.cursor;
-            c.selEnd = c.cursor;
+        if (cursors_.empty()) return;
+
+        struct Plan { int index; int start; int end; std::string insert; int cursorTarget; };
+        std::vector<Plan> plans;
+        plans.reserve(cursors_.size());
+        for (size_t i = 0; i < cursors_.size(); ++i) {
+            const auto& c = cursors_[i];
+            int start = c.cursor;
+            int end = c.cursor;
+            std::string insert;
+            int target = 0;
+            if (cursorHasSelection(c)) {
+                start = std::min(c.selStart, c.selEnd);
+                end = std::max(c.selStart, c.selEnd);
+                std::string selected = text.substr(start, end - start);
+                insert.push_back(open);
+                insert += selected;
+                insert.push_back(close);
+                target = (int)insert.size();
+            } else {
+                insert.push_back(open);
+                insert.push_back(close);
+                target = 1;
+            }
+            plans.push_back({(int)i, start, end, insert, target});
         }
+
+        std::sort(plans.begin(), plans.end(),
+                  [](const Plan& a, const Plan& b) { return a.start > b.start; });
+        std::vector<MultiCursor> next = cursors_;
+        bool didChange = false;
+        for (const auto& plan : plans) {
+            if (plan.start < 0 || plan.start > (int)text.size()) continue;
+            int safeEnd = std::max(plan.start, std::min(plan.end, (int)text.size()));
+            if (safeEnd > plan.start) {
+                text.erase(plan.start, safeEnd - plan.start);
+                didChange = true;
+            }
+            if (!plan.insert.empty()) {
+                text.insert(plan.start, plan.insert);
+                didChange = true;
+            }
+            next[plan.index].cursor = plan.start + plan.cursorTarget;
+            next[plan.index].selStart = next[plan.index].cursor;
+            next[plan.index].selEnd = next[plan.index].cursor;
+        }
+        if (didChange) changed = true;
+        cursors_ = std::move(next);
         syncMultiToPrimary();
     }
 
@@ -227,7 +264,7 @@
             } else if (c >= 32) {
                 if (mode) {
                     char close = mode->getClosingBracket((char)c);
-                    if (close != 0) {
+                    if (close != 0 && mode->autoCloseBrackets()) {
                         insertPair(text, (char)c, close, changed);
                     } else {
                         char buf[5] = {0};

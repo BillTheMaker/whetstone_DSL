@@ -30,6 +30,76 @@ public:
         }
         const int lineCount = (int)lineStarts.size();
 
+        auto isOpenBracket = [](char c) {
+            return c == '(' || c == '[' || c == '{';
+        };
+        auto isCloseBracket = [](char c) {
+            return c == ')' || c == ']' || c == '}';
+        };
+        auto matchingOpen = [](char c) {
+            if (c == ')') return '(';
+            if (c == ']') return '[';
+            if (c == '}') return '{';
+            return '\0';
+        };
+        auto isBracketChar = [&](char c) {
+            return isOpenBracket(c) || isCloseBracket(c);
+        };
+
+        std::vector<int> bracketDepth(text.size(), -1);
+        std::vector<int> bracketMatch(text.size(), -1);
+        std::vector<int> stack;
+        std::vector<char> stackChars;
+        stack.reserve(128);
+        stackChars.reserve(128);
+        for (int i = 0; i < (int)text.size(); ++i) {
+            char c = text[i];
+            if (isOpenBracket(c)) {
+                stack.push_back(i);
+                stackChars.push_back(c);
+                bracketDepth[i] = (int)stack.size() - 1;
+            } else if (isCloseBracket(c)) {
+                char open = matchingOpen(c);
+                if (!stackChars.empty() && stackChars.back() == open) {
+                    int openPos = stack.back();
+                    stack.pop_back();
+                    stackChars.pop_back();
+                    int depth = (int)stack.size();
+                    bracketDepth[i] = depth;
+                    bracketMatch[i] = openPos;
+                    bracketMatch[openPos] = i;
+                }
+            }
+        }
+
+        std::array<ImU32, 6> rainbow = {
+            ThemeEngine::instance().editorColor("bracket_1", IM_COL32(242, 120, 75, 255)),
+            ThemeEngine::instance().editorColor("bracket_2", IM_COL32(241, 196, 15, 255)),
+            ThemeEngine::instance().editorColor("bracket_3", IM_COL32(46, 204, 113, 255)),
+            ThemeEngine::instance().editorColor("bracket_4", IM_COL32(52, 152, 219, 255)),
+            ThemeEngine::instance().editorColor("bracket_5", IM_COL32(155, 89, 182, 255)),
+            ThemeEngine::instance().editorColor("bracket_6", IM_COL32(231, 76, 60, 255))
+        };
+
+        int focusBracketPos = -1;
+        int focusBracketMatch = -1;
+        if (cursor_ > 0 && cursor_ - 1 < (int)text.size() && isBracketChar(text[cursor_ - 1])) {
+            focusBracketPos = cursor_ - 1;
+        } else if (cursor_ < (int)text.size() && isBracketChar(text[cursor_])) {
+            focusBracketPos = cursor_;
+        }
+        if (focusBracketPos >= 0 && focusBracketPos < (int)bracketMatch.size()) {
+            focusBracketMatch = bracketMatch[focusBracketPos];
+        }
+        int scopeStartLine = -1;
+        int scopeEndLine = -1;
+        if (focusBracketMatch >= 0) {
+            int start = std::min(focusBracketPos, focusBracketMatch);
+            int end = std::max(focusBracketPos, focusBracketMatch);
+            scopeStartLine = lineFromPos(start, lineStarts);
+            scopeEndLine = lineFromPos(end, lineStarts);
+        }
+
         // Clamp cursor
         if (cursor_ < 0) cursor_ = 0;
         if (cursor_ > (int)text.size()) cursor_ = (int)text.size();
@@ -383,6 +453,13 @@ public:
                                         ThemeEngine::instance().editorColor("line_highlight",
                                                                             IM_COL32(40, 40, 40, 120)));
             }
+            if (scopeStartLine >= 0 && ln >= scopeStartLine && ln <= scopeEndLine) {
+                ImVec2 hlA(textBase.x, y);
+                ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
+                drawList->AddRectFilled(hlA, hlB,
+                                        ThemeEngine::instance().editorColor("scope_highlight",
+                                                                            IM_COL32(60, 60, 90, 40)));
+            }
             if (options.highlightLine >= 0 && ln == options.highlightLine) {
                 ImVec2 hlA(textBase.x, y);
                 ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
@@ -431,13 +508,41 @@ public:
                 }
             }
 
+            // Bracket pair highlight
+            if (focusBracketPos >= 0 && focusBracketMatch >= 0) {
+                int matchPositions[2] = {focusBracketPos, focusBracketMatch};
+                for (int i = 0; i < 2; ++i) {
+                    int pos = matchPositions[i];
+                    if (pos < start || pos >= end) continue;
+                    int col = pos - start;
+                    ImVec2 a(textBase.x + col * charAdvance, y);
+                    ImVec2 b(textBase.x + (col + 1) * charAdvance, y + lineHeight);
+                    drawList->AddRectFilled(a, b,
+                                            ThemeEngine::instance().editorColor("bracket_match",
+                                                                                IM_COL32(120, 140, 200, 100)));
+                }
+            }
+
             // Render text with colors
             int pos = start;
             while (pos < end) {
                 TokenCategory cat = TokenCategory::Plain;
                 if (pos < (int)charCats.size()) cat = charCats[pos];
+
+                if (pos < (int)text.size() && isBracketChar(text[pos]) && bracketDepth[pos] >= 0) {
+                    ImU32 col = rainbow[bracketDepth[pos] % rainbow.size()];
+                    char buf[2] = {text[pos], 0};
+                    ImVec2 p(textBase.x + (pos - start) * charAdvance, y);
+                    drawList->AddText(font, font->FontSize, p, col, buf);
+                    ++pos;
+                    continue;
+                }
+
                 int spanEnd = pos + 1;
                 while (spanEnd < end) {
+                    if (spanEnd < (int)text.size() && isBracketChar(text[spanEnd]) && bracketDepth[spanEnd] >= 0) {
+                        break;
+                    }
                     TokenCategory nextCat = TokenCategory::Plain;
                     if (spanEnd < (int)charCats.size()) nextCat = charCats[spanEnd];
                     if (nextCat != cat) break;

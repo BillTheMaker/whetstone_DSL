@@ -182,7 +182,7 @@ Core editing improvements that make daily use smooth.
   - Works with auto-indent and bracket completion
   *Modifies:* `CodeEditorWidget.h`
 
-- [ ] **Step 179: Rainbow brackets and delimiter intelligence**
+- [x] **Step 179: Rainbow brackets and delimiter intelligence**
   Smart bracket handling:
   - Rainbow bracket coloring: nested brackets get rotating colors
     (configurable, theme-aware, toggleable)

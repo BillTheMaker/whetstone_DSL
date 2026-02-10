@@ -131,6 +131,7 @@ public:
     // --- Auto-close brackets ---
 
     const std::vector<BracketPair>& getBracketPairs() const { return brackets_; }
+    bool autoCloseBrackets() const { return autoCloseBrackets_; }
 
     // Given an opening character, return the closing character (0 if not a bracket)
     char getClosingBracket(char open) const {
@@ -208,6 +209,7 @@ private:
         indent_ = {":", "return", 4, false};
         comment_ = {"#", "\"\"\"", "\"\"\""};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}};
+        autoCloseBrackets_ = true;
         snippets_ = {
             {"def",   "def $1($2):\n    $0",           "Function definition"},
             {"class", "class $1:\n    def __init__(self):\n        $0", "Class definition"},
@@ -223,6 +225,7 @@ private:
         indent_ = {"{", "}", 4, false};
         comment_ = {"//", "/*", "*/"};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}, {'<', '>'}};
+        autoCloseBrackets_ = true;
         snippets_ = {
             {"main",   "int main(int argc, char* argv[]) {\n    $0\n    return 0;\n}", "Main function"},
             {"class",  "class $1 {\npublic:\n    $1();\n    ~$1();\nprivate:\n    $0\n};", "Class definition"},
@@ -239,6 +242,7 @@ private:
         indent_ = {"(", ")", 2, false};
         comment_ = {";;", "", ""};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'"', '"'}};
+        autoCloseBrackets_ = false;
         snippets_ = {
             {"defun",  "(defun $1 ($2)\n  \"$3\"\n  $0)", "Function definition"},
             {"let",    "(let (($1 $2))\n  $0)",            "Let binding"},
@@ -253,6 +257,7 @@ private:
         indent_ = {"", "", 4, false};
         comment_ = {"", "", ""};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'"', '"'}};
+        autoCloseBrackets_ = false;
         snippets_ = {};
     }
 
@@ -261,6 +266,7 @@ private:
         indent_ = {"{", "}", 2, false};
         comment_ = {"//", "/*", "*/"};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}};
+        autoCloseBrackets_ = true;
         snippets_ = {
             {"fn", "function $1($2) {\\n  $0\\n}", "Function"},
             {"if", "if ($1) {\\n  $0\\n}", "If statement"},
@@ -273,6 +279,7 @@ private:
         indent_ = {"{", "}", 2, false};
         comment_ = {"//", "/*", "*/"};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}, {'<', '>'}};
+        autoCloseBrackets_ = true;
         snippets_ = {
             {"fn", "function $1($2): $3 {\\n  $0\\n}", "Function"},
             {"if", "if ($1) {\\n  $0\\n}", "If statement"},
@@ -284,6 +291,7 @@ private:
         indent_ = {"{", "}", 4, false};
         comment_ = {"//", "/*", "*/"};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'"', '"'}};
+        autoCloseBrackets_ = true;
         snippets_ = {
             {"class", "class $1 {\\n    $0\\n}", "Class"},
             {"if", "if ($1) {\\n    $0\\n}", "If statement"},
@@ -295,6 +303,7 @@ private:
         indent_ = {"{", "}", 4, false};
         comment_ = {"//", "/*", "*/"};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'\"', '\"'}};
+        autoCloseBrackets_ = true;
         snippets_ = {
             {"fn", "fn $1($2) -> $3 {\\n    $0\\n}", "Function"},
             {"if", "if $1 {\\n    $0\\n}", "If statement"},
@@ -306,6 +315,7 @@ private:
         indent_ = {"{", "}", 4, false};
         comment_ = {"//", "/*", "*/"};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\'', '\''}, {'\"', '\"'}};
+        autoCloseBrackets_ = true;
         snippets_ = {
             {"fn", "func $1($2) $3 {\\n    $0\\n}", "Function"},
             {"if", "if $1 {\\n    $0\\n}", "If statement"},
@@ -317,6 +327,7 @@ private:
         indent_ = {"", "", 2, false};
         comment_ = {"#", "", ""};
         brackets_ = {{'(', ')'}, {'[', ']'}, {'{', '}'}, {'\"', '\"'}};
+        autoCloseBrackets_ = false;
         snippets_ = {
             {"src", "#+begin_src $1\\n$0\\n#+end_src", "Source block"},
             {"hdr", "* $1\\n$0", "Heading"},
@@ -328,5 +339,6 @@ private:
     IndentRule indent_;
     CommentStyle comment_;
     std::vector<BracketPair> brackets_;
+    bool autoCloseBrackets_ = true;
     std::vector<SnippetTemplate> snippets_;
 };

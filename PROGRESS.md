@@ -526,4 +526,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 176: Smooth UI transitions (panel slides, tab fade, tooltip fade, toast animations, search pulse, cursor blink) + reduce-motion/cursor blink settings. 2/2 tests pass (step176_test, step176_integration_test). |
 | 2026-02-10 | Codex | Step 177: Enhanced find/replace (match counts, regex preview, replace preview, selection scope, history, toggles, find next/prev) with SearchUtils. 2/2 tests pass (step177_test, step177_integration_test). |
 | 2026-02-10 | Codex | Step 178: Multi-cursor editing (Alt+Click, Ctrl+D, Ctrl+Alt+Up/Down, column selection) with multi-caret rendering and shared edits. 2/2 tests pass (step178_test, step178_integration_test). |
+| 2026-02-10 | Codex | Step 179: Rainbow brackets, bracket-pair highlight, scope tint, and auto-surround with language-specific auto-close. 2/2 tests pass (step179_test, step179_integration_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |
