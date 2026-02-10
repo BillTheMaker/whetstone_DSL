@@ -872,6 +872,10 @@ target_link_libraries(step153_test PRIVATE
     tree_sitter_rust
     tree_sitter_go)
 
+add_executable(step154_test tests/step154_test.cpp)
+target_include_directories(step154_test PRIVATE src)
+target_link_libraries(step154_test PRIVATE nlohmann_json::nlohmann_json)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

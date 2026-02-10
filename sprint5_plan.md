@@ -287,7 +287,7 @@ adds full semantic support.
 Make agents truly useful: they understand libraries, prioritize available
 primitives, and assist with constructive coding.
 
-- [ ] **Step 154: Agent library context**
+- [x] **Step 154: Agent library context**
   When an agent connects via WebSocket, it receives the current
   `PrimitivesRegistry` state: available libraries, their functions,
   type signatures. The agent's `getAST` response includes `ExternalModule`

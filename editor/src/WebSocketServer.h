@@ -19,8 +19,12 @@
 #include <functional>
 #include <memory>
 #include <chrono>
+#include <unordered_map>
+#include <unordered_set>
 #include <nlohmann/json.hpp>
 
+#include "PrimitivesRegistry.h"
+#include "ast/Module.h"
 using json = nlohmann::json;
 
 // ---------------------------------------------------------------------------
@@ -44,6 +48,8 @@ using RequestLogCallback =
     std::function<void(const std::string& sessionId,
                        const json& request,
                        const json& response)>;
+using LibraryContextProvider =
+    std::function<json(const std::string& sessionId)>;
 
 // ---------------------------------------------------------------------------
 //  WebSocketTransport — abstract transport interface
@@ -89,6 +95,42 @@ protected:
 // ---------------------------------------------------------------------------
 class WebSocketAgentServer {
 public:
+    struct LibraryContext {
+        json data;
+        static LibraryContext fromRegistry(PrimitivesRegistry& registry,
+                                           Module* root,
+                                           const std::string& language) {
+            LibraryContext ctx;
+            registry.setRoot(root);
+            registry.setLanguage(language);
+
+            json funcs = json::array();
+            json types = json::array();
+            json consts = json::array();
+
+            auto addSymbol = [](json& arr, const PrimitiveSymbol& sym) {
+                arr.push_back({
+                    {"name", sym.name},
+                    {"kind", sym.kind},
+                    {"source", sym.source},
+                    {"library", sym.library}
+                });
+            };
+
+            for (const auto& sym : registry.getAvailableFunctions()) addSymbol(funcs, sym);
+            for (const auto& sym : registry.getAvailableTypes()) addSymbol(types, sym);
+            for (const auto& sym : registry.getAvailableConstants()) addSymbol(consts, sym);
+
+            ctx.data = {
+                {"language", language},
+                {"functions", funcs},
+                {"types", types},
+                {"constants", consts}
+            };
+            return ctx;
+        }
+    };
+
     explicit WebSocketAgentServer(std::unique_ptr<WebSocketTransport> transport)
         : transport_(std::move(transport))
     {
@@ -128,6 +170,10 @@ public:
         requestLogCallback_ = std::move(cb);
     }
 
+    void setLibraryContextProvider(LibraryContextProvider cb) {
+        libraryContextProvider_ = std::move(cb);
+    }
+
     // --- session queries ---
 
     const AgentSession* getSession(const std::string& sessionId) const {
@@ -164,6 +210,16 @@ private:
 
         if (sessionEventCallback_)
             sessionEventCallback_(s, "connected");
+
+        if (libraryContextProvider_) {
+            json payload = libraryContextProvider_(sessionId);
+            json message = {
+                {"jsonrpc", "2.0"},
+                {"method", "libraryContext"},
+                {"params", payload}
+            };
+            transport_->sendMessage(sessionId, message.dump());
+        }
     }
 
     void onDisconnect(const std::string& sessionId) {
@@ -304,6 +360,7 @@ private:
     JsonRpcHandler requestHandler_;
     SessionEventCallback sessionEventCallback_;
     RequestLogCallback requestLogCallback_;
+    LibraryContextProvider libraryContextProvider_;
     int port_ = 0;
 };
 
