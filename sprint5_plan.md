@@ -211,7 +211,7 @@ functionality through the Whetstone UI.
   Results rendered inline (like Jupyter notebooks).
   *New:* tree-sitter-org grammar, `OrgMode.h`
 
-- [ ] **Step 146: Emacs-Whetstone bridge**
+- [x] **Step 146: Emacs-Whetstone bridge**
   Bidirectional sync: Emacs buffers ↔ Whetstone buffers. When the user
   has the Emacs layout active, they can switch to pure Emacs (daemon
   connected to a graphical frame) for operations Whetstone doesn't

@@ -106,6 +106,20 @@ public:
     static std::string modeLine() {
         return "(format-mode-line mode-line-format)";
     }
+
+    // Build an Elisp expression to read a buffer for a given file
+    static std::string bufferStringForFile(const std::string& path) {
+        return "(with-current-buffer (find-file-noselect \"" +
+               escapeString(path) + "\") (buffer-string))";
+    }
+
+    // Build an Elisp expression to replace a buffer's contents and save
+    static std::string replaceBufferForFile(const std::string& path, const std::string& text) {
+        return "(with-current-buffer (find-file-noselect \"" + escapeString(path) + "\") "
+               "(erase-buffer) "
+               "(insert \"" + escapeString(text) + "\") "
+               "(save-buffer))";
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -213,6 +227,27 @@ public:
         return output;
     }
 
+    std::string getBufferText(const std::string& path) {
+        return sendCommand(ElispCommandBuilder::bufferStringForFile(path));
+    }
+
+    bool setBufferText(const std::string& path, const std::string& text) {
+        std::string result = sendCommand(ElispCommandBuilder::replaceBufferForFile(path, text));
+        if (!lastError_.empty() && result == "error") return false;
+        return true;
+    }
+
+    bool openFileInEmacsFrame(const std::string& path) {
+        lastError_.clear();
+        std::string cmd = emacsclientPath_ + " -c -n \"" + path + "\"";
+        int code = runCommand(cmd);
+        if (code != 0) {
+            lastError_ = "emacsclient failed to open frame";
+            return false;
+        }
+        return true;
+    }
+
     // Auto-restart daemon if it died
     bool ensureDaemon() {
         if (daemonRunning_ && isDaemonAlive()) return true;
@@ -300,6 +335,12 @@ public:
         lastSentCommand_ = elispCommand;
 
         // Simulate responses for known commands
+        if (elispCommand.find("buffer-string") != std::string::npos) {
+            return "mock-buffer";
+        }
+        if (elispCommand.find("erase-buffer") != std::string::npos) {
+            return "t";
+        }
         if (elispCommand.find("find-file") != std::string::npos) {
             return "t";  // success
         }
@@ -356,7 +397,6 @@ public:
         if (elispCommand.find("format-mode-line") != std::string::npos) {
             return "Emacs: Fundamental (Whetstone)";
         }
-
         // Unknown command — simulate error
         lastError_ = "void-function";
         return "error";
@@ -372,10 +412,18 @@ public:
     // Test helper: get the last command sent
     std::string getLastSentCommand() const { return lastSentCommand_; }
     std::string getLastInitPath() const { return lastInitPath_; }
+    std::string getLastRunCommand() const { return lastRunCommand_; }
+
+protected:
+    int runCommand(const std::string& cmd) const override {
+        lastRunCommand_ = cmd;
+        return 0;
+    }
 
 private:
     std::string lastError_;
     std::string lastSentCommand_;
     std::string lastInitPath_;
+    mutable std::string lastRunCommand_;
 };
 

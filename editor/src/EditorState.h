@@ -188,6 +188,7 @@ struct EditorState {
     EmacsFunctionIndex emacsFunctionIndex;
     bool              emacsFunctionIndexDirty = true;
     EmacsKeybindingState emacsKeys;
+    bool              showEmacsBridgePanel = false;
     bool              showOrgPanel = true;
     OrgDocumentState  orgDoc;
     int               orgTempCounter = 0;
@@ -1432,6 +1433,48 @@ struct EditorState {
     void refreshEmacsModeLine(double nowSeconds) {
         if (layoutPreset != LayoutPreset::Emacs) return;
         updateEmacsModeLine(emacsKeys, emacs, nowSeconds, outputLog);
+    }
+
+    void pullFromEmacs() {
+        if (!active()) return;
+        if (active()->path.rfind("(untitled", 0) == 0) {
+            outputLog += "[emacs] Save file before syncing.\n";
+            return;
+        }
+        std::string text = emacs.getBufferText(active()->path);
+        if (!emacs.getLastError().empty() && text == "error") {
+            outputLog += "[emacs] " + emacs.getLastError() + "\n";
+            return;
+        }
+        active()->editBuf = text;
+        onTextChanged();
+        outputLog += "[emacs] Pulled buffer from Emacs.\n";
+    }
+
+    void pushToEmacs() {
+        if (!active()) return;
+        if (active()->path.rfind("(untitled", 0) == 0) {
+            outputLog += "[emacs] Save file before syncing.\n";
+            return;
+        }
+        if (!emacs.setBufferText(active()->path, active()->editBuf)) {
+            outputLog += "[emacs] " + emacs.getLastError() + "\n";
+            return;
+        }
+        outputLog += "[emacs] Pushed buffer to Emacs.\n";
+    }
+
+    void openInEmacsFrame() {
+        if (!active()) return;
+        if (active()->path.rfind("(untitled", 0) == 0) {
+            outputLog += "[emacs] Save file before opening in Emacs.\n";
+            return;
+        }
+        if (!emacs.openFileInEmacsFrame(active()->path)) {
+            outputLog += "[emacs] " + emacs.getLastError() + "\n";
+            return;
+        }
+        outputLog += "[emacs] Opened in Emacs frame.\n";
     }
 
     std::string buildRunCommand(const std::string& path,

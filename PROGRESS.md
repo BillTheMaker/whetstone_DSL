@@ -493,3 +493,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 143: Elisp function discovery via apropos/describe-function, Emacs function indexing into ExternalModule + LibraryIndex, and elisp primitive updates. 7/7 tests pass. |
 | 2026-02-10 | Codex | Step 144: Emacs keybinding integration (prefix handling, M-x minibuffer, mode line display, key-binding lookup via daemon). 11/11 tests pass. |
 | 2026-02-10 | Codex | Step 145: Org-mode rendering with headings/blocks, editable source blocks, inline results, org temp runner, and tree-sitter-org integration. 11/11 tests pass. |
+| 2026-02-10 | Codex | Step 146: Emacs-Whetstone bridge with buffer pull/push, Emacs frame opening, and sync commands. 5/5 tests pass. |

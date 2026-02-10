@@ -360,6 +360,7 @@ int main(int, char**) {
                 ImGui::MenuItem("Libraries", nullptr, &state.showLibraryBrowserPanel);
                 ImGui::MenuItem("Compose", nullptr, &state.showCompositionPanel);
                 ImGui::MenuItem("Emacs Packages", nullptr, &state.showEmacsPackagesPanel);
+                ImGui::MenuItem("Emacs Bridge", nullptr, &state.showEmacsBridgePanel);
                 ImGui::MenuItem("Settings", nullptr, &state.showSettingsPanel);
                 ImGui::MenuItem("LSP Servers...", nullptr, &state.showLspSettings);
                 if (state.active()) {
@@ -669,6 +670,30 @@ int main(int, char**) {
             ImGui::PushFont(uiFont);
             if (renderEmacsPackageBrowser(state.emacsPackages, state.emacs, state.outputLog)) {
                 state.emacsFunctionIndexDirty = true;
+            }
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        if (state.showEmacsBridgePanel) {
+            ImGui::Begin("Emacs Bridge", &state.showEmacsBridgePanel);
+            ImGui::PushFont(uiFont);
+            if (state.active()) {
+                ImGui::Text("Active file: %s", state.active()->path.c_str());
+            } else {
+                ImGui::TextDisabled("(no active buffer)");
+            }
+            ImGui::Separator();
+            if (ImGui::Button("Open Emacs Frame")) {
+                state.openInEmacsFrame();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Pull From Emacs")) {
+                state.pullFromEmacs();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Push To Emacs")) {
+                state.pushToEmacs();
             }
             ImGui::PopFont();
             ImGui::End();
