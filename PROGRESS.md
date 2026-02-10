@@ -530,4 +530,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 180: Rich tooltip system with markdown rendering, pinning, max size/scrolling, and tooltip replacements. 2/2 tests pass (step180_test, step180_integration_test). |
 | 2026-02-10 | Codex | Step 181: Enhanced status bar (mode/language/encoding segments, centered notifications, selection counts, git branch, adaptive background). 2/2 tests pass (step181_test, step181_integration_test). |
 | 2026-02-10 | Codex | Step 182: Problems panel overhaul with grouping, sortable table, and diagnostic badges on tabs. 2/2 tests pass (step182_test, step182_integration_test). |
+| 2026-02-10 | Codex | Step 183: Tab reordering and untitled rename flow, plus buffer rename support. 2/2 tests pass (step183_test, step183_integration_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

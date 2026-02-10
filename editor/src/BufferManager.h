@@ -122,6 +122,17 @@ public:
     // Get number of open buffers
     size_t bufferCount() const { return buffers_.size(); }
 
+    bool renameBuffer(const std::string& oldPath, const std::string& newPath) {
+        if (oldPath == newPath) return false;
+        if (!hasBuffer(oldPath) || hasBuffer(newPath)) return false;
+        BufferInfo info = buffers_[oldPath];
+        buffers_.erase(oldPath);
+        info.path = newPath;
+        buffers_[newPath] = info;
+        if (activeBuffer_ == oldPath) activeBuffer_ = newPath;
+        return true;
+    }
+
 private:
     std::map<std::string, BufferInfo> buffers_;
     std::string activeBuffer_;

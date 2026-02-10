@@ -596,6 +596,25 @@ struct EditorState {
         activeBuffer = nullptr;
     }
 
+    bool renameBufferPath(const std::string& oldPath, const std::string& newPath) {
+        if (oldPath == newPath) return false;
+        if (!buffers.hasBuffer(oldPath) || buffers.hasBuffer(newPath)) return false;
+        auto it = bufferStates.find(oldPath);
+        if (it == bufferStates.end()) return false;
+        auto node = std::move(it->second);
+        bufferStates.erase(it);
+        node->path = newPath;
+        bufferStates[newPath] = std::move(node);
+        buffers.renameBuffer(oldPath, newPath);
+        if (oldPath.rfind("(untitled", 0) != 0) watcher.unwatch(oldPath);
+        if (newPath.rfind("(untitled", 0) != 0) watcher.watch(newPath);
+        if (active() && active()->path == oldPath) {
+            active()->path = newPath;
+        }
+        notify(NotificationLevel::Success, "Renamed buffer to " + newPath);
+        return true;
+    }
+
     bool saveProject(const std::string& path) {
         ProjectFile project;
         project.workspaceRoot = workspaceRoot;

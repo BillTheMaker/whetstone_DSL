@@ -222,7 +222,7 @@ Core editing improvements that make daily use smooth.
   - Diagnostic count badges on file tabs (red dot = errors, yellow = warnings)
   *Modifies:* diagnostic rendering, `panels/BottomPanel.h`
 
-- [ ] **Step 183: Tab and panel drag-and-drop**
+- [x] **Step 183: Tab and panel drag-and-drop**
   Fluid drag interactions for workspace customization:
   - Drag tabs to reorder within the tab bar
   - Drag tab to split view (left/right/top/bottom drop zones)

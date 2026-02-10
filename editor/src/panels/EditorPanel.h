@@ -54,7 +54,11 @@ static void renderEditorPanel(EditorState& state) {
         ImGui::PushFont(state.monoFont);
 
         // Tab bar for the file
-        if (ImGui::BeginTabBar("EditorTabs")) {
+        static bool renameOpen = false;
+        static char renameBuf[260] = {};
+        static std::string renameTarget;
+        if (ImGui::BeginTabBar("EditorTabs",
+                               ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs)) {
             if (state.buffers.bufferCount() == 0) {
                 if (ImGui::BeginTabItem("Welcome")) {
                     RenderWelcome(state.welcome, state, state.lastDialogPath);
@@ -760,6 +764,14 @@ static void renderEditorPanel(EditorState& state) {
                         ImGui::PopStyleVar();
                         ImGui::EndTabItem();
                     }
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                        if (path.rfind("(untitled", 0) == 0) {
+                            renameOpen = true;
+                            renameTarget = path;
+                            std::snprintf(renameBuf, sizeof(renameBuf), "%s", path.c_str());
+                            ImGui::OpenPopup("Rename Buffer");
+                        }
+                    }
                     if (!open) {
                         state.buffers.closeBuffer(path);
                         state.bufferStates.erase(path);
@@ -773,6 +785,27 @@ static void renderEditorPanel(EditorState& state) {
                 }
             }
             ImGui::EndTabBar();
+        }
+
+        if (renameOpen && ImGui::BeginPopupModal("Rename Buffer", nullptr,
+                                                 ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::TextUnformatted("Rename untitled buffer:");
+            ImGui::SetNextItemWidth(320.0f);
+            ImGui::InputText("##renameBuf", renameBuf, sizeof(renameBuf));
+            if (ImGui::Button("Rename")) {
+                std::string newName = renameBuf;
+                if (!newName.empty() && renameTarget.rfind("(untitled", 0) == 0) {
+                    state.renameBufferPath(renameTarget, newName);
+                }
+                renameOpen = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                renameOpen = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
         }
 
         ImGui::PopFont();
