@@ -347,7 +347,7 @@ Test suites that measure how accurately an LLM can use Whetstone tools.
 
 Optimized tool definitions and prompts for specific LLM families.
 
-- [ ] **Step 225: Claude tool definitions**
+- [x] **Step 225: Claude tool definitions**
   Anthropic-format tool definitions optimized for Claude:
   - Each Whetstone MCP tool as a Claude `tool_use` definition
   - Descriptions tuned for Claude's strengths (detailed, structured)
