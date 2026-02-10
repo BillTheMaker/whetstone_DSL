@@ -220,6 +220,8 @@ target_link_libraries(tree_sitter_go PUBLIC unofficial::tree-sitter::tree-sitter
 set(_ts_org_src ${tree-sitter-org_SOURCE_DIR}/src/parser.c)
 if(EXISTS "${tree-sitter-org_SOURCE_DIR}/src/scanner.c")
     list(APPEND _ts_org_src "${tree-sitter-org_SOURCE_DIR}/src/scanner.c")
+elseif(EXISTS "${tree-sitter-org_SOURCE_DIR}/src/scanner.cc")
+    list(APPEND _ts_org_src "${tree-sitter-org_SOURCE_DIR}/src/scanner.cc")
 endif()
 add_library(tree_sitter_org STATIC ${_ts_org_src})
 target_include_directories(tree_sitter_org PUBLIC ${tree-sitter-org_SOURCE_DIR}/src)
@@ -916,6 +918,23 @@ target_link_libraries(step164_test PRIVATE nlohmann_json::nlohmann_json)
 add_executable(step165_test tests/step165_test.cpp)
 target_include_directories(step165_test PRIVATE src)
 target_link_libraries(step165_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
+
+add_executable(file_limits_test tests/file_limits_test.cpp)
+target_include_directories(file_limits_test PRIVATE src)
+
+add_executable(step166_test tests/step166_test.cpp)
+target_include_directories(step166_test PRIVATE src)
+target_link_libraries(step166_test PRIVATE
     nlohmann_json::nlohmann_json
     unofficial::tree-sitter::tree-sitter
     tree_sitter_python
