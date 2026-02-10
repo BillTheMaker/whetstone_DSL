@@ -194,7 +194,7 @@ functionality through the Whetstone UI.
   Feed into `PrimitivesRegistry` for constrained coding.
   *Modifies:* `ElispCommandBuilder`, `PrimitivesRegistry.h`
 
-- [ ] **Step 144: Emacs keybinding deep integration**
+- [x] **Step 144: Emacs keybinding deep integration**
   Go beyond the simple keybinding profile. In Emacs layout mode, support:
   - M-x command execution (sends to Emacs daemon)
   - Emacs-style prefix keys (C-x C-f, C-x C-s, C-c prefix maps)

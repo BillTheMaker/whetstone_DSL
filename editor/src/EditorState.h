@@ -54,6 +54,7 @@
 #include "EmacsIntegration.h"
 #include "EmacsPackageBrowser.h"
 #include "EmacsFunctionDiscovery.h"
+#include "EmacsKeybinding.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -185,6 +186,7 @@ struct EditorState {
     EmacsPackageBrowserState emacsPackages;
     EmacsFunctionIndex emacsFunctionIndex;
     bool              emacsFunctionIndexDirty = true;
+    EmacsKeybindingState emacsKeys;
     struct LibraryIndexRequest {
         std::string name;
         std::string version;
@@ -1367,6 +1369,16 @@ struct EditorState {
         if (lang == "elisp") {
             emacsFunctionIndexDirty = true;
         }
+    }
+
+    bool handleEmacsKeyChord(const std::string& chord) {
+        if (layoutPreset != LayoutPreset::Emacs) return false;
+        return emacsHandleKeySequence(emacsKeys, emacs, chord, outputLog);
+    }
+
+    void refreshEmacsModeLine(double nowSeconds) {
+        if (layoutPreset != LayoutPreset::Emacs) return;
+        updateEmacsModeLine(emacsKeys, emacs, nowSeconds, outputLog);
     }
 
     std::string buildRunCommand(const std::string& path,

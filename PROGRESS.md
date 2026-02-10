@@ -491,3 +491,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-09 | Codex | Added LLM tooling + MCP bridge feature request to FEATURE_REQUESTS.md. |
 | 2026-02-10 | Codex | Step 142: Emacs package browser panel with loaded/available status, load actions, and package queries via emacsclient. 7/7 tests pass. |
 | 2026-02-10 | Codex | Step 143: Elisp function discovery via apropos/describe-function, Emacs function indexing into ExternalModule + LibraryIndex, and elisp primitive updates. 7/7 tests pass. |
+| 2026-02-10 | Codex | Step 144: Emacs keybinding integration (prefix handling, M-x minibuffer, mode line display, key-binding lookup via daemon). 11/11 tests pass. |

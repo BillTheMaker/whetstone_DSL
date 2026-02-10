@@ -11,10 +11,51 @@
 #include "imgui_impl_opengl3.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <cctype>
 
 #include "EditorState.h"
 #include "EditorUtils.h"
 #include "CompletionUtils.h"
+
+static std::string emacsChordForEvent(SDL_Keycode sym, SDL_Keymod mods) {
+    std::string base;
+    if (sym >= SDLK_a && sym <= SDLK_z) {
+        char c = (char)('a' + (sym - SDLK_a));
+        if (mods & KMOD_SHIFT) c = (char)std::toupper(c);
+        base.push_back(c);
+    } else if (sym >= SDLK_0 && sym <= SDLK_9) {
+        base.push_back((char)('0' + (sym - SDLK_0)));
+    } else if (sym == SDLK_SPACE) {
+        base = "SPC";
+    } else if (sym == SDLK_RETURN || sym == SDLK_KP_ENTER) {
+        base = "RET";
+    } else if (sym == SDLK_TAB) {
+        base = "TAB";
+    } else if (sym == SDLK_BACKSPACE) {
+        base = "DEL";
+    } else if (sym == SDLK_ESCAPE) {
+        base = "ESC";
+    } else if (sym == SDLK_MINUS) {
+        base = "-";
+    } else if (sym == SDLK_EQUALS) {
+        base = "=";
+    } else if (sym == SDLK_SLASH) {
+        base = "/";
+    } else if (sym == SDLK_SEMICOLON) {
+        base = ";";
+    } else if (sym == SDLK_PERIOD) {
+        base = ".";
+    }
+
+    if (base.empty()) return "";
+
+    std::string prefix;
+    if (mods & KMOD_CTRL) prefix += "C-";
+    if (mods & KMOD_ALT) prefix += "M-";
+    if ((mods & KMOD_SHIFT) && base.size() > 1) prefix += "S-";
+
+    return prefix + base;
+}
 
 // ---------------------------------------------------------------------------
 //  Main
@@ -122,6 +163,13 @@ int main(int, char**) {
             if (event.type == SDL_KEYDOWN && !io.WantTextInput) {
                 int key = 0;
                 auto sym = event.key.keysym.sym;
+                auto sdlMod = event.key.keysym.mod;
+                if (state.layoutPreset == LayoutPreset::Emacs) {
+                    std::string chord = emacsChordForEvent(sym, sdlMod);
+                    if (!chord.empty() && state.handleEmacsKeyChord(chord)) {
+                        continue;
+                    }
+                }
                 if (sym >= SDLK_a && sym <= SDLK_z) key = 'A' + (sym - SDLK_a);
                 else if (sym >= SDLK_0 && sym <= SDLK_9) key = '0' + (sym - SDLK_0);
                 else if (sym == SDLK_EQUALS) key = '=';
@@ -132,7 +180,6 @@ int main(int, char**) {
                 else if (sym == SDLK_BACKQUOTE) key = '`';
 
                 int mods = WMOD_NONE;
-                auto sdlMod = event.key.keysym.mod;
                 if (sdlMod & KMOD_CTRL)  mods |= WMOD_CTRL;
                 if (sdlMod & KMOD_SHIFT) mods |= WMOD_SHIFT;
                 if (sdlMod & KMOD_ALT)   mods |= WMOD_ALT;
@@ -196,6 +243,7 @@ int main(int, char**) {
         if (state.emacsFunctionIndexDirty) {
             state.updateEmacsFunctionIndex();
         }
+        state.refreshEmacsModeLine(ImGui::GetTime());
 
         // Start frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -619,6 +667,31 @@ int main(int, char**) {
             ImGui::PushFont(uiFont);
             if (renderEmacsPackageBrowser(state.emacsPackages, state.emacs, state.outputLog)) {
                 state.emacsFunctionIndexDirty = true;
+            }
+            ImGui::PopFont();
+            ImGui::End();
+        }
+
+        if (state.layoutPreset == LayoutPreset::Emacs && state.emacsKeys.minibufferActive) {
+            ImGuiWindowFlags mbFlags = ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNavFocus;
+            float mbHeight = ImGui::GetFrameHeight() + 10;
+            ImVec2 mbPos(viewport->WorkPos.x,
+                         viewport->WorkPos.y + viewport->WorkSize.y - mbHeight - 24.0f);
+            ImVec2 mbSize(viewport->WorkSize.x, mbHeight);
+            ImGui::SetNextWindowPos(mbPos);
+            ImGui::SetNextWindowSize(mbSize);
+            ImGui::Begin("##Minibuffer", nullptr, mbFlags);
+            ImGui::PushFont(uiFont);
+            ImGui::TextUnformatted(state.emacsKeys.minibufferPrompt.c_str());
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(-1.0f);
+            if (ImGui::InputText("##minibuffer",
+                                 state.emacsKeys.minibufferBuf,
+                                 sizeof(state.emacsKeys.minibufferBuf),
+                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
+                emacsExecuteMinibuffer(state.emacsKeys, state.emacs, state.outputLog);
             }
             ImGui::PopFont();
             ImGui::End();
@@ -2462,6 +2535,10 @@ int main(int, char**) {
             // Keybinding profile
             ImGui::Text("Keys: %s", KeybindingManager::profileName(state.keys.getProfile()));
             ImGui::SameLine(0, 30);
+            if (state.layoutPreset == LayoutPreset::Emacs && !state.emacsKeys.modeLine.empty()) {
+                ImGui::Text("Mode: %s", state.emacsKeys.modeLine.c_str());
+                ImGui::SameLine(0, 30);
+            }
 
             // Zoom
             ImGui::Text("Zoom: %d%%", zoomPercent(state.settings.getFontSize(), baseFontSize));

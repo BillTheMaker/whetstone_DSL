@@ -82,6 +82,30 @@ public:
                "(doc (or (documentation sym t) \"\"))) "
                "(concat (if args (prin1-to-string args) \"\") \"\\n\" doc))";
     }
+
+    // Build an Elisp expression to resolve a key binding to a command name
+    static std::string keyBinding(const std::string& keySequence) {
+        return "(let ((cmd (key-binding (kbd \"" + escapeString(keySequence) + "\")))) "
+               "(if cmd (symbol-name cmd) \"\"))";
+    }
+
+    // Build an Elisp expression to call a command interactively
+    static std::string callInteractive(const std::string& command) {
+        return "(call-interactively '" + escapeString(command) + ")";
+    }
+
+    // Build an Elisp expression to run an extended command by name
+    static std::string executeExtendedCommand(const std::string& command) {
+        std::string sym = escapeString(command);
+        return "(if (commandp '" + sym + ") "
+               "(call-interactively '" + sym + ") "
+               "(concat \"Unknown command: \" \"" + sym + "\"))";
+    }
+
+    // Build an Elisp expression for the current mode line
+    static std::string modeLine() {
+        return "(format-mode-line mode-line-format)";
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -316,6 +340,21 @@ public:
                 return "(project)\nProjectile project switching.";
             }
             return "()\nEmacs function.";
+        }
+        if (elispCommand.find("key-binding") != std::string::npos) {
+            if (elispCommand.find("C-x C-s") != std::string::npos) {
+                return "save-buffer";
+            }
+            if (elispCommand.find("C-x C-f") != std::string::npos) {
+                return "find-file";
+            }
+            return "";
+        }
+        if (elispCommand.find("call-interactively") != std::string::npos) {
+            return "t";
+        }
+        if (elispCommand.find("format-mode-line") != std::string::npos) {
+            return "Emacs: Fundamental (Whetstone)";
         }
 
         // Unknown command — simulate error
