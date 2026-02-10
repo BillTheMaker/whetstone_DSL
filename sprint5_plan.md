@@ -384,7 +384,7 @@ Final polish, documentation, and ecosystem features.
   release URL). Portable mode (no install, run from folder).
   *Modifies:* `installer/`
 
-- [ ] **Step 165: Sprint 5 integration tests**
+- [x] **Step 165: Sprint 5 integration tests**
   Comprehensive integration tests covering the full Sprint 5 feature set:
   1. Import library → API indexed → library-aware completion prioritizes imports
   2. Emacs daemon with user config → packages loaded → Elisp functions available

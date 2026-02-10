@@ -512,3 +512,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 162: Help panel with Markdown sections + docs/help.md wired in UI. 4/4 tests pass. |
 | 2026-02-10 | Codex | Step 163: Telemetry + crash logging (opt-in), settings toggle, and log writer. 3/3 tests pass. |
 | 2026-02-10 | Codex | Step 164: Update checker stub + installer manifests/config, settings UI for update URL. 3/3 tests pass. |
+| 2026-02-10 | Codex | Step 165: Sprint 5 integration tests across primitives, projection, pipeline, composition, and Emacs indexing. 8/8 tests pass. |

@@ -913,6 +913,20 @@ add_executable(step164_test tests/step164_test.cpp)
 target_include_directories(step164_test PRIVATE src)
 target_link_libraries(step164_test PRIVATE nlohmann_json::nlohmann_json)
 
+add_executable(step165_test tests/step165_test.cpp)
+target_include_directories(step165_test PRIVATE src)
+target_link_libraries(step165_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
