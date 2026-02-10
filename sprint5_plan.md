@@ -61,7 +61,7 @@ The foundation: import libraries, parse their APIs, index their symbols.
   Cache results in `ExternalModule` AST nodes (name, public symbols, type signatures).
   *Modifies:* `LSPClient.h`, `ExternalModule` AST concept
 
-- [ ] **Step 131: Library API indexing via type stubs**
+- [x] **Step 131: Library API indexing via type stubs**
   Fallback for when LSP isn't available or insufficient. Parse type stub files:
   - Python: `.pyi` stub files (typeshed, bundled stubs)
   - TypeScript: `.d.ts` declaration files

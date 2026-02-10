@@ -1,6 +1,7 @@
 #pragma once
 #include "DependencyParser.h"
 #include "LSPClient.h"
+#include "StubParser.h"
 #include "ast/ExternalModule.h"
 #include "ast/TypeSignature.h"
 #include "ast/Module.h"
@@ -78,5 +79,21 @@ static inline void rebuildExternalModules(Module* module,
         }
 
         module->addChild("externalModules", ext);
+    }
+}
+
+static inline void applyStubFallback(LibraryIndexData& index,
+                                     const std::vector<DependencySpec>& deps,
+                                     const std::string& workspaceRoot) {
+    for (const auto& dep : deps) {
+        if (dep.name.empty()) continue;
+        bool hasSymbols = index.symbolsByLibrary.count(dep.name) > 0;
+        bool hasCompletions = index.completionsByLibrary.count(dep.name) > 0;
+        if (hasSymbols || hasCompletions) continue;
+        std::string lang = languageForDependencySource(dep.source);
+        auto names = StubParser::scanWorkspaceForLibrary(workspaceRoot, dep.name, lang);
+        if (!names.empty()) {
+            index.completionsByLibrary[dep.name] = std::move(names);
+        }
     }
 }

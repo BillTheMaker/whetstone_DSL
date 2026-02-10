@@ -802,6 +802,7 @@ struct EditorState {
             return;
         }
         if (!lsp || !lspTransport || !lspTransport->isOpen()) {
+            applyStubFallback(libraryIndex, dependencyPanel.deps, workspaceRoot);
             rebuildExternalModulesFromIndex();
             outputLog += "[deps] Library index uses cached symbols (LSP offline).\n";
             return;
@@ -822,6 +823,7 @@ struct EditorState {
             }
             libraryIndexRequests.push_back(req);
         }
+        applyStubFallback(libraryIndex, dependencyPanel.deps, workspaceRoot);
         rebuildExternalModulesFromIndex();
         outputLog += "[deps] Library index requests queued: " +
                      std::to_string(libraryIndexRequests.size()) + "\n";
@@ -856,6 +858,7 @@ struct EditorState {
             }
         }
         if (updated) {
+            applyStubFallback(libraryIndex, dependencyPanel.deps, workspaceRoot);
             rebuildExternalModulesFromIndex();
             outputLog += "[deps] Library index updated.\n";
         }
