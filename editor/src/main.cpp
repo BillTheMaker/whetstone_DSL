@@ -125,8 +125,8 @@ int main(int, char**) {
     themes.loadThemesFromDirectory("editor/themes");
     themes.loadThemesFromDirectory(ThemeEngine::userThemeDirectory());
     std::string themeName = state.settings.getTheme();
-    if (themeName == "Dark") themeName = "VSCode Dark";
-    if (themeName == "Light") themeName = "VSCode Light";
+    if (themeName == "Dark") themeName = "Whetstone Dark";
+    if (themeName == "Light") themeName = "Whetstone Light";
     if (!themes.applyTheme(themeName)) {
         SetupVSCodeDarkTheme();
     }

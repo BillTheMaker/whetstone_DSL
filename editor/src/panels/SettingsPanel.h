@@ -34,11 +34,11 @@ static void renderSettingsPanel(EditorState& state) {
 
     std::vector<std::string> themeNames = ThemeEngine::instance().listThemes();
     if (themeNames.empty()) {
-        themeNames = {"VSCode Dark", "VSCode Light"};
+        themeNames = {"Whetstone Dark", "Whetstone Light"};
     }
     std::string currentTheme = state.settings.getTheme();
-    if (currentTheme == "Dark") currentTheme = "VSCode Dark";
-    if (currentTheme == "Light") currentTheme = "VSCode Light";
+    if (currentTheme == "Dark") currentTheme = "Whetstone Dark";
+    if (currentTheme == "Light") currentTheme = "Whetstone Light";
     int themeIndex = 0;
     for (size_t i = 0; i < themeNames.size(); ++i) {
         if (themeNames[i] == currentTheme) {

@@ -101,7 +101,7 @@ look professional and feel personal.
   - `ThemeEngine::getColor(ThemeColor::Keyword)` API for all panels
   *New:* `ThemeEngine.h`
 
-- [ ] **Step 172: Bundled theme pack**
+- [x] **Step 172: Bundled theme pack**
   Ship 7 themes, each a JSON file with full color definitions:
   - **Whetstone Dark** (default) — custom dark theme with annotation-aware
     accent colors

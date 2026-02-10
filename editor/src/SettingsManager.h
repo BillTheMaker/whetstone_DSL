@@ -160,7 +160,7 @@ private:
     std::string emacsConfigPath_;
     int fontSize_ = 15;
     int tabSize_ = 4;
-    std::string theme_ = "VSCode Dark";
+    std::string theme_ = "Whetstone Dark";
     bool telemetryOptIn_ = false;
     std::string updateUrl_ = "https://example.com/whetstone/releases.json";
     int autoSaveSeconds_ = 0;
