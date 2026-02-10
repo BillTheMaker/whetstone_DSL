@@ -186,7 +186,7 @@ functionality through the Whetstone UI.
   to the daemon. Status: loaded/available/not-installed.
   *New:* `EmacsPackageBrowser` panel
 
-- [ ] **Step 143: Elisp function discovery**
+- [x] **Step 143: Elisp function discovery**
   Query the running Emacs daemon for available functions from loaded packages.
   Send `(apropos-internal "prefix")` → get function list.
   Send `(describe-function 'name)` → get docstring and signature.

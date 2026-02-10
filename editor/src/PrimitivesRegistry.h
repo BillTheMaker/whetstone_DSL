@@ -122,6 +122,8 @@ private:
             add("nil", "constant");
         } else if (lang == "elisp") {
             add("message", "function");
+            add("require", "function");
+            add("use-package", "function");
             add("t", "constant");
             add("nil", "constant");
         }

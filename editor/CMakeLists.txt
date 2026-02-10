@@ -786,6 +786,10 @@ add_executable(step142_test tests/step142_test.cpp)
 target_include_directories(step142_test PRIVATE src)
 target_link_libraries(step142_test PRIVATE nlohmann_json::nlohmann_json imgui::imgui)
 
+add_executable(step143_test tests/step143_test.cpp)
+target_include_directories(step143_test PRIVATE src)
+target_link_libraries(step143_test PRIVATE nlohmann_json::nlohmann_json imgui::imgui)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

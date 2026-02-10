@@ -193,6 +193,9 @@ int main(int, char**) {
         }
         state.pollLspMessages();
         state.processLibraryIndexResponses();
+        if (state.emacsFunctionIndexDirty) {
+            state.updateEmacsFunctionIndex();
+        }
 
         // Start frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -614,7 +617,9 @@ int main(int, char**) {
         if (state.showEmacsPackagesPanel) {
             ImGui::Begin("Emacs Packages", &state.showEmacsPackagesPanel);
             ImGui::PushFont(uiFont);
-            renderEmacsPackageBrowser(state.emacsPackages, state.emacs, state.outputLog);
+            if (renderEmacsPackageBrowser(state.emacsPackages, state.emacs, state.outputLog)) {
+                state.emacsFunctionIndexDirty = true;
+            }
             ImGui::PopFont();
             ImGui::End();
         }

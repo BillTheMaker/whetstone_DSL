@@ -65,6 +65,23 @@ public:
         result += ")";
         return result;
     }
+
+    // Build an Elisp expression to list functions matching a prefix/regex
+    static std::string aproposFunctions(const std::string& prefixRegex) {
+        std::string pattern = prefixRegex;
+        return "(mapconcat #'symbol-name (apropos-internal \"" +
+               escapeString(pattern) + "\" 'fboundp) \"\\n\")";
+    }
+
+    // Build an Elisp expression to describe a function (signature + doc)
+    static std::string describeFunction(const std::string& name) {
+        std::string sym = escapeString(name);
+        return "(let* ((sym '" + sym + ") "
+               "(args (if (fboundp 'help-function-arglist) "
+               "          (help-function-arglist sym t) nil)) "
+               "(doc (or (documentation sym t) \"\"))) "
+               "(concat (if args (prin1-to-string args) \"\") \"\\n\" doc))";
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -279,6 +296,27 @@ public:
         if (elispCommand.find("(require '") != std::string::npos) {
             return "t";
         }
+        if (elispCommand.find("apropos-internal") != std::string::npos) {
+            if (elispCommand.find("use-package") != std::string::npos) {
+                return "use-package\nuse-package-alias";
+            }
+            if (elispCommand.find("projectile") != std::string::npos) {
+                return "projectile-find-file\nprojectile-switch-project";
+            }
+            if (elispCommand.find("cl-") != std::string::npos) {
+                return "cl-loop\ncl-mapcar";
+            }
+            return "";
+        }
+        if (elispCommand.find("help-function-arglist") != std::string::npos) {
+            if (elispCommand.find("use-package") != std::string::npos) {
+                return "(name &rest args)\nConfigure package via use-package.";
+            }
+            if (elispCommand.find("projectile") != std::string::npos) {
+                return "(project)\nProjectile project switching.";
+            }
+            return "()\nEmacs function.";
+        }
 
         // Unknown command — simulate error
         lastError_ = "void-function";
@@ -301,3 +339,4 @@ private:
     std::string lastSentCommand_;
     std::string lastInitPath_;
 };
+

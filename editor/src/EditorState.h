@@ -53,6 +53,7 @@
 #include "IncrementalOptimizer.h"
 #include "EmacsIntegration.h"
 #include "EmacsPackageBrowser.h"
+#include "EmacsFunctionDiscovery.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -182,6 +183,8 @@ struct EditorState {
     CompositionPanelState compositionPanel;
     bool              showEmacsPackagesPanel = false;
     EmacsPackageBrowserState emacsPackages;
+    EmacsFunctionIndex emacsFunctionIndex;
+    bool              emacsFunctionIndexDirty = true;
     struct LibraryIndexRequest {
         std::string name;
         std::string version;
@@ -453,6 +456,9 @@ struct EditorState {
         primitives.setRoot(activeAST());
         primitives.setLanguage(active()->language);
         recordUndoSnapshot();
+        if (language == "elisp") {
+            emacsFunctionIndexDirty = true;
+        }
         if (path.rfind("(untitled", 0) != 0) watcher.watch(path);
         if (lsp && path.rfind("(untitled", 0) != 0) {
             lsp->didOpen(toFileUri(path), language, content, activeBuffer->lspVersion);
@@ -545,6 +551,9 @@ struct EditorState {
         symbolsPending = true;
         symbolsLastChange = ImGui::GetTime();
         if (lsp) lsp->clearDocumentSymbols();
+        if (active() && active()->language == "elisp") {
+            emacsFunctionIndexDirty = true;
+        }
     }
 
     std::filesystem::path configDir() const {
@@ -970,10 +979,28 @@ struct EditorState {
         }
     }
 
+    void updateEmacsFunctionIndex() {
+        if (!active() || active()->language != "elisp") return;
+        std::string error;
+        auto packages = queryEmacsPackageList(emacs, false, outputLog, error);
+        if (!error.empty()) return;
+        refreshEmacsFunctionIndex(emacsFunctionIndex, emacs, packages, outputLog);
+        addEmacsSymbolsToLibraryIndex(libraryIndex, emacsFunctionIndex);
+        emacsFunctionIndexDirty = false;
+        rebuildExternalModulesFromIndex();
+        outputLog += "[emacs] Indexed functions for " +
+                     std::to_string(emacsFunctionIndex.functionsByPackage.size()) +
+                     " packages.\n";
+    }
+
     void rebuildExternalModulesFromIndex() {
         Module* ast = activeAST();
         if (!ast) return;
         rebuildExternalModules(ast, dependencyPanel.deps, libraryIndex);
+        if (active() && active()->language == "elisp") {
+            int signatureId = 0;
+            appendEmacsExternalModules(ast, emacsFunctionIndex, signatureId);
+        }
         if (active()) active()->orchestratorDirty = true;
     }
 
@@ -1337,6 +1364,9 @@ struct EditorState {
         }
         active()->orchestratorDirty = true;
         active()->highlightsDirty = true;
+        if (lang == "elisp") {
+            emacsFunctionIndexDirty = true;
+        }
     }
 
     std::string buildRunCommand(const std::string& path,

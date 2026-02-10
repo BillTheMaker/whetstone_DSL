@@ -121,26 +121,34 @@ static std::vector<EmacsPackageEntry> mergePackageLists(const std::vector<EmacsP
     return out;
 }
 
+static std::vector<EmacsPackageEntry> queryEmacsPackageList(EmacsConnection& emacs,
+                                                            bool includeAvailable,
+                                                            std::string& logOut,
+                                                            std::string& outError) {
+    outError.clear();
+    std::string loadedText = emacs.sendCommand(buildPackageListCommand("package-alist"));
+    if (loadedText.empty() && !emacs.getLastError().empty()) {
+        outError = emacs.getLastError();
+        logOut += "[emacs] " + outError + "\n";
+    }
+    auto loaded = parsePackageListText(loadedText);
+    std::vector<EmacsPackageEntry> available;
+    if (includeAvailable) {
+        std::string availText = emacs.sendCommand(buildPackageListCommand("package-archive-contents"));
+        if (availText.empty() && !emacs.getLastError().empty()) {
+            outError = emacs.getLastError();
+            logOut += "[emacs] " + outError + "\n";
+        }
+        available = parsePackageListText(availText);
+    }
+    return mergePackageLists(loaded, available, includeAvailable);
+}
+
 static void refreshEmacsPackages(EmacsPackageBrowserState& state,
                                  EmacsConnection& emacs,
                                  std::string& logOut) {
     state.lastError.clear();
-    std::string loadedText = emacs.sendCommand(buildPackageListCommand("package-alist"));
-    if (loadedText.empty() && !emacs.getLastError().empty()) {
-        state.lastError = emacs.getLastError();
-        logOut += "[emacs] " + state.lastError + "\n";
-    }
-    auto loaded = parsePackageListText(loadedText);
-    std::vector<EmacsPackageEntry> available;
-    if (state.showAvailable) {
-        std::string availText = emacs.sendCommand(buildPackageListCommand("package-archive-contents"));
-        if (availText.empty() && !emacs.getLastError().empty()) {
-            state.lastError = emacs.getLastError();
-            logOut += "[emacs] " + state.lastError + "\n";
-        }
-        available = parsePackageListText(availText);
-    }
-    state.packages = mergePackageLists(loaded, available, state.showAvailable);
+    state.packages = queryEmacsPackageList(emacs, state.showAvailable, logOut, state.lastError);
     state.needsRefresh = false;
 }
 
@@ -165,9 +173,10 @@ static bool emacsPackageMatchesFilter(const EmacsPackageEntry& entry, const std:
     return hay.find(needle) != std::string::npos;
 }
 
-static void renderEmacsPackageBrowser(EmacsPackageBrowserState& state,
+static bool renderEmacsPackageBrowser(EmacsPackageBrowserState& state,
                                       EmacsConnection& emacs,
                                       std::string& logOut) {
+    bool updated = false;
     if (ImGui::Button("Refresh")) {
         state.needsRefresh = true;
     }
@@ -180,6 +189,7 @@ static void renderEmacsPackageBrowser(EmacsPackageBrowserState& state,
 
     if (state.needsRefresh) {
         refreshEmacsPackages(state, emacs, logOut);
+        updated = true;
     }
 
     ImGui::Separator();
@@ -238,10 +248,12 @@ static void renderEmacsPackageBrowser(EmacsPackageBrowserState& state,
                 logOut += "[emacs] Package not installed: " + loadTarget + "\n";
             }
             state.needsRefresh = true;
+            updated = true;
         }
     }
     if (!loadTarget.empty()) {
         ImGui::SameLine();
         ImGui::TextDisabled("%s", loadTarget.c_str());
     }
+    return updated;
 }
