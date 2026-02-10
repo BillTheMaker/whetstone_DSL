@@ -36,29 +36,114 @@ static void renderSettingsPanel(EditorState& state) {
     if (themeNames.empty()) {
         themeNames = {"Whetstone Dark", "Whetstone Light"};
     }
-    std::string currentTheme = state.settings.getTheme();
-    if (currentTheme == "Dark") currentTheme = "Whetstone Dark";
-    if (currentTheme == "Light") currentTheme = "Whetstone Light";
-    int themeIndex = 0;
-    for (size_t i = 0; i < themeNames.size(); ++i) {
-        if (themeNames[i] == currentTheme) {
-            themeIndex = (int)i;
+    std::string savedTheme = state.settings.getTheme();
+    if (savedTheme == "Dark") savedTheme = "Whetstone Dark";
+    if (savedTheme == "Light") savedTheme = "Whetstone Light";
+
+    static std::string selectedTheme;
+    static std::string previewAnchor;
+    static bool previewActive = false;
+    if (selectedTheme.empty()) selectedTheme = savedTheme;
+    bool selectedExists = false;
+    for (const auto& name : themeNames) {
+        if (name == selectedTheme) {
+            selectedExists = true;
             break;
         }
     }
-    std::vector<const char*> themeLabels;
-    themeLabels.reserve(themeNames.size());
-    for (const auto& name : themeNames) themeLabels.push_back(name.c_str());
-    if (ImGui::Combo("Theme", &themeIndex, themeLabels.data(), (int)themeLabels.size())) {
-        state.settings.setTheme(themeNames[themeIndex]);
-        if (!ThemeEngine::instance().applyTheme(themeNames[themeIndex])) {
-            if (themeNames[themeIndex].find("Light") != std::string::npos)
-                SetupVSCodeLightTheme();
-            else
-                SetupVSCodeDarkTheme();
+    if (!selectedExists) selectedTheme = savedTheme;
+
+    if (ImGui::CollapsingHeader("Themes", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::TextDisabled("Hover to preview, click to select.");
+        const float cardWidth = 180.0f;
+        const float cardHeight = 90.0f;
+        const float padding = 8.0f;
+        float avail = ImGui::GetContentRegionAvail().x;
+        int columns = std::max(1, (int)(avail / (cardWidth + padding)));
+
+        bool anyHovered = false;
+        std::string hoveredTheme;
+
+        if (ImGui::BeginTable("##themeGallery", columns, ImGuiTableFlags_SizingFixedFit)) {
+            for (const auto& name : themeNames) {
+                ImGui::TableNextColumn();
+                ImGui::PushID(name.c_str());
+                ImGui::BeginChild("##themeCard", ImVec2(cardWidth, cardHeight), true);
+                ImGui::TextUnformatted(name.c_str());
+                if (name == selectedTheme) {
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Selected");
+                }
+
+                ImU32 swatch[4] = {
+                    IM_COL32(40, 40, 40, 255),
+                    IM_COL32(197, 134, 192, 255),
+                    IM_COL32(206, 145, 120, 255),
+                    IM_COL32(106, 153, 85, 255)
+                };
+                ThemeEngine::instance().getSwatch(name, swatch);
+                ImVec2 start = ImGui::GetCursorScreenPos();
+                ImDrawList* draw = ImGui::GetWindowDrawList();
+                float swatchWidth = (cardWidth - 2.0f * padding) / 4.0f;
+                float swatchHeight = 24.0f;
+                for (int i = 0; i < 4; ++i) {
+                    ImVec2 a(start.x + i * swatchWidth, start.y);
+                    ImVec2 b(start.x + (i + 1) * swatchWidth - 2.0f, start.y + swatchHeight);
+                    draw->AddRectFilled(a, b, swatch[i], 3.0f);
+                }
+                ImGui::Dummy(ImVec2(0.0f, swatchHeight + 4.0f));
+                ImGui::EndChild();
+
+                if (ImGui::IsItemHovered()) {
+                    anyHovered = true;
+                    hoveredTheme = name;
+                }
+                if (ImGui::IsItemClicked()) {
+                    selectedTheme = name;
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndTable();
         }
-        settingsChanged = true;
-        themeChanged = true;
+
+        if (anyHovered) {
+            if (!previewActive) {
+                previewAnchor = savedTheme;
+                previewActive = true;
+            }
+            if (!hoveredTheme.empty() &&
+                ThemeEngine::instance().currentThemeName() != hoveredTheme) {
+                ThemeEngine::instance().applyTheme(hoveredTheme);
+            }
+        } else if (previewActive) {
+            ThemeEngine::instance().applyTheme(previewAnchor);
+            previewActive = false;
+        }
+
+        ImGui::Separator();
+        bool canApply = !selectedTheme.empty() && selectedTheme != savedTheme;
+        if (!canApply) ImGui::BeginDisabled();
+        if (ImGui::Button("Apply")) {
+            state.settings.setTheme(selectedTheme);
+            if (!ThemeEngine::instance().applyTheme(selectedTheme)) {
+                if (selectedTheme.find("Light") != std::string::npos)
+                    SetupVSCodeLightTheme();
+                else
+                    SetupVSCodeDarkTheme();
+            }
+            previewActive = false;
+            previewAnchor = selectedTheme;
+            settingsChanged = true;
+            themeChanged = true;
+            savedTheme = selectedTheme;
+        }
+        if (!canApply) ImGui::EndDisabled();
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            selectedTheme = savedTheme;
+            ThemeEngine::instance().applyTheme(savedTheme);
+            previewActive = false;
+        }
     }
 
     bool telemetryOptIn = state.settings.getTelemetryOptIn();

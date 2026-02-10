@@ -113,7 +113,7 @@ look professional and feel personal.
   Each theme tested with all annotation types visible.
   *New:* 7 theme JSON files
 
-- [ ] **Step 173: Theme gallery UI**
+- [x] **Step 173: Theme gallery UI**
   Settings > Themes section with visual browser:
   - Grid of theme cards showing name + color swatch preview
   - Live preview on hover (entire editor updates temporarily)

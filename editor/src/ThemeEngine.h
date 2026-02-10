@@ -136,14 +136,7 @@ public:
     ImU32 getColor(ThemeColor color, ImU32 fallback) const {
         const ThemeDefinition* theme = currentTheme();
         if (!theme) return fallback;
-        const std::string key = colorKey(color);
-        if (key.empty()) return fallback;
-        if (isSyntaxColor(color)) {
-            auto it = theme->syntaxColors.find(key);
-            return it != theme->syntaxColors.end() ? it->second : fallback;
-        }
-        auto it = theme->editorColors.find(key);
-        return it != theme->editorColors.end() ? it->second : fallback;
+        return colorFromTheme(*theme, color, fallback);
     }
 
     std::string currentThemeName() const {
@@ -164,6 +157,16 @@ public:
         if (!theme) return fallback;
         auto it = theme->editorColors.find(key);
         return it != theme->editorColors.end() ? it->second : fallback;
+    }
+
+    bool getSwatch(const std::string& name, ImU32 outColors[4]) const {
+        const ThemeDefinition* theme = findThemeByName(name);
+        if (!theme) return false;
+        outColors[0] = colorFromTheme(*theme, ThemeColor::EditorBg, IM_COL32(30, 30, 30, 255));
+        outColors[1] = colorFromTheme(*theme, ThemeColor::SyntaxKeyword, IM_COL32(197, 134, 192, 255));
+        outColors[2] = colorFromTheme(*theme, ThemeColor::SyntaxString, IM_COL32(206, 145, 120, 255));
+        outColors[3] = colorFromTheme(*theme, ThemeColor::SyntaxComment, IM_COL32(106, 153, 85, 255));
+        return true;
     }
 
     bool refreshWatchedThemes() {
@@ -207,6 +210,13 @@ private:
     const ThemeDefinition* currentTheme() const {
         if (current_ < 0 || current_ >= (int)themes_.size()) return nullptr;
         return &themes_[current_];
+    }
+
+    const ThemeDefinition* findThemeByName(const std::string& name) const {
+        for (const auto& theme : themes_) {
+            if (theme.name == name) return &theme;
+        }
+        return nullptr;
     }
 
     static bool parseHexColor(const std::string& text,
@@ -349,6 +359,19 @@ private:
         case ThemeColor::TooltipBg: return "tooltip_bg";
         default: return "";
         }
+    }
+
+    static ImU32 colorFromTheme(const ThemeDefinition& theme,
+                                ThemeColor color,
+                                ImU32 fallback) {
+        const std::string key = colorKey(color);
+        if (key.empty()) return fallback;
+        if (isSyntaxColor(color)) {
+            auto it = theme.syntaxColors.find(key);
+            return it != theme.syntaxColors.end() ? it->second : fallback;
+        }
+        auto it = theme.editorColors.find(key);
+        return it != theme.editorColors.end() ? it->second : fallback;
     }
 
     std::vector<ThemeDefinition> themes_;
