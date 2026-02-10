@@ -331,7 +331,7 @@ Test suites that measure how accurately an LLM can use Whetstone tools.
   - Leaderboard output: rank agents by accuracy, efficiency (fewer tool calls = better)
   *New:* `editor/src/eval_main.cpp`
 
-- [ ] **Step 224: Evaluation harness tests**
+- [x] **Step 224: Evaluation harness tests**
   Tests for the evaluation framework itself:
   1. Known-good traces score 100% on basic tasks
   2. Known-bad traces (wrong mutations) score 0%
