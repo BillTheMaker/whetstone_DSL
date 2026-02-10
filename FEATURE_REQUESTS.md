@@ -71,3 +71,40 @@
 - Phase 7f: Session recording pipeline â€” capture, anonymize, export (Steps 230â€“234)
 
 ---
+## PHP Language Support (Full Pipeline) — PROPOSED
+
+**Goal:** Add full PHP support (parse, AST, generate, project, and annotations) to Whetstone.
+
+**Scope:**
+- Tree-sitter PHP parser integration
+- PHP AST mapping to SemAnno concepts
+- PHP generator with annotation-aware output
+- Cross-language projection to/from PHP
+- Tests: parse/generate round-trip, annotation preservation, projection matrix coverage
+
+**Notes:**
+- Start with core PHP syntax (functions, classes, namespaces, arrays, exceptions, traits).
+- WordPress-specific libraries on top of core PHP support.
+
+---
+
+## WordPress Support (Library + Semantics) — PROPOSED
+
+**Goal:** Enable WordPress-aware tooling on top of PHP support.
+
+**Scope:**
+- Library symbol stubs for WordPress core APIs
+- Semantic tags for WP concepts (hooks, filters, actions)
+- Agent suggestions for safe WP patterns
+
+---
+
+## Rust Plugin Packaging (Conflict Resolver) — PROPOSED
+
+**Goal:** Package a Rust-based topological conflict resolver as a Whetstone plugin.
+
+**Scope:**
+- Define plugin interface for external tools
+- Packaging format and plugin discovery/loading
+- Example integration with a Rust binary or shared library
+
