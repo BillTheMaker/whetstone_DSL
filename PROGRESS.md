@@ -548,4 +548,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 198: Virtual scrolling for large files (viewport + buffered rendering, fold hiding optimized). 1/1 tests pass (step198_test). |
 | 2026-02-10 | Codex | Step 199: Large file handling (size thresholds, text-mode fallback, large file prompt, highlight disable, memory indicator). 1/1 tests pass (step199_test). |
 | 2026-02-10 | Codex | Step 200: Startup/perf (LSP & highlight debounce, deferred AST sync on session restore, debug frame budget warnings). 1/1 tests pass (step200_test). |
+| 2026-02-10 | Codex | Step 201: Sprint 6 integration checks (panel wiring, theme switching, multicursor, first-run wizard, security badge, keyboard navigation, large file settings, notifications). 1/1 tests pass (step201_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

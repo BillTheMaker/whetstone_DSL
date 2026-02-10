@@ -435,7 +435,7 @@ Make Whetstone usable by everyone and fast with large files.
   - Frame time budget monitor in debug builds (warn if frame >16ms)
   *Modifies:* initialization code, panel rendering
 
-- [ ] **Step 201: Sprint 6 integration tests**
+- [x] **Step 201: Sprint 6 integration tests**
   Comprehensive tests covering the full Sprint 6 feature set:
   1. Panel extraction: main.cpp compiles and all panels render
   2. Theme switch: all annotation colors, syntax colors, panel colors update
