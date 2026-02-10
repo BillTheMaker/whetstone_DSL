@@ -1002,6 +1002,13 @@ add_executable(step173_integration_test tests/step173_integration_test.cpp)
 target_include_directories(step173_integration_test PRIVATE src)
 target_link_libraries(step173_integration_test PRIVATE imgui::imgui)
 
+add_executable(step174_test tests/step174_test.cpp)
+target_include_directories(step174_test PRIVATE src)
+
+add_executable(step174_integration_test tests/step174_integration_test.cpp)
+target_include_directories(step174_integration_test PRIVATE src)
+target_link_libraries(step174_integration_test PRIVATE imgui::imgui)
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)

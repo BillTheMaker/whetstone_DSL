@@ -122,7 +122,7 @@ look professional and feel personal.
   - Active theme highlighted with checkmark
   *Modifies:* Settings panel, `ThemeEngine.h`
 
-- [ ] **Step 174: Icon system**
+- [x] **Step 174: Icon system**
   `IconSet.h` — consistent icons rendered via ImGui drawing primitives:
   - File type icons (Python, C++, JS, Rust, Go, Java, Elisp, JSON, etc.)
   - Panel icons (explorer, outline, terminal, agents, dependencies, etc.)

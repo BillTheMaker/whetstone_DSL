@@ -521,3 +521,4 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 171: Theme engine core enhancements (ThemeColor API, user theme dir, hot reload) with tests. 2/2 tests pass (step171_test, step171_integration_test). file_limits_test 4/4 passes. |
 | 2026-02-10 | Codex | Step 172: Bundled theme pack renamed to Whetstone Dark/Light and Monokai Pro with tests. 2/2 tests pass (step172_test, step172_integration_test). file_limits_test 4/4 passes. |
 | 2026-02-10 | Codex | Step 173: Theme gallery UI with hover preview, apply/reset, and swatches. 2/2 tests pass (step173_test, step173_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 174: Added IconSet system with theme-aware, zoom-scaled icons + tests. 2/2 tests pass (step174_test, step174_integration_test). file_limits_test 4/4 passes. |
