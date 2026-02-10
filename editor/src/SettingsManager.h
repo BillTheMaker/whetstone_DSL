@@ -62,6 +62,8 @@ public:
     void setUseAnnotationShapes(bool value) { useAnnotationShapes_ = value; }
     bool getBlockVulnerableImports() const { return blockVulnerableImports_; }
     void setBlockVulnerableImports(bool value) { blockVulnerableImports_ = value; }
+    bool getAutoRecordSessions() const { return autoRecordSessions_; }
+    void setAutoRecordSessions(bool value) { autoRecordSessions_ = value; }
     int getLargeFileWarnMB() const { return largeFileWarnMB_; }
     void setLargeFileWarnMB(int value) { largeFileWarnMB_ = value; }
     int getLargeFileTextMB() const { return largeFileTextMB_; }
@@ -101,6 +103,7 @@ public:
             reduceMotion_ = j.value("reduceMotion", reduceMotion_);
             useAnnotationShapes_ = j.value("useAnnotationShapes", useAnnotationShapes_);
             blockVulnerableImports_ = j.value("blockVulnerableImports", blockVulnerableImports_);
+            autoRecordSessions_ = j.value("autoRecordSessions", autoRecordSessions_);
             largeFileWarnMB_ = j.value("largeFileWarnMB", largeFileWarnMB_);
             largeFileTextMB_ = j.value("largeFileTextMB", largeFileTextMB_);
             largeFileDisableHighlightMB_ = j.value("largeFileDisableHighlightMB", largeFileDisableHighlightMB_);
@@ -147,6 +150,7 @@ public:
             j["reduceMotion"] = reduceMotion_;
             j["useAnnotationShapes"] = useAnnotationShapes_;
             j["blockVulnerableImports"] = blockVulnerableImports_;
+            j["autoRecordSessions"] = autoRecordSessions_;
             j["largeFileWarnMB"] = largeFileWarnMB_;
             j["largeFileTextMB"] = largeFileTextMB_;
             j["largeFileDisableHighlightMB"] = largeFileDisableHighlightMB_;
@@ -230,6 +234,7 @@ private:
     bool reduceMotion_ = false;
     bool useAnnotationShapes_ = true;
     bool blockVulnerableImports_ = false;
+    bool autoRecordSessions_ = false;
     int largeFileWarnMB_ = 1;
     int largeFileTextMB_ = 5;
     int largeFileDisableHighlightMB_ = 10;

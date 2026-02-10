@@ -359,6 +359,18 @@ static void renderSettingsPanel(EditorState& state) {
         state.settings.setBlockVulnerableImports(blockVulnImports);
         settingsChanged = true;
     }
+    bool autoRecordSessions = state.settings.getAutoRecordSessions();
+    if (ImGui::Checkbox("Auto-record Sessions", &autoRecordSessions)) {
+        state.settings.setAutoRecordSessions(autoRecordSessions);
+        if (autoRecordSessions && !state.agent.workflowRecorder.isRecording()) {
+            state.startSessionRecording("auto-session", true);
+        } else if (!autoRecordSessions &&
+                   state.agent.workflowRecorder.isRecording() &&
+                   state.agent.workflowRecorder.isAutoRecording()) {
+            state.stopSessionRecording();
+        }
+        settingsChanged = true;
+    }
 
     ImGui::Separator();
     ImGui::TextUnformatted("Large File Thresholds (MB)");

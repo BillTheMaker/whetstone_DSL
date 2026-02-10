@@ -733,6 +733,91 @@ struct EditorState {
         uiAnimations.recordTabSwitch(path, ImGui::GetTime());
     }
 
+    static std::string osLabel() {
+#ifdef _WIN32
+        return "windows";
+#elif __APPLE__
+        return "macos";
+#else
+        return "linux";
+#endif
+    }
+
+    std::string detectProjectType() const {
+        std::filesystem::path root(workspaceRoot);
+        std::error_code ec;
+        auto exists = [&](const std::string& name) {
+            return std::filesystem::exists(root / name, ec);
+        };
+        if (exists("CMakeLists.txt")) return "cmake";
+        if (exists("package.json")) return "node";
+        if (exists("pyproject.toml") || exists("requirements.txt")) return "python";
+        if (exists("Cargo.toml")) return "rust";
+        if (exists("go.mod")) return "go";
+        if (exists("pom.xml") || exists("build.gradle")) return "java";
+        return "unknown";
+    }
+
+    json buildSessionMetadata(bool autoRecording) const {
+        json meta;
+        meta["editorVersion"] = welcome.getVersion();
+        meta["os"] = osLabel();
+        meta["language"] = active() ? active()->language : std::string("unknown");
+        meta["projectType"] = detectProjectType();
+        meta["autoRecording"] = autoRecording;
+        return meta;
+    }
+
+    void startSessionRecording(const std::string& name, bool autoRecording) {
+        WorkflowRecorder::RecordingConfig cfg;
+        cfg.recordAllSessions = true;
+        cfg.recordControlMethods = true;
+        cfg.recordEditorEvents = true;
+        cfg.autoRecording = autoRecording;
+        agent.workflowRecorder.startRecording(name, "", cfg, buildSessionMetadata(autoRecording));
+        agent.workflowRecorder.recordEvent("session_start", {{"name", name}, {"autoRecording", autoRecording}});
+        notify(NotificationLevel::Info, "Session recording started.");
+    }
+
+    void stopSessionRecording() {
+        if (!agent.workflowRecorder.isRecording()) return;
+        agent.workflowRecorder.recordEvent("session_stop", json::object());
+        agent.workflowRecorder.stopRecording();
+        notify(NotificationLevel::Info, "Session recording stopped.");
+    }
+
+    void toggleSessionRecording() {
+        if (agent.workflowRecorder.isRecording()) stopSessionRecording();
+        else startSessionRecording("session", false);
+    }
+
+    static std::string uiEventLabel(UIEventType type) {
+        switch (type) {
+            case UIEventType::ASTChanged: return "ast_changed";
+            case UIEventType::BufferSwitched: return "buffer_switched";
+            case UIEventType::DiagnosticsUpdated: return "diagnostics_updated";
+            case UIEventType::ThemeChanged: return "theme_changed";
+            case UIEventType::SettingsChanged: return "settings_changed";
+            case UIEventType::FileModified: return "file_modified";
+            case UIEventType::AgentConnected: return "agent_connected";
+            case UIEventType::NotificationPosted: return "notification_posted";
+        }
+        return "unknown";
+    }
+
+    void recordUIEvent(const UIEvent& ev) {
+        json payload = {
+            {"path", ev.path},
+            {"detail", ev.detail},
+            {"uiTimestamp", ev.timestamp}
+        };
+        agent.workflowRecorder.recordEvent(uiEventLabel(ev.type), payload);
+    }
+
+    void recordEditorEvent(const std::string& type, const json& payload) {
+        agent.workflowRecorder.recordEvent(type, payload);
+    }
+
     std::filesystem::path configDir() const {
         const char* home = std::getenv("USERPROFILE");
         if (!home) home = std::getenv("HOME");
@@ -1076,10 +1161,13 @@ struct EditorState {
         loadRecentFiles();
         loadFeatureHints(featureHints, workspaceRoot);
         loadSettingsFromDisk();
+        if (settings.getAutoRecordSessions() && !agent.workflowRecorder.isRecording()) {
+            startSessionRecording("auto-session", true);
+        }
         registerCommands();
         library.vulnDb.startBackgroundRefresh();
         library.semanticTags.load();
-        events.subscribe(UIEventType::BufferSwitched, [this](const UIEvent&) {
+        events.subscribe(UIEventType::BufferSwitched, [this](const UIEvent& ev) {
             if (!active()) return;
             library.primitives.setRoot(activeAST());
             library.primitives.setLanguage(active()->language);
@@ -1089,6 +1177,7 @@ struct EditorState {
             if (active()->language == "elisp") {
                 emacsState.emacsFunctionIndexDirty = true;
             }
+            recordUIEvent(ev);
         });
         events.subscribe(UIEventType::ASTChanged, [this](const UIEvent&) {
             if (!active()) return;
@@ -1098,8 +1187,18 @@ struct EditorState {
             symbolsLastChange = ImGui::GetTime();
             if (lsp) lsp->clearDocumentSymbols();
         });
-        events.subscribe(UIEventType::SettingsChanged, [this](const UIEvent&) {
+        events.subscribe(UIEventType::SettingsChanged, [this](const UIEvent& ev) {
             applySettingsToState();
+            recordUIEvent(ev);
+        });
+        events.subscribe(UIEventType::ThemeChanged, [this](const UIEvent& ev) {
+            recordUIEvent(ev);
+        });
+        events.subscribe(UIEventType::FileModified, [this](const UIEvent& ev) {
+            recordUIEvent(ev);
+        });
+        events.subscribe(UIEventType::NotificationPosted, [this](const UIEvent& ev) {
+            recordUIEvent(ev);
         });
         startEmacsDaemonFromSettings();
         initAgentServer();
@@ -1209,8 +1308,10 @@ struct EditorState {
             logAgentEvent("Agent " + s.sessionId + " " + event);
             if (event == "connected") {
                 agent.roles[s.sessionId] = agent.defaultRole;
+                recordEditorEvent("agent_connected", {{"sessionId", s.sessionId}, {"agentName", s.agentName}});
             } else if (event == "disconnected") {
                 agent.roles.erase(s.sessionId);
+                recordEditorEvent("agent_disconnected", {{"sessionId", s.sessionId}});
             }
         });
         agent.server->setRequestLogCallback([this](const std::string& sid,
@@ -1510,7 +1611,8 @@ struct EditorState {
         if (method == "startWorkflowRecording") {
             auto params = request.contains("params") ? request["params"] : json::object();
             std::string name = params.value("name", "workflow");
-            agent.workflowRecorder.startRecording(name, sessionId);
+            agent.workflowRecorder.startRecording(name, sessionId, WorkflowRecorder::RecordingConfig{},
+                                                 buildSessionMetadata(false));
             response["result"] = {
                 {"recording", true},
                 {"name", name}
@@ -2740,6 +2842,7 @@ struct EditorState {
             active()->modified = false;
             notify(NotificationLevel::Success,
                    "Saved: " + active()->path);
+            recordEditorEvent("file_saved", {{"path", active()->path}});
             if (lsp) lsp->didSave(toFileUri(active()->path), active()->editBuf);
         } else {
             notify(NotificationLevel::Error,
@@ -2809,6 +2912,12 @@ struct EditorState {
                 largeFilePromptBytes = fileSizeBytes;
             }
             notify(NotificationLevel::Success, "Opened: " + path);
+            recordEditorEvent("file_opened", {
+                {"path", path},
+                {"language", language},
+                {"mode", bufferModeToString(effectiveMode)},
+                {"sizeBytes", fileSizeBytes}
+            });
         } else {
             notify(NotificationLevel::Error, "Error opening: " + path);
         }

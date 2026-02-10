@@ -401,7 +401,7 @@ Optimized tool definitions and prompts for specific LLM families.
 
 Capture real editing sessions, anonymize them, and export as training data.
 
-- [ ] **Step 230: Enhanced session recorder**
+- [x] **Step 230: Enhanced session recorder**
   Extend `WorkflowRecorder` for full session capture:
   - Record all JSON-RPC traffic (not just agent-initiated)
   - Capture editor events: file open, buffer switch, theme change, etc.

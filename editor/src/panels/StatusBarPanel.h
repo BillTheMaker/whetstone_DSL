@@ -143,6 +143,23 @@ static void renderStatusBar(EditorState& state) {
         state.notifications.showHistory = !state.notifications.showHistory;
     }
 
+    // Recording indicator
+    ImGui::SameLine(0, 10);
+    bool recording = state.agent.workflowRecorder.isRecording();
+    if (recording) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.75f, 0.15f, 0.15f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.20f, 0.20f, 1.0f));
+    }
+    if (ImGui::Button("REC")) {
+        state.toggleSessionRecording();
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(recording ? "Session recording active" : "Start session recording");
+    }
+    if (recording) {
+        ImGui::PopStyleColor(2);
+    }
+
     // Right cluster: Ln/Col, selection, zoom, git
     int selStart = -1;
     int selEnd = -1;
