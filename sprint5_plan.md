@@ -322,7 +322,7 @@ primitives, and assist with constructive coding.
   Agent actions appear in the transform history with agent name as provenance.
   *Modifies:* `WebSocketServer.h`, `IncrementalOptimizer.h`
 
-- [ ] **Step 158: Agent workflow recording**
+- [x] **Step 158: Agent workflow recording**
   Record agent actions as reproducible workflows. A sequence of agent
   RPC calls → saved as a "workflow script" (JSON). User can replay
   workflows on different codebases. Workflows are shareable.

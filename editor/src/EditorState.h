@@ -42,6 +42,7 @@
 #include "ZoomUtils.h"
 #include "TerminalPanel.h"
 #include "WebSocketServer.h"
+#include "WorkflowRecorder.h"
 #include "BuildSystem.h"
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
@@ -176,6 +177,7 @@ struct EditorState {
     int               agentPort = 8765;
     std::vector<std::string> agentLog;
     std::map<std::string, AgentRole> agentRoles;
+    WorkflowRecorder workflowRecorder;
     BuildSystem::Type buildType = BuildSystem::Type::None;
     std::vector<BuildError> buildErrors;
     std::string lastBuildOutput;
@@ -922,6 +924,7 @@ struct EditorState {
             std::string method = req.value("method", "");
             bool ok = !res.contains("error");
             logAgentEvent("RPC " + sid + " " + method + (ok ? " ok" : " error"));
+            workflowRecorder.record(sid, req, res);
         });
         if (agentServer->start(agentPort)) {
             logAgentEvent("Agent server started on port " + std::to_string(agentPort));
@@ -1196,6 +1199,52 @@ struct EditorState {
             setAgentRole(sessionId, newRole);
             response["result"] = {
                 {"role", AgentPermissionPolicy::roleLabel(newRole)}
+            };
+            return response;
+        }
+
+        if (method == "startWorkflowRecording") {
+            auto params = request.contains("params") ? request["params"] : json::object();
+            std::string name = params.value("name", "workflow");
+            workflowRecorder.startRecording(name, sessionId);
+            response["result"] = {
+                {"recording", true},
+                {"name", name}
+            };
+            return response;
+        }
+
+        if (method == "stopWorkflowRecording") {
+            response["result"] = workflowRecorder.stopRecording();
+            return response;
+        }
+
+        if (method == "getWorkflowRecording") {
+            response["result"] = workflowRecorder.exportWorkflow();
+            return response;
+        }
+
+        if (method == "replayWorkflow") {
+            auto params = request.contains("params") ? request["params"] : json::object();
+            if (!params.contains("workflow")) {
+                response["error"] = {{"code", -32602}, {"message", "Missing workflow payload"}};
+                return response;
+            }
+            WorkflowRecorder temp;
+            if (!temp.loadWorkflow(params["workflow"])) {
+                response["error"] = {{"code", -32602}, {"message", "Invalid workflow payload"}};
+                return response;
+            }
+            auto requests = temp.buildReplayRequests();
+            json results = json::array();
+            workflowRecorder.setReplaying(true);
+            for (auto& req : requests) {
+                results.push_back(processAgentRequest(req, sessionId));
+            }
+            workflowRecorder.setReplaying(false);
+            response["result"] = {
+                {"count", results.size()},
+                {"responses", results}
             };
             return response;
         }
