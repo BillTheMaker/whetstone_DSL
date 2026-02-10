@@ -1,0 +1,106 @@
+{
+  "version": "1.0",
+  "provider": "generic",
+  "call_format": {
+    "type": "xml",
+    "tag": "tool_call",
+    "name_attribute": "name",
+    "payload": "json",
+    "example": "<tool_call name=\"whetstone_get_ast\">{}</tool_call>"
+  },
+  "tools": [
+    {
+      "name": "whetstone_get_ast",
+      "description": "Return the current AST for the active buffer. Use before mutations.",
+      "args": [],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_mutate",
+      "description": "Apply a single AST mutation. Use setProperty, updateNode, deleteNode, or insertNode.",
+      "args": [
+        { "name": "type", "type": "string", "required": true, "enum": ["setProperty", "updateNode", "deleteNode", "insertNode"] },
+        { "name": "nodeId", "type": "string", "required": false, "notes": "Required for setProperty, updateNode, deleteNode." },
+        { "name": "property", "type": "string", "required": false },
+        { "name": "value", "type": "string", "required": false },
+        { "name": "parentId", "type": "string", "required": false },
+        { "name": "role", "type": "string", "required": false },
+        { "name": "node", "type": "object", "required": false }
+      ],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_batch_mutate",
+      "description": "Apply multiple mutations atomically.",
+      "args": [
+        { "name": "mutations", "type": "array", "required": true }
+      ],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_get_scope",
+      "description": "List symbols in scope for a node.",
+      "args": [
+        { "name": "nodeId", "type": "string", "required": true }
+      ],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_get_call_hierarchy",
+      "description": "Get call hierarchy for a function.",
+      "args": [
+        { "name": "functionId", "type": "string", "required": true }
+      ],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_suggest_annotations",
+      "description": "Suggest memory annotations for a node or line/col location.",
+      "args": [
+        { "name": "nodeId", "type": "string", "required": false },
+        { "name": "line", "type": "integer", "required": false },
+        { "name": "col", "type": "integer", "required": false }
+      ],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_apply_annotation",
+      "description": "Apply a memory annotation suggestion.",
+      "args": [
+        { "name": "nodeId", "type": "string", "required": true },
+        { "name": "annotationType", "type": "string", "required": true },
+        { "name": "strategy", "type": "string", "required": true },
+        { "name": "reason", "type": "string", "required": false },
+        { "name": "confidence", "type": "number", "required": false }
+      ],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_generate_code",
+      "description": "Generate code from a natural language spec.",
+      "args": [
+        { "name": "spec", "type": "string", "required": true },
+        { "name": "preferImports", "type": "boolean", "required": false }
+      ],
+      "defaults": { "preferImports": true }
+    },
+    {
+      "name": "whetstone_run_pipeline",
+      "description": "Run the full pipeline from source to target language.",
+      "args": [
+        { "name": "source", "type": "string", "required": true },
+        { "name": "sourceLanguage", "type": "string", "required": true },
+        { "name": "targetLanguage", "type": "string", "required": true }
+      ],
+      "defaults": {}
+    },
+    {
+      "name": "whetstone_project_language",
+      "description": "Project the current AST to a target language.",
+      "args": [
+        { "name": "targetLanguage", "type": "string", "required": true }
+      ],
+      "defaults": {}
+    }
+  ]
+}

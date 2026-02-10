@@ -367,7 +367,7 @@ Optimized tool definitions and prompts for specific LLM families.
   - Parallel tool calling hints for independent operations
   *New:* `tools/openai/` directory with function definitions + system prompt
 
-- [ ] **Step 227: Open-source model tool definitions**
+- [x] **Step 227: Open-source model tool definitions**
   Generic tool definitions for open-source models (Llama, Mistral, etc.):
   - ReAct-style prompting with tool descriptions in system prompt
   - XML-tagged tool call format (for models without native tool calling)

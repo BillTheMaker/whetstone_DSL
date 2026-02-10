@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "call_format": {
+    "tool_call_tag": "tool_call",
+    "name_attribute": "name",
+    "payload": "json",
+    "allow_whitespace": true,
+    "max_calls_per_message": 1
+  },
+  "result_format": {
+    "tool_result_tag": "tool_result",
+    "name_attribute": "name",
+    "payload": "json"
+  },
+  "parsing": {
+    "strip_markdown_fences": true,
+    "accept_action_prefix": "Action:",
+    "accept_thought_prefix": "Thought:",
+    "error_on_multiple_calls": true
+  },
+  "defaults": {
+    "whetstone_generate_code": { "preferImports": true }
+  },
+  "mapping": {
+    "whetstone_get_ast": "whetstone_get_ast",
+    "whetstone_mutate": "whetstone_mutate",
+    "whetstone_batch_mutate": "whetstone_batch_mutate",
+    "whetstone_get_scope": "whetstone_get_scope",
+    "whetstone_get_call_hierarchy": "whetstone_get_call_hierarchy",
+    "whetstone_suggest_annotations": "whetstone_suggest_annotations",
+    "whetstone_apply_annotation": "whetstone_apply_annotation",
+    "whetstone_generate_code": "whetstone_generate_code",
+    "whetstone_run_pipeline": "whetstone_run_pipeline",
+    "whetstone_project_language": "whetstone_project_language"
+  }
+}

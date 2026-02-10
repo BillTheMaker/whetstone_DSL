@@ -746,3 +746,4 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7a (Steps 202–206): API docs (AGENT_API.md, 23 methods), JSON schemas (20 files), exposed ContextAPI/BatchMutationAPI/Pipeline via RPC, permission policy updates. 51/51 tests pass. |
 | 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7b (Steps 207–213): MCPServer.h (10 tools, 5 resources, 4 prompts, JSON-RPC 2.0 initialize handshake), MCPBridge.h (stdio transport). 90/90 tests pass. |
 | 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7c (Steps 214–219): TraceGenerator.h (6 scenario templates, 9-sample code corpus, batch engine), TraceExporter.h (Anthropic/OpenAI/JSONL/Markdown export, filtering, statistics). 294/294 tests pass. |
+| 2026-02-10 | Codex | Step 227: Open-source model tool definitions (ReAct-style prompt, XML tool call format, simplified schemas, adapter rules). 1/1 tests pass. |

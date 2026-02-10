@@ -1164,6 +1164,8 @@ target_include_directories(step225_test PRIVATE src)
 
 add_executable(step226_test tests/step226_test.cpp)
 target_include_directories(step226_test PRIVATE src)
+add_executable(step227_test tests/step227_test.cpp)
+target_include_directories(step227_test PRIVATE src)
 add_executable(step213_test tests/step213_test.cpp)
 target_include_directories(step213_test PRIVATE src)
 target_link_libraries(step213_test PRIVATE nlohmann_json::nlohmann_json)
