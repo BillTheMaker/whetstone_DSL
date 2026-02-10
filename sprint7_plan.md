@@ -386,7 +386,7 @@ Optimized tool definitions and prompts for specific LLM families.
   expected tool sequence, success criteria.
   *New:* `tools/prompts/` directory with 5+ prompt templates
 
-- [ ] **Step 229: Tool definition tests**
+- [x] **Step 229: Tool definition tests**
   Tests verifying tool definitions are correct and complete:
   1. All MCP tools have corresponding Claude/OpenAI/generic definitions
   2. Tool input schemas match MCP tool schemas
