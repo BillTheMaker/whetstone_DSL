@@ -120,7 +120,7 @@ what's already available.
   parameter types from `TypeSignature`.
   *Modifies:* `CodeEditorWidget.h`, `LSPClient.h`
 
-- [ ] **Step 136: Agent library-aware mode**
+- [x] **Step 136: Agent library-aware mode**
   New agent capability flag: `preferImports`. When set, the agent
   (via WebSocket API) **prefers** inserting code that references symbols in
   `PrimitivesRegistry`, and warns (not rejects) when using symbols outside

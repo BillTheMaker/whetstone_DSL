@@ -48,6 +48,7 @@
 #include "LibraryBrowserPanel.h"
 #include "ImportManager.h"
 #include "PrimitivesRegistry.h"
+#include "AgentLibraryPolicy.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -989,6 +990,8 @@ struct EditorState {
             }
             auto params = request.contains("params") ? request["params"] : json::object();
             std::string type = params.value("type", "");
+            bool preferImports = params.value("preferImports", false);
+            bool strictMode = params.value("strictMode", false);
             Module* ast = mutationAST();
             if (!ast) {
                 response["error"] = {{"code", -32001}, {"message", "AST unavailable"}};
@@ -997,6 +1000,7 @@ struct EditorState {
             ASTMutationAPI mut;
             mut.setRoot(ast);
             ASTMutationAPI::MutationResult res;
+            LibraryPolicyResult policy;
 
             if (type == "setProperty") {
                 res = mut.setProperty(params.value("nodeId", ""),
@@ -1017,6 +1021,14 @@ struct EditorState {
                 if (params.contains("node")) {
                     node = fromJson(params["node"]);
                 }
+                if (node) {
+                    policy = checkMutationLibraryPolicy(node, ast, preferImports, strictMode);
+                    if (!policy.ok) {
+                        response["error"] = {{"code", -32011}, {"message", policy.error}};
+                        deleteTree(node);
+                        return response;
+                    }
+                }
                 res = mut.insertNode(params.value("parentId", ""),
                                      params.value("role", ""), node);
                 if (!res.success && node) {
@@ -1035,7 +1047,9 @@ struct EditorState {
             applyOrchestratorToActive();
             response["result"] = {
                 {"success", true},
-                {"warning", res.warning}
+                {"warning", res.warning},
+                {"libraryWarning", policy.warning},
+                {"unknownFunctions", policy.unknownFunctions}
             };
             return response;
         }
