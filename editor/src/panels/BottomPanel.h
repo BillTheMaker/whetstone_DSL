@@ -100,6 +100,9 @@ static void renderBottomPanel(EditorState& state) {
 
         if (ImGui::BeginTabItem("Agents")) {
             ImGui::PushFont(state.monoFont);
+            queueFeatureHint(state.featureHints,
+                             "hint.agents",
+                             "Tip: Agents can query and modify your AST via the JSON-RPC API.");
             bool running = state.agent.server && state.agent.server->isRunning();
             ImGui::Text("Server: %s", running ? "Running" : "Stopped");
             ImGui::SameLine(0, 20);

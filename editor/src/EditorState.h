@@ -52,6 +52,7 @@
 #include "NotificationSystem.h"
 #include "UIEventBus.h"
 #include "SearchUtils.h"
+#include "FeatureHints.h"
 #include "state/SearchState.h"
 #include "state/AgentState.h"
 #include "state/BuildState.h"
@@ -182,6 +183,7 @@ struct EditorState {
     UIEventBus         events;
     HelpPanelState helpPanel;
     Telemetry telemetry;
+    FeatureHintsState featureHints;
     char              outlineFilter[128] = {};
     WelcomeScreen     welcome;
     std::string       workspaceRoot;
@@ -803,6 +805,7 @@ struct EditorState {
         search.projectSearch.setRoot(workspaceRoot);
         fileTreeDirty = true;
         loadRecentFiles();
+        loadFeatureHints(featureHints, workspaceRoot);
         loadSettingsFromDisk();
         registerCommands();
         events.subscribe(UIEventType::BufferSwitched, [this](const UIEvent&) {

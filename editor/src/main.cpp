@@ -16,6 +16,7 @@
 #include "CompletionUtils.h"
 #include "ThemeEngine.h"
 #include "FirstRunWizard.h"
+#include "FeatureHints.h"
 
 // --- Panel headers ---
 #include "panels/MenuBarPanel.h"
@@ -378,6 +379,7 @@ int main(int, char**) {
         wizard.open = state.ui.showFirstRunWizard;
         renderFirstRunWizard(state, wizard);
         state.ui.showFirstRunWizard = wizard.open;
+        renderFeatureHintBar(state.featureHints, state.workspaceRoot);
         state.notifications.renderHistoryWindow([&](const Notification& note) {
             if (note.hasTarget) state.navigateToTarget(note.target);
         });

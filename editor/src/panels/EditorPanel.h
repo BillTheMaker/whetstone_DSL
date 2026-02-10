@@ -8,6 +8,11 @@
 #include <map>
 
 static void renderEditorPanel(EditorState& state) {
+        if (state.ui.showAnnotations) {
+            queueFeatureHint(state.featureHints,
+                             "hint.annotations",
+                             "Tip: Right-click a function to add memory annotations.");
+        }
         // ---------------------------------------------------------------
         //  Editor (center) -- editable text area
         // ---------------------------------------------------------------

@@ -532,4 +532,5 @@ Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 
 | 2026-02-10 | Codex | Step 182: Problems panel overhaul with grouping, sortable table, and diagnostic badges on tabs. 2/2 tests pass (step182_test, step182_integration_test). |
 | 2026-02-10 | Codex | Step 183: Tab reordering and untitled rename flow, plus buffer rename support. 2/2 tests pass (step183_test, step183_integration_test). |
 | 2026-02-10 | Codex | Step 184: First-run wizard (layout/theme/keybindings + get-started actions) wired on missing session. 2/2 tests pass (step184_test, step184_integration_test). |
+| 2026-02-10 | Codex | Step 185: Contextual feature hints with persistence + dismiss/disable. 2/2 tests pass (step185_test, step185_integration_test). |
 | 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |

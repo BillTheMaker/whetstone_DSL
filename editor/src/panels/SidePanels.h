@@ -5,6 +5,9 @@
 static void renderOutlinePanel(EditorState& state) {
     if (!state.ui.showOutline) return;
     ImGui::Begin("Outline", &state.ui.showOutline);
+    queueFeatureHint(state.featureHints,
+                     "hint.outline",
+                     "Tip: Use the Outline to jump between symbols quickly.");
     ImGui::PushFont(state.uiFont);
     ImGui::SetNextItemWidth(-1.0f);
     ImGui::InputText("Filter", state.outlineFilter, sizeof(state.outlineFilter));

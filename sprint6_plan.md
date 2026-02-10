@@ -249,7 +249,7 @@ without being annoying.
   Settings persisted immediately. Can be re-run from Help > Setup Wizard.
   *New:* `FirstRunWizard.h`
 
-- [ ] **Step 185: Contextual feature hints**
+- [x] **Step 185: Contextual feature hints**
   Non-intrusive discovery system:
   - Hints appear as subtle bar below toolbar, not modal dialogs
   - Triggered by context: first time opening annotations panel →
