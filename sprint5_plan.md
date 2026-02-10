@@ -267,7 +267,7 @@ adds full semantic support.
   Close()/Release() patterns, @Owner(Single) → ownership convention comments.
   *Modifies:* `Parser.h`, `Generator.h`
 
-- [ ] **Step 152: Cross-language projection for new languages**
+- [x] **Step 152: Cross-language projection for new languages**
   Extend `CrossLanguageProjector` to handle projection between all pairs of
   supported languages (Python, C++, Elisp, JS/TS, Java, Rust, Go).
   Annotation adaptation rules for each target. Library compatibility
