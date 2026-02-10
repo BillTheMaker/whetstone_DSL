@@ -139,7 +139,7 @@ what's already available.
   backed by real library APIs.
   *New:* `CompositionBuilder.h`, `CompositionPanel` in `main.cpp`
 
-- [ ] **Step 138: Type-aware code generation**
+- [x] **Step 138: Type-aware code generation**
   Enhance generators to use `TypeSignature` information from imported libraries.
   When generating C++ from Python code that uses numpy, the generator knows
   `numpy.array` maps to `std::vector<double>` (or Eigen::MatrixXd).

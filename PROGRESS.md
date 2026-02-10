@@ -382,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 5 in progress. Step 137 (function composition builder) done. Next: Step 138 (type-aware code generation).
+Sprint 5 in progress. Step 138 (type-aware code generation) done. Next: Step 139 (library compatibility matrix).
 
 ---
 
@@ -483,5 +483,6 @@ Sprint 5 in progress. Step 137 (function composition builder) done. Next: Step 1
 | 2026-02-09 | Codex | Step 135: Library-aware completion ordering with auto-import hints for non-primitive symbols. 5/5 tests pass. |
 | 2026-02-09 | Codex | Step 136: Agent preferImports/strictMode policy checks on mutations with warnings or blocking. 4/4 tests pass. |
 | 2026-02-09 | Codex | Step 137: Composition builder panel with pipeline generation and code insertion. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 138: Type-aware C++ generation via library call mappings. 2/2 tests pass. |
 | 2026-02-09 | Codex | Added FEATURE_REQUESTS.md to track security vulnerability awareness and semantic library annotations for future sprints. |
 | 2026-02-09 | Codex | Added LLM tooling + MCP bridge feature request to FEATURE_REQUESTS.md. |

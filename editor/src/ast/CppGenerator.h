@@ -1,5 +1,6 @@
 #pragma once
 #include "ProjectionGenerator.h"
+#include "../TypeAwareMappings.h"
 
 class CppGenerator : public ProjectionGenerator {
 public:
@@ -106,6 +107,13 @@ public:
             typeStr = generate(type);
         }
 
+        auto initializer = variable->getChild("initializer");
+        if (!type && initializer && initializer->conceptType == "FunctionCall") {
+            auto* call = static_cast<const FunctionCall*>(initializer);
+            std::string mapped = mapTypeForFunctionCall("cpp", call->functionName);
+            if (!mapped.empty()) typeStr = mapped;
+        }
+
         // Check enclosing function for memory annotations that affect variable types
         std::string wrapper = getMemoryTypeWrapper(variable);
         if (!wrapper.empty()) {
@@ -113,8 +121,6 @@ public:
         } else {
             oss << typeStr << " " << variable->name;
         }
-
-        auto initializer = variable->getChild("initializer");
         if (initializer) {
             oss << " = " << generate(initializer);
         }
