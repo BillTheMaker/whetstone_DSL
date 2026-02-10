@@ -538,6 +538,8 @@ static void renderBottomPanel(EditorState& state) {
                 leftOpts.showWhitespace = state.ui.showWhitespace;
                 leftOpts.showLineNumbers = state.ui.showLineNumbers;
                 leftOpts.showCurrentLine = false;
+                leftOpts.lineHeightScale = state.settings.getLineHeightScale();
+                leftOpts.letterSpacing = state.settings.getLetterSpacing();
                 leftOpts.highlightLines = &state.diff.beforeLines;
                 leftOpts.highlightLineColor = IM_COL32(160, 80, 80, 120);
                 leftOpts.syncScrollX = &state.diffScrollX;
@@ -553,6 +555,8 @@ static void renderBottomPanel(EditorState& state) {
                 rightOpts.showWhitespace = state.ui.showWhitespace;
                 rightOpts.showLineNumbers = state.ui.showLineNumbers;
                 rightOpts.showCurrentLine = false;
+                rightOpts.lineHeightScale = state.settings.getLineHeightScale();
+                rightOpts.letterSpacing = state.settings.getLetterSpacing();
                 rightOpts.highlightLines = &state.diff.afterLines;
                 rightOpts.highlightLineColor = IM_COL32(80, 160, 80, 120);
                 rightOpts.syncScrollX = &state.diffScrollX;

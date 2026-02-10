@@ -132,7 +132,7 @@ look professional and feel personal.
   - Theme-aware: icon colors adapt to current theme
   *New:* `IconSet.h`
 
-- [ ] **Step 175: Typography and spacing**
+- [x] **Step 175: Typography and spacing**
   Configurable typography beyond just font size:
   - Code font family selection (from system monospace fonts or bundled)
   - UI font separate from code font

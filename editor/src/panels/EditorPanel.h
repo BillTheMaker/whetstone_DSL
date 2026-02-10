@@ -153,6 +153,8 @@ static void renderEditorPanel(EditorState& state) {
                                               state.ui.showWhitespace,
                                               state.monoFont,
                                               state.uiFont,
+                                              state.settings.getLineHeightScale(),
+                                              state.settings.getLetterSpacing(),
                                               [&](const std::string& newText) {
                                                   buf->editBuf = newText;
                                                   state.onTextChanged();
@@ -173,6 +175,8 @@ static void renderEditorPanel(EditorState& state) {
                             opts.showMinimap = state.ui.showMinimap;
                             opts.showAnnotations = state.ui.showAnnotations;
                             opts.showLineNumbers = state.ui.showLineNumbers;
+                            opts.lineHeightScale = state.settings.getLineHeightScale();
+                            opts.letterSpacing = state.settings.getLetterSpacing();
                             if (state.ui.layoutPreset == LayoutPreset::Emacs) opts.annotationLayout = 1;
                             else if (state.ui.layoutPreset == LayoutPreset::JetBrains) opts.annotationLayout = 2;
                             else opts.annotationLayout = 0;
@@ -226,6 +230,8 @@ static void renderEditorPanel(EditorState& state) {
                                 genOpts.mode = &buf->generatedMode;
                                 genOpts.showLineNumbers = state.ui.showLineNumbers;
                                 genOpts.showCurrentLine = false;
+                                genOpts.lineHeightScale = state.settings.getLineHeightScale();
+                                genOpts.letterSpacing = state.settings.getLetterSpacing();
                                 genOpts.highlightLine = buf->generatedHighlightLine;
                                 genOpts.syncScrollX = &buf->splitScrollX;
                                 genOpts.syncScrollY = &buf->splitScrollY;

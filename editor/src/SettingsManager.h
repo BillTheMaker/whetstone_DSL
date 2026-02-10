@@ -30,6 +30,14 @@ public:
     std::string& getEmacsConfigPathMutable() { return emacsConfigPath_; }
     int getFontSize() const { return fontSize_; }
     void setFontSize(int size) { fontSize_ = size; }
+    const std::string& getCodeFontPath() const { return codeFontPath_; }
+    void setCodeFontPath(const std::string& path) { codeFontPath_ = path; }
+    const std::string& getUiFontPath() const { return uiFontPath_; }
+    void setUiFontPath(const std::string& path) { uiFontPath_ = path; }
+    float getLineHeightScale() const { return lineHeightScale_; }
+    void setLineHeightScale(float value) { lineHeightScale_ = value; }
+    float getLetterSpacing() const { return letterSpacing_; }
+    void setLetterSpacing(float value) { letterSpacing_ = value; }
     int getTabSize() const { return tabSize_; }
     void setTabSize(int size) { tabSize_ = size; }
     const std::string& getTheme() const { return theme_; }
@@ -58,6 +66,10 @@ public:
             nlohmann::json j;
             in >> j;
             fontSize_ = j.value("fontSize", fontSize_);
+            codeFontPath_ = j.value("codeFont", codeFontPath_);
+            uiFontPath_ = j.value("uiFont", uiFontPath_);
+            lineHeightScale_ = j.value("lineHeight", lineHeightScale_);
+            letterSpacing_ = j.value("letterSpacing", letterSpacing_);
             tabSize_ = j.value("tabSize", tabSize_);
             theme_ = j.value("theme", theme_);
             telemetryOptIn_ = j.value("telemetryOptIn", telemetryOptIn_);
@@ -90,6 +102,10 @@ public:
         try {
             nlohmann::json j;
             j["fontSize"] = fontSize_;
+            j["codeFont"] = codeFontPath_;
+            j["uiFont"] = uiFontPath_;
+            j["lineHeight"] = lineHeightScale_;
+            j["letterSpacing"] = letterSpacing_;
             j["tabSize"] = tabSize_;
             j["theme"] = theme_;
             j["telemetryOptIn"] = telemetryOptIn_;
@@ -159,6 +175,10 @@ private:
     std::vector<LSPServerConfig> lspServers_;
     std::string emacsConfigPath_;
     int fontSize_ = 15;
+    std::string codeFontPath_;
+    std::string uiFontPath_;
+    float lineHeightScale_ = 1.0f;
+    float letterSpacing_ = 0.0f;
     int tabSize_ = 4;
     std::string theme_ = "Whetstone Dark";
     bool telemetryOptIn_ = false;

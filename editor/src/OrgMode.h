@@ -175,6 +175,8 @@ static bool renderOrgDocument(OrgDocumentState& state,
                               bool showWhitespace,
                               ImFont* monoFont,
                               ImFont* uiFont,
+                              float lineHeightScale,
+                              float letterSpacing,
                               const std::function<void(const std::string&)>& onOrgTextChanged,
                               const std::function<void(int, const std::string&, const std::string&)>& onBlockChanged,
                               const std::function<std::string(const std::string&, const std::string&)>& onRunBlock) {
@@ -200,6 +202,8 @@ static bool renderOrgDocument(OrgDocumentState& state,
             opts.readOnly = false;
             opts.showWhitespace = showWhitespace;
             opts.showLineNumbers = true;
+            opts.lineHeightScale = lineHeightScale;
+            opts.letterSpacing = letterSpacing;
             EditorMode& mode = state.modes[srcIndex];
             mode.setLanguage(block.language);
             opts.mode = &mode;

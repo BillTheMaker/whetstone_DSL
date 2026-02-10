@@ -40,8 +40,10 @@ public:
         }
 
         // Measure
-        const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
-        const float charAdvance = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, "M").x;
+        const float lineHeight =
+            ImGui::GetTextLineHeightWithSpacing() * std::max(0.5f, options.lineHeightScale);
+        const float baseAdvance = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, "M").x;
+        const float charAdvance = baseAdvance + std::max(0.0f, options.letterSpacing);
         const float gutterWidth = options.showLineNumbers ?
             calcGutterWidth(lineCount, font, charAdvance) : 12.0f;
         const float minimapWidth = options.showMinimap ? 80.0f : 0.0f;

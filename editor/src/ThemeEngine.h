@@ -45,6 +45,8 @@ struct ThemeDefinition {
     std::unordered_map<std::string, ImU32> editorColors;
     std::unordered_map<int, ImVec4> imguiColors;
     std::string sourcePath;
+    ImVec2 panelPadding = ImVec2(8.0f, 6.0f);
+    ImVec2 panelSpacing = ImVec2(8.0f, 6.0f);
 };
 
 class ThemeEngine {
@@ -312,6 +314,19 @@ private:
                 }
             }
         }
+        if (j.contains("layout") && j["layout"].is_object()) {
+            const auto& layout = j["layout"];
+            if (layout.contains("panelPadding") && layout["panelPadding"].is_array() &&
+                layout["panelPadding"].size() >= 2) {
+                out.panelPadding.x = layout["panelPadding"][0].get<float>();
+                out.panelPadding.y = layout["panelPadding"][1].get<float>();
+            }
+            if (layout.contains("panelSpacing") && layout["panelSpacing"].is_array() &&
+                layout["panelSpacing"].size() >= 2) {
+                out.panelSpacing.x = layout["panelSpacing"][0].get<float>();
+                out.panelSpacing.y = layout["panelSpacing"][1].get<float>();
+            }
+        }
         return true;
     }
 
@@ -322,6 +337,8 @@ private:
                 style.Colors[colId] = color;
             }
         }
+        style.WindowPadding = theme.panelPadding;
+        style.ItemSpacing = theme.panelSpacing;
     }
 
     static bool isSyntaxColor(ThemeColor color) {

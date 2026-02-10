@@ -8,6 +8,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <cctype>
+#include <filesystem>
+#include <vector>
 
 #include "EditorState.h"
 #include "EditorUtils.h"
@@ -120,6 +122,60 @@ int main(int, char**) {
     state.uiFont = uiFont;
     state.baseFontSize = baseFontSize;
     state.init();
+
+    auto loadFontFromPath = [&](const std::string& preferred,
+                                const std::vector<std::string>& fallbacks,
+                                float size) -> ImFont* {
+        namespace fs = std::filesystem;
+        if (!preferred.empty() && fs::exists(preferred)) {
+            if (auto* f = io.Fonts->AddFontFromFileTTF(preferred.c_str(), size)) return f;
+        }
+        for (const auto& path : fallbacks) {
+            if (fs::exists(path)) {
+                if (auto* f = io.Fonts->AddFontFromFileTTF(path.c_str(), size)) return f;
+            }
+        }
+        return io.Fonts->AddFontDefault();
+    };
+
+    auto reloadFonts = [&]() {
+        ImGui_ImplOpenGL3_DestroyFontsTexture();
+        io.Fonts->Clear();
+        std::vector<std::string> codeFallbacks;
+        std::vector<std::string> uiFallbacks;
+#ifdef _WIN32
+        codeFallbacks = {
+            "C:\\Windows\\Fonts\\consola.ttf",
+            "C:\\Windows\\Fonts\\CascadiaCode.ttf",
+            "C:\\Windows\\Fonts\\CascadiaMono.ttf",
+            "C:\\Windows\\Fonts\\cour.ttf"
+        };
+        uiFallbacks = {
+            "C:\\Windows\\Fonts\\segoeui.ttf",
+            "C:\\Windows\\Fonts\\calibri.ttf",
+            "C:\\Windows\\Fonts\\arial.ttf"
+        };
+#else
+        codeFallbacks = {
+            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
+        };
+        uiFallbacks = {
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+        };
+#endif
+        state.monoFont = loadFontFromPath(state.settings.getCodeFontPath(),
+                                          codeFallbacks,
+                                          state.baseFontSize);
+        state.uiFont = loadFontFromPath(state.settings.getUiFontPath(),
+                                        uiFallbacks,
+                                        state.baseFontSize);
+        io.FontGlobalScale = state.settings.getFontSize() / state.baseFontSize;
+        ImGui_ImplOpenGL3_CreateFontsTexture();
+    };
+
+    reloadFonts();
     ThemeEngine& themes = ThemeEngine::instance();
     themes.loadThemesFromDirectory("themes");
     themes.loadThemesFromDirectory("editor/themes");
@@ -256,6 +312,10 @@ int main(int, char**) {
         state.refreshEmacsModeLine(ImGui::GetTime());
         state.events.tick(ImGui::GetTime());
         themes.refreshWatchedThemes();
+        if (state.fontsDirty) {
+            reloadFonts();
+            state.fontsDirty = false;
+        }
 
         // --- Start frame ---
         ImGui_ImplOpenGL3_NewFrame();

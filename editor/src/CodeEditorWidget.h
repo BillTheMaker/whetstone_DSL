@@ -25,6 +25,8 @@ struct CodeEditorOptions {
     bool showAnnotations = false;
     bool showLineNumbers = true;
     bool showCurrentLine = true;
+    float lineHeightScale = 1.0f;
+    float letterSpacing = 0.0f;
     int annotationLayout = 0; // 0=above, 1=margin, 2=beside
     const std::vector<int>* errorLines = nullptr;
     const std::vector<int>* warningLines = nullptr;

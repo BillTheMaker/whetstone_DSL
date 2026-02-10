@@ -3,6 +3,8 @@
 #include "../EditorUtils.h"
 #include "../ThemeEngine.h"
 #include <cstdlib>
+#include <filesystem>
+#include <vector>
 
 static void openThemesFolder(const std::string& path) {
 #ifdef _WIN32
@@ -17,6 +19,53 @@ static void openThemesFolder(const std::string& path) {
 #endif
 }
 
+struct FontOption {
+    std::string label;
+    std::string path;
+};
+
+static void pushFontOption(std::vector<FontOption>& out,
+                           const std::string& label,
+                           const std::string& path) {
+    std::error_code ec;
+    if (path.empty() || std::filesystem::exists(path, ec)) {
+        out.push_back({label, path});
+    }
+}
+
+static std::vector<FontOption> collectFontOptions(bool monospace) {
+    std::vector<FontOption> out;
+    pushFontOption(out, "Default", "");
+#ifdef _WIN32
+    if (monospace) {
+        pushFontOption(out, "Consolas", "C:\\Windows\\Fonts\\consola.ttf");
+        pushFontOption(out, "Cascadia Code", "C:\\Windows\\Fonts\\CascadiaCode.ttf");
+        pushFontOption(out, "Cascadia Mono", "C:\\Windows\\Fonts\\CascadiaMono.ttf");
+        pushFontOption(out, "Courier New", "C:\\Windows\\Fonts\\cour.ttf");
+    } else {
+        pushFontOption(out, "Segoe UI", "C:\\Windows\\Fonts\\segoeui.ttf");
+        pushFontOption(out, "Calibri", "C:\\Windows\\Fonts\\calibri.ttf");
+        pushFontOption(out, "Arial", "C:\\Windows\\Fonts\\arial.ttf");
+    }
+#else
+    if (monospace) {
+        pushFontOption(out, "DejaVu Sans Mono", "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf");
+        pushFontOption(out, "Liberation Mono", "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf");
+    } else {
+        pushFontOption(out, "DejaVu Sans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+        pushFontOption(out, "Liberation Sans", "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf");
+    }
+#endif
+    return out;
+}
+
+static int findFontIndex(const std::vector<FontOption>& options, const std::string& path) {
+    for (size_t i = 0; i < options.size(); ++i) {
+        if (options[i].path == path) return (int)i;
+    }
+    return 0;
+}
+
 static void renderSettingsPanel(EditorState& state) {
     if (!state.ui.showSettingsPanel) return;
     ImGui::Begin("Settings", &state.ui.showSettingsPanel);
@@ -24,12 +73,63 @@ static void renderSettingsPanel(EditorState& state) {
     bool settingsChanged = false;
     bool emacsConfigChanged = false;
     bool themeChanged = false;
+    bool fontsChanged = false;
     ImGuiIO& io = ImGui::GetIO();
 
     int fontSize = state.settings.getFontSize();
     if (ImGui::SliderInt("Font Size", &fontSize, 12, 24)) {
         state.settings.setFontSize(fontSize);
         io.FontGlobalScale = fontSize / state.baseFontSize;
+        settingsChanged = true;
+    }
+
+    ImGui::Separator();
+    ImGui::TextUnformatted("Typography");
+
+    auto codeFonts = collectFontOptions(true);
+    int codeFontIndex = findFontIndex(codeFonts, state.settings.getCodeFontPath());
+    std::vector<const char*> codeFontLabels;
+    codeFontLabels.reserve(codeFonts.size());
+    for (const auto& opt : codeFonts) codeFontLabels.push_back(opt.label.c_str());
+    if (ImGui::Combo("Code Font", &codeFontIndex, codeFontLabels.data(),
+                     (int)codeFontLabels.size())) {
+        state.settings.setCodeFontPath(codeFonts[codeFontIndex].path);
+        settingsChanged = true;
+        fontsChanged = true;
+    }
+    std::string codeFontPath = state.settings.getCodeFontPath();
+    if (InputTextStr("Code Font Path", &codeFontPath)) {
+        state.settings.setCodeFontPath(codeFontPath);
+        settingsChanged = true;
+        fontsChanged = true;
+    }
+
+    auto uiFonts = collectFontOptions(false);
+    int uiFontIndex = findFontIndex(uiFonts, state.settings.getUiFontPath());
+    std::vector<const char*> uiFontLabels;
+    uiFontLabels.reserve(uiFonts.size());
+    for (const auto& opt : uiFonts) uiFontLabels.push_back(opt.label.c_str());
+    if (ImGui::Combo("UI Font", &uiFontIndex, uiFontLabels.data(),
+                     (int)uiFontLabels.size())) {
+        state.settings.setUiFontPath(uiFonts[uiFontIndex].path);
+        settingsChanged = true;
+        fontsChanged = true;
+    }
+    std::string uiFontPath = state.settings.getUiFontPath();
+    if (InputTextStr("UI Font Path", &uiFontPath)) {
+        state.settings.setUiFontPath(uiFontPath);
+        settingsChanged = true;
+        fontsChanged = true;
+    }
+
+    float lineHeight = state.settings.getLineHeightScale();
+    if (ImGui::SliderFloat("Line Height", &lineHeight, 1.0f, 2.0f, "%.2f")) {
+        state.settings.setLineHeightScale(lineHeight);
+        settingsChanged = true;
+    }
+    float letterSpacing = state.settings.getLetterSpacing();
+    if (ImGui::SliderFloat("Letter Spacing", &letterSpacing, 0.0f, 3.0f, "%.1f")) {
+        state.settings.setLetterSpacing(letterSpacing);
         settingsChanged = true;
     }
 
@@ -273,6 +373,9 @@ static void renderSettingsPanel(EditorState& state) {
     }
 
     if (settingsChanged) {
+        if (fontsChanged) {
+            state.fontsDirty = true;
+        }
         state.saveSettingsToDisk();
         state.events.publish(UIEventType::SettingsChanged, {}, {}, ImGui::GetTime());
     }

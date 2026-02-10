@@ -159,6 +159,7 @@ struct EditorState {
     ImFont*           monoFont = nullptr;
     ImFont*           uiFont = nullptr;
     float             baseFontSize = 15.0f;
+    bool              fontsDirty = false;
     std::string       lastDialogPath;
     bool              exitRequested = false;
 
