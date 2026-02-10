@@ -358,7 +358,7 @@ Optimized tool definitions and prompts for specific LLM families.
   - Few-shot examples embedded in tool descriptions
   *New:* `tools/claude/` directory with tool definitions + system prompt
 
-- [ ] **Step 226: Codex / GPT tool definitions**
+- [x] **Step 226: Codex / GPT tool definitions**
   OpenAI-format function definitions for Codex and GPT models:
   - Each tool as an OpenAI `function` definition
   - Descriptions tuned for OpenAI models (concise, example-heavy)

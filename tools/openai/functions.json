@@ -1,0 +1,174 @@
+{
+  "version": "1.0",
+  "provider": "openai",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_get_ast",
+        "description": "Get the current AST (Abstract Syntax Tree) of the active buffer as JSON.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_mutate",
+        "description": "Apply a single mutation to the AST (setProperty, updateNode, deleteNode, insertNode).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["setProperty", "updateNode", "deleteNode", "insertNode"]
+            },
+            "nodeId": { "type": "string" },
+            "property": { "type": "string" },
+            "value": { "type": "string" },
+            "parentId": { "type": "string" },
+            "role": { "type": "string" },
+            "node": { "type": "object" }
+          },
+          "required": ["type"]
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_batch_mutate",
+        "description": "Apply multiple mutations atomically (all succeed or rollback).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "mutations": {
+              "type": "array",
+              "items": { "type": "object" }
+            }
+          },
+          "required": ["mutations"]
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_get_scope",
+        "description": "Get all symbols in scope at a given AST node.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "nodeId": { "type": "string" }
+          },
+          "required": ["nodeId"]
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_get_call_hierarchy",
+        "description": "Get call hierarchy for a function node (callers and callees).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "functionId": { "type": "string" }
+          },
+          "required": ["functionId"]
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_suggest_annotations",
+        "description": "Get memory annotation suggestions for a node or line/col location.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "nodeId": { "type": "string" },
+            "line": { "type": "integer" },
+            "col": { "type": "integer" }
+          }
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_apply_annotation",
+        "description": "Apply a memory annotation suggestion to the AST.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "nodeId": { "type": "string" },
+            "annotationType": { "type": "string" },
+            "strategy": { "type": "string" },
+            "reason": { "type": "string" },
+            "confidence": { "type": "number" }
+          },
+          "required": ["nodeId", "annotationType", "strategy"]
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_generate_code",
+        "description": "Generate code from a natural language spec, optionally preferring imports.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "spec": { "type": "string" },
+            "preferImports": { "type": "boolean" }
+          },
+          "required": ["spec"]
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_run_pipeline",
+        "description": "Run full pipeline: parse, infer annotations, validate, optimize, generate.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "source": { "type": "string" },
+            "sourceLanguage": { "type": "string" },
+            "targetLanguage": { "type": "string" }
+          },
+          "required": ["source", "sourceLanguage", "targetLanguage"]
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "whetstone_project_language",
+        "description": "Project current AST to a different target language.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "targetLanguage": { "type": "string" }
+          },
+          "required": ["targetLanguage"]
+        },
+        "strict": true
+      }
+    }
+  ]
+}
