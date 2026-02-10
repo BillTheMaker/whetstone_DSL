@@ -1,5 +1,5 @@
 // Step 232: Session-to-trace converter.
-#include "SessionTraceConverter.h"
+#include "SessionToTrace.h"
 #include <iostream>
 
 static void expect(bool cond, const std::string& name, int& passed, int& failed) {
