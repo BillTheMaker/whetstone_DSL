@@ -382,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 5 in progress. Step 140 (constructive coding tests) done. Next: Step 141 (Emacs daemon with user config).
+Sprint 5 in progress. Step 141 (Emacs daemon with user config) done. Next: Step 142 (Elisp package browser).
 
 ---
 
@@ -486,5 +486,6 @@ Sprint 5 in progress. Step 140 (constructive coding tests) done. Next: Step 141 
 | 2026-02-09 | Codex | Step 138: Type-aware C++ generation via library call mappings. 2/2 tests pass. |
 | 2026-02-09 | Codex | Step 139: Library compatibility matrix with default mappings. 3/3 tests pass. |
 | 2026-02-09 | Codex | Step 140: Constructive coding integration tests covering imports, policy modes, composition, and type-aware generation. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 141: Emacs daemon startup uses user config path with init logging and diagnostics. 4/4 tests pass. |
 | 2026-02-09 | Codex | Added FEATURE_REQUESTS.md to track security vulnerability awareness and semantic library annotations for future sprints. |
 | 2026-02-09 | Codex | Added LLM tooling + MCP bridge feature request to FEATURE_REQUESTS.md. |

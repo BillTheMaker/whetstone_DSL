@@ -698,6 +698,7 @@ int main(int, char**) {
             ImGui::Begin("Settings", &state.showSettingsPanel);
             ImGui::PushFont(uiFont);
             bool settingsChanged = false;
+            bool emacsConfigChanged = false;
             ImGuiIO& io = ImGui::GetIO();
 
             int fontSize = state.settings.getFontSize();
@@ -776,6 +777,7 @@ int main(int, char**) {
             ImGui::SetNextItemWidth(320);
             if (InputTextStr("Config Path", &state.settings.getEmacsConfigPathMutable())) {
                 settingsChanged = true;
+                emacsConfigChanged = true;
             }
 
             if (ImGui::CollapsingHeader("LSP Servers", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -798,6 +800,9 @@ int main(int, char**) {
 
             if (settingsChanged) {
                 state.saveSettingsToDisk();
+            }
+            if (emacsConfigChanged) {
+                state.startEmacsDaemonFromSettings();
             }
             ImGui::PopFont();
             ImGui::End();
@@ -1848,7 +1853,8 @@ int main(int, char**) {
                 ImGui::BeginChild("##problemsScroll", ImVec2(0, 0), false);
                 auto diags = state.lsp ? state.lsp->getDiagnostics() : std::vector<LSPClient::Diagnostic>{};
                 const auto& whetDiags = state.whetstoneDiagnostics;
-                if (diags.empty() && whetDiags.empty()) {
+                const auto& emacsDiags = state.emacsDiagnostics;
+                if (diags.empty() && whetDiags.empty() && emacsDiags.empty()) {
                     ImGui::TextDisabled("(no diagnostics)");
                 } else {
                     for (const auto& d : diags) {
@@ -1887,6 +1893,12 @@ int main(int, char**) {
                                 state.jumpTo(state.active(), d.line, d.character);
                             }
                         }
+                    }
+                    for (const auto& d : emacsDiags) {
+                        const char* sev = "Error";
+                        std::string label = "[" + std::string(sev) + "] " + d.message +
+                                            " (" + d.uri + ")";
+                        ImGui::TextUnformatted(label.c_str());
                     }
                 }
                 ImGui::EndChild();

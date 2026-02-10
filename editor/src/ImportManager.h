@@ -16,7 +16,7 @@ struct ImportEditResult {
     bool changed = false;
 };
 
-static inline std::vector<std::string> splitLines(const std::string& text) {
+static inline std::vector<std::string> importSplitLines(const std::string& text) {
     std::vector<std::string> lines;
     std::stringstream ss(text);
     std::string line;
@@ -81,7 +81,7 @@ static inline ImportEditResult ensureImportPython(const std::string& text,
         line = "from " + library + " import " + symbol;
     }
 
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::vector<std::string> imports;
     std::vector<std::string> rest;
     for (const auto& l : lines) {
@@ -108,7 +108,7 @@ static inline ImportEditResult ensureImportJs(const std::string& text,
     if (dot != std::string::npos) name = name.substr(dot + 1);
     std::string line = "import { " + name + " } from '" + library + "';";
 
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::vector<std::string> imports;
     std::vector<std::string> rest;
     for (const auto& l : lines) {
@@ -134,7 +134,7 @@ static inline ImportEditResult ensureImportRust(const std::string& text,
     if (symbol.find("::") != std::string::npos) line = "use " + symbol + ";";
     else line = "use " + library + "::" + symbol + ";";
 
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::vector<std::string> imports;
     std::vector<std::string> rest;
     for (const auto& l : lines) {
@@ -157,7 +157,7 @@ static inline ImportEditResult ensureImportGo(const std::string& text,
     ImportEditResult out{ text, false };
     std::string path = "\"" + library + "\"";
     std::string line = "import " + path;
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     int pkgLine = -1;
     int importStart = -1;
     int importEnd = -1;
@@ -228,7 +228,7 @@ static inline ImportEditResult ensureImportElisp(const std::string& text,
                                                  const std::string& library) {
     ImportEditResult out{ text, false };
     std::string line = "(require '" + library + ")";
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     for (const auto& l : lines) {
         if (trimStr(l) == line) return out;
     }
@@ -244,7 +244,7 @@ static inline ImportEditResult ensureImportCpp(const std::string& text,
                                                const std::string& library) {
     ImportEditResult out{ text, false };
     std::string line = "#include <" + library + ">";
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::vector<std::string> imports;
     std::vector<std::string> rest;
     for (const auto& l : lines) {
@@ -281,7 +281,7 @@ static inline ImportEditResult ensureImport(const std::string& text,
 
 static inline std::vector<ImportIssue> findUnusedImportsPython(const std::string& text) {
     std::vector<ImportIssue> issues;
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::string body;
     for (const auto& l : lines) {
         std::string t = trimStr(l);
@@ -309,7 +309,7 @@ static inline std::vector<ImportIssue> findUnusedImportsPython(const std::string
 
 static inline std::vector<ImportIssue> findUnusedImportsJs(const std::string& text) {
     std::vector<ImportIssue> issues;
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::string body;
     for (const auto& l : lines) {
         std::string t = trimStr(l);
@@ -341,7 +341,7 @@ static inline std::vector<ImportIssue> findUnusedImportsJs(const std::string& te
 
 static inline std::vector<ImportIssue> findUnusedImportsRust(const std::string& text) {
     std::vector<ImportIssue> issues;
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::string body;
     for (const auto& l : lines) {
         std::string t = trimStr(l);
@@ -365,7 +365,7 @@ static inline std::vector<ImportIssue> findUnusedImportsRust(const std::string& 
 
 static inline std::vector<ImportIssue> findUnusedImportsGo(const std::string& text) {
     std::vector<ImportIssue> issues;
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::string body;
     for (const auto& l : lines) {
         std::string t = trimStr(l);
@@ -389,7 +389,7 @@ static inline std::vector<ImportIssue> findUnusedImportsGo(const std::string& te
 
 static inline std::vector<ImportIssue> findUnusedImportsElisp(const std::string& text) {
     std::vector<ImportIssue> issues;
-    auto lines = splitLines(text);
+    auto lines = importSplitLines(text);
     std::string body;
     for (const auto& l : lines) {
         std::string t = trimStr(l);

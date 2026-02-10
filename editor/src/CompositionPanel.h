@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "CompositionBuilder.h"
 #include <string>
+#include <vector>
 #include <cstdio>
 
 struct CompositionPanelState {
@@ -10,6 +11,7 @@ struct CompositionPanelState {
     char functionName[64] = "compose_pipeline";
     std::string inputVar = "x";
     int selected = -1;
+    std::vector<CompositionStep> steps;
 };
 
 static bool renderCompositionPanel(CompositionPanelState& state,

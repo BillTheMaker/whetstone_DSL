@@ -172,7 +172,7 @@ what's already available.
 For Emacs users: respect their init.el, load their packages, expose Emacs
 functionality through the Whetstone UI.
 
-- [ ] **Step 141: Emacs daemon with user config**
+- [x] **Step 141: Emacs daemon with user config**
   Modify the Orchestrator's Emacs daemon to start with the user's init file.
   Setting: "Emacs Config Path" (defaults to `~/.emacs.d/init.el`).
   Daemon loads user's packages (MELPA, ELPA, straight.el, use-package).

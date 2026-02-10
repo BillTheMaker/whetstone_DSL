@@ -169,9 +169,9 @@ private:
         const char* home = std::getenv("USERPROFILE");
         if (!home) home = std::getenv("HOME");
         if (home) {
-            emacsConfigPath_ = (std::filesystem::path(home) / ".emacs.d").string();
+            emacsConfigPath_ = (std::filesystem::path(home) / ".emacs.d" / "init.el").string();
         } else {
-            emacsConfigPath_ = ".emacs.d";
+            emacsConfigPath_ = ".emacs.d/init.el";
         }
     }
 

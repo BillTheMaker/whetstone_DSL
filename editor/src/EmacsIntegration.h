@@ -12,6 +12,7 @@
 #include <vector>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 
 // ---------------------------------------------------------------------------
 //  ElispCommandBuilder — produces valid Elisp command strings
@@ -79,19 +80,37 @@ public:
 
     // Start Emacs daemon
     bool startDaemon() {
-        std::string cmd = emacsPath_ + " --daemon 2>&1";
-        int result = runCommand(cmd);
+        std::string output;
+        return startDaemonWithConfig("", output);
+    }
+
+    // Start Emacs daemon with an explicit init file path
+    virtual bool startDaemonWithConfig(const std::string& initFilePath, std::string& outLog) {
+        outLog.clear();
+        std::string cmd = emacsPath_ + " --daemon";
+        if (!initFilePath.empty()) {
+            cmd += " --load \"" + initFilePath + "\"";
+        }
+        cmd += " 2>&1";
+        FILE* pipe = openPipe(cmd.c_str(), "r");
+        if (!pipe) {
+            lastError_ = "Failed to start Emacs daemon";
+            return false;
+        }
+        char buf[512];
+        while (fgets(buf, sizeof(buf), pipe)) {
+            outLog += buf;
+        }
+        int result = closePipe(pipe);
         if (result == 0) {
             daemonRunning_ = true;
             return true;
         }
-        // Even if command "fails", check if daemon is actually alive
-        // (Emacs daemon may return non-zero but still be running)
         if (isDaemonAlive()) {
             daemonRunning_ = true;
             return true;
         }
-        lastError_ = "Failed to start Emacs daemon";
+        lastError_ = outLog.empty() ? "Failed to start Emacs daemon" : outLog;
         return false;
     }
 
@@ -196,6 +215,22 @@ private:
     std::string lastError_;
 };
 
+// Resolve emacs config path to init.el
+static inline std::string resolveEmacsInitPath(const std::string& configPath) {
+    if (configPath.empty()) return "";
+    std::filesystem::path p(configPath);
+    if (std::filesystem::exists(p)) {
+        if (std::filesystem::is_directory(p)) {
+            return (p / "init.el").string();
+        }
+        return p.string();
+    }
+    if (p.extension().string().empty()) {
+        return (p / "init.el").string();
+    }
+    return p.string();
+}
+
 // ---------------------------------------------------------------------------
 //  MockEmacsConnection — for testing without a real Emacs installation
 // ---------------------------------------------------------------------------
@@ -207,6 +242,13 @@ public:
     }
 
     bool startDaemon() {
+        daemonRunning_ = true;
+        return true;
+    }
+
+    bool startDaemonWithConfig(const std::string& initFilePath, std::string& outLog) {
+        lastInitPath_ = initFilePath;
+        outLog = "Loaded " + initFilePath;
         daemonRunning_ = true;
         return true;
     }
@@ -241,8 +283,10 @@ public:
 
     // Test helper: get the last command sent
     std::string getLastSentCommand() const { return lastSentCommand_; }
+    std::string getLastInitPath() const { return lastInitPath_; }
 
 private:
     std::string lastError_;
     std::string lastSentCommand_;
+    std::string lastInitPath_;
 };

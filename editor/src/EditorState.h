@@ -51,6 +51,7 @@
 #include "AgentLibraryPolicy.h"
 #include "CompositionPanel.h"
 #include "IncrementalOptimizer.h"
+#include "EmacsIntegration.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
 #include "ast/Annotation.h"
@@ -72,6 +73,7 @@
 #include <functional>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -136,6 +138,7 @@ struct EditorState {
     BufferManager     buffers;
     std::map<std::string, std::unique_ptr<BufferState>> bufferStates;
     BufferState*      activeBuffer = nullptr;
+    EmacsConnection   emacs;
 
     // Find/Replace state
     bool              showFind    = false;
@@ -224,6 +227,7 @@ struct EditorState {
     bool              analysisPending = false;
     double            analysisLastChange = 0.0;
     std::vector<EditorDiagnostic> whetstoneDiagnostics;
+    std::vector<EditorDiagnostic> emacsDiagnostics;
     SettingsManager   settings;
     bool              showLspSettings = false;
     bool              showSettingsPanel = false;
@@ -367,11 +371,11 @@ struct EditorState {
 
     void insertTextAtCursor(const std::string& text) {
         if (!active() || text.empty()) return;
-        bool changed = false;
-        active()->widget.insertText(active()->editBuf, text, changed);
-        if (changed) {
-            onTextChanged();
-        }
+        int cursor = active()->widget.getCursor();
+        cursor = std::max(0, std::min(cursor, (int)active()->editBuf.size()));
+        active()->editBuf.insert(cursor, text);
+        active()->widget.setCursor(cursor + (int)text.size());
+        onTextChanged();
     }
 
     void ensureImportForSymbol(const std::string& library, const std::string& symbol) {
@@ -779,8 +783,53 @@ struct EditorState {
         loadRecentFiles();
         loadSettingsFromDisk();
         registerCommands();
+        startEmacsDaemonFromSettings();
         initAgentServer();
         refreshBuildSystem();
+    }
+
+    void startEmacsDaemonFromSettings() {
+        emacsDiagnostics.clear();
+        std::string initPath = resolveEmacsInitPath();
+        std::string log;
+        bool ok = emacs.startDaemonWithConfig(initPath, log);
+        if (!log.empty()) {
+            outputLog += "[emacs] " + log + "\n";
+        }
+        if (!ok) {
+            EditorDiagnostic d;
+            d.uri = "emacs://init";
+            d.severity = 1;
+            d.message = "[Emacs] " + emacs.getLastError();
+            d.source = "EmacsDaemon";
+            emacsDiagnostics.push_back(d);
+            return;
+        }
+        if (!log.empty()) {
+            addEmacsLogDiagnostics(log);
+        }
+    }
+
+    std::string resolveEmacsInitPath() const {
+        return ::resolveEmacsInitPath(settings.getEmacsConfigPath());
+    }
+
+    void addEmacsLogDiagnostics(const std::string& log) {
+        std::istringstream ss(log);
+        std::string line;
+        while (std::getline(ss, line)) {
+            std::string lower = line;
+            std::transform(lower.begin(), lower.end(), lower.begin(),
+                           [](unsigned char c) { return (char)std::tolower(c); });
+            if (lower.find("error") != std::string::npos) {
+                EditorDiagnostic d;
+                d.uri = "emacs://init";
+                d.severity = 1;
+                d.message = "[Emacs] " + line;
+                d.source = "EmacsDaemon";
+                emacsDiagnostics.push_back(d);
+            }
+        }
     }
 
     void initAgentServer() {
@@ -952,8 +1001,20 @@ struct EditorState {
             });
         }
 
+        json emacsArr = json::array();
+        for (const auto& d : emacsDiagnostics) {
+            emacsArr.push_back({
+                {"uri", d.uri},
+                {"message", d.message},
+                {"severity", d.severity},
+                {"line", d.line},
+                {"character", d.character}
+            });
+        }
+
         out["lsp"] = lspArr;
         out["whetstone"] = whetArr;
+        out["emacs"] = emacsArr;
         return out;
     }
 
