@@ -344,7 +344,7 @@ feature requests with polished UX.
   - Configurable: "Block vulnerable imports" option (default off, warns only)
   *Modifies:* diagnostic rendering, `PrimitivesRegistry.h`
 
-- [ ] **Step 193: Semantic annotation tags for libraries**
+- [x] **Step 193: Semantic annotation tags for libraries**
   `SemanticTags.h`:
   - Predefined tag vocabulary: `@serialize`, `@crypto`, `@io`, `@network`,
     `@math`, `@collection`, `@concurrency`, `@test`, `@ui`, `@parse`

@@ -5,6 +5,7 @@
 #include "ast/ExternalModule.h"
 #include "ast/TypeSignature.h"
 #include "ast/Module.h"
+#include "SemanticTags.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
@@ -45,7 +46,8 @@ static inline bool symbolMatchesLibrary(const LSPClient::WorkspaceSymbol& sym,
 
 static inline void rebuildExternalModules(Module* module,
                                           const std::vector<DependencySpec>& deps,
-                                          const LibraryIndexData& index) {
+                                          const LibraryIndexData& index,
+                                          SemanticTags* semanticTags = nullptr) {
     if (!module) return;
     clearExternalModules(module);
     std::unordered_map<std::string, int> nameCounts;
@@ -58,6 +60,9 @@ static inline void rebuildExternalModules(Module* module,
         auto* ext = new ExternalModule(id, dep.name,
                                        languageForDependencySource(dep.source),
                                        dep.version);
+        if (semanticTags) {
+            ext->semanticTags = semanticTags->tagsForLibrary(dep.name);
+        }
 
         std::unordered_set<std::string> added;
         auto it = index.symbolsByLibrary.find(dep.name);
@@ -66,6 +71,9 @@ static inline void rebuildExternalModules(Module* module,
                 if (!symbolMatchesLibrary(sym, dep.name)) continue;
                 if (!added.insert(sym.name).second) continue;
                 auto* sig = new TypeSignature("sig_" + std::to_string(signatureId++), sym.name);
+                if (semanticTags) {
+                    sig->semanticTags = semanticTags->tagsForSymbol(dep.name, sym.name);
+                }
                 ext->addChild("signatures", sig);
             }
         }
@@ -74,6 +82,9 @@ static inline void rebuildExternalModules(Module* module,
             for (const auto& name : it2->second) {
                 if (!added.insert(name).second) continue;
                 auto* sig = new TypeSignature("sig_" + std::to_string(signatureId++), name);
+                if (semanticTags) {
+                    sig->semanticTags = semanticTags->tagsForSymbol(dep.name, name);
+                }
                 ext->addChild("signatures", sig);
             }
         }

@@ -5,6 +5,7 @@
 #include "LibraryIndexer.h"
 #include "PrimitivesRegistry.h"
 #include "VulnerabilityDatabase.h"
+#include "SemanticTags.h"
 
 struct LibraryState {
     bool showDependencyPanel = true;
@@ -26,4 +27,5 @@ struct LibraryState {
     LibraryIndexData libraryIndex;
     PrimitivesRegistry primitives;
     VulnerabilityDatabase vulnDb;
+    SemanticTags semanticTags;
 };

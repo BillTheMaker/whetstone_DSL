@@ -103,11 +103,13 @@ inline json propertiesToJson(const ASTNode* node) {
         props["name"] = n->name;
         if (!n->version.empty()) props["version"] = n->version;
         if (!n->language.empty()) props["language"] = n->language;
+        if (!n->semanticTags.empty()) props["semanticTags"] = n->semanticTags;
     }
     else if (ct == "TypeSignature") {
         auto* n = static_cast<const TypeSignature*>(node);
         props["name"] = n->name;
         props["variadic"] = n->variadic;
+        if (!n->semanticTags.empty()) props["semanticTags"] = n->semanticTags;
     }
     // Annotations
     else if (ct == "DerefStrategy") {
@@ -286,11 +288,23 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
         if (props.contains("name")) n->name = props["name"].get<std::string>();
         if (props.contains("version")) n->version = props["version"].get<std::string>();
         if (props.contains("language")) n->language = props["language"].get<std::string>();
+        if (props.contains("semanticTags") && props["semanticTags"].is_array()) {
+            n->semanticTags.clear();
+            for (const auto& tag : props["semanticTags"]) {
+                if (tag.is_string()) n->semanticTags.push_back(tag.get<std::string>());
+            }
+        }
     }
     else if (ct == "TypeSignature") {
         auto* n = static_cast<TypeSignature*>(node);
         if (props.contains("name")) n->name = props["name"].get<std::string>();
         if (props.contains("variadic")) n->variadic = props["variadic"].get<bool>();
+        if (props.contains("semanticTags") && props["semanticTags"].is_array()) {
+            n->semanticTags.clear();
+            for (const auto& tag : props["semanticTags"]) {
+                if (tag.is_string()) n->semanticTags.push_back(tag.get<std::string>());
+            }
+        }
     }
     else if (ct == "DerefStrategy") {
         auto* n = static_cast<DerefStrategy*>(node);

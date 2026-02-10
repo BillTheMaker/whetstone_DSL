@@ -966,6 +966,7 @@ struct EditorState {
         loadSettingsFromDisk();
         registerCommands();
         library.vulnDb.startBackgroundRefresh();
+        library.semanticTags.load();
         events.subscribe(UIEventType::BufferSwitched, [this](const UIEvent&) {
             if (!active()) return;
             library.primitives.setRoot(activeAST());
@@ -1262,7 +1263,10 @@ struct EditorState {
     void rebuildExternalModulesFromIndex() {
         Module* ast = activeAST();
         if (!ast) return;
-        rebuildExternalModules(ast, library.dependencyPanel.deps, library.libraryIndex);
+        rebuildExternalModules(ast,
+                               library.dependencyPanel.deps,
+                               library.libraryIndex,
+                               &library.semanticTags);
         if (active() && active()->language == "elisp") {
             int signatureId = 0;
             appendEmacsExternalModules(ast, emacsState.emacsFunctionIndex, signatureId);
