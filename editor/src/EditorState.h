@@ -46,6 +46,7 @@
 #include "DependencyPanel.h"
 #include "LibraryIndexer.h"
 #include "LibraryBrowserPanel.h"
+#include "ImportManager.h"
 #include "IncrementalOptimizer.h"
 #include "ast/Serialization.h"
 #include "ast/Generator.h"
@@ -364,6 +365,37 @@ struct EditorState {
         active()->widget.insertText(active()->editBuf, text, changed);
         if (changed) {
             onTextChanged();
+        }
+    }
+
+    void ensureImportForSymbol(const std::string& library, const std::string& symbol) {
+        if (!active() || library.empty()) return;
+        std::string clean = symbol;
+        auto paren = clean.find('(');
+        if (paren != std::string::npos) clean = clean.substr(0, paren);
+        ImportEditResult result = ensureImport(active()->editBuf,
+                                               active()->language,
+                                               library,
+                                               clean);
+        if (result.changed) {
+            active()->editBuf = result.text;
+            onTextChanged();
+        }
+    }
+
+    void appendUnusedImportDiagnostics(std::vector<EditorDiagnostic>& diags) {
+        if (!active()) return;
+        auto issues = findUnusedImports(active()->editBuf, active()->language);
+        std::string uri = toFileUri(active()->path);
+        for (const auto& issue : issues) {
+            EditorDiagnostic ed;
+            ed.uri = uri;
+            ed.line = issue.line;
+            ed.character = 0;
+            ed.severity = 2;
+            ed.message = "[Imports] " + issue.message;
+            ed.source = "ImportManager";
+            diags.push_back(std::move(ed));
         }
     }
 

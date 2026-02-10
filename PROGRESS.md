@@ -382,7 +382,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## What's Next
 
-Sprint 5 in progress. Step 132 (library symbol browser) done. Next: Step 133 (import statement generation).
+Sprint 5 in progress. Step 133 (import statement generation) done. Next: Step 134 (available primitives registry).
 
 ---
 
@@ -478,3 +478,4 @@ Sprint 5 in progress. Step 132 (library symbol browser) done. Next: Step 133 (im
 | 2026-02-09 | Codex | Step 130: LSP workspace symbol + completion indexing for dependencies with ExternalModule population and library index polling. 7/7 tests pass. |
 | 2026-02-09 | Codex | Step 131: Stub-based library indexing (pyi/d.ts/headers/lib.rs) with workspace scan fallback. 8/8 tests pass. |
 | 2026-02-09 | Codex | Step 132: Library symbol browser panel with filtering, doc detail display, and insert template helpers. 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 133: Import statement generation + unused import warnings across Python/JS/Rust/Go/Elisp with auto-insert on library symbol use. 7/7 tests pass. |

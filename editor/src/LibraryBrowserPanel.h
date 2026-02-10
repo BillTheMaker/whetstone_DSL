@@ -57,8 +57,10 @@ static bool renderLibraryBrowser(LibraryBrowserState& state,
                                  Module* ast,
                                  const LibraryIndexData& index,
                                  std::string& outInsert,
+                                 std::string& outLibrary,
                                  std::string& outputLog) {
     outInsert.clear();
+    outLibrary.clear();
     if (!ast) {
         ImGui::TextDisabled("(no structured AST)");
         return false;
@@ -109,6 +111,7 @@ static bool renderLibraryBrowser(LibraryBrowserState& state,
         std::string usage = formatUsageTemplate(state.selectedSymbol);
         if (ImGui::Button("Insert")) {
             outInsert = usage;
+            outLibrary = state.selectedLibrary;
             outputLog += "[libs] Inserted " + usage + "\n";
             inserted = true;
         }

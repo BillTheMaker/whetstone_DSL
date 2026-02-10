@@ -573,11 +573,14 @@ int main(int, char**) {
             ImGui::Begin("Libraries", &state.showLibraryBrowserPanel);
             ImGui::PushFont(uiFont);
             std::string insertText;
+            std::string insertLibrary;
             if (renderLibraryBrowser(state.libraryBrowser,
                                      state.activeAST(),
                                      state.libraryIndex,
                                      insertText,
+                                     insertLibrary,
                                      state.outputLog)) {
+                state.ensureImportForSymbol(insertLibrary, insertText);
                 state.insertTextAtCursor(insertText);
             }
             ImGui::PopFont();
@@ -1290,6 +1293,7 @@ int main(int, char**) {
                                         collectWhetstoneDiagnostics(result.validationDiags,
                                                                     result.violations,
                                                                     EditorState::toFileUri(state.active()->path));
+                                    state.appendUnusedImportDiagnostics(state.whetstoneDiagnostics);
                                 } else {
                                     state.whetstoneDiagnostics.clear();
                                 }

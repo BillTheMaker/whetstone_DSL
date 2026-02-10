@@ -78,7 +78,7 @@ The foundation: import libraries, parse their APIs, index their symbols.
   Drag a symbol into the editor → inserts a usage template.
   *New:* `LibraryBrowser` panel
 
-- [ ] **Step 133: Import statement generation**
+- [x] **Step 133: Import statement generation**
   When user references a symbol from an `ExternalModule`, auto-generate
   the correct import statement for the target language:
   - Python: `from numpy import array`
