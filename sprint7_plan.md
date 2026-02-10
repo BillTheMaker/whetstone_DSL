@@ -322,7 +322,7 @@ Test suites that measure how accurately an LLM can use Whetstone tools.
   Each task has multiple acceptable solution paths.
   *New:* `eval/workflows/` directory with 20 task definitions
 
-- [ ] **Step 223: Evaluation runner CLI**
+- [x] **Step 223: Evaluation runner CLI**
   Command-line tool to run evaluations:
   - `whetstone_eval --tasks eval/basic/ --trace agent_trace.jsonl --report report.json`
   - Accepts pre-recorded traces (for offline evaluation) or live agent connection

@@ -1151,6 +1151,9 @@ target_include_directories(step221_test PRIVATE src)
 
 add_executable(step222_test tests/step222_test.cpp)
 target_include_directories(step222_test PRIVATE src)
+
+add_executable(step223_test tests/step223_test.cpp)
+target_include_directories(step223_test PRIVATE src)
 add_executable(step213_test tests/step213_test.cpp)
 target_include_directories(step213_test PRIVATE src)
 target_link_libraries(step213_test PRIVATE nlohmann_json::nlohmann_json)
@@ -1260,5 +1263,9 @@ target_link_libraries(orchestrator PRIVATE
     tree_sitter_java
     tree_sitter_rust
     tree_sitter_go)
+
+add_executable(whetstone_eval src/eval_main.cpp)
+target_include_directories(whetstone_eval PRIVATE src)
+target_link_libraries(whetstone_eval PRIVATE nlohmann_json::nlohmann_json)
 
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
