@@ -51,6 +51,7 @@
 #include "UpdateChecker.h"
 #include "NotificationSystem.h"
 #include "UIEventBus.h"
+#include "SearchUtils.h"
 #include "state/SearchState.h"
 #include "state/AgentState.h"
 #include "state/BuildState.h"
@@ -1614,7 +1615,22 @@ struct EditorState {
                         [this]() { doRedo(); });
         registerCommand("search.find", "Search: Find/Replace",
                         keys.getBinding("search.find").toString(),
-                        [this]() { search.showFind = !search.showFind; });
+                        [this]() {
+                            search.showFind = true;
+                            search.showReplace = false;
+                        });
+        registerCommand("search.replace", "Search: Replace",
+                        keys.getBinding("search.replace").toString(),
+                        [this]() {
+                            search.showFind = true;
+                            search.showReplace = true;
+                        });
+        registerCommand("search.findNext", "Search: Find Next",
+                        keys.getBinding("search.findNext").toString(),
+                        [this]() { doFindNext(false); });
+        registerCommand("search.findPrev", "Search: Find Previous",
+                        keys.getBinding("search.findPrev").toString(),
+                        [this]() { doFindNext(true); });
         registerCommand("search.findInFiles", "Search: Find in Files",
                         keys.getBinding("search.findInFiles").toString(),
                         [this]() { search.showProjectSearch = !search.showProjectSearch; });
@@ -1888,52 +1904,181 @@ struct EditorState {
         active()->undoDepth = active()->orchestrator.getUndoDepth();
     }
 
-    void doFind() {
+    SearchOptions currentSearchOptions() const {
+        SearchOptions opts;
+        opts.matchCase = search.matchCase;
+        opts.wholeWord = search.wholeWord;
+        opts.useRegex = search.useRegex;
+        return opts;
+    }
+
+    void addSearchHistory(const std::string& query) {
+        if (query.empty()) return;
+        auto it = std::find(search.findHistory.begin(), search.findHistory.end(), query);
+        if (it != search.findHistory.end()) {
+            search.findHistory.erase(it);
+        }
+        search.findHistory.insert(search.findHistory.begin(), query);
+        if (search.findHistory.size() > 10) {
+            search.findHistory.resize(10);
+        }
+    }
+
+    bool selectionRange(int& outStart, int& outEnd) const {
+        if (!active()) return false;
+        if (!active()->widget.hasSelectionRange()) return false;
+        active()->widget.getSelectionRange(outStart, outEnd);
+        return outStart >= 0 && outEnd > outStart;
+    }
+
+    void refreshSearchMatches() {
+        search.matches.clear();
+        search.currentMatchIndex = -1;
+        if (!active()) return;
+        std::string query = search.findBuf;
+        if (query.empty()) return;
+        int rangeStart = 0;
+        int rangeEnd = (int)active()->editBuf.size();
+        if (search.findInSelection) {
+            int selStart = -1;
+            int selEnd = -1;
+            if (selectionRange(selStart, selEnd)) {
+                rangeStart = selStart;
+                rangeEnd = selEnd;
+            }
+        }
+        search.matches = SearchUtils::collectMatches(active()->editBuf,
+                                                     query,
+                                                     currentSearchOptions(),
+                                                     rangeStart,
+                                                     rangeEnd);
+    }
+
+    bool moveToMatchIndex(int index) {
+        if (!active()) return false;
+        if (index < 0 || index >= (int)search.matches.size()) return false;
+        const auto& match = search.matches[index];
+        active()->widget.setSelectionRange(match.start, match.end);
+        active()->widget.setCursor(match.end);
+        updateCursorPos(match.start);
+        search.currentMatchIndex = index;
+        search.lastFindPos = match.end;
+        search.pulseLine = match.line;
+        search.pulseStart = ImGui::GetTime();
+        return true;
+    }
+
+    void doFindNext(bool backwards = false) {
         if (!active()) return;
         if (strlen(search.findBuf) == 0) return;
-        int pos = active()->editor.find(search.findBuf, search.lastFindPos);
-        if (pos >= 0) {
-            search.lastFindPos = pos + 1;
-            int line = 1, col = 1;
-            for (int i = 0; i < pos && i < (int)active()->editBuf.size(); ++i) {
-                if (active()->editBuf[i] == '\n') { ++line; col = 1; } else { ++col; }
-            }
-            active()->cursorLine = line;
-            active()->cursorCol = col;
-            NotificationTarget target;
-            target.path = active()->path;
-            target.line = std::max(0, line - 1);
-            target.col = std::max(0, col - 1);
-            search.pulseLine = target.line;
-            search.pulseStart = ImGui::GetTime();
-            notify(NotificationLevel::Info,
-                   "Found \"" + std::string(search.findBuf) + "\" at line " +
-                   std::to_string(line) + ", col " + std::to_string(col),
-                   target);
-        } else {
+        refreshSearchMatches();
+        if (search.matches.empty()) {
             search.lastFindPos = 0;
             search.pulseLine = -1;
             search.pulseStart = 0.0;
             notify(NotificationLevel::Warning,
                    "\"" + std::string(search.findBuf) + "\" not found.");
+            return;
         }
+
+        int cursorPos = active()->widget.getCursor();
+        int chosenIndex = -1;
+        if (backwards) {
+            for (int i = (int)search.matches.size() - 1; i >= 0; --i) {
+                if (search.matches[i].end < cursorPos) {
+                    chosenIndex = i;
+                    break;
+                }
+            }
+            if (chosenIndex < 0) chosenIndex = (int)search.matches.size() - 1;
+        } else {
+            for (int i = 0; i < (int)search.matches.size(); ++i) {
+                if (search.matches[i].start > cursorPos) {
+                    chosenIndex = i;
+                    break;
+                }
+            }
+            if (chosenIndex < 0) chosenIndex = 0;
+        }
+
+        if (moveToMatchIndex(chosenIndex)) {
+            addSearchHistory(search.findBuf);
+            const auto& m = search.matches[chosenIndex];
+            NotificationTarget target;
+            target.path = active()->path;
+            target.line = m.line;
+            target.col = m.col;
+            notify(NotificationLevel::Info,
+                   "Found \"" + std::string(search.findBuf) + "\" at line " +
+                   std::to_string(m.line + 1) + ", col " + std::to_string(m.col + 1),
+                   target);
+        }
+    }
+
+    void doReplaceCurrent() {
+        if (!active()) return;
+        if (strlen(search.findBuf) == 0) return;
+        refreshSearchMatches();
+        if (search.matches.empty()) {
+            notify(NotificationLevel::Warning,
+                   "\"" + std::string(search.findBuf) + "\" not found.");
+            return;
+        }
+
+        int index = search.currentMatchIndex;
+        if (index < 0 || index >= (int)search.matches.size()) {
+            int cursorPos = active()->widget.getCursor();
+            for (int i = 0; i < (int)search.matches.size(); ++i) {
+                if (search.matches[i].start >= cursorPos) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index < 0) index = 0;
+        }
+
+        const auto& match = search.matches[index];
+        std::string replacement = SearchUtils::applyReplacement(match.matchText,
+                                                                search.findBuf,
+                                                                search.replaceBuf,
+                                                                currentSearchOptions());
+        active()->editBuf.replace(match.start, match.end - match.start, replacement);
+        onTextChanged();
+        active()->widget.setCursor(match.start + (int)replacement.size());
+        updateCursorPos(match.start + (int)replacement.size());
+        addSearchHistory(search.findBuf);
+    }
+
+    void doFind() {
+        doFindNext(false);
     }
 
     void doReplaceAll() {
         if (!active()) return;
         if (strlen(search.findBuf) == 0) return;
-        int count = active()->editor.replaceAll(search.findBuf, search.replaceBuf);
-        if (count > 0) {
-            active()->editBuf = active()->editor.getContent();
-            if (active()->bufferMode == BufferManager::BufferMode::Structured) {
-                active()->sync.setText(active()->editBuf, active()->language);
-                active()->sync.syncNow();
-                active()->incrementalOptimizer.setRoot(active()->sync.getAST());
+        int rangeStart = 0;
+        int rangeEnd = (int)active()->editBuf.size();
+        if (search.findInSelection) {
+            int selStart = -1;
+            int selEnd = -1;
+            if (selectionRange(selStart, selEnd)) {
+                rangeStart = selStart;
+                rangeEnd = selEnd;
             }
-            active()->highlightsDirty = true;
-            active()->generatedHighlightsDirty = true;
-            active()->modified = true;
         }
+        int count = 0;
+        std::string replaced = SearchUtils::replaceAll(active()->editBuf,
+                                                       search.findBuf,
+                                                       search.replaceBuf,
+                                                       currentSearchOptions(),
+                                                       rangeStart,
+                                                       rangeEnd,
+                                                       count);
+        if (count > 0) {
+            active()->editBuf = replaced;
+            onTextChanged();
+        }
+        addSearchHistory(search.findBuf);
         notify(NotificationLevel::Info,
                "Replaced " + std::to_string(count) + " occurrence(s).");
     }

@@ -79,8 +79,10 @@ static void renderMenuBar(EditorState& state) {
                             false, state.active() ? state.active()->orchestrator.getRedoDepth() > 0 : false))
             state.doRedo();
         ImGui::Separator();
-        if (ImGui::MenuItem("Find/Replace", state.keys.getBinding("search.find").toString().c_str()))
-            state.search.showFind = !state.search.showFind;
+        if (ImGui::MenuItem("Find/Replace", state.keys.getBinding("search.find").toString().c_str())) {
+            state.search.showFind = true;
+            state.search.showReplace = true;
+        }
         if (ImGui::MenuItem("Find in Files", state.keys.getBinding("search.findInFiles").toString().c_str()))
             state.search.showProjectSearch = !state.search.showProjectSearch;
         ImGui::EndMenu();

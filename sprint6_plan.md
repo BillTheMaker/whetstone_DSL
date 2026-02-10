@@ -159,7 +159,7 @@ look professional and feel personal.
 
 Core editing improvements that make daily use smooth.
 
-- [ ] **Step 177: Enhanced find/replace**
+- [x] **Step 177: Enhanced find/replace**
   Upgrade the find/replace bar:
   - Match count display ("3 of 17 results")
   - Live regex preview with captured groups highlighted

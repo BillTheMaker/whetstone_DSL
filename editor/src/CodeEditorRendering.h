@@ -569,6 +569,19 @@ public:
 
     void setCursor(int pos) { cursor_ = pos; }
     int getCursor() const { return cursor_; }
+    bool hasSelectionRange() const { return hasSelection(); }
+    void getSelectionRange(int& start, int& end) const {
+        if (!hasSelection()) {
+            start = end = -1;
+            return;
+        }
+        start = std::min(selStart_, selEnd_);
+        end = std::max(selStart_, selEnd_);
+    }
+    void setSelectionRange(int start, int end) {
+        selStart_ = start;
+        selEnd_ = end;
+    }
     const std::vector<FoldRegion>& getFoldRegions() const { return folds_; }
     std::vector<int> getFoldedLines() const {
         std::vector<int> lines;

@@ -272,7 +272,16 @@ int main(int, char**) {
                     std::string action = state.keys.getAction(combo);
                     if (action == "edit.undo")       state.doUndo();
                     else if (action == "edit.redo")   state.doRedo();
-                    else if (action == "search.find") state.search.showFind = !state.search.showFind;
+                    else if (action == "search.find") {
+                        state.search.showFind = true;
+                        state.search.showReplace = false;
+                    }
+                    else if (action == "search.replace") {
+                        state.search.showFind = true;
+                        state.search.showReplace = true;
+                    }
+                    else if (action == "search.findNext") state.doFindNext(false);
+                    else if (action == "search.findPrev") state.doFindNext(true);
                     else if (action == "search.findInFiles") state.search.showProjectSearch = !state.search.showProjectSearch;
                     else if (action == "nav.goToLine") {
                         state.search.showGoToLine = true;
