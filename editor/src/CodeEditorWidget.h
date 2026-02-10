@@ -8,6 +8,7 @@
 
 #include "imgui.h"
 #include "SyntaxHighlighter.h"
+#include "ThemeEngine.h"
 #include "EditorMode.h"
 #include <string>
 #include <vector>
@@ -306,7 +307,10 @@ public:
             // Gutter background
             ImVec2 gutterA(origin.x, y);
             ImVec2 gutterB(origin.x + gutterWidth, y + lineHeight);
-            drawList->AddRectFilled(gutterA, gutterB, IM_COL32(20, 20, 20, 255));
+            drawList->AddRectFilled(
+                gutterA, gutterB,
+                ThemeEngine::instance().editorColor("gutter_bg",
+                                                    IM_COL32(20, 20, 20, 255)));
 
             // Line number (right-aligned)
             if (options.showLineNumbers) {
@@ -314,14 +318,19 @@ public:
                 snprintf(numBuf, sizeof(numBuf), "%d", ln + 1);
                 ImVec2 numSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, numBuf);
                 ImVec2 numPos(origin.x + gutterWidth - 4.0f - numSize.x, y);
-                drawList->AddText(font, font->FontSize, numPos, IM_COL32(120, 120, 120, 255), numBuf);
+                drawList->AddText(font, font->FontSize, numPos,
+                                  ThemeEngine::instance().editorColor("gutter_text",
+                                                                      IM_COL32(120, 120, 120, 255)),
+                                  numBuf);
             }
 
             // Diagnostics marker
             bool hasError = lineIn(options.errorLines, ln);
             bool hasWarn = lineIn(options.warningLines, ln);
             if (hasError || hasWarn) {
-                ImU32 color = hasError ? IM_COL32(220, 80, 80, 255) : IM_COL32(220, 160, 60, 255);
+                ImU32 color = hasError
+                    ? ThemeEngine::instance().editorColor("diag_error", IM_COL32(220, 80, 80, 255))
+                    : ThemeEngine::instance().editorColor("diag_warning", IM_COL32(220, 160, 60, 255));
                 ImVec2 center(origin.x + 3.0f, y + lineHeight * 0.5f);
                 drawList->AddCircleFilled(center, 3.0f, color);
             }
@@ -361,7 +370,8 @@ public:
                 SuggestionMarker suggestion;
                 if (suggestionAtLine(*options.suggestions, ln, suggestion)) {
                     ImVec2 center(origin.x + 20.0f, y + lineHeight * 0.5f);
-                    ImU32 color = IM_COL32(240, 200, 40, 255);
+                    ImU32 color = ThemeEngine::instance().editorColor("suggestion",
+                                                                      IM_COL32(240, 200, 40, 255));
                     drawList->AddCircleFilled(center, 3.0f, color);
                     ImVec2 a(center.x - 4.0f, center.y - 4.0f);
                     ImVec2 b(center.x + 4.0f, center.y + 4.0f);
@@ -384,14 +394,19 @@ public:
                 AnnotationConflictMarker conflict;
                 if (conflictAtLine(*options.conflicts, ln, conflict)) {
                     ImVec2 center(origin.x + 12.0f, y + lineHeight * 0.5f);
-                    drawList->AddCircle(center, 5.0f, IM_COL32(220, 80, 80, 255), 12, 1.5f);
+                    drawList->AddCircle(center, 5.0f,
+                                        ThemeEngine::instance().editorColor("conflict",
+                                                                            IM_COL32(220, 80, 80, 255)),
+                                        12, 1.5f);
                     if (ln == std::min(conflict.childLine, conflict.parentLine) &&
                         conflict.childLine >= 0 && conflict.parentLine >= 0) {
                         float y1 = textBase.y + conflict.childLine * lineHeight + lineHeight * 0.5f;
                         float y2 = textBase.y + conflict.parentLine * lineHeight + lineHeight * 0.5f;
                         drawList->AddLine(ImVec2(origin.x + 12.0f, y1),
                                           ImVec2(origin.x + 12.0f, y2),
-                                          IM_COL32(220, 80, 80, 180), 1.0f);
+                                          ThemeEngine::instance().editorColor("conflict_line",
+                                                                              IM_COL32(220, 80, 80, 180)),
+                                          1.0f);
                     }
                     ImVec2 a(center.x - 5.0f, center.y - 5.0f);
                     ImVec2 b(center.x + 5.0f, center.y + 5.0f);
@@ -408,9 +423,15 @@ public:
             if (fold) {
                 ImVec2 triCenter(origin.x + 6.0f, y + lineHeight * 0.5f);
                 if (fold->folded) {
-                    drawTriangle(drawList, triCenter, IM_COL32(160, 160, 160, 255), true);
+                    drawTriangle(drawList, triCenter,
+                                 ThemeEngine::instance().editorColor("fold_indicator",
+                                                                     IM_COL32(160, 160, 160, 255)),
+                                 true);
                 } else {
-                    drawTriangle(drawList, triCenter, IM_COL32(160, 160, 160, 255), false);
+                    drawTriangle(drawList, triCenter,
+                                 ThemeEngine::instance().editorColor("fold_indicator",
+                                                                     IM_COL32(160, 160, 160, 255)),
+                                 false);
                 }
             }
 
@@ -418,7 +439,9 @@ public:
             if (options.showCurrentLine && ln == currentLine) {
                 ImVec2 hlA(textBase.x, y);
                 ImVec2 hlB(textBase.x + textAreaWidth, y + lineHeight);
-                drawList->AddRectFilled(hlA, hlB, IM_COL32(40, 40, 40, 120));
+                drawList->AddRectFilled(hlA, hlB,
+                                        ThemeEngine::instance().editorColor("line_highlight",
+                                                                            IM_COL32(40, 40, 40, 120)));
             }
             if (options.highlightLine >= 0 && ln == options.highlightLine) {
                 ImVec2 hlA(textBase.x, y);
@@ -445,7 +468,9 @@ public:
                     int colB = lineSelEnd - start;
                     ImVec2 a(textBase.x + colA * charAdvance, y);
                     ImVec2 b(textBase.x + colB * charAdvance, y + lineHeight);
-                    drawList->AddRectFilled(a, b, IM_COL32(60, 100, 160, 120));
+                    drawList->AddRectFilled(a, b,
+                                            ThemeEngine::instance().editorColor("selection",
+                                                                                IM_COL32(60, 100, 160, 120)));
                 }
             }
 
@@ -494,7 +519,10 @@ public:
                     ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, marker.message.c_str());
                     ImVec2 bgA(tagPos.x - 2.0f, tagPos.y);
                     ImVec2 bgB(tagPos.x + textSize.x + 6.0f, tagPos.y + lineHeight * 0.8f);
-                    drawList->AddRectFilled(bgA, bgB, IM_COL32(30, 30, 30, 220), 2.0f);
+                    drawList->AddRectFilled(bgA, bgB,
+                                            ThemeEngine::instance().editorColor("annotation_tag_bg",
+                                                                                IM_COL32(30, 30, 30, 220)),
+                                            2.0f);
                     drawList->AddText(font, font->FontSize, ImVec2(tagPos.x + 2.0f, tagPos.y),
                                       marker.color, marker.message.c_str());
                 }
@@ -503,7 +531,10 @@ public:
             // Folded placeholder
             if (fold && fold->folded) {
                 ImVec2 p(textBase.x + len * charAdvance + 6.0f, y);
-                drawList->AddText(font, font->FontSize, p, IM_COL32(140, 140, 140, 255), "{...}");
+                drawList->AddText(font, font->FontSize, p,
+                                  ThemeEngine::instance().editorColor("fold_placeholder",
+                                                                      IM_COL32(140, 140, 140, 255)),
+                                  "{...}");
             }
 
             if (options.diagnostics) {
@@ -539,7 +570,10 @@ public:
                 int col = cursor_ - lineStart;
                 float x = textBase.x + col * charAdvance;
                 float y = textBase.y + curLine * lineHeight;
-                drawList->AddLine(ImVec2(x, y), ImVec2(x, y + lineHeight), IM_COL32(240, 240, 240, 255), 1.0f);
+                drawList->AddLine(ImVec2(x, y), ImVec2(x, y + lineHeight),
+                                  ThemeEngine::instance().editorColor("caret",
+                                                                      IM_COL32(240, 240, 240, 255)),
+                                  1.0f);
             }
         }
 
@@ -548,11 +582,17 @@ public:
             float miniHeight = lineCount * lineHeight;
             ImVec2 miniA(minimapBaseX, minimapBaseY);
             ImVec2 miniB(minimapBaseX + minimapWidth, minimapBaseY + miniHeight);
-            drawList->AddRectFilled(miniA, miniB, IM_COL32(18, 18, 18, 255));
+            drawList->AddRectFilled(miniA, miniB,
+                                    ThemeEngine::instance().editorColor("minimap_bg",
+                                                                        IM_COL32(18, 18, 18, 255)));
             for (int ln = 0; ln < lineCount; ++ln) {
                 float y = minimapBaseY + ln * lineHeight;
-                ImU32 color = IM_COL32(80, 80, 80, 255);
-                if (ln == currentLine) color = IM_COL32(120, 120, 160, 255);
+                ImU32 color = ThemeEngine::instance().editorColor("minimap_line",
+                                                                  IM_COL32(80, 80, 80, 255));
+                if (ln == currentLine) {
+                    color = ThemeEngine::instance().editorColor("minimap_line_active",
+                                                                IM_COL32(120, 120, 160, 255));
+                }
                 drawList->AddRectFilled(ImVec2(minimapBaseX + 2.0f, y),
                                         ImVec2(minimapBaseX + minimapWidth - 2.0f, y + 2.0f),
                                         color);
@@ -563,7 +603,9 @@ public:
             viewEnd = std::max(0.0f, std::min(1.0f, viewEnd));
             ImVec2 vA(minimapBaseX, minimapBaseY + viewStart * miniHeight);
             ImVec2 vB(minimapBaseX + minimapWidth, minimapBaseY + viewEnd * miniHeight);
-            drawList->AddRect(vA, vB, IM_COL32(120, 160, 220, 180));
+            drawList->AddRect(vA, vB,
+                              ThemeEngine::instance().editorColor("minimap_view",
+                                                                  IM_COL32(120, 160, 220, 180)));
         }
 
         ImGui::EndChild();
@@ -628,20 +670,22 @@ private:
     }
 
     static ImU32 colorFor(TokenCategory cat) {
+        ImU32 fallback = IM_COL32(220, 220, 220, 255);
         switch (cat) {
-            case TokenCategory::Keyword:     return IM_COL32(196, 126, 220, 255);
-            case TokenCategory::String:      return IM_COL32(207, 138, 94, 255);
-            case TokenCategory::Comment:     return IM_COL32(107, 133, 89, 255);
-            case TokenCategory::Number:      return IM_COL32(181, 204, 140, 255);
-            case TokenCategory::Function:    return IM_COL32(220, 220, 140, 255);
-            case TokenCategory::Parameter:   return IM_COL32(153, 199, 229, 255);
-            case TokenCategory::Type:        return IM_COL32(77, 179, 174, 255);
-            case TokenCategory::Operator:    return IM_COL32(220, 220, 220, 255);
-            case TokenCategory::Punctuation: return IM_COL32(160, 160, 160, 255);
-            case TokenCategory::Builtin:     return IM_COL32(77, 179, 229, 255);
-            case TokenCategory::Identifier:  return IM_COL32(160, 200, 230, 255);
-            default:                         return IM_COL32(220, 220, 220, 255);
+            case TokenCategory::Keyword:     fallback = IM_COL32(196, 126, 220, 255); break;
+            case TokenCategory::String:      fallback = IM_COL32(207, 138, 94, 255); break;
+            case TokenCategory::Comment:     fallback = IM_COL32(107, 133, 89, 255); break;
+            case TokenCategory::Number:      fallback = IM_COL32(181, 204, 140, 255); break;
+            case TokenCategory::Function:    fallback = IM_COL32(220, 220, 140, 255); break;
+            case TokenCategory::Parameter:   fallback = IM_COL32(153, 199, 229, 255); break;
+            case TokenCategory::Type:        fallback = IM_COL32(77, 179, 174, 255); break;
+            case TokenCategory::Operator:    fallback = IM_COL32(220, 220, 220, 255); break;
+            case TokenCategory::Punctuation: fallback = IM_COL32(160, 160, 160, 255); break;
+            case TokenCategory::Builtin:     fallback = IM_COL32(77, 179, 229, 255); break;
+            case TokenCategory::Identifier:  fallback = IM_COL32(160, 200, 230, 255); break;
+            default: break;
         }
+        return ThemeEngine::instance().syntaxColor(cat, fallback);
     }
 
     static int lineFromPos(int pos, const std::vector<int>& lineStarts) {
@@ -778,7 +822,9 @@ private:
             endCol = std::max(startCol, endCol);
             float xStart = textBaseX + startCol * charAdvance;
             float xEnd = textBaseX + endCol * charAdvance;
-            ImU32 color = (d.severity == 1) ? IM_COL32(220, 80, 80, 255) : IM_COL32(220, 160, 60, 255);
+            ImU32 color = (d.severity == 1)
+                ? ThemeEngine::instance().editorColor("diag_error", IM_COL32(220, 80, 80, 255))
+                : ThemeEngine::instance().editorColor("diag_warning", IM_COL32(220, 160, 60, 255));
             float x = xStart;
             float amp = 2.0f;
             bool up = true;

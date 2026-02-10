@@ -341,7 +341,7 @@ primitives, and assist with constructive coding.
 
 Final polish, documentation, and ecosystem features.
 
-- [ ] **Step 160: Theme engine**
+- [x] **Step 160: Theme engine**
   Full theme system beyond Dark/Light. Load themes from JSON files.
   Theme affects: editor colors, syntax highlighting colors, gutter colors,
   annotation marker colors, panel backgrounds. Ship with: VSCode Dark,

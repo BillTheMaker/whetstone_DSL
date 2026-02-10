@@ -150,7 +150,7 @@ private:
     std::string emacsConfigPath_;
     int fontSize_ = 15;
     int tabSize_ = 4;
-    std::string theme_ = "Dark";
+    std::string theme_ = "VSCode Dark";
     int autoSaveSeconds_ = 0;
     bool showMinimap_ = false;
     bool showLineNumbers_ = true;

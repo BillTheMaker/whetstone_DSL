@@ -16,6 +16,7 @@
 #include "EditorState.h"
 #include "EditorUtils.h"
 #include "CompletionUtils.h"
+#include "ThemeEngine.h"
 
 static std::string emacsChordForEvent(SDL_Keycode sym, SDL_Keymod mods) {
     std::string base;
@@ -105,17 +106,19 @@ int main(int, char**) {
         uiFont = io.Fonts->AddFontDefault();
     }
 
-    SetupVSCodeDarkTheme();
-
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Editor state
     EditorState state;
     state.init();
-    if (state.settings.getTheme() == "Light") {
-        SetupVSCodeLightTheme();
-    } else {
+    ThemeEngine& themes = ThemeEngine::instance();
+    themes.loadThemesFromDirectory("themes");
+    themes.loadThemesFromDirectory("editor/themes");
+    std::string themeName = state.settings.getTheme();
+    if (themeName == "Dark") themeName = "VSCode Dark";
+    if (themeName == "Light") themeName = "VSCode Light";
+    if (!themes.applyTheme(themeName)) {
         SetupVSCodeDarkTheme();
     }
     io.FontGlobalScale = state.settings.getFontSize() / baseFontSize;
@@ -835,12 +838,31 @@ int main(int, char**) {
                 settingsChanged = true;
             }
 
-            const char* themeLabels[] = {"Dark", "Light"};
-            int themeIndex = state.settings.getTheme() == "Light" ? 1 : 0;
-            if (ImGui::Combo("Theme", &themeIndex, themeLabels, 2)) {
-                state.settings.setTheme(themeLabels[themeIndex]);
-                if (themeIndex == 1) SetupVSCodeLightTheme();
-                else SetupVSCodeDarkTheme();
+            std::vector<std::string> themeNames = ThemeEngine::instance().listThemes();
+            if (themeNames.empty()) {
+                themeNames = {"VSCode Dark", "VSCode Light"};
+            }
+            std::string currentTheme = state.settings.getTheme();
+            if (currentTheme == "Dark") currentTheme = "VSCode Dark";
+            if (currentTheme == "Light") currentTheme = "VSCode Light";
+            int themeIndex = 0;
+            for (size_t i = 0; i < themeNames.size(); ++i) {
+                if (themeNames[i] == currentTheme) {
+                    themeIndex = (int)i;
+                    break;
+                }
+            }
+            std::vector<const char*> themeLabels;
+            themeLabels.reserve(themeNames.size());
+            for (const auto& name : themeNames) themeLabels.push_back(name.c_str());
+            if (ImGui::Combo("Theme", &themeIndex, themeLabels.data(), (int)themeLabels.size())) {
+                state.settings.setTheme(themeNames[themeIndex]);
+                if (!ThemeEngine::instance().applyTheme(themeNames[themeIndex])) {
+                    if (themeNames[themeIndex].find("Light") != std::string::npos)
+                        SetupVSCodeLightTheme();
+                    else
+                        SetupVSCodeDarkTheme();
+                }
                 settingsChanged = true;
             }
 
