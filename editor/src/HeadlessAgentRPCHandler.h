@@ -598,11 +598,30 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             std::string src = params.value("source", "");
             diags = filterBySource(diags, src);
         }
+        // Record snapshot for delta tracking
+        auto allDiagsUnfiltered = collectAllDiagnostics(state.activeAST());
+        state.active()->diagTracker.recordSnapshot(allDiagsUnfiltered);
         return headlessRpcResult(id, {
             {"diagnostics", diagnosticsToJson(diags)},
             {"count", (int)diags.size()},
-            {"version", state.active()->versionTracker.version}
+            {"version", state.active()->diagTracker.version}
         });
+    }
+
+    // --- getDiagnosticsDelta ---
+    if (method == "getDiagnosticsDelta") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto err = headlessRequireAST(state, id);
+        if (!err.is_null()) return err;
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        int sinceVersion = params.value("sinceVersion", 0);
+        auto currentDiags = collectAllDiagnostics(state.activeAST());
+        state.active()->diagTracker.recordSnapshot(currentDiags);
+        auto delta = state.active()->diagTracker.getDelta(
+            currentDiags, sinceVersion);
+        return headlessRpcResult(id, deltaToJson(delta));
     }
 
     // --- getQuickFixes ---

@@ -48,6 +48,7 @@ struct AgentPermissionPolicy {
             method == "getASTSubtree" ||
             method == "getASTDiff" ||
             method == "getDiagnostics" ||
+            method == "getDiagnosticsDelta" ||
             method == "getQuickFixes") {
             return true;
         }

@@ -220,3 +220,35 @@ diagnostic cleared.
 - After applying, re-runs diagnostics to report if the error cleared
 - tools/list now returns 20 tools (was 18): +whetstone_get_quick_fixes,
   +whetstone_apply_quick_fix
+
+### Step 252: Diagnostic Delta Streaming
+**Status:** PASS (12/12 tests)
+
+Efficient delta computation so agents only see what changed since their
+last diagnostic query. `getDiagnosticsDelta` returns added/removed diagnostics
+based on a version number, enabling fast mutate → check loops.
+
+**Files created:**
+- `editor/tests/step252_test.cpp` — 12 test cases: version tracking,
+  empty delta, addition detection, removal detection, response structure,
+  version increment, DiagnosticKey comparison, tracker reset, MCP tool,
+  structured format in delta, Linter role access
+
+**Files modified:**
+- `editor/src/StructuredDiagnostics.h` — DiagnosticKey (code, nodeId, line),
+  DiagnosticDelta (added, removed, version), DiagnosticVersionTracker
+  (recordSnapshot, getDelta, reset), deltaToJson
+- `editor/src/HeadlessEditorState.h` — DiagnosticVersionTracker in
+  HeadlessBufferState
+- `editor/src/HeadlessAgentRPCHandler.h` — getDiagnosticsDelta RPC method,
+  getDiagnostics now records snapshots for delta tracking
+- `editor/src/AgentPermissionPolicy.h` — getDiagnosticsDelta as read-only
+- `editor/src/MCPServer.h` — whetstone_get_diagnostics_delta tool
+- `editor/CMakeLists.txt` — step252_test target
+
+**Key design decisions:**
+- DiagnosticKey tuple (code, nodeId, line) uniquely identifies a diagnostic
+- Version bumps on each getDiagnostics/getDiagnosticsDelta call
+- Delta computed by set difference between previous and current snapshots
+- Response includes addedCount/removedCount for quick checks without parsing
+- tools/list now returns 21 tools (was 20): +whetstone_get_diagnostics_delta

@@ -67,6 +67,7 @@ struct HeadlessBufferState {
     Orchestrator         orchestrator;
     IncrementalOptimizer incrementalOptimizer;
     ASTVersionTracker    versionTracker;
+    DiagnosticVersionTracker diagTracker;
     std::string          language    = "python";
     std::string          path        = "(untitled)";
     std::string          editBuf;

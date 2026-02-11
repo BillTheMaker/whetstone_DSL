@@ -669,6 +669,23 @@ private:
             return callWhetstone("getDiagnostics", args);
         };
 
+        // whetstone_get_diagnostics_delta
+        tools_.push_back({"whetstone_get_diagnostics_delta",
+            "Get only the diagnostics that changed since a given version. "
+            "Returns added and removed diagnostics for efficient "
+            "mutate-then-check loops. Use the version from a previous "
+            "getDiagnostics or getDiagnosticsDelta response.",
+            {{"type", "object"}, {"properties", {
+                {"sinceVersion", {{"type", "integer"},
+                    {"description",
+                     "Version number from a previous diagnostics response"}}}
+            }}, {"required", {"sinceVersion"}}}
+        });
+        toolHandlers_["whetstone_get_diagnostics_delta"] =
+            [this](const json& args) {
+                return callWhetstone("getDiagnosticsDelta", args);
+            };
+
         // whetstone_get_quick_fixes
         tools_.push_back({"whetstone_get_quick_fixes",
             "Get all applicable quick-fix actions for a node or the entire "
