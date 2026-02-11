@@ -278,3 +278,37 @@ complete flow: introduce error → diagnose → fix → verify clearing.
 - Phase 9b complete: all 4 steps pass (44/44 tests across steps 250–253)
 - Full diagnostic pipeline validated: diagnose → fix → verify → delta
 - 21 MCP tools, structured error codes (E01xx/E02xx/E03xx), delta streaming
+
+---
+
+## Phase 9c: Token-Efficient Agent Protocol
+
+### Step 254: Response Budget System
+**Status:** PASS (12/12 tests)
+
+Optional `budget` parameter on query methods. If the response exceeds the
+budget, it's truncated with `truncated: true` and a `continuation` token
+for paginated follow-up. Arrays are shrunk via binary search; responses
+sorted by priority (errors first).
+
+**Files created:**
+- `editor/src/ResponseBudget.h` — applyBudget (binary search truncation of
+  arrays), applyContinuation (resume from offset), sortDiagnosticsByPriority
+- `editor/tests/step254_test.cpp` — 12 test cases: no-budget backward compat,
+  compact AST truncation, totalCount/returnedCount, continuation pagination,
+  full-mode truncated flag, diagnostics with budget, non-array truncation,
+  large budget passthrough, invalid continuation error, priority sorting,
+  budget=0 unlimited, multi-page coverage
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — include ResponseBudget.h
+- `editor/src/HeadlessAgentRPCHandler.h` — getAST and getDiagnostics gain
+  optional budget parameter with truncation
+- `editor/CMakeLists.txt` — step254_test target
+
+**Key design decisions:**
+- Budget in chars (not tokens) — simple, predictable, cheap to compute
+- Binary search finds max array elements that fit within budget
+- Continuation token format: "field:offset:total" (opaque to agent)
+- Diagnostics sorted by severity before truncation (errors first)
+- budget=0 or omitted → unlimited (backward compatible)

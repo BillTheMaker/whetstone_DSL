@@ -81,6 +81,11 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         }
         result["version"] = state.active()->versionTracker.version;
         result["tokenEstimate"] = tokenEstimate(result);
+        int budget = params.value("budget", 0);
+        if (budget > 0) {
+            auto br = applyBudget(result, budget);
+            return headlessRpcResult(id, br.result);
+        }
         return headlessRpcResult(id, result);
     }
 
@@ -601,11 +606,19 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         // Record snapshot for delta tracking
         auto allDiagsUnfiltered = collectAllDiagnostics(state.activeAST());
         state.active()->diagTracker.recordSnapshot(allDiagsUnfiltered);
-        return headlessRpcResult(id, {
-            {"diagnostics", diagnosticsToJson(diags)},
+        json diagJson = diagnosticsToJson(diags);
+        sortDiagnosticsByPriority(diagJson);
+        json result = {
+            {"diagnostics", diagJson},
             {"count", (int)diags.size()},
             {"version", state.active()->diagTracker.version}
-        });
+        };
+        int budget = params.value("budget", 0);
+        if (budget > 0) {
+            auto br = applyBudget(result, budget);
+            return headlessRpcResult(id, br.result);
+        }
+        return headlessRpcResult(id, result);
     }
 
     // --- getDiagnosticsDelta ---
