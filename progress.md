@@ -445,3 +445,40 @@ auto-detected from file extension.
 - indexWorkspace scans using FileTree (respects .gitignore) without opening files
 - WorkspaceIndex provides findByExtension/findByLanguage for agent queries
 - tools/list now returns 27 tools (was 22): +5 project management tools
+
+### Step 259: Cross-File Symbol Resolution
+**Status:** PASS (12/12 tests)
+
+`getInScopeSymbols` gains `crossFile: true` parameter to include exported
+symbols from all other open buffers. Import graph tracks which files import
+which, updated automatically on openFile/closeFile. `getImportGraph` RPC
+method exposes the graph.
+
+**Files created:**
+- `editor/tests/step259_test.cpp` — 12 test cases: baseline local scope,
+  crossFile includes other buffers' exports, cross-file symbols have file
+  path, import graph populated on openFile, full import graph across 3 files,
+  importedBy reverse query, cross-file detailed mode with node JSON,
+  cross-file count > local count, closeFile removes from import graph,
+  single buffer crossFile=local, collectExportedSymbols extraction,
+  Linter role can read cross-file data
+
+**Files modified:**
+- `editor/src/ProjectState.h` — ImportGraph (addEdge, clearFile, importsOf,
+  importedBy, updateFromAST, updateFromSource), ExportedSymbol struct,
+  collectExportedSymbols, ProjectState gains ImportGraph member
+- `editor/src/HeadlessAgentRPCHandler.h` — getInScopeSymbols gains
+  crossFile parameter (scans all bufferStates for exports), getImportGraph
+  RPC method (per-file or full graph), openFile updates import graph,
+  closeFile clears import graph entry
+- `editor/src/AgentPermissionPolicy.h` — getImportGraph as read-only
+- `editor/CMakeLists.txt` — step259_test target
+
+**Key design decisions:**
+- Cross-file symbols include `file` field identifying source buffer path
+- Import graph built from AST Import nodes + source text fallback
+  (Python parser doesn't generate Import AST nodes, so text scan catches
+  `import foo` and `from foo import bar` patterns)
+- Import graph auto-maintained: updated on openFile, cleared on closeFile
+- getImportGraph supports per-file query (imports + importedBy) or full graph
+- Cross-file detailed mode resolves node JSON from the source buffer's AST

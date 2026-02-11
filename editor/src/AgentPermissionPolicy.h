@@ -53,7 +53,8 @@ struct AgentPermissionPolicy {
             method == "batchQuery" ||
             method == "listBuffers" ||
             method == "setActiveBuffer" ||
-            method == "indexWorkspace") {
+            method == "indexWorkspace" ||
+            method == "getImportGraph") {
             return true;
         }
 

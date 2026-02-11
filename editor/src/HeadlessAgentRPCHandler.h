@@ -396,6 +396,7 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             return headlessRpcError(id, -32602,
                                      "Missing nodeId parameter");
         bool detailed = params.value("detailed", false);
+        bool crossFile = params.value("crossFile", false);
         ContextAPI ctx;
         ctx.setRoot(state.activeAST());
         auto symbols = ctx.getInScopeSymbols(nodeId);
@@ -412,9 +413,31 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
                                {"nodeId", s.nodeId}});
             }
         }
+        // Cross-file: add exported symbols from other open buffers
+        if (crossFile) {
+            std::string activePath = state.activeBuffer
+                ? state.activeBuffer->path : "";
+            for (const auto& [path, buf] : state.bufferStates) {
+                if (path == activePath) continue;
+                Module* otherAST = buf->sync.getAST();
+                if (!otherAST) continue;
+                auto exports = collectExportedSymbols(otherAST, path);
+                for (const auto& ex : exports) {
+                    json entry = {{"name", ex.name}, {"kind", ex.kind},
+                                  {"nodeId", ex.nodeId},
+                                  {"file", ex.filePath}};
+                    if (detailed) {
+                        ASTNode* node = findNodeById(otherAST, ex.nodeId);
+                        if (node) entry["node"] = toJson(node);
+                    }
+                    arr.push_back(entry);
+                }
+            }
+        }
         json result = {{"symbols", arr},
                         {"count", (int)arr.size()},
                         {"mode", detailed ? "detailed" : "symbols"}};
+        if (crossFile) result["crossFile"] = true;
         return headlessRpcResult(id, result);
     }
 
@@ -961,6 +984,13 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         auto* buf = state.openBuffer(path, content, language);
         if (!buf)
             return headlessRpcError(id, -32041, "Failed to open buffer");
+        // Update import graph from the new buffer's AST + source
+        Module* bufAST = buf->sync.getAST();
+        if (bufAST)
+            state.project.importGraph.updateFromAST(path, bufAST);
+        // Fallback: scan source text for imports not captured by parser
+        if (!content.empty())
+            state.project.importGraph.updateFromSource(path, content);
         return headlessRpcResult(id, {
             {"path", path}, {"language", language},
             {"bufferCount", (int)state.bufferStates.size()}
@@ -979,6 +1009,7 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         auto it = state.bufferStates.find(path);
         if (it == state.bufferStates.end())
             return headlessRpcError(id, -32002, "Buffer not found: " + path);
+        state.project.importGraph.clearFile(path);
         state.closeBuffer(path);
         return headlessRpcResult(id, {
             {"closed", path},
@@ -1037,6 +1068,40 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             {"fileCount", idx.fileCount()},
             {"dirCount", idx.dirCount()},
             {"totalEntries", (int)idx.files().size()}
+        });
+    }
+
+    // --- getImportGraph ---
+    if (method == "getImportGraph") {
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string filePath = params.value("file", "");
+        const auto& graph = state.project.importGraph;
+        if (!filePath.empty()) {
+            // Imports for a specific file
+            auto imports = graph.importsOf(filePath);
+            json importArr = json::array();
+            for (const auto& m : imports) importArr.push_back(m);
+            auto importers = graph.importedBy(
+                fs::path(filePath).stem().string());
+            json importerArr = json::array();
+            for (const auto& f : importers) importerArr.push_back(f);
+            return headlessRpcResult(id, {
+                {"file", filePath},
+                {"imports", importArr},
+                {"importedBy", importerArr}
+            });
+        }
+        // Full import graph
+        json edges = json::object();
+        for (const auto& [file, imports] : graph.edges()) {
+            json importArr = json::array();
+            for (const auto& m : imports) importArr.push_back(m);
+            edges[file] = importArr;
+        }
+        return headlessRpcResult(id, {
+            {"edges", edges},
+            {"fileCount", (int)graph.edges().size()}
         });
     }
 
