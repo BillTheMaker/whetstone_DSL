@@ -22,6 +22,7 @@
 #include "AgentCodeGen.h"
 #include "AgentLibraryPolicy.h"
 #include "WorkflowRecorder.h"
+#include "FileOperations.h"
 #include "Orchestrator.h"
 #include "IncrementalOptimizer.h"
 #include "TextASTSync.h"

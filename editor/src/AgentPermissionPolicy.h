@@ -41,7 +41,10 @@ struct AgentPermissionPolicy {
             method == "runPipeline" ||
             method == "parseSource" ||
             method == "generateFromAST" ||
-            method == "projectLanguage") {
+            method == "projectLanguage" ||
+            method == "fileRead" ||
+            method == "workspaceList" ||
+            method == "fileDiff") {
             return true;
         }
 
@@ -49,7 +52,9 @@ struct AgentPermissionPolicy {
         if (method == "generateCode" ||
             method == "applyMutation" ||
             method == "applyAnnotationSuggestion" ||
-            method == "applyBatch") {
+            method == "applyBatch" ||
+            method == "fileWrite" ||
+            method == "fileCreate") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

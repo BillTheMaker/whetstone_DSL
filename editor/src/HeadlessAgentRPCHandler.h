@@ -554,5 +554,132 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- fileRead ---
+    if (method == "fileRead") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty())
+            return headlessRpcError(id, -32602, "Missing path parameter");
+        auto [ok, resolved] =
+            fileOpsResolvePath(state.workspaceRoot, path);
+        if (!ok)
+            return headlessRpcError(id, -32040, resolved);
+        int startLine = params.value("startLine", 0);
+        int endLine = params.value("endLine", 0);
+        auto [success, content, lineCount] =
+            fileOpsRead(resolved, startLine, endLine);
+        if (!success)
+            return headlessRpcError(id, -32041, content);
+        return headlessRpcResult(id, {
+            {"content", content}, {"lineCount", lineCount},
+            {"path", resolved}
+        });
+    }
+
+    // --- fileWrite ---
+    if (method == "fileWrite") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty())
+            return headlessRpcError(id, -32602, "Missing path parameter");
+        std::string content = params.value("content", "");
+        auto [ok, resolved] =
+            fileOpsResolvePath(state.workspaceRoot, path);
+        if (!ok)
+            return headlessRpcError(id, -32040, resolved);
+        auto [success, msg, bytes] = fileOpsWrite(resolved, content);
+        if (!success)
+            return headlessRpcError(id, -32041, msg);
+        return headlessRpcResult(id, {
+            {"success", true}, {"path", resolved},
+            {"bytesWritten", bytes}
+        });
+    }
+
+    // --- fileCreate ---
+    if (method == "fileCreate") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty())
+            return headlessRpcError(id, -32602, "Missing path parameter");
+        auto [ok, resolved] =
+            fileOpsResolvePath(state.workspaceRoot, path);
+        if (!ok)
+            return headlessRpcError(id, -32040, resolved);
+        std::string language = params.value("language", "");
+        std::string tmpl = params.value("template", "");
+        auto [success, msg] = fileOpsCreate(resolved, language, tmpl);
+        if (!success)
+            return headlessRpcError(id, -32041, msg);
+        return headlessRpcResult(id, {
+            {"success", true}, {"path", resolved}
+        });
+    }
+
+    // --- fileDiff ---
+    if (method == "fileDiff") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+        std::string bufContent;
+        std::string diskPath;
+        if (!path.empty()) {
+            auto [ok, resolved] =
+                fileOpsResolvePath(state.workspaceRoot, path);
+            if (!ok)
+                return headlessRpcError(id, -32040, resolved);
+            diskPath = resolved;
+            auto it = state.bufferStates.find(path);
+            if (it != state.bufferStates.end())
+                bufContent = it->second->editBuf;
+            else {
+                auto [rok, content, lc] = fileOpsRead(resolved);
+                if (rok) bufContent = content;
+            }
+        } else if (state.active()) {
+            diskPath = state.active()->path;
+            bufContent = state.active()->editBuf;
+            auto [ok2, resolved2] =
+                fileOpsResolvePath(state.workspaceRoot, diskPath);
+            if (ok2) diskPath = resolved2;
+        } else {
+            return headlessRpcError(id, -32000, "No active buffer");
+        }
+        auto [diffText, added, removed] =
+            fileOpsDiff(bufContent, diskPath);
+        return headlessRpcResult(id, {
+            {"diff", diffText}, {"linesAdded", added},
+            {"linesRemoved", removed}
+        });
+    }
+
+    // --- workspaceList ---
+    if (method == "workspaceList") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string glob = params.value("glob", "*");
+        auto entries = fileOpsListWorkspace(state.workspaceRoot, glob);
+        json files = json::array();
+        for (const auto& e : entries)
+            files.push_back({
+                {"path", e.path}, {"size", e.size},
+                {"isDir", e.isDir}
+            });
+        return headlessRpcResult(id, {{"files", files}});
+    }
+
     return headlessRpcError(id, -32601, "Method not found");
 }

@@ -45,3 +45,32 @@ that any MCP client (Claude Code, Cursor, etc.) can launch over stdio.
 - Default Refactor role for full MCP access
 - Empty scratch buffer on startup so getAST works immediately
 - All logging to stderr (stdout is the MCP transport)
+
+### Step 247: File Operation Tools for MCP
+**Status:** PASS (12/12 tests)
+
+Adds 5 file I/O tools to the MCP server so agents can create, read, write,
+diff, and list files without a GUI. All operations respect the `--workspace`
+root with path-escape security checks.
+
+**Files created:**
+- `editor/src/FileOperations.h` — Standalone file ops: resolve path, read,
+  write, create (with templates), unified diff, workspace listing via FileTree
+- `editor/tests/step247_test.cpp` — 12 test cases: path resolution, path
+  escape rejection, file create/read/write via RPC, line range, diff, workspace
+  list, glob filter, language templates, parent dir creation, permission denial
+
+**Files modified:**
+- `editor/src/AgentPermissionPolicy.h` — fileRead/workspaceList/fileDiff
+  read-only; fileWrite/fileCreate require Refactor/Generator
+- `editor/src/HeadlessAgentRPCHandler.h` — 5 new RPC handlers
+- `editor/src/HeadlessEditorState.h` — include FileOperations.h
+- `editor/src/MCPServer.h` — registerFileTools() with 5 MCP tool definitions
+- `editor/CMakeLists.txt` — step247_test target
+
+**Key design decisions:**
+- Path security: all paths resolved against workspaceRoot, escape rejected
+- Simple line-by-line unified diff (no external dependency)
+- Language templates for Python, C++, Rust, Go, Java, JS/TS
+- FileTree.h reuse for .gitignore-aware workspace listing
+- tools/list now returns 15 tools (was 10)
