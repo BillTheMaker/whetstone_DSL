@@ -109,3 +109,34 @@ let agents query only what changed.
 - ASTVersionTracker stores affected nodeIds per version for diff
 - tokenEstimate = json.dump().size() / 4 (rough LLM token approx)
 - tools/list returns 17 tools (was 15): +whetstone_get_ast_subtree, +whetstone_get_ast_diff
+
+### Step 249: MCP Server Integration Tests
+**Status:** PASS (8/8 tests)
+
+End-to-end integration tests exercising the full MCP server stack through
+MCPBridge. Simulates a realistic agent session from handshake through tool
+discovery, AST queries, pipeline execution, resource reads, and file I/O.
+
+**Files created:**
+- `editor/tests/step249_test.cpp` — 8 integration test cases:
+  1. MCP handshake (initialize + notifications/initialized, verify protocol
+     version, server info, capabilities)
+  2. tools/list returns all 17 tools with valid schemas (name, description,
+     inputSchema with type field)
+  3. tools/call whetstone_get_ast on active buffer returns valid AST
+  4. tools/call whetstone_run_pipeline: Python → C++ code generation (5393 chars)
+  5. resources/read whetstone://diagnostics returns valid JSON array
+  6. prompts/list returns all 4 prompts (annotate_module, cross_language_projection,
+     security_audit, refactor_memory)
+  7. File operations cycle: create → write → read → verify on disk (full CRUD
+     through MCP tools/call layer)
+  8. Compact AST vs full AST size comparison via MCP (3% ratio — 1,469 vs 39,446 chars)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step249_test target
+
+**Key results:**
+- Phase 9a complete: all 5 steps pass (64/64 tests across steps 245–249)
+- Full MCP stack validated end-to-end: handshake → tools → resources → prompts → file ops
+- Compact AST achieves 97% token savings through MCP layer (3% of full size)
+- 17 tools, 5 resources, 4 prompts all verified with correct schemas
