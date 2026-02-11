@@ -24,6 +24,7 @@
 #include "WorkflowRecorder.h"
 #include "FileOperations.h"
 #include "CompactAST.h"
+#include "StructuredDiagnostics.h"
 #include "Orchestrator.h"
 #include "IncrementalOptimizer.h"
 #include "TextASTSync.h"

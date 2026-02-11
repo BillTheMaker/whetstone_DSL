@@ -578,6 +578,33 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- getDiagnostics ---
+    if (method == "getDiagnostics") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto err = headlessRequireAST(state, id);
+        if (!err.is_null()) return err;
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        auto diags = collectAllDiagnostics(state.activeAST());
+        // Optional severity filter
+        if (params.contains("severity")) {
+            std::string sevStr = params.value("severity", "");
+            DiagnosticSeverity maxSev = severityFromStr(sevStr);
+            diags = filterBySeverity(diags, maxSev);
+        }
+        // Optional source filter
+        if (params.contains("source")) {
+            std::string src = params.value("source", "");
+            diags = filterBySource(diags, src);
+        }
+        return headlessRpcResult(id, {
+            {"diagnostics", diagnosticsToJson(diags)},
+            {"count", (int)diags.size()},
+            {"version", state.active()->versionTracker.version}
+        });
+    }
+
     // --- getASTSubtree ---
     if (method == "getASTSubtree") {
         auto err = headlessRequireAST(state, id);

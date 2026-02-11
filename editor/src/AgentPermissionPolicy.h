@@ -46,7 +46,8 @@ struct AgentPermissionPolicy {
             method == "workspaceList" ||
             method == "fileDiff" ||
             method == "getASTSubtree" ||
-            method == "getASTDiff") {
+            method == "getASTDiff" ||
+            method == "getDiagnostics") {
             return true;
         }
 

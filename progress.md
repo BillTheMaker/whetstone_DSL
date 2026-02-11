@@ -140,3 +140,48 @@ discovery, AST queries, pipeline execution, resource reads, and file I/O.
 - Full MCP stack validated end-to-end: handshake → tools → resources → prompts → file ops
 - Compact AST achieves 97% token savings through MCP layer (3% of full size)
 - 17 tools, 5 resources, 4 prompts all verified with correct schemas
+
+---
+
+## Phase 9b: Agent-Optimized Diagnostics
+
+### Step 250: Structured Diagnostic Format
+**Status:** PASS (12/12 tests)
+
+Unified diagnostic format for agent consumption. Merges tree-sitter parse
+errors, annotation validation diagnostics, and strategy validation violations
+into a single stream with error codes, severity levels, AST node references,
+and machine-applicable fix mutations.
+
+**Files created:**
+- `editor/src/StructuredDiagnostics.h` — Unified diagnostic format:
+  - `StructuredDiagnostic` struct: code, severity, nodeId, line, col, message,
+    source, fix (optional mutation object)
+  - Error code scheme: E01xx (parser), E02xx (annotation), E03xx (strategy)
+  - Severity enum: Error(1), Warning(2), Info(3), Hint(4)
+  - Collectors: `collectParseDiagnostics`, `collectAnnotationDiagnostics`,
+    `collectStrategyDiagnostics`, `collectAllDiagnostics`,
+    `collectPipelineDiagnostics`
+  - Fix builders: suggest concrete mutations (deleteNode, setProperty, insertNode)
+  - Filters: `filterBySeverity`, `filterBySource`
+  - JSON serialization: `diagnosticToJson`, `diagnosticsToJson`
+- `editor/tests/step250_test.cpp` — 12 test cases: valid code (zero diags),
+  parse error codes (E01xx), parse location/severity, annotation validation
+  (E02xx), nodeId presence, fix suggestions, getDiagnostics RPC, severity
+  filter, JSON field validation, MCP tool registration, pipeline diagnostics,
+  source filter
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — include StructuredDiagnostics.h
+- `editor/src/HeadlessAgentRPCHandler.h` — getDiagnostics RPC method with
+  optional severity and source filters
+- `editor/src/AgentPermissionPolicy.h` — getDiagnostics as read-only
+- `editor/src/MCPServer.h` — whetstone_get_diagnostics tool registration
+- `editor/CMakeLists.txt` — step250_test target
+
+**Key design decisions:**
+- Error codes are hierarchical: E01xx=parser, E02xx=annotation, E03xx=strategy
+- Fix suggestions are concrete mutation objects (same format as applyMutation)
+- Severity filtering uses numeric comparison (lower = more severe)
+- Source filtering allows isolating parser vs annotation vs strategy diagnostics
+- tools/list now returns 18 tools (was 17): +whetstone_get_diagnostics

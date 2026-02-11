@@ -647,11 +647,36 @@ private:
     }
 
     // ---------------------------------------------------------------
+    //  Step 250: Register diagnostic tools
+    // ---------------------------------------------------------------
+    void registerDiagnosticTools() {
+        tools_.push_back({"whetstone_get_diagnostics",
+            "Get structured diagnostics for the active buffer. Combines "
+            "parse errors, annotation validation, and strategy violations "
+            "into one stream with error codes, nodeIds, and fix suggestions. "
+            "Filter by severity (error/warning/info/hint) or source "
+            "(parser/annotation/strategy).",
+            {{"type", "object"}, {"properties", {
+                {"severity", {{"type", "string"},
+                    {"enum", {"error", "warning", "info", "hint"}},
+                    {"description", "Maximum severity level to include"}}},
+                {"source", {{"type", "string"},
+                    {"enum", {"parser", "annotation", "strategy"}},
+                    {"description", "Filter by diagnostic source"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_get_diagnostics"] = [this](const json& args) {
+            return callWhetstone("getDiagnostics", args);
+        };
+    }
+
+    // ---------------------------------------------------------------
     //  Register all tools
     // ---------------------------------------------------------------
     void registerWhetstoneTools() {
         registerASTTools();
         registerAnnotationTools();
         registerFileTools();
+        registerDiagnosticTools();
     }
 };
