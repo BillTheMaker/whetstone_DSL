@@ -1,5 +1,7 @@
 // Step 129 TDD Test: Dependency management UI writeback
 #include "DependencyPanel.h"
+#include "NotificationSystem.h"
+#include "VulnerabilityDatabase.h"
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -31,6 +33,9 @@ int main() {
     std::filesystem::remove_all(dir);
     std::filesystem::create_directories(dir);
 
+    NotificationSystem notifications;
+    VulnerabilityDatabase vulnDb;
+
     // requirements.txt writeback
     {
         std::ofstream out(dir / "requirements.txt");
@@ -38,8 +43,7 @@ int main() {
         out.close();
 
         DependencyPanelState panel;
-        std::string log;
-        refreshDependencies(panel, dir.string(), log);
+        refreshDependencies(panel, dir.string(), notifications, vulnDb);
         expect(panel.deps.size() == 1, "requirements parsed", passed, failed);
 
         DependencySpec dep;
@@ -47,7 +51,7 @@ int main() {
         dep.version = "2.0.0";
         dep.source = "requirements.txt";
         panel.deps.push_back(dep);
-        bool ok = writeDependenciesForSource("requirements.txt", dir.string(), panel.deps, log);
+        bool ok = writeDependenciesForSource("requirements.txt", dir.string(), panel.deps, notifications);
         expect(ok, "requirements writeback ok", passed, failed);
         std::string content = readFile(dir / "requirements.txt");
         expect(content.find("numpy==1.26.0") != std::string::npos, "requirements keep numpy", passed, failed);
@@ -62,8 +66,7 @@ int main() {
         out.close();
 
         DependencyPanelState panel;
-        std::string log;
-        refreshDependencies(panel, dir.string(), log);
+        refreshDependencies(panel, dir.string(), notifications, vulnDb);
 
         for (auto it = panel.deps.begin(); it != panel.deps.end(); ) {
             if (it->name == "react") {
@@ -75,7 +78,7 @@ int main() {
                 ++it;
             }
         }
-        bool ok = writeDependenciesForSource("package.json", dir.string(), panel.deps, log);
+        bool ok = writeDependenciesForSource("package.json", dir.string(), panel.deps, notifications);
         expect(ok, "package.json writeback ok", passed, failed);
 
         nlohmann::json j;
@@ -90,10 +93,9 @@ int main() {
 
     // edge case: unsupported writeback
     {
-        std::string log;
         std::vector<DependencySpec> deps;
         deps.push_back({"Boost", "", "CMakeLists.txt"});
-        bool ok = writeDependenciesForSource("CMakeLists.txt", dir.string(), deps, log);
+        bool ok = writeDependenciesForSource("CMakeLists.txt", dir.string(), deps, notifications);
         expect(!ok, "unsupported writeback returns false", passed, failed);
     }
 

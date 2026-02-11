@@ -1,5 +1,6 @@
 // Step 125 Integration Test: EditorState agent mutation flow
 #include "EditorUtils.h"
+#include "AgentPermissionPolicy.h"
 #include "imgui.h"
 #include <iostream>
 
@@ -32,7 +33,7 @@ int main() {
     state.bufferStates[buf->path] = std::move(buf);
     state.activeBuffer = state.bufferStates["(untitled)"].get();
 
-    state.agentMutationPermissions["agent_1"] = false;
+    state.setAgentRole("agent_1", AgentRole::Linter);  // Linter cannot mutate
     json mutReq = {
         {"jsonrpc","2.0"},
         {"id",1},
@@ -42,7 +43,7 @@ int main() {
     json mutRes = state.processAgentRequest(mutReq, "agent_1");
     expect(mutRes.contains("error"), "mutation blocked", passed, failed);
 
-    state.agentMutationPermissions["agent_1"] = true;
+    state.setAgentRole("agent_1", AgentRole::Refactor);  // Refactor can mutate
     json mutRes2 = state.processAgentRequest(mutReq, "agent_1");
     expect(mutRes2.contains("result"), "mutation allowed", passed, failed);
     Module* astAfter = state.activeAST();

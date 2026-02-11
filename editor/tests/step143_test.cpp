@@ -1,5 +1,6 @@
 // Step 143 TDD Test: Elisp function discovery and indexing
 #include "EmacsFunctionDiscovery.h"
+#include "NotificationSystem.h"
 #include <iostream>
 
 static void expect(bool cond, const std::string& name, int& passed, int& failed) {
@@ -17,21 +18,21 @@ int main() {
     int failed = 0;
 
     MockEmacsConnection mock;
-    std::string log;
+    NotificationSystem notifications;
     std::string error;
 
-    auto packages = queryEmacsPackageList(mock, false, log, error);
+    auto packages = queryEmacsPackageList(mock, false, notifications, error);
     expect(!packages.empty(), "loaded packages fetched", passed, failed);
 
-    auto funcs = queryEmacsFunctions(mock, "^use-package", log);
+    auto funcs = queryEmacsFunctions(mock, "^use-package", notifications);
     expect(!funcs.empty(), "apropos returns functions", passed, failed);
 
-    auto doc = queryEmacsFunctionDoc(mock, "use-package", log);
+    auto doc = queryEmacsFunctionDoc(mock, "use-package", notifications);
     expect(!doc.signature.empty(), "describe-function signature", passed, failed);
     expect(!doc.doc.empty(), "describe-function docstring", passed, failed);
 
     EmacsFunctionIndex index;
-    refreshEmacsFunctionIndex(index, mock, packages, log);
+    refreshEmacsFunctionIndex(index, mock, packages, notifications);
     expect(index.functionsByPackage.count("use-package") > 0, "index contains use-package", passed, failed);
 
     Module module("mod1", "test", "elisp");

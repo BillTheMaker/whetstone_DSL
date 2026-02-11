@@ -1,6 +1,7 @@
 // Step 142 TDD Test: Emacs package browser
 #include "EmacsPackageBrowser.h"
 #include "EmacsIntegration.h"
+#include "NotificationSystem.h"
 #include <iostream>
 
 static void expect(bool cond, const std::string& name, int& passed, int& failed) {
@@ -27,9 +28,9 @@ int main() {
 
     MockEmacsConnection mock;
     EmacsPackageBrowserState state;
-    std::string log;
+    NotificationSystem notifications;
 
-    refreshEmacsPackages(state, mock, log);
+    refreshEmacsPackages(state, mock, notifications);
     expect(!state.packages.empty(), "packages loaded", passed, failed);
 
     const EmacsPackageEntry* usePkg = findPkg(state.packages, "use-package");
@@ -44,7 +45,7 @@ int main() {
         expect(magitPkg->status == "available", "available status set", passed, failed);
     }
 
-    bool loadOk = loadEmacsPackage(mock, "magit", log);
+    bool loadOk = loadEmacsPackage(mock, "magit", notifications);
     expect(loadOk, "load package command", passed, failed);
     expect(mock.getLastSentCommand().find("(require 'magit)") != std::string::npos,
            "require command sent", passed, failed);

@@ -764,7 +764,13 @@ target_link_libraries(step125_integration_test PRIVATE
     unofficial::tree-sitter::tree-sitter
     tree_sitter_python
     tree_sitter_cpp
-    tree_sitter_elisp)
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_rust
+    tree_sitter_go
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_org)
 
 add_executable(step126_test tests/step126_test.cpp)
 target_include_directories(step126_test PRIVATE src)
@@ -780,7 +786,7 @@ target_link_libraries(step128_test PRIVATE nlohmann_json::nlohmann_json)
 
 add_executable(step129_test tests/step129_test.cpp)
 target_include_directories(step129_test PRIVATE src)
-target_link_libraries(step129_test PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(step129_test PRIVATE nlohmann_json::nlohmann_json imgui::imgui)
 
 add_executable(step130_test tests/step130_test.cpp)
 target_include_directories(step130_test PRIVATE src)
@@ -1249,7 +1255,20 @@ target_link_libraries(step206_test PRIVATE
     tree_sitter_rust
     tree_sitter_go)
 
-find_package(SDL2 CONFIG REQUIRED)
+if(UNIX AND NOT APPLE)
+    # Force system SDL2 on Linux. The vcpkg toolchain overrides PKG_CONFIG_PATH,
+    # causing pkg_check_modules to find vcpkg's headless (offscreen-only) SDL2.
+    # We bypass that by pointing pkg-config directly at the system .pc files.
+    find_package(PkgConfig REQUIRED)
+    set(_saved_pkg_config_path "$ENV{PKG_CONFIG_PATH}")
+    set(ENV{PKG_CONFIG_PATH} "/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig")
+    pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
+    set(ENV{PKG_CONFIG_PATH} "${_saved_pkg_config_path}")
+    add_library(SDL2::SDL2 INTERFACE IMPORTED)
+    target_link_libraries(SDL2::SDL2 INTERFACE PkgConfig::SDL2)
+else()
+    find_package(SDL2 CONFIG REQUIRED)
+endif()
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
@@ -1296,7 +1315,7 @@ if(IMGUI_SDL2_BACKEND)
 endif()
 target_link_libraries(whetstone_editor PRIVATE
     SDL2::SDL2
-    SDL2::SDL2main
+    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
     OpenGL::GL
     glad::glad
     imgui::imgui
@@ -1334,5 +1353,21 @@ target_link_libraries(whetstone_eval PRIVATE nlohmann_json::nlohmann_json)
 add_executable(whetstone_pipeline src/pipeline_main.cpp)
 target_include_directories(whetstone_pipeline PRIVATE src)
 target_link_libraries(whetstone_pipeline PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 245: Headless EditorState test (no SDL/ImGui dependency)
+add_executable(step245_test tests/step245_test.cpp)
+target_include_directories(step245_test PRIVATE src)
+target_link_libraries(step245_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_cpp
+    tree_sitter_elisp
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_java
+    tree_sitter_rust
+    tree_sitter_go
+    tree_sitter_org)
 
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
