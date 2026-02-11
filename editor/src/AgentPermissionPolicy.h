@@ -49,7 +49,8 @@ struct AgentPermissionPolicy {
             method == "getASTDiff" ||
             method == "getDiagnostics" ||
             method == "getDiagnosticsDelta" ||
-            method == "getQuickFixes") {
+            method == "getQuickFixes" ||
+            method == "batchQuery") {
             return true;
         }
 

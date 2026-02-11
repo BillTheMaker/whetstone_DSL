@@ -932,5 +932,35 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         return headlessRpcResult(id, {{"files", files}});
     }
 
+    // --- batchQuery ---
+    if (method == "batchQuery") {
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        if (!params.contains("queries") || !params["queries"].is_array())
+            return headlessRpcError(id, -32602, "Missing queries array");
+        json results = json::array();
+        for (const auto& q : params["queries"]) {
+            std::string subMethod = q.value("method", "");
+            json subParams = q.contains("params") ? q["params"]
+                                                    : json::object();
+            json subReq = {{"jsonrpc", "2.0"}, {"id", 1},
+                           {"method", subMethod}, {"params", subParams}};
+            json subResp = handleHeadlessAgentRequest(
+                state, subReq, sessionId);
+            // Extract result or error from the sub-response
+            if (subResp.contains("result"))
+                results.push_back({{"method", subMethod},
+                                    {"result", subResp["result"]}});
+            else if (subResp.contains("error"))
+                results.push_back({{"method", subMethod},
+                                    {"error", subResp["error"]}});
+            else
+                results.push_back({{"method", subMethod},
+                                    {"error", "Unknown response"}});
+        }
+        return headlessRpcResult(id,
+            {{"results", results}, {"count", (int)results.size()}});
+    }
+
     return headlessRpcError(id, -32601, "Method not found");
 }

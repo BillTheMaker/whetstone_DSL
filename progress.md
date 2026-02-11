@@ -339,3 +339,33 @@ getDependencyGraph. Default (lean) mode returns minimal symbol data
 - Lean scope responses ~7% the size of detailed (302 vs 4329 chars)
 - getDependencyGraph lean mode converts vector<string> IDs to JSON array
 - Uses getNodeName() from CompactAST.h for cross-type name extraction
+
+### Step 256: Batch Query Endpoint
+**Status:** PASS (12/12 tests)
+
+`batchQuery` method accepts an array of sub-queries, executes each
+independently, and returns all results in a single round-trip. Errors
+in one sub-query don't affect others.
+
+**Files created:**
+- `editor/tests/step256_test.cpp` — 12 test cases: 3-query batch, method fields,
+  result fields, error isolation, AST+diagnostics+scope batch, empty batch,
+  missing params error, budget passthrough, single-envelope multi-result,
+  permission-denied isolation, MCP registration, lean+detailed mixed batch
+
+**Files modified:**
+- `editor/src/HeadlessAgentRPCHandler.h` — batchQuery RPC method: iterates
+  sub-queries, calls handleHeadlessAgentRequest recursively, collects
+  results/errors independently
+- `editor/src/AgentPermissionPolicy.h` — batchQuery allowed for all roles
+  (sub-queries enforce their own permissions)
+- `editor/src/MCPServer.h` — registerBatchTools() with whetstone_batch_query
+  tool definition and callWhetstone handler
+- `editor/CMakeLists.txt` — step256_test target
+
+**Key design decisions:**
+- Sub-queries reuse the same dispatch function (recursive call)
+- Each sub-query result tagged with its method name for correlation
+- Error isolation: failed sub-query returns error object, others unaffected
+- batchQuery itself requires no special permission; sub-queries enforce their own
+- tools/list now returns 22 tools (was 21): +whetstone_batch_query
