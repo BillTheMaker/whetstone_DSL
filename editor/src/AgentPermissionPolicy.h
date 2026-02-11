@@ -55,7 +55,8 @@ struct AgentPermissionPolicy {
             method == "setActiveBuffer" ||
             method == "indexWorkspace" ||
             method == "getImportGraph" ||
-            method == "getProjectDiagnostics") {
+            method == "getProjectDiagnostics" ||
+            method == "searchProject") {
             return true;
         }
 
@@ -68,7 +69,8 @@ struct AgentPermissionPolicy {
             method == "fileCreate" ||
             method == "applyQuickFix" ||
             method == "openFile" ||
-            method == "closeFile") {
+            method == "closeFile" ||
+            method == "renameSymbol") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

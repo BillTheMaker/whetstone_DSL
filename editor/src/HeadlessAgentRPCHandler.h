@@ -1105,6 +1105,176 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- searchProject ---
+    if (method == "searchProject") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string name = params.value("name", "");
+        std::string nodeId = params.value("nodeId", "");
+
+        // If nodeId given, resolve name from the active buffer
+        if (!name.empty()) {
+            // use name as-is
+        } else if (!nodeId.empty()) {
+            // Search all buffers for a node with this ID
+            for (const auto& [path, buf] : state.bufferStates) {
+                Module* ast = buf->sync.getAST();
+                if (!ast) continue;
+                ASTNode* node = findNodeById(ast, nodeId);
+                if (node) {
+                    name = getNodeName(node);
+                    break;
+                }
+            }
+            if (name.empty())
+                return headlessRpcError(id, -32002,
+                    "Node not found: " + nodeId);
+        } else {
+            return headlessRpcError(id, -32602,
+                "Missing name or nodeId parameter");
+        }
+
+        json results = json::array();
+        for (const auto& [path, buf] : state.bufferStates) {
+            Module* ast = buf->sync.getAST();
+            if (!ast) continue;
+            auto refs = collectSymbolReferences(ast, name, path);
+            for (const auto& ref : refs) {
+                results.push_back({
+                    {"file", ref.file}, {"line", ref.line},
+                    {"col", ref.col}, {"nodeId", ref.nodeId},
+                    {"kind", ref.kind}, {"context", ref.context}
+                });
+            }
+        }
+
+        std::set<std::string> searchFiles;
+        for (const auto& r : results)
+            searchFiles.insert(r.value("file", ""));
+
+        return headlessRpcResult(id, {
+            {"name", name},
+            {"references", results},
+            {"count", (int)results.size()},
+            {"fileCount", (int)searchFiles.size()}
+        });
+    }
+
+    // --- renameSymbol ---
+    if (method == "renameSymbol") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string oldName = params.value("oldName", "");
+        std::string newName = params.value("newName", "");
+        bool preview = params.value("preview", false);
+
+        if (oldName.empty() || newName.empty())
+            return headlessRpcError(id, -32602,
+                "Missing oldName or newName parameter");
+
+        // Collect changes across all open buffers
+        std::vector<RenameChange> allChanges;
+        for (const auto& [path, buf] : state.bufferStates) {
+            Module* ast = buf->sync.getAST();
+            if (!ast) continue;
+            auto changes = buildRenameChanges(
+                ast, oldName, newName, path);
+            allChanges.insert(allChanges.end(),
+                              changes.begin(), changes.end());
+        }
+
+        if (allChanges.empty())
+            return headlessRpcError(id, -32002,
+                "No references found for '" + oldName + "'");
+
+        // Build preview JSON
+        json changesJson = json::array();
+        std::set<std::string> affectedFiles;
+        for (const auto& c : allChanges) {
+            changesJson.push_back({
+                {"file", c.file}, {"nodeId", c.nodeId},
+                {"property", c.property},
+                {"oldValue", c.oldValue},
+                {"newValue", c.newValue},
+                {"kind", c.kind}
+            });
+            affectedFiles.insert(c.file);
+        }
+
+        if (preview) {
+            return headlessRpcResult(id, {
+                {"preview", true},
+                {"changes", changesJson},
+                {"changeCount", (int)allChanges.size()},
+                {"fileCount", (int)affectedFiles.size()}
+            });
+        }
+
+        // Apply changes: use setProperty on each node
+        int applied = 0;
+        std::vector<std::string> errors;
+        for (const auto& c : allChanges) {
+            auto it = state.bufferStates.find(c.file);
+            if (it == state.bufferStates.end()) continue;
+            Module* ast = it->second->sync.getAST();
+            if (!ast) continue;
+            ASTNode* node = findNodeById(ast, c.nodeId);
+            if (!node) {
+                errors.push_back("Node " + c.nodeId +
+                                 " not found in " + c.file);
+                continue;
+            }
+            // Apply the property change directly
+            if (node->conceptType == "Function" &&
+                c.property == "name") {
+                static_cast<Function*>(node)->name = c.newValue;
+                ++applied;
+            } else if (node->conceptType == "FunctionCall" &&
+                       c.property == "functionName") {
+                static_cast<FunctionCall*>(node)->functionName =
+                    c.newValue;
+                ++applied;
+            } else if (node->conceptType == "Variable" &&
+                       c.property == "name") {
+                static_cast<Variable*>(node)->name = c.newValue;
+                ++applied;
+            } else if (node->conceptType == "VariableReference" &&
+                       c.property == "variableName") {
+                static_cast<VariableReference*>(node)->variableName =
+                    c.newValue;
+                ++applied;
+            } else if (node->conceptType == "Parameter" &&
+                       c.property == "name") {
+                static_cast<Parameter*>(node)->name = c.newValue;
+                ++applied;
+            }
+        }
+
+        // Mark affected buffers as modified
+        for (const auto& f : affectedFiles) {
+            auto it = state.bufferStates.find(f);
+            if (it != state.bufferStates.end())
+                it->second->modified = true;
+        }
+
+        json result = {
+            {"applied", applied},
+            {"changes", changesJson},
+            {"changeCount", (int)allChanges.size()},
+            {"fileCount", (int)affectedFiles.size()}
+        };
+        if (!errors.empty()) {
+            json errArr = json::array();
+            for (const auto& e : errors) errArr.push_back(e);
+            result["errors"] = errArr;
+        }
+        return headlessRpcResult(id, result);
+    }
+
     // --- getProjectDiagnostics ---
     if (method == "getProjectDiagnostics") {
         if (!AgentPermissionPolicy::canInvoke(role, method))

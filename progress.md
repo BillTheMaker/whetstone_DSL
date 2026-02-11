@@ -520,3 +520,43 @@ Supports optional severity filter and file glob filter.
 - Severity filter reuses existing `filterBySeverity()` infrastructure
 - Diagnostics sorted by priority within each file group
 - All roles can call (read-only); 28 MCP tools total
+
+### Step 261: Project-Wide Search and Refactor
+**Status:** PASS (12/12 tests)
+
+`searchProject` finds symbol references across all open files by name or nodeId.
+`renameSymbol` renames a symbol across all files with preview and apply modes.
+Both use recursive AST traversal to find Function definitions, FunctionCalls,
+Variable declarations, VariableReferences, and Parameters.
+
+**Files created:**
+- `editor/tests/step261_test.cpp` — 12 test cases: cross-file search by name,
+  correct result fields, search by nodeId, definition vs call kind distinction,
+  preview mode (shows changes without applying), apply mode (renames across 2
+  files with verification), parameter/variable reference rename, no-match error,
+  Linter can search but not rename, unknown name returns 0, MCP tool
+  registration, rename marks buffers as modified
+
+**Files modified:**
+- `editor/src/ProjectState.h` — SymbolReference struct, RenameChange struct,
+  `collectSymbolRefsRecursive()` and `collectSymbolReferences()` (recursive
+  AST search for matching names), `buildRenameChangesRecursive()` and
+  `buildRenameChanges()` (builds property-change list for rename operations)
+- `editor/src/HeadlessAgentRPCHandler.h` — `searchProject` RPC method (by
+  name or nodeId, returns file/line/col/nodeId/kind/context per reference),
+  `renameSymbol` RPC method (preview mode returns change list, apply mode
+  modifies AST nodes directly, marks buffers modified)
+- `editor/src/AgentPermissionPolicy.h` — `searchProject` as read-only,
+  `renameSymbol` as mutation (Refactor/Generator only)
+- `editor/src/MCPServer.h` — `whetstone_search_project` and
+  `whetstone_rename_symbol` tools registered in registerProjectTools()
+- `editor/CMakeLists.txt` — step261_test target
+
+**Key design decisions:**
+- Recursive tree walk for deep references (FunctionCalls inside function bodies)
+- Preview mode returns full change list without applying (agent can review)
+- Apply mode directly modifies AST node properties (name, functionName, variableName)
+- Rename changes include property name so agent sees what exactly changes
+- Buffers marked as modified after rename for save-tracking
+- Search returns kind field (definition/call/reference/parameter) to categorize
+- 30 MCP tools total

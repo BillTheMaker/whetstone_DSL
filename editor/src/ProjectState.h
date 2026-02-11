@@ -17,6 +17,8 @@
 #include "ast/Function.h"
 #include "ast/Variable.h"
 #include "ast/Import.h"
+#include "ast/Expression.h"
+#include "ast/Parameter.h"
 #include "CompactAST.h"  // getNodeName
 
 namespace fs = std::filesystem;
@@ -263,6 +265,144 @@ inline std::vector<ExportedSymbol> collectExportedSymbols(
         }
     }
     return symbols;
+}
+
+// -----------------------------------------------------------------------
+//  Step 261: SymbolReference — a single reference to a symbol
+// -----------------------------------------------------------------------
+struct SymbolReference {
+    std::string file;     // source file path
+    int         line = 0; // 1-based (from span if available)
+    int         col  = 0; // 1-based
+    std::string nodeId;   // AST node ID
+    std::string kind;     // "definition", "call", "reference", "parameter"
+    std::string context;  // brief context (node type + name)
+};
+
+// Recursive helper: collect references to a name in a subtree
+inline void collectSymbolRefsRecursive(
+        ASTNode* node, const std::string& name,
+        const std::string& filePath,
+        std::vector<SymbolReference>& refs) {
+    if (!node) return;
+
+    SymbolReference ref;
+    ref.file = filePath;
+    ref.nodeId = node->id;
+    ref.line = node->hasSpan() ? node->spanStartLine : 0;
+    ref.col = node->hasSpan() ? node->spanStartCol : 0;
+
+    bool matched = false;
+    if (node->conceptType == "Function") {
+        auto* fn = static_cast<const Function*>(node);
+        if (fn->name == name) {
+            ref.kind = "definition";
+            ref.context = "function " + fn->name;
+            matched = true;
+        }
+    } else if (node->conceptType == "FunctionCall") {
+        auto* fc = static_cast<const FunctionCall*>(node);
+        if (fc->functionName == name) {
+            ref.kind = "call";
+            ref.context = "call " + fc->functionName;
+            matched = true;
+        }
+    } else if (node->conceptType == "Variable") {
+        auto* v = static_cast<const Variable*>(node);
+        if (v->name == name) {
+            ref.kind = "definition";
+            ref.context = "variable " + v->name;
+            matched = true;
+        }
+    } else if (node->conceptType == "VariableReference") {
+        auto* vr = static_cast<const VariableReference*>(node);
+        if (vr->variableName == name) {
+            ref.kind = "reference";
+            ref.context = "ref " + vr->variableName;
+            matched = true;
+        }
+    } else if (node->conceptType == "Parameter") {
+        auto* p = static_cast<const Parameter*>(node);
+        if (p->name == name) {
+            ref.kind = "parameter";
+            ref.context = "param " + p->name;
+            matched = true;
+        }
+    }
+
+    if (matched) refs.push_back(std::move(ref));
+
+    for (auto* child : node->allChildren())
+        collectSymbolRefsRecursive(child, name, filePath, refs);
+}
+
+// Collect all references to a symbol name within a single AST
+inline std::vector<SymbolReference> collectSymbolReferences(
+        Module* ast, const std::string& name,
+        const std::string& filePath) {
+    std::vector<SymbolReference> refs;
+    if (!ast || name.empty()) return refs;
+    collectSymbolRefsRecursive(ast, name, filePath, refs);
+    return refs;
+}
+
+// Build rename mutations for all references to a symbol in a single AST
+struct RenameChange {
+    std::string file;
+    std::string nodeId;
+    std::string property;  // which property to set
+    std::string oldValue;
+    std::string newValue;
+    std::string kind;      // definition/call/reference/parameter
+};
+
+// Recursive helper: collect rename changes in a subtree
+inline void buildRenameChangesRecursive(
+        ASTNode* node, const std::string& oldName,
+        const std::string& newName, const std::string& filePath,
+        std::vector<RenameChange>& changes) {
+    if (!node) return;
+
+    if (node->conceptType == "Function") {
+        auto* fn = static_cast<const Function*>(node);
+        if (fn->name == oldName)
+            changes.push_back({filePath, node->id, "name",
+                               oldName, newName, "definition"});
+    } else if (node->conceptType == "FunctionCall") {
+        auto* fc = static_cast<const FunctionCall*>(node);
+        if (fc->functionName == oldName)
+            changes.push_back({filePath, node->id, "functionName",
+                               oldName, newName, "call"});
+    } else if (node->conceptType == "Variable") {
+        auto* v = static_cast<const Variable*>(node);
+        if (v->name == oldName)
+            changes.push_back({filePath, node->id, "name",
+                               oldName, newName, "definition"});
+    } else if (node->conceptType == "VariableReference") {
+        auto* vr = static_cast<const VariableReference*>(node);
+        if (vr->variableName == oldName)
+            changes.push_back({filePath, node->id, "variableName",
+                               oldName, newName, "reference"});
+    } else if (node->conceptType == "Parameter") {
+        auto* p = static_cast<const Parameter*>(node);
+        if (p->name == oldName)
+            changes.push_back({filePath, node->id, "name",
+                               oldName, newName, "parameter"});
+    }
+
+    for (auto* child : node->allChildren())
+        buildRenameChangesRecursive(child, oldName, newName,
+                                    filePath, changes);
+}
+
+inline std::vector<RenameChange> buildRenameChanges(
+        Module* ast, const std::string& oldName,
+        const std::string& newName, const std::string& filePath) {
+    std::vector<RenameChange> changes;
+    if (!ast || oldName.empty() || newName.empty()) return changes;
+    buildRenameChangesRecursive(ast, oldName, newName,
+                                filePath, changes);
+    return changes;
 }
 
 // -----------------------------------------------------------------------

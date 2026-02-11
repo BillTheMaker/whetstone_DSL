@@ -838,6 +838,45 @@ private:
         toolHandlers_["whetstone_index_workspace"] = [this](const json& args) {
             return callWhetstone("indexWorkspace", args);
         };
+
+        // whetstone_search_project
+        tools_.push_back({"whetstone_search_project",
+            "Find all references to a symbol across all open files. "
+            "Search by name or nodeId. Returns file, line, col, nodeId, "
+            "kind (definition/call/reference/parameter), and context.",
+            {{"type", "object"}, {"properties", {
+                {"name", {{"type", "string"},
+                    {"description",
+                     "Symbol name to search for"}}},
+                {"nodeId", {{"type", "string"},
+                    {"description",
+                     "Node ID to resolve name from (alternative to name)"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_search_project"] =
+            [this](const json& args) {
+                return callWhetstone("searchProject", args);
+            };
+
+        // whetstone_rename_symbol
+        tools_.push_back({"whetstone_rename_symbol",
+            "Rename a symbol across all open files. Updates function "
+            "definitions, calls, variable declarations, references, and "
+            "parameters. Set preview=true to see changes without applying.",
+            {{"type", "object"}, {"properties", {
+                {"oldName", {{"type", "string"},
+                    {"description", "Current symbol name"}}},
+                {"newName", {{"type", "string"},
+                    {"description", "New symbol name"}}},
+                {"preview", {{"type", "boolean"},
+                    {"description",
+                     "Preview changes without applying (default false)"}}}
+            }}, {"required", {"oldName", "newName"}}}
+        });
+        toolHandlers_["whetstone_rename_symbol"] =
+            [this](const json& args) {
+                return callWhetstone("renameSymbol", args);
+            };
     }
 
     void registerWhetstoneTools() {
