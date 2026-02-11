@@ -1370,4 +1370,25 @@ target_link_libraries(step245_test PRIVATE
     tree_sitter_go
     tree_sitter_org)
 
+# Step 246: Standalone MCP server (no SDL/ImGui)
+add_executable(whetstone_mcp src/mcp_main.cpp)
+target_include_directories(whetstone_mcp PRIVATE src)
+target_link_libraries(whetstone_mcp PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
+add_executable(step246_test tests/step246_test.cpp)
+target_include_directories(step246_test PRIVATE src)
+target_link_libraries(step246_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
