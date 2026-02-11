@@ -369,3 +369,35 @@ in one sub-query don't affect others.
 - Error isolation: failed sub-query returns error object, others unaffected
 - batchQuery itself requires no special permission; sub-queries enforce their own
 - tools/list now returns 22 tools (was 21): +whetstone_batch_query
+
+### Step 257: Token Efficiency Tests + Benchmarks
+**Status:** PASS (12/12 tests)
+
+Phase 9c closer. Systematic measurement of token savings across all
+compact/lean/delta/budget/batch features, plus throughput benchmarking.
+
+**Files created:**
+- `editor/tests/step257_test.cpp` — 12 test cases:
+  1. Compact vs full AST ratio for 10-function module (7%)
+  2. Compact vs full AST ratio for 50-function module (6%)
+  3. Compact vs full AST ratio for 200-function module (6%)
+  4. Lean scope vs detailed scope ratio (4%, under 20% target)
+  5. Diagnostic delta vs full diagnostics validation
+  6. Budget pagination across 3 pages covers all 51 nodes
+  7. Batch query vs sequential bytes (single-envelope efficiency)
+  8. Token estimates: compact < full (1001 vs 15039)
+  9. Lean call hierarchy + lean deps both produce valid output
+  10. Combined efficiency: batch + compact + lean + budget = 95% savings
+  11. Benchmark: 100 parse→mutate→diagnose cycles in 8ms (0ms/cycle)
+  12. Compact AST ratio stable across module sizes (spread=1%)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step257_test target
+
+**Key results:**
+- Phase 9c complete: all 4 steps pass (48/48 tests across steps 254–257)
+- Compact AST: 6–7% of full AST size across all module sizes (93–94% savings)
+- Lean scope: 4% of detailed size (96% savings)
+- Combined optimized query path: 95% total token savings vs naive approach
+- Compact ratio stable across 10/50/200 function modules (1% spread)
+- Throughput: 0ms/cycle for parse→mutate→diagnose (sub-millisecond)
