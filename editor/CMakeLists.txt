@@ -1532,4 +1532,15 @@ target_link_libraries(step259_test PRIVATE
     tree_sitter_java tree_sitter_rust tree_sitter_go
     tree_sitter_org)
 
+# Step 260: Project-wide diagnostics
+add_executable(step260_test tests/step260_test.cpp)
+target_include_directories(step260_test PRIVATE src)
+target_link_libraries(step260_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

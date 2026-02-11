@@ -716,6 +716,27 @@ private:
         toolHandlers_["whetstone_apply_quick_fix"] = [this](const json& args) {
             return callWhetstone("applyQuickFix", args);
         };
+
+        // whetstone_get_project_diagnostics
+        tools_.push_back({"whetstone_get_project_diagnostics",
+            "Get diagnostics across all open files in one call. Returns "
+            "diagnostics grouped by file path in compact format. Includes "
+            "cross-file errors (undefined imports). Filter by severity "
+            "or file glob pattern.",
+            {{"type", "object"}, {"properties", {
+                {"severity", {{"type", "string"},
+                    {"enum", {"error", "warning", "info", "hint"}},
+                    {"description",
+                     "Maximum severity level to include"}}},
+                {"fileGlob", {{"type", "string"},
+                    {"description",
+                     "File pattern filter (e.g. *.py, utils.py)"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_get_project_diagnostics"] =
+            [this](const json& args) {
+                return callWhetstone("getProjectDiagnostics", args);
+            };
     }
 
     // ---------------------------------------------------------------

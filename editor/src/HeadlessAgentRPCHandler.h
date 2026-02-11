@@ -1105,6 +1105,94 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- getProjectDiagnostics ---
+    if (method == "getProjectDiagnostics") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        // Optional severity filter
+        std::string sevFilter = params.value("severity", "");
+        // Optional file path glob filter (simple suffix match)
+        std::string fileGlob = params.value("fileGlob", "");
+
+        // Collect module names from open buffers for cross-file checks
+        std::set<std::string> openModuleNames;
+        for (const auto& [path, buf] : state.bufferStates) {
+            std::string stem = fs::path(path).stem().string();
+            if (!stem.empty()) openModuleNames.insert(stem);
+        }
+
+        json filesDiags = json::object();
+        int totalCount = 0;
+
+        for (const auto& [path, buf] : state.bufferStates) {
+            // Apply file glob filter (simple suffix/extension match)
+            if (!fileGlob.empty()) {
+                // Match *.ext or exact name
+                if (fileGlob[0] == '*') {
+                    std::string suffix = fileGlob.substr(1);
+                    if (path.size() < suffix.size() ||
+                        path.substr(path.size() - suffix.size()) != suffix)
+                        continue;
+                } else if (path.find(fileGlob) == std::string::npos) {
+                    continue;
+                }
+            }
+
+            Module* bufAST = buf->sync.getAST();
+            std::vector<StructuredDiagnostic> diags;
+
+            // Per-file diagnostics (annotation + strategy)
+            if (bufAST) {
+                auto fileDiags = collectAllDiagnostics(bufAST);
+                diags.insert(diags.end(), fileDiags.begin(),
+                             fileDiags.end());
+                // Cross-file: undefined imports from AST
+                auto crossDiags = collectCrossFileDiagnostics(
+                    bufAST, path, openModuleNames);
+                diags.insert(diags.end(), crossDiags.begin(),
+                             crossDiags.end());
+            }
+
+            // Cross-file: undefined imports from source text
+            if (!buf->editBuf.empty()) {
+                auto srcCross = collectCrossFileDiagnosticsFromSource(
+                    buf->editBuf, path, openModuleNames);
+                // Deduplicate: only add source-based if no AST-based
+                // cross-file diags exist for the same line
+                std::set<int> astCrossLines;
+                for (const auto& d : diags) {
+                    if (d.source == "cross-file")
+                        astCrossLines.insert(d.line);
+                }
+                for (auto& d : srcCross) {
+                    if (astCrossLines.find(d.line) == astCrossLines.end())
+                        diags.push_back(std::move(d));
+                }
+            }
+
+            // Apply severity filter
+            if (!sevFilter.empty()) {
+                DiagnosticSeverity maxSev = severityFromStr(sevFilter);
+                diags = filterBySeverity(diags, maxSev);
+            }
+
+            if (!diags.empty()) {
+                json diagArr = diagnosticsToJson(diags);
+                sortDiagnosticsByPriority(diagArr);
+                filesDiags[path] = diagArr;
+                totalCount += (int)diags.size();
+            }
+        }
+
+        return headlessRpcResult(id, {
+            {"files", filesDiags},
+            {"fileCount", (int)filesDiags.size()},
+            {"totalDiagnostics", totalCount}
+        });
+    }
+
     // --- batchQuery ---
     if (method == "batchQuery") {
         auto params = request.contains("params") ? request["params"]

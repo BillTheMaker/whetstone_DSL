@@ -54,7 +54,8 @@ struct AgentPermissionPolicy {
             method == "listBuffers" ||
             method == "setActiveBuffer" ||
             method == "indexWorkspace" ||
-            method == "getImportGraph") {
+            method == "getImportGraph" ||
+            method == "getProjectDiagnostics") {
             return true;
         }
 

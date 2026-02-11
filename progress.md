@@ -482,3 +482,41 @@ method exposes the graph.
 - Import graph auto-maintained: updated on openFile, cleared on closeFile
 - getImportGraph supports per-file query (imports + importedBy) or full graph
 - Cross-file detailed mode resolves node JSON from the source buffer's AST
+
+### Step 260: Project-Wide Diagnostics
+**Status:** PASS (12/12 tests)
+
+`getProjectDiagnostics` returns diagnostics across all open files in one call,
+grouped by file path. Includes cross-file errors (E0400 for undefined imports).
+Supports optional severity filter and file glob filter.
+
+**Files created:**
+- `editor/tests/step260_test.cpp` — 12 test cases: basic result structure,
+  cross-file E0400 for undefined import, known import not flagged, severity
+  filter (error-only excludes warnings), fileGlob *.py, fileGlob specific file,
+  empty project returns 0, multiple files with cross-file errors, diagnostic
+  field validation, Linter role access, MCP tool registration, priority sorting
+
+**Files modified:**
+- `editor/src/StructuredDiagnostics.h` — added `<set>`, `<sstream>`,
+  `ast/Import.h` includes; E04xx error code scheme documented;
+  `collectCrossFileDiagnostics()` (AST-based) and
+  `collectCrossFileDiagnosticsFromSource()` (text-based fallback) for
+  detecting imports of modules not open in the project
+- `editor/src/HeadlessAgentRPCHandler.h` — `getProjectDiagnostics` RPC method:
+  iterates all bufferStates, collects per-file + cross-file diagnostics,
+  deduplicates AST vs source-based cross-file diags, applies severity and
+  fileGlob filters, groups by file path
+- `editor/src/AgentPermissionPolicy.h` — `getProjectDiagnostics` as read-only
+- `editor/src/MCPServer.h` — `whetstone_get_project_diagnostics` tool
+  registered in registerDiagnosticTools()
+- `editor/CMakeLists.txt` — step260_test target
+
+**Key design decisions:**
+- Compact grouped format: `{files: {"/path/foo.py": [{code,line,message}]}}`
+- Cross-file deduplication: source-text fallback only adds diags for lines
+  not already covered by AST-based cross-file checks
+- File glob filter: `*` prefix for suffix match (*.py), otherwise substring
+- Severity filter reuses existing `filterBySeverity()` infrastructure
+- Diagnostics sorted by priority within each file group
+- All roles can call (read-only); 28 MCP tools total

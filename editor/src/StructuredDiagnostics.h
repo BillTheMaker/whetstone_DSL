@@ -10,12 +10,16 @@
 //   E01xx — Parse errors (tree-sitter syntax)
 //   E02xx — Annotation validation (consistency)
 //   E03xx — Strategy validation (memory safety)
+//   E04xx — Cross-file diagnostics (imports, dependencies)
 
 #include <string>
 #include <vector>
+#include <set>
+#include <sstream>
 #include <nlohmann/json.hpp>
 #include "ast/ASTNode.h"
 #include "ast/Parser.h"
+#include "ast/Import.h"
 #include "AnnotationValidator.h"
 #include "StrategyValidator.h"
 #include "Pipeline.h"
@@ -287,6 +291,75 @@ inline std::vector<StructuredDiagnostic> filterBySource(
         if (d.source == source) out.push_back(d);
     }
     return out;
+}
+
+// -----------------------------------------------------------------------
+//  Step 260: Cross-file diagnostics
+// -----------------------------------------------------------------------
+
+// Check for undefined imports: modules imported but not open as buffers
+inline std::vector<StructuredDiagnostic> collectCrossFileDiagnostics(
+        Module* ast, const std::string& filePath,
+        const std::set<std::string>& openModuleNames) {
+    std::vector<StructuredDiagnostic> diags;
+    if (!ast) return diags;
+    for (auto* child : ast->allChildren()) {
+        if (child->conceptType == "Import") {
+            auto* imp = static_cast<const Import*>(child);
+            if (!imp->moduleName.empty() &&
+                openModuleNames.find(imp->moduleName) ==
+                    openModuleNames.end()) {
+                StructuredDiagnostic d;
+                d.code = "E0400";
+                d.severity = DiagnosticSeverity::Warning;
+                d.nodeId = imp->id;
+                d.line = imp->hasSpan() ? imp->spanStartLine : 0;
+                d.message = "Imported module '" + imp->moduleName +
+                            "' is not open in the project";
+                d.source = "cross-file";
+                diags.push_back(std::move(d));
+            }
+        }
+    }
+    return diags;
+}
+
+// Text-based cross-file import check (for parsers without Import nodes)
+inline std::vector<StructuredDiagnostic> collectCrossFileDiagnosticsFromSource(
+        const std::string& source, const std::string& filePath,
+        const std::set<std::string>& openModuleNames) {
+    std::vector<StructuredDiagnostic> diags;
+    std::istringstream iss(source);
+    std::string line;
+    int lineNum = 0;
+    while (std::getline(iss, line)) {
+        ++lineNum;
+        std::string modName;
+        if (line.substr(0, 7) == "import ") {
+            modName = line.substr(7);
+            while (!modName.empty() && modName.back() == ' ')
+                modName.pop_back();
+            size_t comma = modName.find(',');
+            if (comma != std::string::npos)
+                modName = modName.substr(0, comma);
+        } else if (line.substr(0, 5) == "from ") {
+            size_t space = line.find(' ', 5);
+            if (space != std::string::npos)
+                modName = line.substr(5, space - 5);
+        }
+        if (!modName.empty() &&
+            openModuleNames.find(modName) == openModuleNames.end()) {
+            StructuredDiagnostic d;
+            d.code = "E0400";
+            d.severity = DiagnosticSeverity::Warning;
+            d.line = lineNum;
+            d.message = "Imported module '" + modName +
+                        "' is not open in the project";
+            d.source = "cross-file";
+            diags.push_back(std::move(d));
+        }
+    }
+    return diags;
 }
 
 // -----------------------------------------------------------------------
