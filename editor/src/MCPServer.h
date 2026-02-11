@@ -309,12 +309,15 @@ private:
     void registerASTTools() {
         // whetstone_get_ast
         tools_.push_back({"whetstone_get_ast",
-            "Get the current AST (Abstract Syntax Tree) of the active buffer as JSON. "
-            "Returns the full tree structure with all nodes, annotations, and metadata.",
-            {{"type", "object"}, {"properties", json::object()}}
+            "Get the current AST of the active buffer. Set compact=true for "
+            "a token-efficient flat list of {id, type, name, line, children}. "
+            "Full mode returns complete tree with properties and spans.",
+            {{"type", "object"}, {"properties", {
+                {"compact", {{"type", "boolean"}, {"description", "Compact mode: flat list with minimal fields (default false)"}}}
+            }}}
         });
-        toolHandlers_["whetstone_get_ast"] = [this](const json&) {
-            return callWhetstone("getAST");
+        toolHandlers_["whetstone_get_ast"] = [this](const json& args) {
+            return callWhetstone("getAST", args);
         };
 
         // whetstone_mutate
@@ -369,6 +372,30 @@ private:
         });
         toolHandlers_["whetstone_get_call_hierarchy"] = [this](const json& args) {
             return callWhetstone("getCallHierarchy", args);
+        };
+
+        // whetstone_get_ast_subtree
+        tools_.push_back({"whetstone_get_ast_subtree",
+            "Get only the subtree rooted at a specific node ID. Returns full "
+            "node detail for just that subtree, saving tokens vs full AST.",
+            {{"type", "object"}, {"properties", {
+                {"nodeId", {{"type", "string"}, {"description", "Root node ID for the subtree"}}}
+            }}, {"required", {"nodeId"}}}
+        });
+        toolHandlers_["whetstone_get_ast_subtree"] = [this](const json& args) {
+            return callWhetstone("getASTSubtree", args);
+        };
+
+        // whetstone_get_ast_diff
+        tools_.push_back({"whetstone_get_ast_diff",
+            "Get only the AST nodes that changed since a given version. "
+            "Use the version number from a previous getAST or mutation response.",
+            {{"type", "object"}, {"properties", {
+                {"sinceVersion", {{"type", "integer"}, {"description", "Version number to diff against (from previous response)"}}}
+            }}, {"required", {"sinceVersion"}}}
+        });
+        toolHandlers_["whetstone_get_ast_diff"] = [this](const json& args) {
+            return callWhetstone("getASTDiff", args);
         };
     }
 

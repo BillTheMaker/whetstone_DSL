@@ -74,3 +74,38 @@ root with path-escape security checks.
 - Language templates for Python, C++, Rust, Go, Java, JS/TS
 - FileTree.h reuse for .gitignore-aware workspace listing
 - tools/list now returns 15 tools (was 10)
+
+### Step 248: Compact AST Response Format
+**Status:** PASS (12/12 tests)
+
+Adds token-efficient AST responses so agents waste fewer tokens on large ASTs.
+Compact mode returns a flat list of `{id, type, name, line, children}` nodes
+at <30% the size of full AST. Subtree extraction and AST diff (version-based)
+let agents query only what changed.
+
+**Files created:**
+- `editor/src/CompactAST.h` — toJsonCompact, toJsonCompactTree, toJsonSubtree,
+  getNodeName, tokenEstimate, ASTVersionTracker (recordMutation, changedSince,
+  buildDiff, pruneOlderThan)
+- `editor/tests/step248_test.cpp` — 12 test cases: full backward compat, compact
+  flat list, <30% size ratio, compact field validation, tokenEstimate, version
+  counter, subtree extraction, invalid nodeId error, empty diff, version increment
+  on mutation, diff after mutation, subtree vs full tokenEstimate
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — include CompactAST.h, add
+  ASTVersionTracker to HeadlessBufferState
+- `editor/src/HeadlessAgentRPCHandler.h` — getAST compact param, version and
+  tokenEstimate in responses, getASTSubtree and getASTDiff methods, version
+  recording in applyMutation/applyBatch
+- `editor/src/AgentPermissionPolicy.h` — getASTSubtree/getASTDiff read-only
+- `editor/src/MCPServer.h` — whetstone_get_ast compact param, new
+  whetstone_get_ast_subtree and whetstone_get_ast_diff tools
+- `editor/CMakeLists.txt` — step248_test target
+
+**Key design decisions:**
+- Compact mode: flat array of abbreviated nodes (not nested tree)
+- Version counter per buffer, incremented on each mutation
+- ASTVersionTracker stores affected nodeIds per version for diff
+- tokenEstimate = json.dump().size() / 4 (rough LLM token approx)
+- tools/list returns 17 tools (was 15): +whetstone_get_ast_subtree, +whetstone_get_ast_diff

@@ -23,6 +23,7 @@
 #include "AgentLibraryPolicy.h"
 #include "WorkflowRecorder.h"
 #include "FileOperations.h"
+#include "CompactAST.h"
 #include "Orchestrator.h"
 #include "IncrementalOptimizer.h"
 #include "TextASTSync.h"
@@ -64,6 +65,7 @@ struct HeadlessBufferState {
     TextASTSync          sync;
     Orchestrator         orchestrator;
     IncrementalOptimizer incrementalOptimizer;
+    ASTVersionTracker    versionTracker;
     std::string          language    = "python";
     std::string          path        = "(untitled)";
     std::string          editBuf;

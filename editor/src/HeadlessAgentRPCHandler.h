@@ -62,11 +62,26 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
     if (method == "getAST") {
         auto err = headlessRequireAST(state, id);
         if (!err.is_null()) return err;
-        return headlessRpcResult(id, {
-            {"ast", toJson(state.activeAST())},
-            {"annotationCount", countAnnotationNodes(state.activeAST())},
-            {"diagnostics", state.buildDiagnosticsJson()}
-        });
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        bool compact = params.value("compact", false);
+        json result;
+        if (compact) {
+            json nodes = toJsonCompactSummary(state.activeAST());
+            result = {{"nodes", nodes}, {"nodeCount", (int)nodes.size()},
+                      {"totalNodes", (int)toJsonCompactTree(
+                          state.activeAST()).size()}};
+        } else {
+            result = {
+                {"ast", toJson(state.activeAST())},
+                {"annotationCount",
+                 countAnnotationNodes(state.activeAST())},
+                {"diagnostics", state.buildDiagnosticsJson()}
+            };
+        }
+        result["version"] = state.active()->versionTracker.version;
+        result["tokenEstimate"] = tokenEstimate(result);
+        return headlessRpcResult(id, result);
     }
 
     // --- parseSource ---
@@ -296,11 +311,14 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             state.active()->incrementalOptimizer.recordExternalTransform(
                 "agent-mutation:" + type, affectedIds,
                 state.agentActorLabel(sessionId));
+            state.active()->versionTracker.recordMutation(affectedIds);
         }
         return headlessRpcResult(id, {
             {"success", true}, {"warning", res.warning},
             {"libraryWarning", policy.warning},
-            {"unknownFunctions", policy.unknownFunctions}
+            {"unknownFunctions", policy.unknownFunctions},
+            {"version", state.active()
+                ? state.active()->versionTracker.version : 0}
         });
     }
 
@@ -349,9 +367,15 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             state.active()->incrementalOptimizer.recordExternalTransform(
                 "agent-batch", {},
                 state.agentActorLabel(sessionId));
+            std::vector<std::string> batchIds;
+            for (const auto& m : mutations)
+                if (!m.nodeId.empty()) batchIds.push_back(m.nodeId);
+            state.active()->versionTracker.recordMutation(batchIds);
         }
         return headlessRpcResult(id,
-            {{"success", true}, {"appliedCount", batchRes.appliedCount}});
+            {{"success", true}, {"appliedCount", batchRes.appliedCount},
+             {"version", state.active()
+                 ? state.active()->versionTracker.version : 0}});
     }
 
     // --- getInScopeSymbols ---
@@ -552,6 +576,39 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             {"activeBuffer", state.active() ? state.active()->path : ""},
             {"role", AgentPermissionPolicy::roleLabel(role)}
         });
+    }
+
+    // --- getASTSubtree ---
+    if (method == "getASTSubtree") {
+        auto err = headlessRequireAST(state, id);
+        if (!err.is_null()) return err;
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        if (nodeId.empty())
+            return headlessRpcError(id, -32602,
+                                     "Missing nodeId parameter");
+        json subtree = toJsonSubtree(state.activeAST(), nodeId);
+        if (subtree.is_null())
+            return headlessRpcError(id, -32002,
+                "Node not found: " + nodeId);
+        json result = {{"subtree", subtree}};
+        result["version"] = state.active()->versionTracker.version;
+        result["tokenEstimate"] = tokenEstimate(result);
+        return headlessRpcResult(id, result);
+    }
+
+    // --- getASTDiff ---
+    if (method == "getASTDiff") {
+        auto err = headlessRequireAST(state, id);
+        if (!err.is_null()) return err;
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        int sinceVersion = params.value("sinceVersion", 0);
+        json diff = state.active()->versionTracker.buildDiff(
+            state.activeAST(), sinceVersion);
+        diff["tokenEstimate"] = tokenEstimate(diff);
+        return headlessRpcResult(id, diff);
     }
 
     // --- fileRead ---

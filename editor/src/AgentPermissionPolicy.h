@@ -44,7 +44,9 @@ struct AgentPermissionPolicy {
             method == "projectLanguage" ||
             method == "fileRead" ||
             method == "workspaceList" ||
-            method == "fileDiff") {
+            method == "fileDiff" ||
+            method == "getASTSubtree" ||
+            method == "getASTDiff") {
             return true;
         }
 
