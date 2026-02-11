@@ -395,14 +395,27 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         if (nodeId.empty())
             return headlessRpcError(id, -32602,
                                      "Missing nodeId parameter");
+        bool detailed = params.value("detailed", false);
         ContextAPI ctx;
         ctx.setRoot(state.activeAST());
         auto symbols = ctx.getInScopeSymbols(nodeId);
         json arr = json::array();
-        for (const auto& s : symbols)
-            arr.push_back({{"name", s.name}, {"kind", s.kind},
-                           {"nodeId", s.nodeId}});
-        return headlessRpcResult(id, {{"symbols", arr}});
+        for (const auto& s : symbols) {
+            if (detailed) {
+                ASTNode* node = findNodeById(state.activeAST(), s.nodeId);
+                json entry = {{"name", s.name}, {"kind", s.kind},
+                              {"nodeId", s.nodeId}};
+                if (node) entry["node"] = toJson(node);
+                arr.push_back(entry);
+            } else {
+                arr.push_back({{"name", s.name}, {"kind", s.kind},
+                               {"nodeId", s.nodeId}});
+            }
+        }
+        json result = {{"symbols", arr},
+                        {"count", (int)arr.size()},
+                        {"mode", detailed ? "detailed" : "symbols"}};
+        return headlessRpcResult(id, result);
     }
 
     // --- getCallHierarchy ---
@@ -417,15 +430,52 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         if (functionId.empty())
             return headlessRpcError(id, -32602,
                                      "Missing functionId parameter");
+        bool detailed = params.value("detailed", false);
         ContextAPI ctx;
         ctx.setRoot(state.activeAST());
         auto info = ctx.getCallHierarchy(functionId);
-        return headlessRpcResult(id, {
-            {"functionId", info.functionId},
-            {"functionName", info.functionName},
-            {"callerIds", info.callerIds},
-            {"calleeIds", info.calleeIds}
-        });
+        json result;
+        if (detailed) {
+            // Full mode: include node JSON for each caller/callee
+            json callers = json::array();
+            for (const auto& cid : info.callerIds) {
+                ASTNode* n = findNodeById(state.activeAST(), cid);
+                json entry = {{"nodeId", cid}};
+                if (n) { entry["name"] = getNodeName(n); entry["node"] = toJson(n); }
+                callers.push_back(entry);
+            }
+            json callees = json::array();
+            for (const auto& cid : info.calleeIds) {
+                ASTNode* n = findNodeById(state.activeAST(), cid);
+                json entry = {{"nodeId", cid}};
+                if (n) { entry["name"] = getNodeName(n); entry["node"] = toJson(n); }
+                callees.push_back(entry);
+            }
+            result = {{"functionId", info.functionId},
+                      {"functionName", info.functionName},
+                      {"callers", callers}, {"callees", callees},
+                      {"mode", "detailed"}};
+        } else {
+            // Lean mode: names and IDs only
+            json callerNames = json::array();
+            for (const auto& cid : info.callerIds) {
+                ASTNode* n = findNodeById(state.activeAST(), cid);
+                callerNames.push_back(n ? getNodeName(n) : cid);
+            }
+            json calleeNames = json::array();
+            for (const auto& cid : info.calleeIds) {
+                ASTNode* n = findNodeById(state.activeAST(), cid);
+                calleeNames.push_back(n ? getNodeName(n) : cid);
+            }
+            result = {{"functionId", info.functionId},
+                      {"functionName", info.functionName},
+                      {"callerIds", info.callerIds},
+                      {"calleeIds", info.calleeIds},
+                      {"callerNames", callerNames},
+                      {"calleeNames", calleeNames},
+                      {"mode", "symbols"}};
+        }
+        return headlessRpcResult(id, result);
     }
 
     // --- getDependencyGraph ---
@@ -440,10 +490,31 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         if (nodeId.empty())
             return headlessRpcError(id, -32602,
                                      "Missing nodeId parameter");
+        bool detailed = params.value("detailed", false);
         ContextAPI ctx;
         ctx.setRoot(state.activeAST());
         auto deps = ctx.getDependencyGraph(nodeId);
-        return headlessRpcResult(id, {{"dependencies", deps}});
+        json result;
+        if (detailed) {
+            // Full mode: resolve each dependency ID to node JSON
+            json depArr = json::array();
+            for (const auto& did : deps) {
+                ASTNode* n = findNodeById(state.activeAST(), did);
+                json entry = {{"nodeId", did}};
+                if (n) { entry["name"] = getNodeName(n); entry["node"] = toJson(n); }
+                depArr.push_back(entry);
+            }
+            result = {{"dependencies", depArr}, {"mode", "detailed"}};
+        } else {
+            // Lean mode: just nodeId list
+            json idList = json::array();
+            for (const auto& did : deps)
+                idList.push_back(did);
+            result = {{"dependencyIds", idList},
+                      {"count", (int)idList.size()},
+                      {"mode", "symbols"}};
+        }
+        return headlessRpcResult(id, result);
     }
 
     // --- getAnnotationSuggestions ---

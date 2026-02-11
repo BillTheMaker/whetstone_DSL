@@ -312,3 +312,30 @@ sorted by priority (errors first).
 - Continuation token format: "field:offset:total" (opaque to agent)
 - Diagnostics sorted by severity before truncation (errors first)
 - budget=0 or omitted → unlimited (backward compatible)
+
+### Step 255: Symbol-Only Mode for Scope Queries
+**Status:** PASS (12/12 tests)
+
+Lean vs detailed mode for getInScopeSymbols, getCallHierarchy, and
+getDependencyGraph. Default (lean) mode returns minimal symbol data
+(name, kind, nodeId); `detailed: true` includes full node JSON.
+
+**Files created:**
+- `editor/tests/step255_test.cpp` — 12 test cases: lean scope (no node data),
+  detailed scope (with node JSON), count field, size comparison, lean call
+  hierarchy (names + IDs), detailed call hierarchy (node arrays), lean deps
+  (ID list + count), detailed deps (full nodes), both modes valid output,
+  field validation (name/kind/nodeId), node concept field, functionName
+
+**Files modified:**
+- `editor/src/HeadlessAgentRPCHandler.h` — getInScopeSymbols, getCallHierarchy,
+  getDependencyGraph gain `detailed` parameter; lean mode returns symbols-only,
+  detailed mode includes full node JSON via toJson()
+- `editor/CMakeLists.txt` — step255_test target
+
+**Key design decisions:**
+- Default mode is "symbols" (lean) — agents get names/IDs without node JSON
+- `detailed: true` adds full node serialization for each symbol/caller/callee/dep
+- Lean scope responses ~7% the size of detailed (302 vs 4329 chars)
+- getDependencyGraph lean mode converts vector<string> IDs to JSON array
+- Uses getNodeName() from CompactAST.h for cross-type name extraction
