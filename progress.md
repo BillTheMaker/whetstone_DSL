@@ -252,3 +252,29 @@ based on a version number, enabling fast mutate → check loops.
 - Delta computed by set difference between previous and current snapshots
 - Response includes addedCount/removedCount for quick checks without parsing
 - tools/list now returns 21 tools (was 20): +whetstone_get_diagnostics_delta
+
+### Step 253: Diagnostic and Delta Integration Tests
+**Status:** PASS (8/8 tests)
+
+Comprehensive end-to-end tests for the full diagnostic pipeline: structured
+diagnostics, quick fixes, delta streaming, and filtering. Exercises the
+complete flow: introduce error → diagnose → fix → verify clearing.
+
+**Files created:**
+- `editor/tests/step253_test.cpp` — 8 integration test cases:
+  1. Valid Python → zero diagnostics
+  2. Annotation error → structured diagnostics with nodeIds and codes
+  3. Quick fixes include concrete mutation objects
+  4. applyQuickFix resolves diagnostic (cleared=true, remaining=0)
+  5. Delta after fix shows removal (removed=1, added=0)
+  6. Delta after new error shows addition (added=1, removed=0)
+  7. Combined parser + annotation diagnostics in streams
+  8. Severity filtering across the pipeline
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step253_test target
+
+**Key results:**
+- Phase 9b complete: all 4 steps pass (44/44 tests across steps 250–253)
+- Full diagnostic pipeline validated: diagnose → fix → verify → delta
+- 21 MCP tools, structured error codes (E01xx/E02xx/E03xx), delta streaming
