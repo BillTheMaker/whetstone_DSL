@@ -668,6 +668,37 @@ private:
         toolHandlers_["whetstone_get_diagnostics"] = [this](const json& args) {
             return callWhetstone("getDiagnostics", args);
         };
+
+        // whetstone_get_quick_fixes
+        tools_.push_back({"whetstone_get_quick_fixes",
+            "Get all applicable quick-fix actions for a node or the entire "
+            "AST. Each fix is a concrete mutation object the agent can review "
+            "and apply with whetstone_apply_quick_fix.",
+            {{"type", "object"}, {"properties", {
+                {"nodeId", {{"type", "string"},
+                    {"description",
+                     "Node ID to get fixes for (omit for all fixes)"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_get_quick_fixes"] = [this](const json& args) {
+            return callWhetstone("getQuickFixes", args);
+        };
+
+        // whetstone_apply_quick_fix
+        tools_.push_back({"whetstone_apply_quick_fix",
+            "Apply a quick-fix action for a specific diagnostic. Takes the "
+            "diagnostic code and nodeId, finds the fix, and applies it as a "
+            "mutation. Reports whether the diagnostic was cleared.",
+            {{"type", "object"}, {"properties", {
+                {"diagCode", {{"type", "string"},
+                    {"description", "Diagnostic error code (e.g. E0200)"}}},
+                {"nodeId", {{"type", "string"},
+                    {"description", "Target node ID"}}}
+            }}, {"required", {"diagCode", "nodeId"}}}
+        });
+        toolHandlers_["whetstone_apply_quick_fix"] = [this](const json& args) {
+            return callWhetstone("applyQuickFix", args);
+        };
     }
 
     // ---------------------------------------------------------------

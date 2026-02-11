@@ -185,3 +185,38 @@ and machine-applicable fix mutations.
 - Severity filtering uses numeric comparison (lower = more severe)
 - Source filtering allows isolating parser vs annotation vs strategy diagnostics
 - tools/list now returns 18 tools (was 17): +whetstone_get_diagnostics
+
+### Step 251: Quick-Fix Actions as RPC Mutations
+**Status:** PASS (12/12 tests)
+
+Turns diagnostic fix suggestions into one-shot RPC calls. `getQuickFixes`
+returns concrete mutation objects the agent can review; `applyQuickFix` takes
+a diagnostic code + nodeId, applies the fix, and reports whether the
+diagnostic cleared.
+
+**Files created:**
+- `editor/tests/step251_test.cpp` — 12 test cases: fix discovery, required
+  fields, mutation structure, nodeId filtering, apply fix, diagnostic clearing
+  report, invalid diagCode error, missing param error, permission enforcement,
+  MCP tool registration, missing-return heuristic, category validation
+
+**Files modified:**
+- `editor/src/StructuredDiagnostics.h` — QuickFix struct, getQuickFixesForNode,
+  getQuickFixesAll, findQuickFix, heuristic fixes (unused variable removal,
+  missing return statement)
+- `editor/src/HeadlessAgentRPCHandler.h` — getQuickFixes and applyQuickFix
+  RPC methods
+- `editor/src/AgentPermissionPolicy.h` — getQuickFixes read-only,
+  applyQuickFix requires Refactor/Generator
+- `editor/src/MCPServer.h` — whetstone_get_quick_fixes and
+  whetstone_apply_quick_fix tool registration
+- `editor/CMakeLists.txt` — step251_test target
+
+**Key design decisions:**
+- QuickFix has unique id, diagCode, nodeId, description, category, mutation
+- Fix categories: remove-annotation, change-strategy, resolve-conflict,
+  remove-use-after-free, add-deallocation, remove-unused, missing-return
+- applyQuickFix delegates to existing applyMutation path for consistency
+- After applying, re-runs diagnostics to report if the error cleared
+- tools/list now returns 20 tools (was 18): +whetstone_get_quick_fixes,
+  +whetstone_apply_quick_fix

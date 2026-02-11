@@ -605,6 +605,70 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- getQuickFixes ---
+    if (method == "getQuickFixes") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto err = headlessRequireAST(state, id);
+        if (!err.is_null()) return err;
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        std::vector<QuickFix> fixes;
+        if (nodeId.empty())
+            fixes = getQuickFixesAll(state.activeAST());
+        else
+            fixes = getQuickFixesForNode(state.activeAST(), nodeId);
+        json arr = json::array();
+        for (const auto& f : fixes)
+            arr.push_back(quickFixToJson(f));
+        return headlessRpcResult(id, {
+            {"fixes", arr}, {"count", (int)fixes.size()}
+        });
+    }
+
+    // --- applyQuickFix ---
+    if (method == "applyQuickFix") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto err = headlessRequireMutable(state, id);
+        if (!err.is_null()) return err;
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string diagCode = params.value("diagCode", "");
+        std::string nodeId = params.value("nodeId", "");
+        if (diagCode.empty() || nodeId.empty())
+            return headlessRpcError(id, -32602,
+                "Missing diagCode or nodeId");
+        auto fix = findQuickFix(state.activeAST(), diagCode, nodeId);
+        if (fix.mutation.is_null())
+            return headlessRpcError(id, -32002,
+                "No fix found for " + diagCode + " on " + nodeId);
+        // Apply the fix mutation via the existing mutation path
+        json mutRequest = {
+            {"jsonrpc", "2.0"}, {"id", id},
+            {"method", "applyMutation"}, {"params", fix.mutation}
+        };
+        json mutResp = handleHeadlessAgentRequest(
+            state, mutRequest, sessionId);
+        if (mutResp.contains("error"))
+            return mutResp;
+        // Re-check diagnostics to see if it cleared
+        auto remainingDiags = collectAllDiagnostics(state.activeAST());
+        bool cleared = true;
+        for (const auto& d : remainingDiags) {
+            if (d.code == diagCode && d.nodeId == nodeId) {
+                cleared = false;
+                break;
+            }
+        }
+        json result = mutResp["result"];
+        result["fixApplied"] = fix.id;
+        result["diagnosticCleared"] = cleared;
+        result["remainingDiagnostics"] = (int)remainingDiags.size();
+        return headlessRpcResult(id, result);
+    }
+
     // --- getASTSubtree ---
     if (method == "getASTSubtree") {
         auto err = headlessRequireAST(state, id);

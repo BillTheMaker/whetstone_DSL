@@ -47,7 +47,8 @@ struct AgentPermissionPolicy {
             method == "fileDiff" ||
             method == "getASTSubtree" ||
             method == "getASTDiff" ||
-            method == "getDiagnostics") {
+            method == "getDiagnostics" ||
+            method == "getQuickFixes") {
             return true;
         }
 
@@ -57,7 +58,8 @@ struct AgentPermissionPolicy {
             method == "applyAnnotationSuggestion" ||
             method == "applyBatch" ||
             method == "fileWrite" ||
-            method == "fileCreate") {
+            method == "fileCreate" ||
+            method == "applyQuickFix") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 
