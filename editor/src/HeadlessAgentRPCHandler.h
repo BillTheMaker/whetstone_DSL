@@ -932,6 +932,114 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         return headlessRpcResult(id, {{"files", files}});
     }
 
+    // --- openFile ---
+    if (method == "openFile") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty())
+            return headlessRpcError(id, -32602, "Missing path parameter");
+        std::string content = params.value("content", "");
+        std::string language = params.value("language", "");
+        // Auto-detect language from extension if not specified
+        if (language.empty())
+            language = detectLanguage(path);
+        if (language.empty())
+            language = state.defaultLanguage;
+        // Read from disk if no content provided and workspace is set
+        if (content.empty() && !state.workspaceRoot.empty()) {
+            auto [ok, resolved] =
+                fileOpsResolvePath(state.workspaceRoot, path);
+            if (ok) {
+                auto [rok, fileContent, lc] = fileOpsRead(resolved);
+                if (rok) content = fileContent;
+                path = resolved;
+            }
+        }
+        auto* buf = state.openBuffer(path, content, language);
+        if (!buf)
+            return headlessRpcError(id, -32041, "Failed to open buffer");
+        return headlessRpcResult(id, {
+            {"path", path}, {"language", language},
+            {"bufferCount", (int)state.bufferStates.size()}
+        });
+    }
+
+    // --- closeFile ---
+    if (method == "closeFile") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty())
+            return headlessRpcError(id, -32602, "Missing path parameter");
+        auto it = state.bufferStates.find(path);
+        if (it == state.bufferStates.end())
+            return headlessRpcError(id, -32002, "Buffer not found: " + path);
+        state.closeBuffer(path);
+        return headlessRpcResult(id, {
+            {"closed", path},
+            {"bufferCount", (int)state.bufferStates.size()}
+        });
+    }
+
+    // --- listBuffers ---
+    if (method == "listBuffers") {
+        json buffers = json::array();
+        for (const auto& [path, buf] : state.bufferStates) {
+            bool isActive = (buf.get() == state.activeBuffer);
+            buffers.push_back({
+                {"path", buf->path},
+                {"language", buf->language},
+                {"modified", buf->modified},
+                {"active", isActive}
+            });
+        }
+        return headlessRpcResult(id, {
+            {"buffers", buffers},
+            {"count", (int)buffers.size()},
+            {"activeBuffer", state.activeBuffer
+                ? state.activeBuffer->path : ""}
+        });
+    }
+
+    // --- setActiveBuffer ---
+    if (method == "setActiveBuffer") {
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty())
+            return headlessRpcError(id, -32602, "Missing path parameter");
+        if (!state.setActiveBuffer(path))
+            return headlessRpcError(id, -32002, "Buffer not found: " + path);
+        return headlessRpcResult(id, {
+            {"activeBuffer", path},
+            {"language", state.activeBuffer->language}
+        });
+    }
+
+    // --- indexWorkspace ---
+    if (method == "indexWorkspace") {
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string root = params.value("root", state.workspaceRoot);
+        if (root.empty())
+            return headlessRpcError(id, -32602,
+                "No workspace root (set via --workspace or root param)");
+        state.project.scanWorkspace(root);
+        state.workspaceRoot = root;
+        const auto& idx = state.project.index;
+        return headlessRpcResult(id, {
+            {"root", root},
+            {"fileCount", idx.fileCount()},
+            {"dirCount", idx.dirCount()},
+            {"totalEntries", (int)idx.files().size()}
+        });
+    }
+
     // --- batchQuery ---
     if (method == "batchQuery") {
         auto params = request.contains("params") ? request["params"]

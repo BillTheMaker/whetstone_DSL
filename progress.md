@@ -401,3 +401,47 @@ compact/lean/delta/budget/batch features, plus throughput benchmarking.
 - Combined optimized query path: 95% total token savings vs naive approach
 - Compact ratio stable across 10/50/200 function modules (1% spread)
 - Throughput: 0ms/cycle for parse→mutate→diagnose (sub-millisecond)
+
+---
+
+## Phase 9d: Multi-File Project Support
+
+### Step 258: Project Model and Workspace Indexing
+**Status:** PASS (12/12 tests)
+
+HeadlessEditorState gains project awareness: `openFile`, `closeFile`,
+`listBuffers`, `setActiveBuffer` RPC methods for multi-buffer management,
+plus `indexWorkspace` for workspace-level file scanning. Language
+auto-detected from file extension.
+
+**Files created:**
+- `editor/src/ProjectState.h` — WorkspaceIndex (scan, findByExtension,
+  findByLanguage, findByRelativePath, fileCount/dirCount), detectLanguage,
+  IndexedFile struct, ProjectState wrapper
+- `editor/tests/step258_test.cpp` — 12 test cases: openFile buffer creation,
+  listBuffers with 3 files, setActiveBuffer switches AST context, closeFile
+  removes buffer, language auto-detection, active flag in listBuffers,
+  workspace indexing (5 files, 2 dirs), openFile reads from disk, closeFile
+  error on nonexistent, Linter permission denied, MCP tool registration
+  (5 new tools, 27 total), full open→switch→query→close workflow
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — include ProjectState.h, add
+  ProjectState member
+- `editor/src/HeadlessAgentRPCHandler.h` — openFile, closeFile, listBuffers,
+  setActiveBuffer, indexWorkspace RPC methods
+- `editor/src/AgentPermissionPolicy.h` — listBuffers/setActiveBuffer/
+  indexWorkspace read-only; openFile/closeFile require Refactor/Generator
+- `editor/src/MCPServer.h` — registerProjectTools() with 5 MCP tool
+  definitions (whetstone_open_file, whetstone_close_file,
+  whetstone_list_buffers, whetstone_set_active_buffer,
+  whetstone_index_workspace)
+- `editor/CMakeLists.txt` — step258_test target
+
+**Key design decisions:**
+- openFile auto-detects language from extension (detectLanguage)
+- openFile reads from disk if no content provided (uses fileOpsResolvePath)
+- listBuffers includes path, language, modified, and active flag per buffer
+- indexWorkspace scans using FileTree (respects .gitignore) without opening files
+- WorkspaceIndex provides findByExtension/findByLanguage for agent queries
+- tools/list now returns 27 tools (was 22): +5 project management tools

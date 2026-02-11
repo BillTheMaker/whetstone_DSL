@@ -33,6 +33,7 @@
 #include "EditorModePolicy.h"
 #include "PrimitivesRegistry.h"
 #include "SemanticTags.h"
+#include "ProjectState.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -87,6 +88,7 @@ struct HeadlessEditorState {
     HeadlessBufferState* activeBuffer = nullptr;
     HeadlessAgentState   agent;
     HeadlessLibraryState library;
+    ProjectState         project;
     std::string          workspaceRoot;
     std::string          defaultLanguage = "python";
     bool                 verbose = false;

@@ -50,7 +50,10 @@ struct AgentPermissionPolicy {
             method == "getDiagnostics" ||
             method == "getDiagnosticsDelta" ||
             method == "getQuickFixes" ||
-            method == "batchQuery") {
+            method == "batchQuery" ||
+            method == "listBuffers" ||
+            method == "setActiveBuffer" ||
+            method == "indexWorkspace") {
             return true;
         }
 
@@ -61,7 +64,9 @@ struct AgentPermissionPolicy {
             method == "applyBatch" ||
             method == "fileWrite" ||
             method == "fileCreate" ||
-            method == "applyQuickFix") {
+            method == "applyQuickFix" ||
+            method == "openFile" ||
+            method == "closeFile") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 
