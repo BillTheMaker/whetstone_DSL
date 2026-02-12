@@ -70,7 +70,11 @@ struct AgentPermissionPolicy {
             method == "applyQuickFix" ||
             method == "openFile" ||
             method == "closeFile" ||
-            method == "renameSymbol") {
+            method == "renameSymbol" ||
+            method == "saveBuffer" ||
+            method == "saveAllBuffers" ||
+            method == "undo" ||
+            method == "redo") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

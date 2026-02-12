@@ -586,4 +586,99 @@ file opening through cross-file analysis, search, rename, and batch queries.
 - Phase 9d complete: all 5 steps pass (56/56 tests across steps 258–262)
 - Full multi-file project workflow validated end-to-end
 - 30 MCP tools, cross-file symbols, import graph, project diagnostics, search, rename
-- Sprint 9 complete: all 4 phases pass (212/212 tests across steps 245–262)
+- Sprint 9 phases 9a–9d complete: 212/212 tests across steps 245–262
+
+---
+
+## Phase 9e: Persistence and Undo/Redo
+
+### Step 263: Save Buffer to Disk
+**Status:** PASS (12/12 tests)
+
+`saveBuffer` writes a buffer's editBuf to disk, resolving paths against the
+workspace root and creating parent directories as needed. `saveAllBuffers`
+saves all modified buffers in one call. Both clear the `modified` flag.
+
+**Files created:**
+- `editor/tests/step263_test.cpp` — 12 test cases: write to disk, clear modified
+  flag, response fields (path/bytesWritten/success), saveAllBuffers batch save,
+  mutation→save→verify content, Linter permission denied, default to active buffer,
+  error on unknown buffer, saveAllBuffers clears all flags, returns saved paths,
+  MCP tool registration, workspace path resolution with parent dir creation
+
+**Files modified:**
+- `editor/src/HeadlessAgentRPCHandler.h` — saveBuffer (resolve path, create
+  parent dirs, write editBuf, clear modified, return bytesWritten), saveAllBuffers
+  (iterate bufferStates, save modified, return savedCount/skippedCount/paths);
+  renameSymbol editBuf regeneration via Pipeline::generate() after AST rename
+- `editor/src/AgentPermissionPolicy.h` — saveBuffer/saveAllBuffers/undo/redo
+  as mutation methods (Refactor/Generator only)
+- `editor/src/MCPServer.h` — registerSaveUndoTools() with 4 MCP tools:
+  whetstone_save_buffer, whetstone_save_all_buffers, whetstone_undo, whetstone_redo
+- `editor/CMakeLists.txt` — step263_test target
+
+**Key design decisions:**
+- Paths resolved against workspaceRoot with escape protection
+- Parent directories created automatically (std::filesystem::create_directories)
+- saveAllBuffers skips unmodified buffers, reports savedCount/skippedCount
+- renameSymbol now regenerates editBuf so saved content reflects renamed code
+- 34 MCP tools total (was 30): +saveBuffer, +saveAllBuffers, +undo, +redo
+
+### Step 264: Undo/Redo for Headless Mode
+**Status:** PASS (12/12 tests)
+
+State-based undo/redo using `HeadlessUndoStack`. Every mutation (applyMutation,
+applyBatch, renameSymbol) automatically records a snapshot (editBuf + AST JSON).
+`undo` restores the previous state; `redo` re-applies after undo. New mutations
+after undo clear the redo stack.
+
+**Files created:**
+- `editor/tests/step264_test.cpp` — 12 test cases: no history error, rename→undo
+  restores original, editBuf restoration, undo→redo restores mutation, redo error,
+  depth tracking (undoDepth/redoDepth), Linter permission denied, 3 mutations→3
+  undos, new mutation clears redo stack, undo sets modified flag, MCP tool
+  registration, applyMutation→undo
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — HeadlessUndoState (text + astJson),
+  HeadlessUndoStack class (record, canUndo/canRedo, undo/redo, undoDepth/redoDepth),
+  HeadlessBufferState gains `undoStack` field, openBuffer records initial state
+- `editor/src/HeadlessAgentRPCHandler.h` — undo RPC method (restore AST via
+  fromJson + sync.setAST, restore editBuf, set modified, return depths),
+  redo RPC method (same restoration), post-mutation undoStack.record() calls
+  in applyMutation, applyBatch, renameSymbol handlers
+
+**Key design decisions:**
+- State-based undo (snapshot text + AST JSON) vs operation-based
+- Initial state recorded at openFile (position=0), post-mutation at position=N
+- Undo decrements position, redo increments — classic position-based stack
+- New mutation truncates redo states (standard undo/redo behavior)
+- AST restored via JSON roundtrip (toJson/fromJson) for reliable deep clone
+- Response includes undoDepth/redoDepth for agent awareness of stack state
+
+### Step 265: Phase 9e Persistence & Undo/Redo Integration Tests
+**Status:** PASS (8/8 tests)
+
+End-to-end integration tests exercising save + undo/redo workflows together.
+Validates that save writes the correct version to disk after mutations, undos,
+and redos, and that saveAllBuffers respects mixed undo states across buffers.
+
+**Files created:**
+- `editor/tests/step265_test.cpp` — 8 integration test cases:
+  1. mutate→save writes mutated code to disk
+  2. mutate→undo→save writes original code to disk
+  3. undo→redo→save writes mutated code back to disk
+  4. saveAllBuffers with mixed undo states (a.py mutated, b.py undone)
+  5. undo/redo/save cycle: greet→a→b all consistent on disk
+  6. MCP has 34 tools with save+undo+redo tools present
+  7. undo in memory doesn't affect already-saved file on disk
+  8. Full workflow: open→mutate→diagnose→undo→redo→save
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step265_test target
+
+**Key results:**
+- Phase 9e complete: all 3 steps pass (32/32 tests across steps 263–265)
+- Save + undo/redo integration validated end-to-end
+- 34 MCP tools total
+- Sprint 9 complete: all 5 phases pass (244/244 tests across steps 245–265)

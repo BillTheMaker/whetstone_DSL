@@ -62,6 +62,44 @@ struct HeadlessLibraryState {
 };
 
 // -----------------------------------------------------------------------
+//  HeadlessUndoStack — state-based undo/redo for headless buffers
+// -----------------------------------------------------------------------
+struct HeadlessUndoState {
+    std::string text;
+    json        astJson;
+};
+
+class HeadlessUndoStack {
+public:
+    // Record current state as a checkpoint
+    void record(const std::string& text, Module* ast) {
+        // Truncate any redo states
+        if (position_ + 1 < (int)states_.size())
+            states_.resize(position_ + 1);
+        HeadlessUndoState s;
+        s.text = text;
+        if (ast) s.astJson = toJson(ast);
+        states_.push_back(std::move(s));
+        position_ = (int)states_.size() - 1;
+    }
+
+    bool canUndo() const { return position_ > 0; }
+    bool canRedo() const { return position_ + 1 < (int)states_.size(); }
+
+    const HeadlessUndoState& undo() { return states_[--position_]; }
+    const HeadlessUndoState& redo() { return states_[++position_]; }
+
+    int undoDepth() const { return position_; }
+    int redoDepth() const {
+        return (int)states_.size() - position_ - 1;
+    }
+
+private:
+    std::vector<HeadlessUndoState> states_;
+    int position_ = -1;
+};
+
+// -----------------------------------------------------------------------
 //  HeadlessBufferState — lightweight buffer without ImGui widgets
 // -----------------------------------------------------------------------
 struct HeadlessBufferState {
@@ -70,6 +108,7 @@ struct HeadlessBufferState {
     IncrementalOptimizer incrementalOptimizer;
     ASTVersionTracker    versionTracker;
     DiagnosticVersionTracker diagTracker;
+    HeadlessUndoStack    undoStack;
     std::string          language    = "python";
     std::string          path        = "(untitled)";
     std::string          editBuf;
@@ -205,6 +244,8 @@ struct HeadlessEditorState {
             buf->orchestratorDirty = true;
         }
         HeadlessBufferState* raw = buf.get();
+        // Record initial state for undo
+        raw->undoStack.record(raw->editBuf, raw->sync.getAST());
         bufferStates[filePath] = std::move(buf);
         if (!activeBuffer) activeBuffer = raw;
         return raw;

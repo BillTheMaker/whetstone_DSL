@@ -317,6 +317,9 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
                 "agent-mutation:" + type, affectedIds,
                 state.agentActorLabel(sessionId));
             state.active()->versionTracker.recordMutation(affectedIds);
+            // Record post-mutation state for undo
+            state.active()->undoStack.record(
+                state.active()->editBuf, state.activeAST());
         }
         return headlessRpcResult(id, {
             {"success", true}, {"warning", res.warning},
@@ -376,6 +379,9 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             for (const auto& m : mutations)
                 if (!m.nodeId.empty()) batchIds.push_back(m.nodeId);
             state.active()->versionTracker.recordMutation(batchIds);
+            // Record post-mutation state for undo
+            state.active()->undoStack.record(
+                state.active()->editBuf, state.activeAST());
         }
         return headlessRpcResult(id,
             {{"success", true}, {"appliedCount", batchRes.appliedCount},
@@ -1176,6 +1182,7 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             return headlessRpcError(id, -32602,
                 "Missing oldName or newName parameter");
 
+
         // Collect changes across all open buffers
         std::vector<RenameChange> allChanges;
         for (const auto& [path, buf] : state.bufferStates) {
@@ -1254,11 +1261,22 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             }
         }
 
-        // Mark affected buffers as modified
+        // Mark affected buffers as modified, regenerate editBuf, record undo
         for (const auto& f : affectedFiles) {
             auto it = state.bufferStates.find(f);
-            if (it != state.bufferStates.end())
+            if (it != state.bufferStates.end()) {
                 it->second->modified = true;
+                // Regenerate code from the modified AST
+                Module* bufAST = it->second->sync.getAST();
+                if (bufAST) {
+                    Pipeline pipeline;
+                    it->second->editBuf = pipeline.generate(
+                        bufAST, it->second->language);
+                    // Record post-rename state for undo
+                    it->second->undoStack.record(
+                        it->second->editBuf, bufAST);
+                }
+            }
         }
 
         json result = {
@@ -1360,6 +1378,168 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             {"files", filesDiags},
             {"fileCount", (int)filesDiags.size()},
             {"totalDiagnostics", totalCount}
+        });
+    }
+
+    // --- undo ---
+    if (method == "undo") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32000, "No active buffer");
+        auto& stack = state.activeBuffer->undoStack;
+        if (!stack.canUndo())
+            return headlessRpcError(id, -32050, "Nothing to undo");
+        const auto& snap = stack.undo();
+        // Restore AST from JSON
+        if (!snap.astJson.is_null()) {
+            ASTNode* node = fromJson(snap.astJson);
+            if (node && node->conceptType == "Module") {
+                state.activeBuffer->sync.setAST(
+                    std::unique_ptr<Module>(
+                        static_cast<Module*>(node)));
+                state.activeBuffer->orchestratorDirty = true;
+            } else {
+                deleteTree(node);
+            }
+        }
+        state.activeBuffer->editBuf = snap.text;
+        state.activeBuffer->modified = true;
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"undoDepth", stack.undoDepth()},
+            {"redoDepth", stack.redoDepth()}
+        });
+    }
+
+    // --- redo ---
+    if (method == "redo") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32000, "No active buffer");
+        auto& stack = state.activeBuffer->undoStack;
+        if (!stack.canRedo())
+            return headlessRpcError(id, -32050, "Nothing to redo");
+        const auto& snap = stack.redo();
+        if (!snap.astJson.is_null()) {
+            ASTNode* node = fromJson(snap.astJson);
+            if (node && node->conceptType == "Module") {
+                state.activeBuffer->sync.setAST(
+                    std::unique_ptr<Module>(
+                        static_cast<Module*>(node)));
+                state.activeBuffer->orchestratorDirty = true;
+            } else {
+                deleteTree(node);
+            }
+        }
+        state.activeBuffer->editBuf = snap.text;
+        state.activeBuffer->modified = true;
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"undoDepth", stack.undoDepth()},
+            {"redoDepth", stack.redoDepth()}
+        });
+    }
+
+    // --- saveBuffer ---
+    if (method == "saveBuffer") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string path = params.value("path", "");
+
+        // Default to active buffer if no path specified
+        if (path.empty()) {
+            if (!state.activeBuffer)
+                return headlessRpcError(id, -32000, "No active buffer");
+            path = state.activeBuffer->path;
+        }
+
+        auto it = state.bufferStates.find(path);
+        if (it == state.bufferStates.end())
+            return headlessRpcError(id, -32002,
+                "Buffer not found: " + path);
+
+        auto& buf = it->second;
+
+        // Resolve path against workspace root
+        std::string writePath = path;
+        if (!state.workspaceRoot.empty()) {
+            auto [ok, resolved] =
+                fileOpsResolvePath(state.workspaceRoot, path);
+            if (!ok)
+                return headlessRpcError(id, -32040, resolved);
+            writePath = resolved;
+        }
+
+        // Create parent directories if needed
+        fs::path parentDir = fs::path(writePath).parent_path();
+        if (!parentDir.empty()) {
+            std::error_code ec;
+            fs::create_directories(parentDir, ec);
+        }
+
+        // Write editBuf to disk
+        auto [success, msg, bytes] = fileOpsWrite(writePath, buf->editBuf);
+        if (!success)
+            return headlessRpcError(id, -32041, msg);
+
+        buf->modified = false;
+        return headlessRpcResult(id, {
+            {"success", true}, {"path", writePath},
+            {"bytesWritten", bytes}
+        });
+    }
+
+    // --- saveAllBuffers ---
+    if (method == "saveAllBuffers") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+
+        json savedPaths = json::array();
+        int savedCount = 0;
+        int skippedCount = 0;
+
+        for (auto& [path, buf] : state.bufferStates) {
+            if (!buf->modified) {
+                ++skippedCount;
+                continue;
+            }
+
+            std::string writePath = path;
+            if (!state.workspaceRoot.empty()) {
+                auto [ok, resolved] =
+                    fileOpsResolvePath(state.workspaceRoot, path);
+                if (!ok) {
+                    ++skippedCount;
+                    continue;
+                }
+                writePath = resolved;
+            }
+
+            fs::path parentDir = fs::path(writePath).parent_path();
+            if (!parentDir.empty()) {
+                std::error_code ec;
+                fs::create_directories(parentDir, ec);
+            }
+
+            auto [success, msg, bytes] =
+                fileOpsWrite(writePath, buf->editBuf);
+            if (success) {
+                buf->modified = false;
+                savedPaths.push_back(writePath);
+                ++savedCount;
+            } else {
+                ++skippedCount;
+            }
+        }
+
+        return headlessRpcResult(id, {
+            {"savedCount", savedCount},
+            {"skippedCount", skippedCount},
+            {"saved", savedPaths}
         });
     }
 
