@@ -167,6 +167,158 @@ inline json extractSemanticSummary(const ASTNode* node) {
             auto* sa = static_cast<const ScopeAnnotation*>(a);
             if (!sa->kind.empty()) sem["scope"] = sa->kind;
         }
+        // Shim & Escape Hatch (Step 278)
+        else if (a->conceptType == "IntrinsicAnnotation") {
+            auto* ia = static_cast<const IntrinsicAnnotation*>(a);
+            json obj;
+            if (!ia->instruction.empty()) obj["instruction"] = ia->instruction;
+            if (!ia->arch.empty()) obj["arch"] = ia->arch;
+            if (!obj.empty()) sem["intrinsic"] = obj;
+        }
+        else if (a->conceptType == "RawAnnotation") {
+            auto* ra = static_cast<const RawAnnotation*>(a);
+            json obj;
+            if (!ra->language.empty()) obj["language"] = ra->language;
+            if (!ra->code.empty()) obj["code"] = ra->code;
+            if (!obj.empty()) sem["raw"] = obj;
+        }
+        else if (a->conceptType == "CallingConvAnnotation") {
+            auto* cc = static_cast<const CallingConvAnnotation*>(a);
+            if (!cc->convention.empty()) sem["callingConv"] = cc->convention;
+        }
+        else if (a->conceptType == "LinkAnnotation") {
+            auto* la = static_cast<const LinkAnnotation*>(a);
+            json obj;
+            if (!la->symbolName.empty()) obj["symbol"] = la->symbolName;
+            if (!la->library.empty()) obj["library"] = la->library;
+            if (!obj.empty()) sem["link"] = obj;
+        }
+        else if (a->conceptType == "ShimAnnotation") {
+            auto* sa = static_cast<const ShimAnnotation*>(a);
+            if (!sa->strategy.empty()) sem["shim"] = sa->strategy;
+        }
+        else if (a->conceptType == "PointerArithmeticAnnotation") {
+            sem["pointerArithmetic"] = true;
+        }
+        else if (a->conceptType == "OpaqueAnnotation") {
+            auto* oa = static_cast<const OpaqueAnnotation*>(a);
+            if (!oa->reason.empty()) sem["opaque"] = oa->reason;
+        }
+        // Platform & Provenance (Step 279)
+        else if (a->conceptType == "TargetAnnotation") {
+            auto* ta = static_cast<const TargetAnnotation*>(a);
+            json obj;
+            if (!ta->platform.empty()) obj["platform"] = ta->platform;
+            if (!ta->arch.empty()) obj["arch"] = ta->arch;
+            if (!obj.empty()) sem["target"] = obj;
+        }
+        else if (a->conceptType == "FeatureAnnotation") {
+            auto* fa = static_cast<const FeatureAnnotation*>(a);
+            json obj;
+            if (!fa->flag.empty()) obj["flag"] = fa->flag;
+            obj["enabled"] = fa->enabled;
+            sem["feature"] = obj;
+        }
+        else if (a->conceptType == "OriginalAnnotation") {
+            auto* oa = static_cast<const OriginalAnnotation*>(a);
+            json obj;
+            if (!oa->sourceLanguage.empty()) obj["lang"] = oa->sourceLanguage;
+            if (!oa->sourceCode.empty()) obj["hasSource"] = true;
+            if (!obj.empty()) sem["original"] = obj;
+        }
+        else if (a->conceptType == "MappingAnnotation") {
+            auto* ma = static_cast<const MappingAnnotation*>(a);
+            if (!ma->history.empty()) sem["mappingSteps"] = (int)ma->history.size();
+        }
+        // Optimization Completion (Step 280)
+        else if (a->conceptType == "TailCallAnnotation") {
+            sem["tailCall"] = true;
+        }
+        else if (a->conceptType == "LoopAnnotation") {
+            auto* la = static_cast<const LoopAnnotation*>(a);
+            json obj;
+            if (!la->hint.empty()) obj["hint"] = la->hint;
+            if (la->factor > 0) obj["factor"] = la->factor;
+            if (!obj.empty()) sem["loop"] = obj;
+        }
+        else if (a->conceptType == "DataAnnotation") {
+            auto* da = static_cast<const DataAnnotation*>(a);
+            if (!da->hint.empty()) sem["data"] = da->hint;
+        }
+        else if (a->conceptType == "AlignAnnotation") {
+            auto* aa = static_cast<const AlignAnnotation*>(a);
+            if (aa->bytes > 0) sem["align"] = aa->bytes;
+        }
+        else if (a->conceptType == "PackAnnotation") {
+            sem["pack"] = true;
+        }
+        else if (a->conceptType == "BoundsCheckAnnotation") {
+            auto* bc = static_cast<const BoundsCheckAnnotation*>(a);
+            sem["boundsCheck"] = bc->enabled;
+        }
+        else if (a->conceptType == "OverflowAnnotation") {
+            auto* oa = static_cast<const OverflowAnnotation*>(a);
+            if (!oa->behavior.empty()) sem["overflow"] = oa->behavior;
+        }
+        // Meta-Programming (Step 281)
+        else if (a->conceptType == "MetaAnnotation") {
+            auto* ma = static_cast<const MetaAnnotation*>(a);
+            json obj;
+            if (!ma->state.empty()) obj["state"] = ma->state;
+            if (!ma->phase.empty()) obj["phase"] = ma->phase;
+            if (!obj.empty()) sem["meta"] = obj;
+        }
+        else if (a->conceptType == "SymbolAnnotation") {
+            auto* sa = static_cast<const SymbolAnnotation*>(a);
+            if (!sa->mode.empty()) sem["symbol"] = sa->mode;
+        }
+        else if (a->conceptType == "EvaluateAnnotation") {
+            auto* ea = static_cast<const EvaluateAnnotation*>(a);
+            if (!ea->phase.empty()) sem["evaluate"] = ea->phase;
+        }
+        else if (a->conceptType == "TemplateAnnotation") {
+            auto* ta = static_cast<const TemplateAnnotation*>(a);
+            if (!ta->specialization.empty()) sem["template"] = ta->specialization;
+        }
+        else if (a->conceptType == "SyntheticAnnotation") {
+            auto* sa = static_cast<const SyntheticAnnotation*>(a);
+            json obj;
+            if (!sa->generator.empty()) obj["generator"] = sa->generator;
+            obj["risk"] = sa->isStructuralRisk;
+            sem["synthetic"] = obj;
+        }
+        // Strategy & Policy (Step 282)
+        else if (a->conceptType == "PolicyAnnotation") {
+            auto* pa = static_cast<const PolicyAnnotation*>(a);
+            json obj;
+            if (!pa->strictness.empty()) obj["strictness"] = pa->strictness;
+            if (!pa->perf.empty()) obj["perf"] = pa->perf;
+            if (!pa->style.empty()) obj["style"] = pa->style;
+            if (!obj.empty()) sem["policy"] = obj;
+        }
+        else if (a->conceptType == "AmbiguityAnnotation") {
+            auto* aa = static_cast<const AmbiguityAnnotation*>(a);
+            if (!aa->intent.empty()) sem["ambiguity"] = aa->intent;
+        }
+        else if (a->conceptType == "CandidateAnnotation") {
+            auto* ca = static_cast<const CandidateAnnotation*>(a);
+            if (!ca->inferredTypes.empty()) sem["candidates"] = ca->inferredTypes;
+        }
+        else if (a->conceptType == "TradeoffAnnotation") {
+            auto* ta = static_cast<const TradeoffAnnotation*>(a);
+            if (!ta->reason.empty()) sem["tradeoff"] = ta->reason;
+        }
+        else if (a->conceptType == "ChoiceAnnotation") {
+            auto* ca = static_cast<const ChoiceAnnotation*>(a);
+            if (!ca->choiceId.empty()) sem["choice"] = ca->choiceId;
+        }
+        else if (a->conceptType == "DecisionAnnotation") {
+            auto* da = static_cast<const DecisionAnnotation*>(a);
+            json obj;
+            if (!da->choiceId.empty()) obj["choiceId"] = da->choiceId;
+            if (!da->selection.empty()) obj["selection"] = da->selection;
+            if (!obj.empty()) sem["decision"] = obj;
+        }
     }
     return sem.empty() ? json() : sem;
 }

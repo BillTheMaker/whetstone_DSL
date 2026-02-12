@@ -338,3 +338,203 @@ public:
     std::string kind;  // "local" | "global_leaked" | "singleton"
     ScopeAnnotation() { conceptType = "ScopeAnnotation"; }
 };
+
+// Shim & Escape Hatch Annotations (Step 278, Subject 5)
+
+class IntrinsicAnnotation : public Annotation {
+public:
+    std::string instruction;  // e.g. "_mm256_add_ps"
+    std::string arch;         // e.g. "x86_avx2"
+    IntrinsicAnnotation() { conceptType = "IntrinsicAnnotation"; }
+};
+
+class RawAnnotation : public Annotation {
+public:
+    std::string language;  // target language
+    std::string code;      // literal code fragment
+    RawAnnotation() { conceptType = "RawAnnotation"; }
+};
+
+class CallingConvAnnotation : public Annotation {
+public:
+    std::string convention;  // "stdcall" | "cdecl" | "fastcall"
+    CallingConvAnnotation() { conceptType = "CallingConvAnnotation"; }
+};
+
+class LinkAnnotation : public Annotation {
+public:
+    std::string symbolName;
+    std::string library;
+    LinkAnnotation() { conceptType = "LinkAnnotation"; }
+};
+
+class ShimAnnotation : public Annotation {
+public:
+    std::string strategy;  // "vtable" | "trampoline" | "union_tag" | "cast"
+    ShimAnnotation() { conceptType = "ShimAnnotation"; }
+};
+
+class PointerArithmeticAnnotation : public Annotation {
+public:
+    PointerArithmeticAnnotation() { conceptType = "PointerArithmeticAnnotation"; }
+};
+
+class OpaqueAnnotation : public Annotation {
+public:
+    std::string reason;
+    OpaqueAnnotation() { conceptType = "OpaqueAnnotation"; }
+};
+
+// Platform & Provenance Annotations (Step 279, Subject 5)
+
+class TargetAnnotation : public Annotation {
+public:
+    std::string platform;  // e.g. "linux", "windows"
+    std::string arch;      // e.g. "x86_64", "arm64"
+    TargetAnnotation() { conceptType = "TargetAnnotation"; }
+};
+
+class FeatureAnnotation : public Annotation {
+public:
+    std::string flag;      // e.g. "SSE4_2", "NEON"
+    bool enabled = true;
+    FeatureAnnotation() { conceptType = "FeatureAnnotation"; }
+};
+
+class OriginalAnnotation : public Annotation {
+public:
+    std::string sourceCode;
+    std::string sourceLanguage;
+    OriginalAnnotation() { conceptType = "OriginalAnnotation"; }
+};
+
+class MappingAnnotation : public Annotation {
+public:
+    std::vector<std::string> history;  // transformation steps applied
+    MappingAnnotation() { conceptType = "MappingAnnotation"; }
+};
+
+// Optimization Annotation Completion (Step 280, Subject 6)
+
+class TailCallAnnotation : public Annotation {
+public:
+    TailCallAnnotation() { conceptType = "TailCallAnnotation"; }
+};
+
+class LoopAnnotation : public Annotation {
+public:
+    std::string hint;  // "unroll" | "vectorize" | "fuse"
+    int factor = 0;    // optional unroll/vectorize factor
+    LoopAnnotation() { conceptType = "LoopAnnotation"; }
+};
+
+class DataAnnotation : public Annotation {
+public:
+    std::string hint;  // "prefetch" | "restrict"
+    DataAnnotation() { conceptType = "DataAnnotation"; }
+};
+
+class AlignAnnotation : public Annotation {
+public:
+    int bytes = 0;
+    AlignAnnotation() { conceptType = "AlignAnnotation"; }
+};
+
+class PackAnnotation : public Annotation {
+public:
+    PackAnnotation() { conceptType = "PackAnnotation"; }
+};
+
+class BoundsCheckAnnotation : public Annotation {
+public:
+    bool enabled = true;
+    BoundsCheckAnnotation() { conceptType = "BoundsCheckAnnotation"; }
+};
+
+class OverflowAnnotation : public Annotation {
+public:
+    std::string behavior;  // "wrap" | "saturation" | "panic"
+    OverflowAnnotation() { conceptType = "OverflowAnnotation"; }
+};
+
+// Meta-Programming Annotations (Step 281, Subject 7)
+
+class MetaAnnotation : public Annotation {
+public:
+    std::string state;  // "quoted" | "unquoted"
+    std::string phase;  // "compile" | "runtime"
+    MetaAnnotation() { conceptType = "MetaAnnotation"; }
+};
+
+class SymbolAnnotation : public Annotation {
+public:
+    std::string mode;  // "gensym" | "interned"
+    SymbolAnnotation() { conceptType = "SymbolAnnotation"; }
+};
+
+class EvaluateAnnotation : public Annotation {
+public:
+    std::string phase;  // "compile_time" | "runtime"
+    EvaluateAnnotation() { conceptType = "EvaluateAnnotation"; }
+};
+
+class TemplateAnnotation : public Annotation {
+public:
+    std::string specialization;  // "trait" | "monomorphize" | "erasure"
+    TemplateAnnotation() { conceptType = "TemplateAnnotation"; }
+};
+
+class SyntheticAnnotation : public Annotation {
+public:
+    std::string generator;
+    bool isStructuralRisk = false;
+    SyntheticAnnotation() { conceptType = "SyntheticAnnotation"; }
+};
+
+// Strategy & Policy Annotations (Step 282, Subject 8)
+
+class PolicyAnnotation : public Annotation {
+public:
+    std::string strictness;    // "high" | "low"
+    std::string perf;          // "critical" | "normal"
+    std::string style;         // "idiomatic" | "literal"
+    bool binaryStable = false;
+    PolicyAnnotation() { conceptType = "PolicyAnnotation"; }
+};
+
+class AmbiguityAnnotation : public Annotation {
+public:
+    std::string intent;
+    std::vector<std::string> options;
+    AmbiguityAnnotation() { conceptType = "AmbiguityAnnotation"; }
+};
+
+class CandidateAnnotation : public Annotation {
+public:
+    std::vector<std::string> inferredTypes;
+    CandidateAnnotation() { conceptType = "CandidateAnnotation"; }
+};
+
+class TradeoffAnnotation : public Annotation {
+public:
+    std::string reason;
+    std::string safetyCost;
+    std::string perfCost;
+    TradeoffAnnotation() { conceptType = "TradeoffAnnotation"; }
+};
+
+class ChoiceAnnotation : public Annotation {
+public:
+    std::string choiceId;
+    std::vector<std::string> options;
+    ChoiceAnnotation() { conceptType = "ChoiceAnnotation"; }
+};
+
+class DecisionAnnotation : public Annotation {
+public:
+    std::string choiceId;
+    std::string selection;
+    std::string author;
+    std::string reason;
+    DecisionAnnotation() { conceptType = "DecisionAnnotation"; }
+};

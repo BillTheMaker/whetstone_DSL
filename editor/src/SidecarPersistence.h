@@ -57,7 +57,41 @@ inline bool isSemanticAnnotation(const std::string& conceptType) {
            conceptType == "CaptureAnnotation" ||
            conceptType == "VisibilityAnnotation" ||
            conceptType == "NamespaceAnnotation" ||
-           conceptType == "ScopeAnnotation";
+           conceptType == "ScopeAnnotation" ||
+           // Shim & Escape Hatch (Step 278)
+           conceptType == "IntrinsicAnnotation" ||
+           conceptType == "RawAnnotation" ||
+           conceptType == "CallingConvAnnotation" ||
+           conceptType == "LinkAnnotation" ||
+           conceptType == "ShimAnnotation" ||
+           conceptType == "PointerArithmeticAnnotation" ||
+           conceptType == "OpaqueAnnotation" ||
+           // Platform & Provenance (Step 279)
+           conceptType == "TargetAnnotation" ||
+           conceptType == "FeatureAnnotation" ||
+           conceptType == "OriginalAnnotation" ||
+           conceptType == "MappingAnnotation" ||
+           // Optimization Completion (Step 280)
+           conceptType == "TailCallAnnotation" ||
+           conceptType == "LoopAnnotation" ||
+           conceptType == "DataAnnotation" ||
+           conceptType == "AlignAnnotation" ||
+           conceptType == "PackAnnotation" ||
+           conceptType == "BoundsCheckAnnotation" ||
+           conceptType == "OverflowAnnotation" ||
+           // Meta-Programming (Step 281)
+           conceptType == "MetaAnnotation" ||
+           conceptType == "SymbolAnnotation" ||
+           conceptType == "EvaluateAnnotation" ||
+           conceptType == "TemplateAnnotation" ||
+           conceptType == "SyntheticAnnotation" ||
+           // Strategy & Policy (Step 282)
+           conceptType == "PolicyAnnotation" ||
+           conceptType == "AmbiguityAnnotation" ||
+           conceptType == "CandidateAnnotation" ||
+           conceptType == "TradeoffAnnotation" ||
+           conceptType == "ChoiceAnnotation" ||
+           conceptType == "DecisionAnnotation";
 }
 
 // --- Count semantic annotations in an AST ---

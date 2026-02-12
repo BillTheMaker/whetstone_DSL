@@ -264,6 +264,137 @@ inline json propertiesToJson(const ASTNode* node) {
         auto* n = static_cast<const ScopeAnnotation*>(node);
         if (!n->kind.empty()) props["kind"] = n->kind;
     }
+    // Shim & Escape Hatch (Step 278)
+    else if (ct == "IntrinsicAnnotation") {
+        auto* n = static_cast<const IntrinsicAnnotation*>(node);
+        if (!n->instruction.empty()) props["instruction"] = n->instruction;
+        if (!n->arch.empty()) props["arch"] = n->arch;
+    }
+    else if (ct == "RawAnnotation") {
+        auto* n = static_cast<const RawAnnotation*>(node);
+        if (!n->language.empty()) props["language"] = n->language;
+        if (!n->code.empty()) props["code"] = n->code;
+    }
+    else if (ct == "CallingConvAnnotation") {
+        auto* n = static_cast<const CallingConvAnnotation*>(node);
+        if (!n->convention.empty()) props["convention"] = n->convention;
+    }
+    else if (ct == "LinkAnnotation") {
+        auto* n = static_cast<const LinkAnnotation*>(node);
+        if (!n->symbolName.empty()) props["symbolName"] = n->symbolName;
+        if (!n->library.empty()) props["library"] = n->library;
+    }
+    else if (ct == "ShimAnnotation") {
+        auto* n = static_cast<const ShimAnnotation*>(node);
+        if (!n->strategy.empty()) props["strategy"] = n->strategy;
+    }
+    // PointerArithmeticAnnotation — marker, no fields
+    else if (ct == "OpaqueAnnotation") {
+        auto* n = static_cast<const OpaqueAnnotation*>(node);
+        if (!n->reason.empty()) props["reason"] = n->reason;
+    }
+    // Platform & Provenance (Step 279)
+    else if (ct == "TargetAnnotation") {
+        auto* n = static_cast<const TargetAnnotation*>(node);
+        if (!n->platform.empty()) props["platform"] = n->platform;
+        if (!n->arch.empty()) props["arch"] = n->arch;
+    }
+    else if (ct == "FeatureAnnotation") {
+        auto* n = static_cast<const FeatureAnnotation*>(node);
+        if (!n->flag.empty()) props["flag"] = n->flag;
+        props["enabled"] = n->enabled;
+    }
+    else if (ct == "OriginalAnnotation") {
+        auto* n = static_cast<const OriginalAnnotation*>(node);
+        if (!n->sourceCode.empty()) props["sourceCode"] = n->sourceCode;
+        if (!n->sourceLanguage.empty()) props["sourceLanguage"] = n->sourceLanguage;
+    }
+    else if (ct == "MappingAnnotation") {
+        auto* n = static_cast<const MappingAnnotation*>(node);
+        if (!n->history.empty()) props["history"] = n->history;
+    }
+    // Optimization Completion (Step 280)
+    // TailCallAnnotation — marker, no fields
+    else if (ct == "LoopAnnotation") {
+        auto* n = static_cast<const LoopAnnotation*>(node);
+        if (!n->hint.empty()) props["hint"] = n->hint;
+        if (n->factor > 0) props["factor"] = n->factor;
+    }
+    else if (ct == "DataAnnotation") {
+        auto* n = static_cast<const DataAnnotation*>(node);
+        if (!n->hint.empty()) props["hint"] = n->hint;
+    }
+    else if (ct == "AlignAnnotation") {
+        auto* n = static_cast<const AlignAnnotation*>(node);
+        props["bytes"] = n->bytes;
+    }
+    // PackAnnotation — marker, no fields
+    else if (ct == "BoundsCheckAnnotation") {
+        auto* n = static_cast<const BoundsCheckAnnotation*>(node);
+        props["enabled"] = n->enabled;
+    }
+    else if (ct == "OverflowAnnotation") {
+        auto* n = static_cast<const OverflowAnnotation*>(node);
+        if (!n->behavior.empty()) props["behavior"] = n->behavior;
+    }
+    // Meta-Programming (Step 281)
+    else if (ct == "MetaAnnotation") {
+        auto* n = static_cast<const MetaAnnotation*>(node);
+        if (!n->state.empty()) props["state"] = n->state;
+        if (!n->phase.empty()) props["phase"] = n->phase;
+    }
+    else if (ct == "SymbolAnnotation") {
+        auto* n = static_cast<const SymbolAnnotation*>(node);
+        if (!n->mode.empty()) props["mode"] = n->mode;
+    }
+    else if (ct == "EvaluateAnnotation") {
+        auto* n = static_cast<const EvaluateAnnotation*>(node);
+        if (!n->phase.empty()) props["phase"] = n->phase;
+    }
+    else if (ct == "TemplateAnnotation") {
+        auto* n = static_cast<const TemplateAnnotation*>(node);
+        if (!n->specialization.empty()) props["specialization"] = n->specialization;
+    }
+    else if (ct == "SyntheticAnnotation") {
+        auto* n = static_cast<const SyntheticAnnotation*>(node);
+        if (!n->generator.empty()) props["generator"] = n->generator;
+        props["isStructuralRisk"] = n->isStructuralRisk;
+    }
+    // Strategy & Policy (Step 282)
+    else if (ct == "PolicyAnnotation") {
+        auto* n = static_cast<const PolicyAnnotation*>(node);
+        if (!n->strictness.empty()) props["strictness"] = n->strictness;
+        if (!n->perf.empty()) props["perf"] = n->perf;
+        if (!n->style.empty()) props["style"] = n->style;
+        props["binaryStable"] = n->binaryStable;
+    }
+    else if (ct == "AmbiguityAnnotation") {
+        auto* n = static_cast<const AmbiguityAnnotation*>(node);
+        if (!n->intent.empty()) props["intent"] = n->intent;
+        if (!n->options.empty()) props["options"] = n->options;
+    }
+    else if (ct == "CandidateAnnotation") {
+        auto* n = static_cast<const CandidateAnnotation*>(node);
+        if (!n->inferredTypes.empty()) props["inferredTypes"] = n->inferredTypes;
+    }
+    else if (ct == "TradeoffAnnotation") {
+        auto* n = static_cast<const TradeoffAnnotation*>(node);
+        if (!n->reason.empty()) props["reason"] = n->reason;
+        if (!n->safetyCost.empty()) props["safetyCost"] = n->safetyCost;
+        if (!n->perfCost.empty()) props["perfCost"] = n->perfCost;
+    }
+    else if (ct == "ChoiceAnnotation") {
+        auto* n = static_cast<const ChoiceAnnotation*>(node);
+        if (!n->choiceId.empty()) props["choiceId"] = n->choiceId;
+        if (!n->options.empty()) props["options"] = n->options;
+    }
+    else if (ct == "DecisionAnnotation") {
+        auto* n = static_cast<const DecisionAnnotation*>(node);
+        if (!n->choiceId.empty()) props["choiceId"] = n->choiceId;
+        if (!n->selection.empty()) props["selection"] = n->selection;
+        if (!n->author.empty()) props["author"] = n->author;
+        if (!n->reason.empty()) props["reason"] = n->reason;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -370,6 +501,40 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "VisibilityAnnotation") return new VisibilityAnnotation();
     if (conceptName == "NamespaceAnnotation") return new NamespaceAnnotation();
     if (conceptName == "ScopeAnnotation") return new ScopeAnnotation();
+    // Shim & Escape Hatch (Step 278)
+    if (conceptName == "IntrinsicAnnotation") return new IntrinsicAnnotation();
+    if (conceptName == "RawAnnotation") return new RawAnnotation();
+    if (conceptName == "CallingConvAnnotation") return new CallingConvAnnotation();
+    if (conceptName == "LinkAnnotation") return new LinkAnnotation();
+    if (conceptName == "ShimAnnotation") return new ShimAnnotation();
+    if (conceptName == "PointerArithmeticAnnotation") return new PointerArithmeticAnnotation();
+    if (conceptName == "OpaqueAnnotation") return new OpaqueAnnotation();
+    // Platform & Provenance (Step 279)
+    if (conceptName == "TargetAnnotation") return new TargetAnnotation();
+    if (conceptName == "FeatureAnnotation") return new FeatureAnnotation();
+    if (conceptName == "OriginalAnnotation") return new OriginalAnnotation();
+    if (conceptName == "MappingAnnotation") return new MappingAnnotation();
+    // Optimization Completion (Step 280)
+    if (conceptName == "TailCallAnnotation") return new TailCallAnnotation();
+    if (conceptName == "LoopAnnotation") return new LoopAnnotation();
+    if (conceptName == "DataAnnotation") return new DataAnnotation();
+    if (conceptName == "AlignAnnotation") return new AlignAnnotation();
+    if (conceptName == "PackAnnotation") return new PackAnnotation();
+    if (conceptName == "BoundsCheckAnnotation") return new BoundsCheckAnnotation();
+    if (conceptName == "OverflowAnnotation") return new OverflowAnnotation();
+    // Meta-Programming (Step 281)
+    if (conceptName == "MetaAnnotation") return new MetaAnnotation();
+    if (conceptName == "SymbolAnnotation") return new SymbolAnnotation();
+    if (conceptName == "EvaluateAnnotation") return new EvaluateAnnotation();
+    if (conceptName == "TemplateAnnotation") return new TemplateAnnotation();
+    if (conceptName == "SyntheticAnnotation") return new SyntheticAnnotation();
+    // Strategy & Policy (Step 282)
+    if (conceptName == "PolicyAnnotation") return new PolicyAnnotation();
+    if (conceptName == "AmbiguityAnnotation") return new AmbiguityAnnotation();
+    if (conceptName == "CandidateAnnotation") return new CandidateAnnotation();
+    if (conceptName == "TradeoffAnnotation") return new TradeoffAnnotation();
+    if (conceptName == "ChoiceAnnotation") return new ChoiceAnnotation();
+    if (conceptName == "DecisionAnnotation") return new DecisionAnnotation();
     return nullptr;
 }
 
@@ -626,6 +791,153 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
     else if (ct == "ScopeAnnotation") {
         auto* n = static_cast<ScopeAnnotation*>(node);
         if (props.contains("kind")) n->kind = props["kind"].get<std::string>();
+    }
+    // Shim & Escape Hatch (Step 278)
+    else if (ct == "IntrinsicAnnotation") {
+        auto* n = static_cast<IntrinsicAnnotation*>(node);
+        if (props.contains("instruction")) n->instruction = props["instruction"].get<std::string>();
+        if (props.contains("arch")) n->arch = props["arch"].get<std::string>();
+    }
+    else if (ct == "RawAnnotation") {
+        auto* n = static_cast<RawAnnotation*>(node);
+        if (props.contains("language")) n->language = props["language"].get<std::string>();
+        if (props.contains("code")) n->code = props["code"].get<std::string>();
+    }
+    else if (ct == "CallingConvAnnotation") {
+        auto* n = static_cast<CallingConvAnnotation*>(node);
+        if (props.contains("convention")) n->convention = props["convention"].get<std::string>();
+    }
+    else if (ct == "LinkAnnotation") {
+        auto* n = static_cast<LinkAnnotation*>(node);
+        if (props.contains("symbolName")) n->symbolName = props["symbolName"].get<std::string>();
+        if (props.contains("library")) n->library = props["library"].get<std::string>();
+    }
+    else if (ct == "ShimAnnotation") {
+        auto* n = static_cast<ShimAnnotation*>(node);
+        if (props.contains("strategy")) n->strategy = props["strategy"].get<std::string>();
+    }
+    // PointerArithmeticAnnotation — no fields
+    else if (ct == "OpaqueAnnotation") {
+        auto* n = static_cast<OpaqueAnnotation*>(node);
+        if (props.contains("reason")) n->reason = props["reason"].get<std::string>();
+    }
+    // Platform & Provenance (Step 279)
+    else if (ct == "TargetAnnotation") {
+        auto* n = static_cast<TargetAnnotation*>(node);
+        if (props.contains("platform")) n->platform = props["platform"].get<std::string>();
+        if (props.contains("arch")) n->arch = props["arch"].get<std::string>();
+    }
+    else if (ct == "FeatureAnnotation") {
+        auto* n = static_cast<FeatureAnnotation*>(node);
+        if (props.contains("flag")) n->flag = props["flag"].get<std::string>();
+        if (props.contains("enabled")) n->enabled = props["enabled"].get<bool>();
+    }
+    else if (ct == "OriginalAnnotation") {
+        auto* n = static_cast<OriginalAnnotation*>(node);
+        if (props.contains("sourceCode")) n->sourceCode = props["sourceCode"].get<std::string>();
+        if (props.contains("sourceLanguage")) n->sourceLanguage = props["sourceLanguage"].get<std::string>();
+    }
+    else if (ct == "MappingAnnotation") {
+        auto* n = static_cast<MappingAnnotation*>(node);
+        if (props.contains("history") && props["history"].is_array()) {
+            n->history.clear();
+            for (const auto& h : props["history"])
+                if (h.is_string()) n->history.push_back(h.get<std::string>());
+        }
+    }
+    // Optimization Completion (Step 280)
+    // TailCallAnnotation — no fields
+    else if (ct == "LoopAnnotation") {
+        auto* n = static_cast<LoopAnnotation*>(node);
+        if (props.contains("hint")) n->hint = props["hint"].get<std::string>();
+        if (props.contains("factor")) n->factor = props["factor"].get<int>();
+    }
+    else if (ct == "DataAnnotation") {
+        auto* n = static_cast<DataAnnotation*>(node);
+        if (props.contains("hint")) n->hint = props["hint"].get<std::string>();
+    }
+    else if (ct == "AlignAnnotation") {
+        auto* n = static_cast<AlignAnnotation*>(node);
+        if (props.contains("bytes")) n->bytes = props["bytes"].get<int>();
+    }
+    // PackAnnotation — no fields
+    else if (ct == "BoundsCheckAnnotation") {
+        auto* n = static_cast<BoundsCheckAnnotation*>(node);
+        if (props.contains("enabled")) n->enabled = props["enabled"].get<bool>();
+    }
+    else if (ct == "OverflowAnnotation") {
+        auto* n = static_cast<OverflowAnnotation*>(node);
+        if (props.contains("behavior")) n->behavior = props["behavior"].get<std::string>();
+    }
+    // Meta-Programming (Step 281)
+    else if (ct == "MetaAnnotation") {
+        auto* n = static_cast<MetaAnnotation*>(node);
+        if (props.contains("state")) n->state = props["state"].get<std::string>();
+        if (props.contains("phase")) n->phase = props["phase"].get<std::string>();
+    }
+    else if (ct == "SymbolAnnotation") {
+        auto* n = static_cast<SymbolAnnotation*>(node);
+        if (props.contains("mode")) n->mode = props["mode"].get<std::string>();
+    }
+    else if (ct == "EvaluateAnnotation") {
+        auto* n = static_cast<EvaluateAnnotation*>(node);
+        if (props.contains("phase")) n->phase = props["phase"].get<std::string>();
+    }
+    else if (ct == "TemplateAnnotation") {
+        auto* n = static_cast<TemplateAnnotation*>(node);
+        if (props.contains("specialization")) n->specialization = props["specialization"].get<std::string>();
+    }
+    else if (ct == "SyntheticAnnotation") {
+        auto* n = static_cast<SyntheticAnnotation*>(node);
+        if (props.contains("generator")) n->generator = props["generator"].get<std::string>();
+        if (props.contains("isStructuralRisk")) n->isStructuralRisk = props["isStructuralRisk"].get<bool>();
+    }
+    // Strategy & Policy (Step 282)
+    else if (ct == "PolicyAnnotation") {
+        auto* n = static_cast<PolicyAnnotation*>(node);
+        if (props.contains("strictness")) n->strictness = props["strictness"].get<std::string>();
+        if (props.contains("perf")) n->perf = props["perf"].get<std::string>();
+        if (props.contains("style")) n->style = props["style"].get<std::string>();
+        if (props.contains("binaryStable")) n->binaryStable = props["binaryStable"].get<bool>();
+    }
+    else if (ct == "AmbiguityAnnotation") {
+        auto* n = static_cast<AmbiguityAnnotation*>(node);
+        if (props.contains("intent")) n->intent = props["intent"].get<std::string>();
+        if (props.contains("options") && props["options"].is_array()) {
+            n->options.clear();
+            for (const auto& o : props["options"])
+                if (o.is_string()) n->options.push_back(o.get<std::string>());
+        }
+    }
+    else if (ct == "CandidateAnnotation") {
+        auto* n = static_cast<CandidateAnnotation*>(node);
+        if (props.contains("inferredTypes") && props["inferredTypes"].is_array()) {
+            n->inferredTypes.clear();
+            for (const auto& t : props["inferredTypes"])
+                if (t.is_string()) n->inferredTypes.push_back(t.get<std::string>());
+        }
+    }
+    else if (ct == "TradeoffAnnotation") {
+        auto* n = static_cast<TradeoffAnnotation*>(node);
+        if (props.contains("reason")) n->reason = props["reason"].get<std::string>();
+        if (props.contains("safetyCost")) n->safetyCost = props["safetyCost"].get<std::string>();
+        if (props.contains("perfCost")) n->perfCost = props["perfCost"].get<std::string>();
+    }
+    else if (ct == "ChoiceAnnotation") {
+        auto* n = static_cast<ChoiceAnnotation*>(node);
+        if (props.contains("choiceId")) n->choiceId = props["choiceId"].get<std::string>();
+        if (props.contains("options") && props["options"].is_array()) {
+            n->options.clear();
+            for (const auto& o : props["options"])
+                if (o.is_string()) n->options.push_back(o.get<std::string>());
+        }
+    }
+    else if (ct == "DecisionAnnotation") {
+        auto* n = static_cast<DecisionAnnotation*>(node);
+        if (props.contains("choiceId")) n->choiceId = props["choiceId"].get<std::string>();
+        if (props.contains("selection")) n->selection = props["selection"].get<std::string>();
+        if (props.contains("author")) n->author = props["author"].get<std::string>();
+        if (props.contains("reason")) n->reason = props["reason"].get<std::string>();
     }
 }
 

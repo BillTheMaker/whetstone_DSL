@@ -1698,4 +1698,40 @@ target_link_libraries(step277_test PRIVATE
     tree_sitter_java tree_sitter_rust tree_sitter_go
     tree_sitter_org)
 
+# Step 278: Shim & Escape Hatch Annotations
+add_executable(step278_test tests/step278_test.cpp)
+target_include_directories(step278_test PRIVATE src)
+target_link_libraries(step278_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 279: Platform & Provenance Annotations
+add_executable(step279_test tests/step279_test.cpp)
+target_include_directories(step279_test PRIVATE src)
+target_link_libraries(step279_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 280: Optimization Annotation Completion
+add_executable(step280_test tests/step280_test.cpp)
+target_include_directories(step280_test PRIVATE src)
+target_link_libraries(step280_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 281: Meta-Programming Annotations
+add_executable(step281_test tests/step281_test.cpp)
+target_include_directories(step281_test PRIVATE src)
+target_link_libraries(step281_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 282: Strategy & Policy Annotations
+add_executable(step282_test tests/step282_test.cpp)
+target_include_directories(step282_test PRIVATE src)
+target_link_libraries(step282_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 283: Phase 10d Integration Tests
+add_executable(step283_test tests/step283_test.cpp)
+target_include_directories(step283_test PRIVATE src)
+target_link_libraries(step283_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

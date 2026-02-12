@@ -1682,6 +1682,40 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         else if (type == "visibility") conceptType = "VisibilityAnnotation";
         else if (type == "namespace") conceptType = "NamespaceAnnotation";
         else if (type == "scope") conceptType = "ScopeAnnotation";
+        // Shim & Escape Hatch (Step 278)
+        else if (type == "intrinsic") conceptType = "IntrinsicAnnotation";
+        else if (type == "raw") conceptType = "RawAnnotation";
+        else if (type == "callingConv") conceptType = "CallingConvAnnotation";
+        else if (type == "link") conceptType = "LinkAnnotation";
+        else if (type == "shim") conceptType = "ShimAnnotation";
+        else if (type == "pointerArithmetic") conceptType = "PointerArithmeticAnnotation";
+        else if (type == "opaque") conceptType = "OpaqueAnnotation";
+        // Platform & Provenance (Step 279)
+        else if (type == "target") conceptType = "TargetAnnotation";
+        else if (type == "feature") conceptType = "FeatureAnnotation";
+        else if (type == "original") conceptType = "OriginalAnnotation";
+        else if (type == "mapping") conceptType = "MappingAnnotation";
+        // Optimization Completion (Step 280)
+        else if (type == "tailCall") conceptType = "TailCallAnnotation";
+        else if (type == "loop") conceptType = "LoopAnnotation";
+        else if (type == "dataHint") conceptType = "DataAnnotation";
+        else if (type == "align") conceptType = "AlignAnnotation";
+        else if (type == "pack") conceptType = "PackAnnotation";
+        else if (type == "boundsCheck") conceptType = "BoundsCheckAnnotation";
+        else if (type == "overflow") conceptType = "OverflowAnnotation";
+        // Meta-Programming (Step 281)
+        else if (type == "meta") conceptType = "MetaAnnotation";
+        else if (type == "symbolMode") conceptType = "SymbolAnnotation";
+        else if (type == "evaluate") conceptType = "EvaluateAnnotation";
+        else if (type == "template") conceptType = "TemplateAnnotation";
+        else if (type == "synthetic") conceptType = "SyntheticAnnotation";
+        // Strategy & Policy (Step 282)
+        else if (type == "policy") conceptType = "PolicyAnnotation";
+        else if (type == "ambiguity") conceptType = "AmbiguityAnnotation";
+        else if (type == "candidate") conceptType = "CandidateAnnotation";
+        else if (type == "tradeoff") conceptType = "TradeoffAnnotation";
+        else if (type == "choice") conceptType = "ChoiceAnnotation";
+        else if (type == "decision") conceptType = "DecisionAnnotation";
         else return headlessRpcError(id, -32602, "Unknown annotation type: " + type);
 
         // Remove existing annotation of same type (update semantics)
