@@ -560,3 +560,30 @@ Variable declarations, VariableReferences, and Parameters.
 - Buffers marked as modified after rename for save-tracking
 - Search returns kind field (definition/call/reference/parameter) to categorize
 - 30 MCP tools total
+
+### Step 262: Phase 9d Multi-File Project Integration Tests
+**Status:** PASS (8/8 tests)
+
+End-to-end integration tests exercising the full multi-file project workflow
+across 3-file Python projects. Simulates a realistic agent session from
+file opening through cross-file analysis, search, rename, and batch queries.
+
+**Files created:**
+- `editor/tests/step262_test.cpp` — 8 integration test cases:
+  1. Open 3 files, listBuffers shows all with correct state
+  2. setActiveBuffer switches context, getAST returns correct module
+  3. Cross-file symbol resolution (crossFile=true includes other buffers' exports)
+  4. Import graph tracks which files import which (main.py→utils+math_ops)
+  5. Project-wide diagnostics: undefined import raises cross-file E0400
+  6. searchProject finds symbol across 3 files (definition + call kinds)
+  7. renameSymbol: preview then apply across 3 files, verified both directions
+  8. Full workflow: open→batch(diagnostics+search+buffers)→rename→batch verify
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step262_test target
+
+**Key results:**
+- Phase 9d complete: all 5 steps pass (56/56 tests across steps 258–262)
+- Full multi-file project workflow validated end-to-end
+- 30 MCP tools, cross-file symbols, import graph, project diagnostics, search, rename
+- Sprint 9 complete: all 4 phases pass (212/212 tests across steps 245–262)
