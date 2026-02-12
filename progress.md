@@ -682,3 +682,90 @@ and redos, and that saveAllBuffers respects mixed undo states across buffers.
 - Save + undo/redo integration validated end-to-end
 - 34 MCP tools total
 - Sprint 9 complete: all 5 phases pass (244/244 tests across steps 245–265)
+
+---
+
+# Sprint 10 Progress — Semantic Annotation Taxonomy & Environment Layer
+
+## Phase 10a: Semantic Annotation Core + Sidecar Persistence (Steps 266-268)
+
+**Status:** PASS (32/32 tests) — committed as `976161d`
+
+5 semantic annotation types (IntentAnnotation, ComplexityAnnotation, RiskAnnotation, ContractAnnotation, SemanticTagAnnotation) with JSON roundtrip, compact AST semantic summary, and sidecar persistence (.whetstone/<file>.ast.json).
+
+**Key files:**
+- `editor/src/ast/Annotation.h` — 5 annotation class definitions
+- `editor/src/ast/Serialization.h` — propertiesToJson/createNode/setPropertiesFromJson
+- `editor/src/CompactAST.h` — extractSemanticSummary()
+- `editor/src/SidecarPersistence.h` — sidecarPath, save/load, isSemanticAnnotation
+
+---
+
+## Phase 10b: Annotation Agent Interface (Steps 269-271)
+
+**Status:** PASS (32/32 tests) — committed as `a049d60`
+
+High-level RPC methods for agent annotation workflow: setSemanticAnnotation, getSemanticAnnotations, removeSemanticAnnotation, getUnannotatedNodes. MCP prompt templates for annotation guidance.
+
+**Key additions:**
+- `HeadlessAgentRPCHandler.h` — 4 new RPC methods
+- `MCPServer.h` — 4 MCP tools + 5 annotation prompt templates
+- `AgentPermissionPolicy.h` — read/write permission mapping
+
+---
+
+## Phase 10c: Type System, Execution & Scope Annotations (Steps 272-277)
+
+**Status:** PASS (171/171 tests) — committed as `e2d1872`
+
+24 new annotation classes across Subjects 2-4:
+- **Subject 2 (Type System):** BitWidth, Endian, Layout, Nullability, Variance, Identity, Mut, TypeState
+- **Subject 3 (Concurrency):** Atomic, Sync, ThreadModel, MemoryBarrier, Exec, Blocking, Parallel, Trap, Exception, Panic
+- **Subject 4 (Scope):** Binding, Lookup, Capture, Visibility, Namespace, Scope
+
+All wired through Serialization.h (3 dispatch points), CompactAST.h, SidecarPersistence.h, and HeadlessAgentRPCHandler.h setSemanticAnnotation type mapping.
+
+---
+
+## Phase 10d: Shims, Optimization, Meta-Programming & Policy Annotations (Steps 278-283)
+
+**Status:** PASS (117/117 tests) — committed as `090320f`
+
+29 new annotation classes across Subjects 5-8:
+- **Subject 5 (Shims):** Intrinsic, Raw, CallingConv, Link, Shim, PointerArithmetic, Opaque, Target, Feature, Original, Mapping
+- **Subject 6 (Optimization):** TailCall, Loop, Data, Align, Pack, BoundsCheck, Overflow
+- **Subject 7 (Meta-Programming):** Meta, Symbol, Evaluate, Template, Synthetic
+- **Subject 8 (Policy):** Policy, Ambiguity, Candidate, Tradeoff, Choice, Decision
+
+Generic fallback added to getSemanticAnnotations RPC for extensible annotation type support.
+
+---
+
+## Phase 10e: Environment Layer (Steps 284-289)
+
+**Status:** IN PROGRESS
+
+### Completed so far:
+
+**New files created:**
+- `editor/src/EnvironmentSpec.h` — EnvironmentSpec AST node (envId, envVersion, capabilities, constraints, scheduler, memory, bindingTimes, exceptions, ffi), CapabilityRequirement annotation, capability vocabulary (17 known capabilities), validateCapabilities() (E0501 diagnostics), validateEnvAnnotations() (E0502-E0505 diagnostics), getLoweringHints() (env-aware lowering patterns), envSpecToJson/envSpecFromJson helpers
+- `editor/src/ast/HostBoundary.h` — HostCall (Expression), ScheduleTask (Statement), ModuleLoad (Statement)
+
+**Core files updated:**
+- `Serialization.h` — propertiesToJson/createNode/setPropertiesFromJson for HostCall, ScheduleTask, ModuleLoad, EnvironmentSpec, CapabilityRequirement
+- `CompactAST.h` — CapabilityRequirement in extractSemanticSummary, host boundary nodes in getNodeName
+- `SidecarPersistence.h` — CapabilityRequirement in isSemanticAnnotation
+- `HeadlessAgentRPCHandler.h` — capabilityRequirement type in setSemanticAnnotation, 4 new RPCs: setEnvironment, getEnvironment, validateEnvironment, getLoweringHints
+- `AgentPermissionPolicy.h` — getEnvironment/validateEnvironment/getLoweringHints (read-only), setEnvironment (mutation)
+
+**Test files written:**
+- `step284_test.cpp` — 12 tests (EnvironmentSpec schema, JSON roundtrip, module attachment)
+- `step285_test.cpp` — 12 tests (capability vocabulary, validation, CapabilityRequirement)
+
+### Remaining:
+- Write step286_test.cpp (environment-aware pipeline hooks, 12 tests)
+- Write step287_test.cpp (environment-aware lowering decisions, 12 tests)
+- Write step288_test.cpp (host boundary AST nodes, 12 tests)
+- Write step289_test.cpp (Phase 10e integration tests, 8 tests)
+- Add CMake targets for steps 284-289
+- Build, test, fix, commit

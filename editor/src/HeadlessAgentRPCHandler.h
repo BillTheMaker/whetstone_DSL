@@ -1716,6 +1716,8 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         else if (type == "tradeoff") conceptType = "TradeoffAnnotation";
         else if (type == "choice") conceptType = "ChoiceAnnotation";
         else if (type == "decision") conceptType = "DecisionAnnotation";
+        // Environment Layer (Step 285)
+        else if (type == "capabilityRequirement") conceptType = "CapabilityRequirement";
         else return headlessRpcError(id, -32602, "Unknown annotation type: " + type);
 
         // Remove existing annotation of same type (update semantics)
@@ -1968,6 +1970,119 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
 
         return headlessRpcResult(id,
             {{"nodes", nodes}, {"count", (int)nodes.size()}});
+    }
+
+    // --- setEnvironment ---
+    if (method == "setEnvironment") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        // Remove existing EnvironmentSpec if any
+        for (auto* child : ast->getChildren("environment")) {
+            ast->removeChild(child);
+            break;
+        }
+
+        auto* env = new EnvironmentSpec();
+        envSpecFromJson(env, params);
+        ast->addChild("environment", env);
+
+        return headlessRpcResult(id, {{"success", true},
+            {"envId", env->envId}});
+    }
+
+    // --- getEnvironment ---
+    if (method == "getEnvironment") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        auto envChildren = ast->getChildren("environment");
+        if (envChildren.empty())
+            return headlessRpcResult(id, {{"hasEnvironment", false}});
+
+        auto* env = static_cast<EnvironmentSpec*>(envChildren[0]);
+        json envJson = envSpecToJson(env);
+        envJson["hasEnvironment"] = true;
+        return headlessRpcResult(id, envJson);
+    }
+
+    // --- validateEnvironment ---
+    if (method == "validateEnvironment") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        auto envChildren = ast->getChildren("environment");
+        if (envChildren.empty())
+            return headlessRpcError(id, -32602, "No EnvironmentSpec set on module");
+
+        auto* env = static_cast<EnvironmentSpec*>(envChildren[0]);
+        auto capDiags = validateCapabilities(ast, env);
+        auto annoDiags = validateEnvAnnotations(ast, env);
+
+        json diagsJson = json::array();
+        for (const auto& d : capDiags) {
+            diagsJson.push_back({{"severity", d.severity},
+                {"message", d.message}, {"nodeId", d.nodeId},
+                {"capability", d.capability}});
+        }
+        for (const auto& d : annoDiags) {
+            diagsJson.push_back({{"severity", d.severity},
+                {"message", d.message}, {"nodeId", d.nodeId}});
+        }
+
+        return headlessRpcResult(id, {
+            {"diagnostics", diagsJson},
+            {"count", (int)diagsJson.size()}
+        });
+    }
+
+    // --- getLoweringHints ---
+    if (method == "getLoweringHints") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        auto envChildren = ast->getChildren("environment");
+        if (envChildren.empty())
+            return headlessRpcError(id, -32602, "No EnvironmentSpec set");
+
+        auto* env = static_cast<EnvironmentSpec*>(envChildren[0]);
+        ASTNode* target = nodeId.empty() ? ast : findNodeById(ast, nodeId);
+        if (!target)
+            return headlessRpcError(id, -32602, "Node not found: " + nodeId);
+
+        auto hints = getLoweringHints(target, env);
+        json hintsJson = json::array();
+        for (const auto& h : hints) {
+            hintsJson.push_back({{"pattern", h.pattern},
+                {"description", h.description}});
+        }
+        return headlessRpcResult(id, {{"hints", hintsJson},
+            {"count", (int)hintsJson.size()}});
     }
 
     return headlessRpcError(id, -32601, "Method not found");

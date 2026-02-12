@@ -91,7 +91,9 @@ inline bool isSemanticAnnotation(const std::string& conceptType) {
            conceptType == "CandidateAnnotation" ||
            conceptType == "TradeoffAnnotation" ||
            conceptType == "ChoiceAnnotation" ||
-           conceptType == "DecisionAnnotation";
+           conceptType == "DecisionAnnotation" ||
+           // Environment Layer (Step 285)
+           conceptType == "CapabilityRequirement";
 }
 
 // --- Count semantic annotations in an AST ---

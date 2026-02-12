@@ -60,7 +60,10 @@ struct AgentPermissionPolicy {
             method == "loadAnnotatedAST" ||
             method == "listAnnotatedFiles" ||
             method == "getSemanticAnnotations" ||
-            method == "getUnannotatedNodes") {
+            method == "getUnannotatedNodes" ||
+            method == "getEnvironment" ||
+            method == "validateEnvironment" ||
+            method == "getLoweringHints") {
             return true;
         }
 
@@ -81,7 +84,8 @@ struct AgentPermissionPolicy {
             method == "redo" ||
             method == "saveAnnotatedAST" ||
             method == "setSemanticAnnotation" ||
-            method == "removeSemanticAnnotation") {
+            method == "removeSemanticAnnotation" ||
+            method == "setEnvironment") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

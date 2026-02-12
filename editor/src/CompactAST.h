@@ -7,6 +7,8 @@
 #include "ast/ASTNode.h"
 #include "ast/Serialization.h"
 #include "ast/Annotation.h"
+#include "ast/HostBoundary.h"
+#include "EnvironmentSpec.h"
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
@@ -319,6 +321,14 @@ inline json extractSemanticSummary(const ASTNode* node) {
             if (!da->selection.empty()) obj["selection"] = da->selection;
             if (!obj.empty()) sem["decision"] = obj;
         }
+        // Environment Layer (Step 285)
+        else if (a->conceptType == "CapabilityRequirement") {
+            auto* cr = static_cast<const CapabilityRequirement*>(a);
+            json obj;
+            if (!cr->capability.empty()) obj["capability"] = cr->capability;
+            obj["required"] = cr->required;
+            sem["capabilityReq"] = obj;
+        }
     }
     return sem.empty() ? json() : sem;
 }
@@ -365,6 +375,13 @@ inline std::string getNodeName(const ASTNode* node) {
     if (ct == "BooleanLiteral")
         return static_cast<const BooleanLiteral*>(node)->value
             ? "true" : "false";
+    // Host Boundary (Step 288)
+    if (ct == "HostCall")
+        return static_cast<const HostCall*>(node)->name;
+    if (ct == "ModuleLoad")
+        return static_cast<const ModuleLoad*>(node)->moduleName;
+    if (ct == "ScheduleTask")
+        return static_cast<const ScheduleTask*>(node)->queue;
     return "";
 }
 

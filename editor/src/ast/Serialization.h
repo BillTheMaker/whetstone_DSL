@@ -9,6 +9,8 @@
 #include "Expression.h"
 #include "Type.h"
 #include "Annotation.h"
+#include "HostBoundary.h"
+#include "../EnvironmentSpec.h"
 #include "Import.h"
 #include "ExternalModule.h"
 #include "TypeSignature.h"
@@ -395,6 +397,27 @@ inline json propertiesToJson(const ASTNode* node) {
         if (!n->author.empty()) props["author"] = n->author;
         if (!n->reason.empty()) props["reason"] = n->reason;
     }
+    // Host Boundary (Step 288)
+    else if (ct == "HostCall") {
+        auto* n = static_cast<const HostCall*>(node);
+        if (!n->capability.empty()) props["capability"] = n->capability;
+        if (!n->name.empty()) props["name"] = n->name;
+    }
+    else if (ct == "ScheduleTask") {
+        auto* n = static_cast<const ScheduleTask*>(node);
+        if (!n->queue.empty()) props["queue"] = n->queue;
+    }
+    else if (ct == "ModuleLoad") {
+        auto* n = static_cast<const ModuleLoad*>(node);
+        if (!n->moduleName.empty()) props["moduleName"] = n->moduleName;
+        if (!n->mode.empty()) props["mode"] = n->mode;
+    }
+    // Environment Layer (Step 284-285)
+    else if (ct == "CapabilityRequirement") {
+        auto* n = static_cast<const CapabilityRequirement*>(node);
+        if (!n->capability.empty()) props["capability"] = n->capability;
+        props["required"] = n->required;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -535,6 +558,13 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "TradeoffAnnotation") return new TradeoffAnnotation();
     if (conceptName == "ChoiceAnnotation") return new ChoiceAnnotation();
     if (conceptName == "DecisionAnnotation") return new DecisionAnnotation();
+    // Host Boundary (Step 288)
+    if (conceptName == "HostCall") return new HostCall();
+    if (conceptName == "ScheduleTask") return new ScheduleTask();
+    if (conceptName == "ModuleLoad") return new ModuleLoad();
+    // Environment Layer (Step 284-285)
+    if (conceptName == "EnvironmentSpec") return new EnvironmentSpec();
+    if (conceptName == "CapabilityRequirement") return new CapabilityRequirement();
     return nullptr;
 }
 
@@ -938,6 +968,27 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
         if (props.contains("selection")) n->selection = props["selection"].get<std::string>();
         if (props.contains("author")) n->author = props["author"].get<std::string>();
         if (props.contains("reason")) n->reason = props["reason"].get<std::string>();
+    }
+    // Host Boundary (Step 288)
+    else if (ct == "HostCall") {
+        auto* n = static_cast<HostCall*>(node);
+        if (props.contains("capability")) n->capability = props["capability"].get<std::string>();
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+    }
+    else if (ct == "ScheduleTask") {
+        auto* n = static_cast<ScheduleTask*>(node);
+        if (props.contains("queue")) n->queue = props["queue"].get<std::string>();
+    }
+    else if (ct == "ModuleLoad") {
+        auto* n = static_cast<ModuleLoad*>(node);
+        if (props.contains("moduleName")) n->moduleName = props["moduleName"].get<std::string>();
+        if (props.contains("mode")) n->mode = props["mode"].get<std::string>();
+    }
+    // Environment Layer (Step 284-285)
+    else if (ct == "CapabilityRequirement") {
+        auto* n = static_cast<CapabilityRequirement*>(node);
+        if (props.contains("capability")) n->capability = props["capability"].get<std::string>();
+        if (props.contains("required")) n->required = props["required"].get<bool>();
     }
 }
 
