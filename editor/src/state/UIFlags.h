@@ -23,6 +23,8 @@ struct UIFlags {
     bool showAnnotateWizard = false;
     bool showProjectWizard = false;
     bool showAgentWizard = false;
+    bool requestLayoutReset = false;
+    bool requestBottomCollapse = false;
     int bottomTab = 0; // 0=Output,1=AST,2=Highlighted
     LayoutPreset layoutPreset = LayoutPreset::VSCode;
     FocusRegion focusTarget = FocusRegion::None;

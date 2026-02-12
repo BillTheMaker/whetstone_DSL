@@ -56,10 +56,16 @@ static void renderBottomPanel(EditorState& state) {
         ImGui::SetNextWindowFocus();
         state.ui.focusTarget = FocusRegion::None;
     }
+    if (state.ui.requestBottomCollapse) {
+        ImGui::SetNextWindowCollapsed(true, ImGuiCond_Always);
+    }
     // ---------------------------------------------------------------
     //  Bottom panel — Output / AST / Highlighted Preview / Terminal
     // ---------------------------------------------------------------
     ImGui::Begin("Panel");
+    if (state.ui.requestBottomCollapse) {
+        state.ui.requestBottomCollapse = false;
+    }
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
         state.ui.focusedRegion = FocusRegion::Bottom;
     }

@@ -29,6 +29,10 @@
         return line;
     }
 
+    static bool isBracketChar(char c) {
+        return c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}';
+    }
+
     static int lineFromMouseY(float mouseY, float baseY, float lineHeight, int lineCount) {
         int line = (int)((mouseY - baseY) / lineHeight);
         line = std::max(0, std::min(line, lineCount - 1));
@@ -311,4 +315,3 @@
             collectFoldNodes(ts_node_child(node, i), language, out);
         }
     }
-

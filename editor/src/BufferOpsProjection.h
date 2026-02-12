@@ -74,7 +74,7 @@ inline void EditorState::openDiff(const std::string& beforeText,
     bool preview,
     int action,
     const std::vector<std::string>& transformIds,
-    const std::vector<BatchMutationAPI::Mutation>& batchMutations = {}) {
+    const std::vector<BatchMutationAPI::Mutation>& batchMutations) {
     diff.active = true;
     diff.preview = preview;
     diff.action = action;

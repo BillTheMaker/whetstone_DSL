@@ -93,7 +93,7 @@ static void renderStatusBar(EditorState& state) {
 
     // Left cluster: mode, language, encoding, line ending
     std::string modeLabel = state.active()
-        ? (state.active()->bufferMode == BufferManager::BufferMode::Text ? "Text" : "Structured")
+        ? (state.active()->bufferMode == BufferManager::BufferMode::Text ? "Text Mode" : "Structured Mode")
         : "-";
     if (ImGui::Button(modeLabel.c_str())) {
         toggleBufferMode(state);

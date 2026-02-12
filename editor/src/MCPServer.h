@@ -493,6 +493,39 @@ private:
     //  Step 211: Register prompts
     // ---------------------------------------------------------------
     void registerWhetstonePrompts() {
+        // --- Step 270: Semantic annotation prompts ---
+        prompts_.push_back({"annotate_intent",
+            "Annotate unannotated functions with intent summaries and categories. "
+            "Uses whetstone_get_unannotated_nodes and whetstone_set_semantic_annotation.",
+            {}
+        });
+
+        prompts_.push_back({"annotate_complexity",
+            "Annotate functions with complexity estimates (time complexity, "
+            "cognitive complexity, lines of logic).",
+            {}
+        });
+
+        prompts_.push_back({"annotate_risk",
+            "Assess modification risk for each function based on callers, "
+            "complexity, and side effects. Uses call hierarchy for dependent counts.",
+            {}
+        });
+
+        prompts_.push_back({"annotate_contracts",
+            "Document preconditions, postconditions, return shapes, and "
+            "side effects for each function.",
+            {}
+        });
+
+        prompts_.push_back({"annotate_full",
+            "Run a complete annotation pass: intent, complexity, risk, "
+            "and contracts for all unannotated functions. Save the annotated "
+            "AST sidecar when done.",
+            {}
+        });
+
+        // --- Original prompts ---
         prompts_.push_back({"annotate_module",
             "Analyze the current module and suggest memory annotations for all "
             "unannotated functions with confidence scores.",
@@ -520,6 +553,80 @@ private:
 
     std::vector<MCPPromptMessage> generatePromptMessages(const std::string& name,
                                                           const json& args) {
+        // --- Step 270: Semantic annotation prompt messages ---
+        if (name == "annotate_intent") {
+            return {{
+                "user",
+                {{"type", "text"}, {"text",
+                    "For each unannotated function, add an intent annotation:\n"
+                    "1. Call whetstone_get_unannotated_nodes to find targets\n"
+                    "2. Use whetstone_get_ast (compact:true) to understand each function\n"
+                    "3. Call whetstone_set_semantic_annotation with type='intent', providing:\n"
+                    "   - summary: 1-sentence description of what and why\n"
+                    "   - category: one of 'validation', 'transformation', 'io',\n"
+                    "     'coordination', 'computation', 'initialization'\n"
+                    "4. Verify with whetstone_get_semantic_annotations"
+                }}
+            }};
+        }
+        if (name == "annotate_complexity") {
+            return {{
+                "user",
+                {{"type", "text"}, {"text",
+                    "For each function, estimate complexity:\n"
+                    "1. Call whetstone_get_unannotated_nodes with type='complexity'\n"
+                    "2. Use whetstone_get_ast (compact:true) to read each function\n"
+                    "3. Call whetstone_set_semantic_annotation with type='complexity':\n"
+                    "   - timeComplexity: 'O(1)', 'O(n)', 'O(n^2)', etc.\n"
+                    "   - cognitiveComplexity: 1-10 scale\n"
+                    "   - linesOfLogic: count of logic statements"
+                }}
+            }};
+        }
+        if (name == "annotate_risk") {
+            return {{
+                "user",
+                {{"type", "text"}, {"text",
+                    "For each function, assess modification risk:\n"
+                    "1. Call whetstone_get_unannotated_nodes with type='risk'\n"
+                    "2. Use whetstone_get_call_hierarchy to count callers/dependents\n"
+                    "3. Consider complexity and side effects\n"
+                    "4. Call whetstone_set_semantic_annotation with type='risk':\n"
+                    "   - level: 'low', 'medium', 'high', 'critical'\n"
+                    "   - reason: why this risk level\n"
+                    "   - dependentCount: number of callers/consumers"
+                }}
+            }};
+        }
+        if (name == "annotate_contracts") {
+            return {{
+                "user",
+                {{"type", "text"}, {"text",
+                    "For each function, document data contracts:\n"
+                    "1. Call whetstone_get_unannotated_nodes with type='contract'\n"
+                    "2. Use whetstone_get_ast (compact:true) to read each function\n"
+                    "3. Call whetstone_set_semantic_annotation with type='contract':\n"
+                    "   - preconditions: input requirements\n"
+                    "   - postconditions: output guarantees\n"
+                    "   - returnShape: human-readable type/shape\n"
+                    "   - sideEffects: 'none', 'io', 'mutation', 'network'"
+                }}
+            }};
+        }
+        if (name == "annotate_full") {
+            return {{
+                "user",
+                {{"type", "text"}, {"text",
+                    "Run a complete semantic annotation pass:\n"
+                    "1. Call whetstone_get_unannotated_nodes to find all targets\n"
+                    "2. For each function, add intent, complexity, risk, and contract\n"
+                    "   annotations using whetstone_set_semantic_annotation\n"
+                    "3. Use whetstone_get_call_hierarchy for caller counts\n"
+                    "4. Save the annotated AST with whetstone_save_annotated_ast\n"
+                    "5. Verify with whetstone_get_semantic_annotations"
+                }}
+            }};
+        }
         if (name == "annotate_module") {
             std::string scope = args.value("scope", "all");
             return {{
@@ -934,6 +1041,126 @@ private:
             };
     }
 
+    // ---------------------------------------------------------------
+    //  Step 267: Sidecar persistence tools
+    // ---------------------------------------------------------------
+    void registerSidecarTools() {
+        // whetstone_save_annotated_ast
+        tools_.push_back({"whetstone_save_annotated_ast",
+            "Save the current buffer's AST (with all semantic annotations) "
+            "to a .whetstone/ sidecar file. Annotations persist alongside "
+            "the codebase without polluting source code.",
+            {{"type", "object"}, {"properties", {
+                {"path", {{"type", "string"},
+                    {"description", "Buffer path to save annotations for"}}}
+            }}, {"required", {"path"}}}
+        });
+        toolHandlers_["whetstone_save_annotated_ast"] =
+            [this](const json& args) {
+                return callWhetstone("saveAnnotatedAST", args);
+            };
+
+        // whetstone_load_annotated_ast
+        tools_.push_back({"whetstone_load_annotated_ast",
+            "Load semantic annotations from a .whetstone/ sidecar file "
+            "and merge them into the current buffer's AST. Matches "
+            "annotations to live nodes by node ID.",
+            {{"type", "object"}, {"properties", {
+                {"path", {{"type", "string"},
+                    {"description", "Buffer path to load annotations for"}}}
+            }}, {"required", {"path"}}}
+        });
+        toolHandlers_["whetstone_load_annotated_ast"] =
+            [this](const json& args) {
+                return callWhetstone("loadAnnotatedAST", args);
+            };
+
+        // whetstone_list_annotated_files
+        tools_.push_back({"whetstone_list_annotated_files",
+            "List all files that have saved .whetstone/ sidecar annotation "
+            "files in the workspace.",
+            {{"type", "object"}, {"properties", json::object()}}
+        });
+        toolHandlers_["whetstone_list_annotated_files"] =
+            [this](const json& args) {
+                return callWhetstone("listAnnotatedFiles", args);
+            };
+    }
+
+    // ---------------------------------------------------------------
+    //  Step 269: Semantic annotation management tools
+    // ---------------------------------------------------------------
+    void registerSemanticAnnotationTools() {
+        // whetstone_set_semantic_annotation
+        tools_.push_back({"whetstone_set_semantic_annotation",
+            "Set or update a semantic annotation on an AST node. If an "
+            "annotation of the same type already exists, it is replaced. "
+            "Types: intent, complexity, risk, contract, tags.",
+            {{"type", "object"}, {"properties", {
+                {"nodeId", {{"type", "string"},
+                    {"description", "Target node ID"}}},
+                {"type", {{"type", "string"},
+                    {"enum", {"intent", "complexity", "risk", "contract", "tags"}},
+                    {"description", "Annotation type"}}},
+                {"fields", {{"type", "object"},
+                    {"description", "Annotation-specific fields"}}}
+            }}, {"required", {"nodeId", "type", "fields"}}}
+        });
+        toolHandlers_["whetstone_set_semantic_annotation"] =
+            [this](const json& args) {
+                return callWhetstone("setSemanticAnnotation", args);
+            };
+
+        // whetstone_get_semantic_annotations
+        tools_.push_back({"whetstone_get_semantic_annotations",
+            "Get semantic annotations. If nodeId provided, returns "
+            "annotations for that node. Otherwise returns all annotated "
+            "nodes with their annotations.",
+            {{"type", "object"}, {"properties", {
+                {"nodeId", {{"type", "string"},
+                    {"description",
+                     "Node ID (optional, omit for all annotated nodes)"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_get_semantic_annotations"] =
+            [this](const json& args) {
+                return callWhetstone("getSemanticAnnotations", args);
+            };
+
+        // whetstone_remove_semantic_annotation
+        tools_.push_back({"whetstone_remove_semantic_annotation",
+            "Remove a semantic annotation of a specific type from a node.",
+            {{"type", "object"}, {"properties", {
+                {"nodeId", {{"type", "string"},
+                    {"description", "Target node ID"}}},
+                {"type", {{"type", "string"},
+                    {"enum", {"intent", "complexity", "risk", "contract", "tags"}},
+                    {"description", "Annotation type to remove"}}}
+            }}, {"required", {"nodeId", "type"}}}
+        });
+        toolHandlers_["whetstone_remove_semantic_annotation"] =
+            [this](const json& args) {
+                return callWhetstone("removeSemanticAnnotation", args);
+            };
+
+        // whetstone_get_unannotated_nodes
+        tools_.push_back({"whetstone_get_unannotated_nodes",
+            "Get Function/Variable nodes that lack semantic annotations. "
+            "Optionally filter by annotation type to find nodes missing "
+            "a specific annotation.",
+            {{"type", "object"}, {"properties", {
+                {"type", {{"type", "string"},
+                    {"enum", {"intent", "complexity", "risk", "contract", "tags"}},
+                    {"description",
+                     "Filter: nodes missing this annotation type (optional)"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_get_unannotated_nodes"] =
+            [this](const json& args) {
+                return callWhetstone("getUnannotatedNodes", args);
+            };
+    }
+
     void registerWhetstoneTools() {
         registerASTTools();
         registerAnnotationTools();
@@ -942,5 +1169,7 @@ private:
         registerBatchTools();
         registerProjectTools();
         registerSaveUndoTools();
+        registerSidecarTools();
+        registerSemanticAnnotationTools();
     }
 };

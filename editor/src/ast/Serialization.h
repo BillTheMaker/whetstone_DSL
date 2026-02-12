@@ -134,6 +134,35 @@ inline json propertiesToJson(const ASTNode* node) {
         if (!n->semanticHint.empty()) props["semanticHint"] = n->semanticHint;
         if (!n->position.empty()) props["position"] = n->position;
     }
+    // Semantic annotations (Sprint 10)
+    else if (ct == "IntentAnnotation") {
+        auto* n = static_cast<const IntentAnnotation*>(node);
+        if (!n->summary.empty()) props["summary"] = n->summary;
+        if (!n->category.empty()) props["category"] = n->category;
+    }
+    else if (ct == "ComplexityAnnotation") {
+        auto* n = static_cast<const ComplexityAnnotation*>(node);
+        if (!n->timeComplexity.empty()) props["timeComplexity"] = n->timeComplexity;
+        props["cognitiveComplexity"] = n->cognitiveComplexity;
+        props["linesOfLogic"] = n->linesOfLogic;
+    }
+    else if (ct == "RiskAnnotation") {
+        auto* n = static_cast<const RiskAnnotation*>(node);
+        if (!n->level.empty()) props["level"] = n->level;
+        if (!n->reason.empty()) props["reason"] = n->reason;
+        props["dependentCount"] = n->dependentCount;
+    }
+    else if (ct == "ContractAnnotation") {
+        auto* n = static_cast<const ContractAnnotation*>(node);
+        if (!n->preconditions.empty()) props["preconditions"] = n->preconditions;
+        if (!n->postconditions.empty()) props["postconditions"] = n->postconditions;
+        if (!n->returnShape.empty()) props["returnShape"] = n->returnShape;
+        if (!n->sideEffects.empty()) props["sideEffects"] = n->sideEffects;
+    }
+    else if (ct == "SemanticTagAnnotation") {
+        auto* n = static_cast<const SemanticTagAnnotation*>(node);
+        if (!n->tags.empty()) props["tags"] = n->tags;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -206,6 +235,11 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "DerefStrategy") return new DerefStrategy();
     if (conceptName == "OptimizationLock") return new OptimizationLock();
     if (conceptName == "LangSpecific") return new LangSpecific();
+    if (conceptName == "IntentAnnotation") return new IntentAnnotation();
+    if (conceptName == "ComplexityAnnotation") return new ComplexityAnnotation();
+    if (conceptName == "RiskAnnotation") return new RiskAnnotation();
+    if (conceptName == "ContractAnnotation") return new ContractAnnotation();
+    if (conceptName == "SemanticTagAnnotation") return new SemanticTagAnnotation();
     return nullptr;
 }
 
@@ -328,13 +362,53 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
         if (props.contains("semanticHint")) n->semanticHint = props["semanticHint"].get<std::string>();
         if (props.contains("position")) n->position = props["position"].get<std::string>();
     }
+    // Semantic annotations (Sprint 10)
+    else if (ct == "IntentAnnotation") {
+        auto* n = static_cast<IntentAnnotation*>(node);
+        if (props.contains("summary")) n->summary = props["summary"].get<std::string>();
+        if (props.contains("category")) n->category = props["category"].get<std::string>();
+    }
+    else if (ct == "ComplexityAnnotation") {
+        auto* n = static_cast<ComplexityAnnotation*>(node);
+        if (props.contains("timeComplexity")) n->timeComplexity = props["timeComplexity"].get<std::string>();
+        if (props.contains("cognitiveComplexity")) n->cognitiveComplexity = props["cognitiveComplexity"].get<int>();
+        if (props.contains("linesOfLogic")) n->linesOfLogic = props["linesOfLogic"].get<int>();
+    }
+    else if (ct == "RiskAnnotation") {
+        auto* n = static_cast<RiskAnnotation*>(node);
+        if (props.contains("level")) n->level = props["level"].get<std::string>();
+        if (props.contains("reason")) n->reason = props["reason"].get<std::string>();
+        if (props.contains("dependentCount")) n->dependentCount = props["dependentCount"].get<int>();
+    }
+    else if (ct == "ContractAnnotation") {
+        auto* n = static_cast<ContractAnnotation*>(node);
+        if (props.contains("preconditions")) n->preconditions = props["preconditions"].get<std::string>();
+        if (props.contains("postconditions")) n->postconditions = props["postconditions"].get<std::string>();
+        if (props.contains("returnShape")) n->returnShape = props["returnShape"].get<std::string>();
+        if (props.contains("sideEffects")) n->sideEffects = props["sideEffects"].get<std::string>();
+    }
+    else if (ct == "SemanticTagAnnotation") {
+        auto* n = static_cast<SemanticTagAnnotation*>(node);
+        if (props.contains("tags") && props["tags"].is_array()) {
+            n->tags.clear();
+            for (const auto& tag : props["tags"]) {
+                if (tag.is_string()) n->tags.push_back(tag.get<std::string>());
+            }
+        }
+    }
+}
+
+inline std::string generateNodeId() {
+    static int counter = 0;
+    return "node_" + std::to_string(++counter);
 }
 
 inline ASTNode* fromJson(const json& j) {
     ASTNode* node = createNode(j["concept"].get<std::string>());
     if (!node) return nullptr;
 
-    node->id = j["id"].get<std::string>();
+    node->id = j.contains("id") ? j["id"].get<std::string>()
+                                 : generateNodeId();
     if (j.contains("span")) {
         const auto& span = j["span"];
         if (span.contains("start") && span.contains("end")) {

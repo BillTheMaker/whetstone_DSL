@@ -13,6 +13,8 @@
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
+#include <thread>
+#include <chrono>
 
 // ---------------------------------------------------------------------------
 //  ElispCommandBuilder — produces valid Elisp command strings
@@ -146,6 +148,7 @@ public:
         if (!initFilePath.empty()) {
             cmd += " --load \"" + initFilePath + "\"";
         }
+#ifdef _WIN32
         cmd += " 2>&1";
         FILE* pipe = openPipe(cmd.c_str(), "r");
         if (!pipe) {
@@ -157,16 +160,31 @@ public:
             outLog += buf;
         }
         int result = closePipe(pipe);
-        if (result == 0) {
-            daemonRunning_ = true;
-            return true;
-        }
-        if (isDaemonAlive()) {
+        if (result == 0 || isDaemonAlive()) {
             daemonRunning_ = true;
             return true;
         }
         lastError_ = outLog.empty() ? "Failed to start Emacs daemon" : outLog;
         return false;
+#else
+        // Launch daemon in the background to avoid blocking editor startup.
+        cmd += " >/tmp/whetstone-emacs-daemon.log 2>&1 &";
+        int result = runCommand(cmd);
+        if (result != 0) {
+            lastError_ = "Failed to start Emacs daemon";
+            return false;
+        }
+        outLog = "Starting Emacs daemon in background.";
+        for (int i = 0; i < 15; ++i) {
+            if (isDaemonAlive()) {
+                daemonRunning_ = true;
+                return true;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        lastError_ = "Emacs daemon did not become ready in time";
+        return false;
+#endif
     }
 
     // Check if daemon is running
@@ -426,4 +444,3 @@ private:
     std::string lastInitPath_;
     mutable std::string lastRunCommand_;
 };
-

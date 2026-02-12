@@ -56,7 +56,11 @@ struct AgentPermissionPolicy {
             method == "indexWorkspace" ||
             method == "getImportGraph" ||
             method == "getProjectDiagnostics" ||
-            method == "searchProject") {
+            method == "searchProject" ||
+            method == "loadAnnotatedAST" ||
+            method == "listAnnotatedFiles" ||
+            method == "getSemanticAnnotations" ||
+            method == "getUnannotatedNodes") {
             return true;
         }
 
@@ -74,7 +78,10 @@ struct AgentPermissionPolicy {
             method == "saveBuffer" ||
             method == "saveAllBuffers" ||
             method == "undo" ||
-            method == "redo") {
+            method == "redo" ||
+            method == "saveAnnotatedAST" ||
+            method == "setSemanticAnnotation" ||
+            method == "removeSemanticAnnotation") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

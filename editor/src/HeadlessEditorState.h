@@ -34,6 +34,7 @@
 #include "PrimitivesRegistry.h"
 #include "SemanticTags.h"
 #include "ProjectState.h"
+#include "SidecarPersistence.h"
 
 #include <nlohmann/json.hpp>
 #include <string>

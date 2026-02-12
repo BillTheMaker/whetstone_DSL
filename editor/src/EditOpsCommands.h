@@ -118,7 +118,9 @@ inline void EditorState::registerCommands() {
                             int col = 0;
                             if (parseLineColInput(arg, line, col)) {
                                 if (active()) {
-                                    int totalLines = countLines(active()->editBuf);
+                                    int totalLines = 1 + (int)std::count(active()->editBuf.begin(),
+                                                                          active()->editBuf.end(),
+                                                                          '\n');
                                     if (totalLines > 0) line = std::max(1, std::min(line, totalLines));
                                     col = std::max(1, col);
                                     jumpTo(active(), line - 1, col - 1);
@@ -207,7 +209,7 @@ inline void EditorState::registerCommands() {
                     [this]() { runActiveFile(true); });
 }
 
-inline void EditorState::executeCommand(const std::string& id, const std::string& arg = {}) {
+inline void EditorState::executeCommand(const std::string& id, const std::string& arg) {
     auto it = commandHandlers.find(id);
     if (it == commandHandlers.end()) return;
     it->second(arg);

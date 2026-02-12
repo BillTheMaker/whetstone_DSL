@@ -409,7 +409,7 @@ inline json handleAgentRequest(EditorState& state, const json& request,
                                   {"nodeId", d.nodeId}});
         json violArr = json::array();
         for (const auto& v : pr.violations)
-            violArr.push_back({{"type", v.type}, {"message", v.message},
+            violArr.push_back({{"severity", v.severity}, {"category", v.category}, {"message", v.message},
                                {"nodeId", v.nodeId}});
         json suggArr = json::array();
         for (const auto& s : pr.suggestions)
@@ -420,8 +420,8 @@ inline json handleAgentRequest(EditorState& state, const json& request,
             {"success", pr.success}, {"generatedCode", pr.generatedCode},
             {"parseDiagnostics", diagArr}, {"validationDiagnostics", valDiagArr},
             {"violations", violArr}, {"suggestions", suggArr},
-            {"foldCount", pr.foldResult.transformCount},
-            {"dceCount", pr.dceResult.transformCount}
+            {"foldCount", pr.foldResult.nodesModified},
+            {"dceCount", pr.dceResult.nodesModified}
         };
         if (pr.ast) result["ast"] = toJson(pr.ast.get());
         return agentRpcResult(id, result);

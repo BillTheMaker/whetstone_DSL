@@ -5,10 +5,12 @@
 
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_internal.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <cctype>
 #include <filesystem>
+#include <unordered_map>
 #include <vector>
 
 #include "EditorState.h"
@@ -72,14 +74,109 @@ static std::string emacsChordForEvent(SDL_Keycode sym, Uint16 mods) {
     return prefix + base;
 }
 
+static ImGuiID splitDockNode(ImGuiID& mainId, DockDirection direction, float ratio) {
+    ImGuiDir dir = ImGuiDir_None;
+    switch (direction) {
+        case DockDirection::Left: dir = ImGuiDir_Left; break;
+        case DockDirection::Right: dir = ImGuiDir_Right; break;
+        case DockDirection::Bottom: dir = ImGuiDir_Down; break;
+        case DockDirection::Top: dir = ImGuiDir_Up; break;
+        case DockDirection::Center: return mainId;
+    }
+    return ImGui::DockBuilderSplitNode(mainId, dir, ratio, nullptr, &mainId);
+}
+
+static std::unordered_map<std::string, ImGuiID> buildDockNodes(
+    ImGuiID dockId,
+    const LayoutConfig& cfg,
+    const ImVec2& size) {
+    std::unordered_map<std::string, ImGuiID> nodes;
+    ImGui::DockBuilderRemoveNode(dockId);
+    ImGui::DockBuilderAddNode(dockId, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockId, size);
+    ImGuiID mainId = dockId;
+    for (const auto& panel : cfg.panels) {
+        if (panel.direction == DockDirection::Center) continue;
+        nodes[panel.id] = splitDockNode(mainId, panel.direction, panel.sizeRatio);
+    }
+    for (const auto& panel : cfg.panels) {
+        if (panel.direction != DockDirection::Center) continue;
+        nodes[panel.id] = mainId;
+    }
+    return nodes;
+}
+
+static void dockPanelGroup(
+    const std::unordered_map<std::string, ImGuiID>& nodes,
+    const std::string& panelId,
+    std::initializer_list<const char*> windows) {
+    auto it = nodes.find(panelId);
+    if (it == nodes.end()) return;
+    for (const char* window : windows) {
+        ImGui::DockBuilderDockWindow(window, it->second);
+    }
+}
+
+static void applyDockLayout(ImGuiID dockId, const LayoutConfig& cfg, const ImVec2& size) {
+    auto nodes = buildDockNodes(dockId, cfg, size);
+    dockPanelGroup(nodes, "Explorer", {"Explorer"});
+    dockPanelGroup(nodes, "Editor", {"Editor"});
+    dockPanelGroup(nodes, "Panel", {"Panel"});
+    dockPanelGroup(nodes, "ToolWindow",
+                   {"Outline", "Dependencies", "Libraries", "Compose",
+                    "Emacs Packages", "Emacs Bridge", "Memory Strategies"});
+    dockPanelGroup(nodes, "Minibuffer", {"##Minibuffer"});
+    ImGui::DockBuilderFinish(dockId);
+}
+
 // ---------------------------------------------------------------------------
 //  Main
 // ---------------------------------------------------------------------------
 int main(int, char**) {
+    auto logStage = [](const char* msg) {
+        std::fprintf(stderr, "[whetstone-startup] %s\n", msg);
+        std::fflush(stderr);
+    };
+
+    logStage("begin");
+    {
+        const char* envDriver = std::getenv("SDL_VIDEODRIVER");
+        if (envDriver && std::string(envDriver) == "offscreen") {
+            std::fprintf(stderr,
+                         "[whetstone-startup] overriding SDL_VIDEODRIVER=offscreen\n");
+            SDL_setenv("SDL_VIDEODRIVER", "", 1);
+        }
+        bool hasX11 = false;
+        bool hasWayland = false;
+        int numDrivers = SDL_GetNumVideoDrivers();
+        std::fprintf(stderr, "[whetstone-startup] available SDL drivers:");
+        for (int i = 0; i < numDrivers; ++i) {
+            const char* d = SDL_GetVideoDriver(i);
+            if (!d) continue;
+            std::fprintf(stderr, " %s", d);
+            if (std::string(d) == "x11") hasX11 = true;
+            if (std::string(d) == "wayland") hasWayland = true;
+        }
+        std::fprintf(stderr, "\n");
+        std::fflush(stderr);
+        const char* currentEnv = std::getenv("SDL_VIDEODRIVER");
+        if (!currentEnv || std::string(currentEnv).empty()) {
+            if (hasX11) SDL_setenv("SDL_VIDEODRIVER", "x11", 1);
+            else if (hasWayland) SDL_setenv("SDL_VIDEODRIVER", "wayland", 1);
+        }
+    }
+
     // SDL init
+    logStage("SDL_Init");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         printf("SDL Error: %s\n", SDL_GetError());
         return -1;
+    }
+    {
+        const char* driver = SDL_GetCurrentVideoDriver();
+        std::fprintf(stderr, "[whetstone-startup] SDL video driver: %s\n",
+                     driver ? driver : "(null)");
+        std::fflush(stderr);
     }
 
     const char* glsl_version = "#version 130";
@@ -92,13 +189,30 @@ int main(int, char**) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     auto winFlags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
-                                       SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
+                                       SDL_WINDOW_ALLOW_HIGHDPI);
+    logStage("SDL_CreateWindow");
     SDL_Window* window = SDL_CreateWindow("Whetstone Editor",
                                            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                            1440, 900, winFlags);
+    if (!window) {
+        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
+        SDL_Quit();
+        return -1;
+    }
+    logStage("SDL_GL_CreateContext");
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+    if (!gl_context) {
+        printf("SDL_GL_CreateContext Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+    logStage("SDL_GL_MakeCurrent");
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1);
+    SDL_ShowWindow(window);
+    SDL_RaiseWindow(window);
+    logStage("window shown");
 
     // ImGui init
     IMGUI_CHECKVERSION();
@@ -109,15 +223,11 @@ int main(int, char**) {
 
     // Load fonts
     const float baseFontSize = 15.0f;
-    ImFont* monoFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\consola.ttf", baseFontSize);
-    if (!monoFont) {
-        monoFont = io.Fonts->AddFontDefault();
-    }
-    ImFont* uiFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", baseFontSize);
-    if (!uiFont) {
-        uiFont = io.Fonts->AddFontDefault();
-    }
+    // Bootstrap with default fonts; platform-specific/custom fonts are loaded in reloadFonts().
+    ImFont* monoFont = io.Fonts->AddFontDefault();
+    ImFont* uiFont = io.Fonts->AddFontDefault();
 
+    logStage("imgui initialized");
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
@@ -126,7 +236,9 @@ int main(int, char**) {
     state.monoFont = monoFont;
     state.uiFont = uiFont;
     state.baseFontSize = baseFontSize;
+    logStage("state.init begin");
     state.init();
+    logStage("state.init end");
 
     auto loadFontFromPath = [&](const std::string& preferred,
                                 const std::vector<std::string>& fallbacks,
@@ -194,6 +306,8 @@ int main(int, char**) {
     io.FontGlobalScale = state.settings.getFontSize() / baseFontSize;
     SessionData session;
     bool hasSession = state.loadSession(session);
+    bool applyInitialLayout = !hasSession;
+    bool dockLayoutApplied = false;
     if (hasSession) {
         if (!session.imguiIni.empty()) {
             ImGui::LoadIniSettingsFromMemory(session.imguiIni.c_str(),
@@ -207,6 +321,7 @@ int main(int, char**) {
     state.lsp = std::make_shared<LSPClient>(state.lspTransport);
 
     bool done = false;
+    bool firstFrame = true;
     while (!done) {
         // --- Event handling ---
         SDL_Event event;
@@ -373,6 +488,14 @@ int main(int, char**) {
         ImGui::PopStyleVar(3);
         ImGuiID dockId = ImGui::GetID("WhetstoneDS");
         ImGui::DockSpace(dockId, ImVec2(0, 0), ImGuiDockNodeFlags_None);
+        if ((applyInitialLayout && !dockLayoutApplied) || state.ui.requestLayoutReset) {
+            LayoutManager layout;
+            layout.setPreset(state.ui.layoutPreset);
+            applyDockLayout(dockId, layout.getConfig(), viewport->WorkSize);
+            dockLayoutApplied = true;
+            state.ui.requestBottomCollapse = true;
+            state.ui.requestLayoutReset = false;
+        }
         ImGui::End();
 
         // --- Render all panels ---
@@ -435,6 +558,10 @@ int main(int, char**) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         SDL_GL_SwapWindow(window);
+        if (firstFrame) {
+            logStage("first frame swapped");
+            firstFrame = false;
+        }
     }
 
     // Cleanup

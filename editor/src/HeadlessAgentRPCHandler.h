@@ -1573,5 +1573,322 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
             {{"results", results}, {"count", (int)results.size()}});
     }
 
+    // --- saveAnnotatedAST ---
+    if (method == "saveAnnotatedAST") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty() && state.activeBuffer)
+            path = state.activeBuffer->path;
+        auto it = state.bufferStates.find(path);
+        if (it == state.bufferStates.end())
+            return headlessRpcError(id, -32602, "No buffer: " + path);
+        Module* ast = it->second->sync.getAST();
+        auto res = saveSidecarAST(state.workspaceRoot, path, ast);
+        if (!res.success)
+            return headlessRpcError(id, -32010, res.error);
+        return headlessRpcResult(id,
+            {{"success", true},
+             {"sidecarPath", res.sidecarPath},
+             {"annotationCount", res.annotationCount}});
+    }
+
+    // --- loadAnnotatedAST ---
+    if (method == "loadAnnotatedAST") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty() && state.activeBuffer)
+            path = state.activeBuffer->path;
+        auto it = state.bufferStates.find(path);
+        if (it == state.bufferStates.end())
+            return headlessRpcError(id, -32602, "No buffer: " + path);
+        Module* ast = it->second->sync.getAST();
+        auto res = loadSidecarAST(state.workspaceRoot, path, ast);
+        if (!res.success)
+            return headlessRpcError(id, -32010, res.error);
+        return headlessRpcResult(id,
+            {{"success", true},
+             {"mergedCount", res.mergedCount},
+             {"staleCount", res.staleCount}});
+    }
+
+    // --- listAnnotatedFiles ---
+    if (method == "listAnnotatedFiles") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto files = listSidecarFiles(state.workspaceRoot);
+        return headlessRpcResult(id,
+            {{"files", files}, {"count", (int)files.size()}});
+    }
+
+    // --- setSemanticAnnotation ---
+    if (method == "setSemanticAnnotation") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        std::string type = params.value("type", "");
+        json fields = params.contains("fields") ? params["fields"]
+                                                  : json::object();
+        if (nodeId.empty() || type.empty())
+            return headlessRpcError(id, -32602, "nodeId and type required");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+        ASTNode* target = findNodeById(ast, nodeId);
+        if (!target)
+            return headlessRpcError(id, -32602, "Node not found: " + nodeId);
+
+        // Map type string to conceptType
+        std::string conceptType;
+        if (type == "intent") conceptType = "IntentAnnotation";
+        else if (type == "complexity") conceptType = "ComplexityAnnotation";
+        else if (type == "risk") conceptType = "RiskAnnotation";
+        else if (type == "contract") conceptType = "ContractAnnotation";
+        else if (type == "tags") conceptType = "SemanticTagAnnotation";
+        else return headlessRpcError(id, -32602, "Unknown annotation type: " + type);
+
+        // Remove existing annotation of same type (update semantics)
+        auto annos = target->getChildren("annotations");
+        for (auto* a : annos) {
+            if (a->conceptType == conceptType) {
+                target->removeChild(a);
+                break;
+            }
+        }
+
+        // Create new annotation node
+        json nodeJson = {{"concept", conceptType}, {"properties", fields}};
+        ASTNode* newAnno = fromJson(nodeJson);
+        if (!newAnno)
+            return headlessRpcError(id, -32010, "Failed to create annotation");
+        target->addChild("annotations", newAnno);
+
+        return headlessRpcResult(id, {{"success", true}, {"type", type}});
+    }
+
+    // --- getSemanticAnnotations ---
+    if (method == "getSemanticAnnotations") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        if (!nodeId.empty()) {
+            // Return annotations for a specific node
+            ASTNode* target = findNodeById(ast, nodeId);
+            if (!target)
+                return headlessRpcError(id, -32602, "Node not found: " + nodeId);
+            json annos = json::array();
+            for (auto* a : target->getChildren("annotations")) {
+                if (!isSemanticAnnotation(a->conceptType)) continue;
+                json entry;
+                if (a->conceptType == "IntentAnnotation") {
+                    auto* ia = static_cast<IntentAnnotation*>(a);
+                    entry = {{"type", "intent"}, {"summary", ia->summary},
+                             {"category", ia->category}};
+                } else if (a->conceptType == "ComplexityAnnotation") {
+                    auto* ca = static_cast<ComplexityAnnotation*>(a);
+                    entry = {{"type", "complexity"},
+                             {"timeComplexity", ca->timeComplexity},
+                             {"cognitiveComplexity", ca->cognitiveComplexity},
+                             {"linesOfLogic", ca->linesOfLogic}};
+                } else if (a->conceptType == "RiskAnnotation") {
+                    auto* ra = static_cast<RiskAnnotation*>(a);
+                    entry = {{"type", "risk"}, {"level", ra->level},
+                             {"reason", ra->reason},
+                             {"dependentCount", ra->dependentCount}};
+                } else if (a->conceptType == "ContractAnnotation") {
+                    auto* ca = static_cast<ContractAnnotation*>(a);
+                    entry = {{"type", "contract"},
+                             {"preconditions", ca->preconditions},
+                             {"postconditions", ca->postconditions},
+                             {"returnShape", ca->returnShape},
+                             {"sideEffects", ca->sideEffects}};
+                } else if (a->conceptType == "SemanticTagAnnotation") {
+                    auto* ta = static_cast<SemanticTagAnnotation*>(a);
+                    entry = {{"type", "tags"}, {"tags", ta->tags}};
+                }
+                if (!entry.empty()) annos.push_back(entry);
+            }
+            return headlessRpcResult(id,
+                {{"nodeId", nodeId}, {"annotations", annos}});
+        } else {
+            // Return all annotated nodes
+            json nodes = json::array();
+            for (auto* child : ast->allChildren()) {
+                auto annos = child->getChildren("annotations");
+                json annoList = json::array();
+                for (auto* a : annos) {
+                    if (!isSemanticAnnotation(a->conceptType)) continue;
+                    json entry;
+                    if (a->conceptType == "IntentAnnotation") {
+                        auto* ia = static_cast<IntentAnnotation*>(a);
+                        entry = {{"type", "intent"}, {"summary", ia->summary}};
+                    } else if (a->conceptType == "ComplexityAnnotation") {
+                        entry = {{"type", "complexity"}};
+                    } else if (a->conceptType == "RiskAnnotation") {
+                        auto* ra = static_cast<RiskAnnotation*>(a);
+                        entry = {{"type", "risk"}, {"level", ra->level}};
+                    } else if (a->conceptType == "ContractAnnotation") {
+                        entry = {{"type", "contract"}};
+                    } else if (a->conceptType == "SemanticTagAnnotation") {
+                        auto* ta = static_cast<SemanticTagAnnotation*>(a);
+                        entry = {{"type", "tags"}, {"tags", ta->tags}};
+                    }
+                    if (!entry.empty()) annoList.push_back(entry);
+                }
+                if (!annoList.empty()) {
+                    nodes.push_back({
+                        {"nodeId", child->id},
+                        {"name", getNodeName(child)},
+                        {"kind", child->conceptType},
+                        {"annotations", annoList}
+                    });
+                }
+            }
+            return headlessRpcResult(id, {{"nodes", nodes}});
+        }
+    }
+
+    // --- removeSemanticAnnotation ---
+    if (method == "removeSemanticAnnotation") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        std::string type = params.value("type", "");
+        if (nodeId.empty() || type.empty())
+            return headlessRpcError(id, -32602, "nodeId and type required");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+        ASTNode* target = findNodeById(ast, nodeId);
+        if (!target)
+            return headlessRpcError(id, -32602, "Node not found: " + nodeId);
+
+        std::string conceptType;
+        if (type == "intent") conceptType = "IntentAnnotation";
+        else if (type == "complexity") conceptType = "ComplexityAnnotation";
+        else if (type == "risk") conceptType = "RiskAnnotation";
+        else if (type == "contract") conceptType = "ContractAnnotation";
+        else if (type == "tags") conceptType = "SemanticTagAnnotation";
+        else return headlessRpcError(id, -32602, "Unknown type: " + type);
+
+        bool removed = false;
+        for (auto* a : target->getChildren("annotations")) {
+            if (a->conceptType == conceptType) {
+                target->removeChild(a);
+                removed = true;
+                break;
+            }
+        }
+
+        return headlessRpcResult(id, {{"removed", removed}, {"type", type}});
+    }
+
+    // --- getUnannotatedNodes ---
+    if (method == "getUnannotatedNodes") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                   : json::object();
+        std::string filterType = params.value("type", "");
+        bool includeHints = params.value("includeHints", false);
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        // Map filter type to conceptType
+        std::string filterConcept;
+        if (filterType == "intent") filterConcept = "IntentAnnotation";
+        else if (filterType == "complexity") filterConcept = "ComplexityAnnotation";
+        else if (filterType == "risk") filterConcept = "RiskAnnotation";
+        else if (filterType == "contract") filterConcept = "ContractAnnotation";
+        else if (filterType == "tags") filterConcept = "SemanticTagAnnotation";
+
+        json nodes = json::array();
+        for (auto* child : ast->allChildren()) {
+            // Only report Function and Variable nodes
+            if (child->conceptType != "Function" &&
+                child->conceptType != "Variable")
+                continue;
+
+            auto annos = child->getChildren("annotations");
+            bool hasTarget = false;
+            if (filterConcept.empty()) {
+                // Check for any semantic annotation
+                for (auto* a : annos) {
+                    if (isSemanticAnnotation(a->conceptType)) {
+                        hasTarget = true;
+                        break;
+                    }
+                }
+            } else {
+                for (auto* a : annos) {
+                    if (a->conceptType == filterConcept) {
+                        hasTarget = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasTarget) {
+                json entry = {
+                    {"nodeId", child->id},
+                    {"name", getNodeName(child)},
+                    {"kind", child->conceptType}
+                };
+                // Add static analysis hints if requested
+                if (includeHints) {
+                    json hints;
+                    // Body statement count
+                    auto body = child->getChildren("body");
+                    hints["bodyStatements"] = (int)body.size();
+                    // Side effect heuristic: check for io/network calls
+                    bool hasSideEffects = false;
+                    for (auto* stmt : body) {
+                        if (stmt->conceptType == "FunctionCall" ||
+                            stmt->conceptType == "MethodCall") {
+                            std::string callee = getNodeName(stmt);
+                            if (callee.find("print") != std::string::npos ||
+                                callee.find("write") != std::string::npos ||
+                                callee.find("send") != std::string::npos ||
+                                callee.find("read") != std::string::npos ||
+                                callee.find("open") != std::string::npos)
+                                hasSideEffects = true;
+                        }
+                    }
+                    hints["sideEffectHint"] = hasSideEffects
+                        ? "possible" : "none";
+                    entry["hints"] = hints;
+                }
+                nodes.push_back(entry);
+            }
+        }
+
+        return headlessRpcResult(id,
+            {{"nodes", nodes}, {"count", (int)nodes.size()}});
+    }
+
     return headlessRpcError(id, -32601, "Method not found");
 }

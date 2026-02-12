@@ -42,7 +42,11 @@ if command -v apt-get &>/dev/null; then
     sudo apt-get install -y -qq \
         build-essential cmake git \
         libsdl2-dev libgl1-mesa-dev \
-        nlohmann-json3-dev
+        libglx-dev libopengl-dev \
+        nlohmann-json3-dev \
+        curl zip unzip tar \
+        autoconf autoconf-archive automake libtool \
+        python3-venv python3.12-venv
 elif command -v dnf &>/dev/null; then
     sudo dnf install -y \
         gcc-c++ cmake git \
@@ -69,7 +73,7 @@ if $DO_BUILD; then
 
     # Use the build script if available
     if [[ -x "$SCRIPT_DIR/build.sh" ]]; then
-        "$SCRIPT_DIR/build.sh" --config Release --system-packages
+        "$SCRIPT_DIR/build.sh" --config Release
     else
         mkdir -p "$BUILD_DIR"
         cmake -S "$EDITOR_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release

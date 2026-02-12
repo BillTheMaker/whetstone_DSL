@@ -35,10 +35,10 @@ public:
     void registerCommand(const std::string& id,
                          const std::string& label,
                          const std::string& shortcut,
-                         const std::string& category,
-                         int contextMask,
-                         const std::string& inputHint,
-                         bool inlineInput) {
+                         const std::string& category = "",
+                         int contextMask = CommandContext_Any,
+                         const std::string& inputHint = "",
+                         bool inlineInput = false) {
         auto& entry = commands_[id];
         entry.id = id;
         entry.label = label;
@@ -56,8 +56,8 @@ public:
     }
 
     std::vector<CommandMatch> search(const std::string& query,
-                                     int contextMask,
-                                     bool strictContext) const {
+                                     int contextMask = CommandContext_Any,
+                                     bool strictContext = false) const {
         std::vector<CommandMatch> results;
         for (const auto& [_, cmd] : commands_) {
             const bool contextOk = matchesContext(cmd, contextMask);

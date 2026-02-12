@@ -217,7 +217,7 @@ int main() {
         WebSocketAgentServer server(std::move(transport));
 
         // Register a custom handler that knows about "getAST"
-        server.setRequestHandler([](const json& request) -> json {
+        server.setRequestHandler([](const json& request, const std::string&) -> json {
             std::string method = request.at("method").get<std::string>();
             json response;
             response["jsonrpc"] = "2.0";

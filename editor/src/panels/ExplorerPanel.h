@@ -29,6 +29,18 @@ static void renderExplorerPanel(EditorState& state) {
     state.refreshFileTree();
     if (state.fileTreeRoot.path.empty()) {
         ImGui::TextDisabled("(no workspace)");
+        ImGui::Spacing();
+        ImGui::TextWrapped("Open a folder to browse project files.");
+        if (ImGui::Button("Open Folder")) {
+            auto path = FileDialog::openFolder({"Open Folder", state.workspaceRoot});
+            if (!path.empty()) {
+                state.workspaceRoot = path;
+                state.fileTreeDirty = true;
+                state.search.projectSearch.setRoot(state.workspaceRoot);
+                state.lastDialogPath = path;
+                state.refreshBuildSystem();
+            }
+        }
     } else {
         RenderFileTree(state.fileTreeRoot, state);
     }

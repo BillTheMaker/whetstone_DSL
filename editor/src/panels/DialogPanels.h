@@ -338,7 +338,7 @@ static void renderCommandPalette(EditorState& state) {
                 bool selected = (displayIndex == state.commandSelected);
                 std::string rowId = "##cmd_recent_" + std::to_string(displayIndex);
                 if (ImGui::Selectable(rowId.c_str(), selected,
-                                      ImGuiSelectableFlags_SpanAvailWidth,
+                                      0,
                                       ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing()))) {
                     state.commandSelected = displayIndex;
                     accept = true;
@@ -375,7 +375,7 @@ static void renderCommandPalette(EditorState& state) {
                 bool selected = (displayIndex == state.commandSelected);
                 std::string rowId = "##cmd_" + std::to_string(displayIndex);
                 if (ImGui::Selectable(rowId.c_str(), selected,
-                                      ImGuiSelectableFlags_SpanAvailWidth,
+                                      0,
                                       ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing()))) {
                     state.commandSelected = displayIndex;
                     accept = true;
@@ -502,7 +502,7 @@ static void renderCommandPalette(EditorState& state) {
             bool selected = (i == state.commandSelected);
             std::string rowId = "##file_" + std::to_string(i);
             if (ImGui::Selectable(rowId.c_str(), selected,
-                                  ImGuiSelectableFlags_SpanAvailWidth,
+                                  0,
                                   ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing()))) {
                 state.commandSelected = i;
                 accept = true;

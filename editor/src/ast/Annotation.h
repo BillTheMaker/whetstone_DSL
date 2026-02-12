@@ -141,3 +141,44 @@ class ConstExprAnnotation : public Annotation {
 public:
     ConstExprAnnotation() { conceptType = "ConstExprAnnotation"; }
 };
+
+// Semantic annotations for AI guidance (Sprint 10, Step 266)
+
+class IntentAnnotation : public Annotation {
+public:
+    std::string summary;   // 1-sentence description of what/why
+    std::string category;  // "validation", "transformation", "io",
+                           // "coordination", "computation", "initialization"
+    IntentAnnotation() { conceptType = "IntentAnnotation"; }
+};
+
+class ComplexityAnnotation : public Annotation {
+public:
+    std::string timeComplexity;    // "O(1)", "O(n)", "O(n^2)", etc.
+    int cognitiveComplexity = 0;   // 1-10 scale
+    int linesOfLogic = 0;
+    ComplexityAnnotation() { conceptType = "ComplexityAnnotation"; }
+};
+
+class RiskAnnotation : public Annotation {
+public:
+    std::string level;          // "low", "medium", "high", "critical"
+    std::string reason;
+    int dependentCount = 0;     // how many callers/consumers
+    RiskAnnotation() { conceptType = "RiskAnnotation"; }
+};
+
+class ContractAnnotation : public Annotation {
+public:
+    std::string preconditions;
+    std::string postconditions;
+    std::string returnShape;    // human-readable type/shape description
+    std::string sideEffects;    // "none", "io", "mutation", "network"
+    ContractAnnotation() { conceptType = "ContractAnnotation"; }
+};
+
+class SemanticTagAnnotation : public Annotation {
+public:
+    std::vector<std::string> tags;  // e.g. ["@serialize", "@validation"]
+    SemanticTagAnnotation() { conceptType = "SemanticTagAnnotation"; }
+};

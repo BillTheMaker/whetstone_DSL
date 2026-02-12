@@ -1597,4 +1597,58 @@ target_link_libraries(step265_test PRIVATE
     tree_sitter_java tree_sitter_rust tree_sitter_go
     tree_sitter_org)
 
+add_executable(step266_test tests/step266_test.cpp)
+target_include_directories(step266_test PRIVATE src)
+target_link_libraries(step266_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
+# Step 267: Sidecar AST persistence
+add_executable(step267_test tests/step267_test.cpp)
+target_include_directories(step267_test PRIVATE src)
+target_link_libraries(step267_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
+# Step 270: Annotation prompt templates
+add_executable(step270_test tests/step270_test.cpp)
+target_include_directories(step270_test PRIVATE src)
+target_link_libraries(step270_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
+# Step 269: Annotation RPC methods
+add_executable(step269_test tests/step269_test.cpp)
+target_include_directories(step269_test PRIVATE src)
+target_link_libraries(step269_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
+# Step 268: Phase 10a integration tests
+add_executable(step268_test tests/step268_test.cpp)
+target_include_directories(step268_test PRIVATE src)
+target_link_libraries(step268_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

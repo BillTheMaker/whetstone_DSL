@@ -144,8 +144,7 @@
                     }
                     if (hoverSuggestion) {
                         std::string tip = suggestion.label + " (" +
-                            std::to_string(suggestion.confidence) + ")
-" +
+                            std::to_string(suggestion.confidence) + ")\n" +
                             suggestion.reason;
                         renderRichTooltip("suggestion_marker_" + std::to_string(ln),
                                           tip,
@@ -314,8 +313,7 @@
                         else if (c == '	') c = '>';
                     }
                 }
-                if (!chunk.empty() && chunk[chunk.size() - 1] == '
-') {
+                if (!chunk.empty() && chunk[chunk.size() - 1] == '\n') {
                     chunk.pop_back();
                 }
 

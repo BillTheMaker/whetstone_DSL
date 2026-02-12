@@ -3,20 +3,20 @@
 // Extracted from EditorState.h (Sprint 8).
 // Included from EditorState.h after the EditorState struct definition.
 
-inline void EditorState::ensureImportForSymbol(const std::string& library, const std::string& symbol) {
-    if (!active() || library.empty()) return;
+inline void EditorState::ensureImportForSymbol(const std::string& libraryName, const std::string& symbol) {
+    if (!active() || libraryName.empty()) return;
     if (settings.getBlockVulnerableImports()) {
         PackageEcosystem eco = ecosystemForLanguage(active()->language);
         std::string osvEco = osvEcosystem(eco);
         if (!osvEco.empty()) {
-            std::string key = vulnKey(osvEco, library);
+            std::string key = vulnKey(osvEco, libraryName);
             if (library.dependencyPanel.vulnIgnore.find(key) ==
                 library.dependencyPanel.vulnIgnore.end()) {
-                std::string version = dependencyVersionFor(osvEco, library);
-                auto vulns = library.vulnDb.query(osvEco, library, version);
+                std::string version = dependencyVersionFor(osvEco, libraryName);
+                auto vulns = library.vulnDb.query(osvEco, libraryName, version);
                 if (!vulns.empty()) {
                     notify(NotificationLevel::Warning,
-                           "Blocked vulnerable import: " + library);
+                           "Blocked vulnerable import: " + libraryName);
                     return;
                 }
             }
@@ -27,7 +27,7 @@ inline void EditorState::ensureImportForSymbol(const std::string& library, const
     if (paren != std::string::npos) clean = clean.substr(0, paren);
     ImportEditResult result = ensureImport(active()->editBuf,
                                            active()->language,
-                                           library,
+                                           libraryName,
                                            clean);
     if (result.changed) {
         active()->editBuf = result.text;
@@ -324,9 +324,9 @@ inline PackageEcosystem EditorState::ecosystemForLanguage(const std::string& lan
     return PackageEcosystem::Cpp;
 }
 
-inline std::vector<ImportLocation> EditorState::collectImportLocations(const std::string& text,
+inline std::vector<EditorState::ImportLocation> EditorState::collectImportLocations(const std::string& text,
     const std::string& language) {
-    std::vector<ImportLocation> out;
+    std::vector<EditorState::ImportLocation> out;
     auto lines = importSplitLines(text);
     for (int i = 0; i < (int)lines.size(); ++i) {
         std::string t = trimStr(lines[i]);
@@ -422,4 +422,3 @@ inline std::string EditorState::agentActorLabel(const std::string& sessionId) co
     }
     return label;
 }
-

@@ -6,12 +6,61 @@
 
 #include "ast/ASTNode.h"
 #include "ast/Serialization.h"
+#include "ast/Annotation.h"
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 #include <map>
 
 using json = nlohmann::json;
+
+// --- Extract semantic annotation summary from a node's annotations ---
+// Returns a compact JSON object with semantic fields, or null if none exist.
+inline json extractSemanticSummary(const ASTNode* node) {
+    if (!node) return json();
+    auto annos = node->getChildren("annotations");
+    if (annos.empty()) return json();
+    json sem;
+    for (const auto* a : annos) {
+        if (a->conceptType == "IntentAnnotation") {
+            auto* ia = static_cast<const IntentAnnotation*>(a);
+            json obj;
+            if (!ia->summary.empty()) obj["summary"] = ia->summary;
+            if (!ia->category.empty()) obj["category"] = ia->category;
+            if (!obj.empty()) sem["intent"] = obj;
+        }
+        else if (a->conceptType == "ComplexityAnnotation") {
+            auto* ca = static_cast<const ComplexityAnnotation*>(a);
+            json obj;
+            if (!ca->timeComplexity.empty()) obj["time"] = ca->timeComplexity;
+            if (ca->cognitiveComplexity > 0) obj["cognitive"] = ca->cognitiveComplexity;
+            if (ca->linesOfLogic > 0) obj["lines"] = ca->linesOfLogic;
+            if (!obj.empty()) sem["complexity"] = obj;
+        }
+        else if (a->conceptType == "RiskAnnotation") {
+            auto* ra = static_cast<const RiskAnnotation*>(a);
+            json obj;
+            if (!ra->level.empty()) obj["level"] = ra->level;
+            if (!ra->reason.empty()) obj["reason"] = ra->reason;
+            if (ra->dependentCount > 0) obj["dependents"] = ra->dependentCount;
+            if (!obj.empty()) sem["risk"] = obj;
+        }
+        else if (a->conceptType == "ContractAnnotation") {
+            auto* ca = static_cast<const ContractAnnotation*>(a);
+            json obj;
+            if (!ca->preconditions.empty()) obj["pre"] = ca->preconditions;
+            if (!ca->postconditions.empty()) obj["post"] = ca->postconditions;
+            if (!ca->returnShape.empty()) obj["returns"] = ca->returnShape;
+            if (!ca->sideEffects.empty()) obj["sideEffects"] = ca->sideEffects;
+            if (!obj.empty()) sem["contract"] = obj;
+        }
+        else if (a->conceptType == "SemanticTagAnnotation") {
+            auto* ta = static_cast<const SemanticTagAnnotation*>(a);
+            if (!ta->tags.empty()) sem["tags"] = ta->tags;
+        }
+    }
+    return sem.empty() ? json() : sem;
+}
 
 // --- Extract a human-readable name from any AST node ---
 inline std::string getNodeName(const ASTNode* node) {
@@ -70,6 +119,10 @@ inline json toJsonCompact(const ASTNode* node) {
     if (!name.empty()) j["name"] = name;
     if (node->hasSpan()) j["line"] = node->spanStartLine;
 
+    // Include semantic summary if annotations exist
+    json sem = extractSemanticSummary(node);
+    if (!sem.empty()) j["semantic"] = sem;
+
     auto kids = node->allChildren();
     if (!kids.empty()) {
         j["childCount"] = (int)kids.size();
@@ -105,6 +158,8 @@ inline json toJsonCompactSummary(const ASTNode* root) {
         std::string cname = getNodeName(child);
         if (!cname.empty()) cj["name"] = cname;
         if (child->hasSpan()) cj["line"] = child->spanStartLine;
+        json csem = extractSemanticSummary(child);
+        if (!csem.empty()) cj["semantic"] = csem;
         auto grandkids = child->allChildren();
         if (!grandkids.empty())
             cj["childCount"] = (int)grandkids.size();

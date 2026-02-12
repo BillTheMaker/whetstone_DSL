@@ -33,7 +33,7 @@ inline json EditorState::buildSessionMetadata(bool autoRecording) const {
     json meta;
     meta["editorVersion"] = welcome.getVersion();
     meta["os"] = osLabel();
-    meta["language"] = active() ? active()->language : std::string("unknown");
+    meta["language"] = activeBuffer ? activeBuffer->language : std::string("unknown");
     meta["projectType"] = detectProjectType();
     meta["autoRecording"] = autoRecording;
     return meta;

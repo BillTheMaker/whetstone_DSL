@@ -131,6 +131,10 @@ static void renderMenuBar(EditorState& state) {
                 state.ui.layoutPreset = LayoutPreset::Emacs;
             if (ImGui::MenuItem("JetBrains", nullptr, state.ui.layoutPreset == LayoutPreset::JetBrains))
                 state.ui.layoutPreset = LayoutPreset::JetBrains;
+            ImGui::Separator();
+            if (ImGui::MenuItem("Reset Layout")) {
+                state.ui.requestLayoutReset = true;
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMenu();

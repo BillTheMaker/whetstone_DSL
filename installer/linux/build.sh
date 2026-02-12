@@ -54,6 +54,45 @@ else
     exit 1
 fi
 
+missing_tools=()
+for tool in git curl zip unzip tar; do
+    if ! command -v "$tool" &>/dev/null; then
+        missing_tools+=("$tool")
+    fi
+done
+
+if ((${#missing_tools[@]} > 0)); then
+    echo "ERROR: Missing required tools: ${missing_tools[*]}"
+    echo "Install on Ubuntu/Debian: sudo apt-get install -y git curl zip unzip tar"
+    exit 1
+fi
+
+# vcpkg ports like gperf require autotools from the host system.
+missing_autotools=()
+for tool in autoconf autoreconf automake libtoolize; do
+    if ! command -v "$tool" &>/dev/null; then
+        missing_autotools+=("$tool")
+    fi
+done
+
+if ((${#missing_autotools[@]} > 0)); then
+    echo "ERROR: Missing required autotools: ${missing_autotools[*]}"
+    echo "Install on Ubuntu/Debian: sudo apt-get install -y autoconf autoconf-archive automake libtool"
+    exit 1
+fi
+
+if ! python3 -c "import ensurepip" >/dev/null 2>&1; then
+    echo "ERROR: Python ensurepip is unavailable (venv creation will fail)."
+    echo "Install on Ubuntu/Debian: sudo apt-get install -y python3-venv python3.12-venv"
+    exit 1
+fi
+
+if ! pkg-config --exists gl; then
+    echo "ERROR: OpenGL development files are missing (pkg-config 'gl' not found)."
+    echo "Install on Ubuntu/Debian: sudo apt-get install -y libgl1-mesa-dev libglx-dev libopengl-dev"
+    exit 1
+fi
+
 # --- Install system dependencies if requested ---
 
 if $USE_SYSTEM_PACKAGES; then
@@ -63,8 +102,11 @@ if $USE_SYSTEM_PACKAGES; then
         sudo apt-get update -qq
         sudo apt-get install -y -qq \
             build-essential cmake \
-            libsdl2-dev libgl1-mesa-dev libglew-dev \
-            nlohmann-json3-dev
+            libsdl2-dev libgl1-mesa-dev libglx-dev libopengl-dev \
+            nlohmann-json3-dev \
+            curl zip unzip tar \
+            autoconf autoconf-archive automake libtool \
+            python3-venv python3.12-venv
     elif command -v dnf &>/dev/null; then
         sudo dnf install -y \
             gcc-c++ cmake \
@@ -99,8 +141,24 @@ if ! $USE_SYSTEM_PACKAGES; then
     if [[ -z "$VCPKG_ROOT" ]]; then
         step "Bootstrapping vcpkg"
         VCPKG_ROOT="$HOME/vcpkg"
-        git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-        "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+        if [[ -d "$VCPKG_ROOT" ]]; then
+            echo "  Existing vcpkg directory found at $VCPKG_ROOT"
+            if [[ ! -x "$VCPKG_ROOT/vcpkg" ]]; then
+                if [[ -d "$VCPKG_ROOT/.git" ]]; then
+                    git -C "$VCPKG_ROOT" pull --ff-only || true
+                fi
+                if [[ -x "$VCPKG_ROOT/bootstrap-vcpkg.sh" ]]; then
+                    "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+                else
+                    echo "ERROR: Existing vcpkg directory is incomplete: $VCPKG_ROOT"
+                    echo "Delete it or pass --vcpkg-root to a valid vcpkg checkout."
+                    exit 1
+                fi
+            fi
+        else
+            git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+        fi
     fi
 
     echo "  vcpkg: $VCPKG_ROOT"
@@ -141,7 +199,8 @@ cmake "${CMAKE_ARGS[@]}"
 
 step "Building ($CONFIG)"
 
-cmake --build "$BUILD_DIR" --config "$CONFIG" --parallel "$(nproc)"
+cmake --build "$BUILD_DIR" --config "$CONFIG" --parallel "$(nproc)" \
+    --target whetstone_editor orchestrator
 
 echo "  Build succeeded."
 

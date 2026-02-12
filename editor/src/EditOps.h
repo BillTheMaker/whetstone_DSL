@@ -313,7 +313,7 @@ inline bool EditorState::moveToMatchIndex(int index) {
     return true;
 }
 
-inline void EditorState::doFindNext(bool backwards = false) {
+inline void EditorState::doFindNext(bool backwards) {
     if (!active()) return;
     if (strlen(search.findBuf) == 0) return;
     refreshSearchMatches();
@@ -505,4 +505,3 @@ inline std::string EditorState::uiEventLabel(UIEventType type) {
     }
     return "unknown";
 }
-

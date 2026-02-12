@@ -40,8 +40,9 @@ public:
         }
         default: { // star (outline)
             ImVec2 pts[10];
+            constexpr float kPi = 3.14159265358979323846f;
             for (int i = 0; i < 10; ++i) {
-                float angle = (float)(IM_PI * 0.5 + i * (IM_PI / 5.0));
+                float angle = (float)(kPi * 0.5f + i * (kPi / 5.0f));
                 float radius = (i % 2 == 0) ? size : size * 0.5f;
                 pts[i] = ImVec2(center.x + std::cos(angle) * radius,
                                 center.y - std::sin(angle) * radius);

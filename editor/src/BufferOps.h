@@ -20,11 +20,11 @@ inline BufferManager::BufferMode EditorState::defaultBufferMode() const {
 
 inline void EditorState::createBuffer(const std::string& path, const std::string& content,
     const std::string& language,
-    BufferManager::BufferMode mode = BufferManager::BufferMode::Text,
-    size_t fileSizeBytes = 0,
-    bool largeFileMode = false,
-    bool disableSyntaxHighlight = false,
-    bool deferAstSync = false) {
+    BufferManager::BufferMode mode,
+    size_t fileSizeBytes,
+    bool largeFileMode,
+    bool disableSyntaxHighlight,
+    bool deferAstSync) {
     BufferManager::BufferMode effectiveMode = mode;
     if (language == "org") effectiveMode = BufferManager::BufferMode::Text;
     if (buffers.hasBuffer(path)) {
@@ -346,8 +346,8 @@ inline void EditorState::doSave() {
 }
 
 inline void EditorState::doOpen(const std::string& path,
-    BufferManager::BufferMode modeOverride = BufferManager::BufferMode::Text,
-    bool deferAstSync = false) {
+    BufferManager::BufferMode modeOverride,
+    bool deferAstSync) {
     std::error_code sizeErr;
     size_t fileSizeBytes = 0;
     if (!path.empty()) {
@@ -544,4 +544,3 @@ inline void EditorState::insertTextAtCursor(const std::string& text) {
 // --- Projection and lifecycle helpers (extracted) ---
 #include "BufferOpsProjection.h"
 #include "BufferOpsLifecycle.h"
-
