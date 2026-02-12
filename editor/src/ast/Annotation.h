@@ -182,3 +182,159 @@ public:
     std::vector<std::string> tags;  // e.g. ["@serialize", "@validation"]
     SemanticTagAnnotation() { conceptType = "SemanticTagAnnotation"; }
 };
+
+// Type System Annotations — Layout & Constraints (Step 272, Subject 2)
+
+class BitWidthAnnotation : public Annotation {
+public:
+    int width = 0;  // e.g. 32 for Java int
+    BitWidthAnnotation() { conceptType = "BitWidthAnnotation"; }
+};
+
+class EndianAnnotation : public Annotation {
+public:
+    std::string order;  // "big" | "little"
+    EndianAnnotation() { conceptType = "EndianAnnotation"; }
+};
+
+class LayoutAnnotation : public Annotation {
+public:
+    std::string mode;     // "packed" | "aligned"
+    int alignment = 0;
+    LayoutAnnotation() { conceptType = "LayoutAnnotation"; }
+};
+
+class NullabilityAnnotation : public Annotation {
+public:
+    bool nullable = false;
+    std::string strategy;  // "strict" | "nullable"
+    NullabilityAnnotation() { conceptType = "NullabilityAnnotation"; }
+};
+
+class VarianceAnnotation : public Annotation {
+public:
+    std::string variance;  // "covariant" | "contravariant" | "invariant"
+    VarianceAnnotation() { conceptType = "VarianceAnnotation"; }
+};
+
+// Type System Annotations — Identity & Mutability (Step 273, Subject 2)
+
+class IdentityAnnotation : public Annotation {
+public:
+    std::string mode;  // "nominal" | "structural"
+    IdentityAnnotation() { conceptType = "IdentityAnnotation"; }
+};
+
+class MutAnnotation : public Annotation {
+public:
+    std::string depth;  // "shallow" | "deep" | "interior"
+    MutAnnotation() { conceptType = "MutAnnotation"; }
+};
+
+class TypeStateAnnotation : public Annotation {
+public:
+    std::string state;  // "erased" | "reified"
+    TypeStateAnnotation() { conceptType = "TypeStateAnnotation"; }
+};
+
+// Concurrency Annotations — Primitives & Memory Model (Step 274, Subject 3)
+
+class AtomicAnnotation : public Annotation {
+public:
+    std::string consistency;  // "seq_cst" | "relaxed" | "acquire" | "release"
+    AtomicAnnotation() { conceptType = "AtomicAnnotation"; }
+};
+
+class SyncAnnotation : public Annotation {
+public:
+    std::string primitive;  // "monitor" | "spin" | "semaphore"
+    SyncAnnotation() { conceptType = "SyncAnnotation"; }
+};
+
+class ThreadModelAnnotation : public Annotation {
+public:
+    std::string model;  // "green" | "os" | "fiber"
+    ThreadModelAnnotation() { conceptType = "ThreadModelAnnotation"; }
+};
+
+class MemoryBarrierAnnotation : public Annotation {
+public:
+    MemoryBarrierAnnotation() { conceptType = "MemoryBarrierAnnotation"; }
+};
+
+// Async, Parallelism & Error Handling Annotations (Step 275, Subject 3)
+
+class ExecAnnotation : public Annotation {
+public:
+    std::string mode;         // "async" | "event"
+    std::string runtimeHint;  // e.g. "tokio", "libuv"
+    ExecAnnotation() { conceptType = "ExecAnnotation"; }
+};
+
+class BlockingAnnotation : public Annotation {
+public:
+    std::string kind;  // "io" | "compute"
+    BlockingAnnotation() { conceptType = "BlockingAnnotation"; }
+};
+
+class ParallelAnnotation : public Annotation {
+public:
+    std::string kind;  // "data" | "task"
+    ParallelAnnotation() { conceptType = "ParallelAnnotation"; }
+};
+
+class TrapAnnotation : public Annotation {
+public:
+    std::string signal;  // e.g. "SIGSEGV", "SIGFPE"
+    TrapAnnotation() { conceptType = "TrapAnnotation"; }
+};
+
+class ExceptionAnnotation : public Annotation {
+public:
+    std::string style;  // "checked" | "unchecked"
+    ExceptionAnnotation() { conceptType = "ExceptionAnnotation"; }
+};
+
+class PanicAnnotation : public Annotation {
+public:
+    std::string behavior;  // "abort" | "unwind"
+    PanicAnnotation() { conceptType = "PanicAnnotation"; }
+};
+
+// Scope & Namespace Annotations (Step 276, Subject 4)
+
+class BindingAnnotation : public Annotation {
+public:
+    std::string time;  // "static" | "dynamic"
+    BindingAnnotation() { conceptType = "BindingAnnotation"; }
+};
+
+class LookupAnnotation : public Annotation {
+public:
+    std::string mode;  // "lexical" | "hoisted"
+    LookupAnnotation() { conceptType = "LookupAnnotation"; }
+};
+
+class CaptureAnnotation : public Annotation {
+public:
+    std::string strategy;  // "value" | "ref" | "move"
+    CaptureAnnotation() { conceptType = "CaptureAnnotation"; }
+};
+
+class VisibilityAnnotation : public Annotation {
+public:
+    std::string level;  // "private" | "internal" | "friend" | "public"
+    VisibilityAnnotation() { conceptType = "VisibilityAnnotation"; }
+};
+
+class NamespaceAnnotation : public Annotation {
+public:
+    std::string style;  // "qualified" | "flat"
+    NamespaceAnnotation() { conceptType = "NamespaceAnnotation"; }
+};
+
+class ScopeAnnotation : public Annotation {
+public:
+    std::string kind;  // "local" | "global_leaked" | "singleton"
+    ScopeAnnotation() { conceptType = "ScopeAnnotation"; }
+};

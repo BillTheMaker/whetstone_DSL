@@ -163,6 +163,107 @@ inline json propertiesToJson(const ASTNode* node) {
         auto* n = static_cast<const SemanticTagAnnotation*>(node);
         if (!n->tags.empty()) props["tags"] = n->tags;
     }
+    // Type System — Layout & Constraints (Step 272)
+    else if (ct == "BitWidthAnnotation") {
+        auto* n = static_cast<const BitWidthAnnotation*>(node);
+        props["width"] = n->width;
+    }
+    else if (ct == "EndianAnnotation") {
+        auto* n = static_cast<const EndianAnnotation*>(node);
+        if (!n->order.empty()) props["order"] = n->order;
+    }
+    else if (ct == "LayoutAnnotation") {
+        auto* n = static_cast<const LayoutAnnotation*>(node);
+        if (!n->mode.empty()) props["mode"] = n->mode;
+        props["alignment"] = n->alignment;
+    }
+    else if (ct == "NullabilityAnnotation") {
+        auto* n = static_cast<const NullabilityAnnotation*>(node);
+        props["nullable"] = n->nullable;
+        if (!n->strategy.empty()) props["strategy"] = n->strategy;
+    }
+    else if (ct == "VarianceAnnotation") {
+        auto* n = static_cast<const VarianceAnnotation*>(node);
+        if (!n->variance.empty()) props["variance"] = n->variance;
+    }
+    // Type System — Identity & Mutability (Step 273)
+    else if (ct == "IdentityAnnotation") {
+        auto* n = static_cast<const IdentityAnnotation*>(node);
+        if (!n->mode.empty()) props["mode"] = n->mode;
+    }
+    else if (ct == "MutAnnotation") {
+        auto* n = static_cast<const MutAnnotation*>(node);
+        if (!n->depth.empty()) props["depth"] = n->depth;
+    }
+    else if (ct == "TypeStateAnnotation") {
+        auto* n = static_cast<const TypeStateAnnotation*>(node);
+        if (!n->state.empty()) props["state"] = n->state;
+    }
+    // Concurrency — Primitives & Memory Model (Step 274)
+    else if (ct == "AtomicAnnotation") {
+        auto* n = static_cast<const AtomicAnnotation*>(node);
+        if (!n->consistency.empty()) props["consistency"] = n->consistency;
+    }
+    else if (ct == "SyncAnnotation") {
+        auto* n = static_cast<const SyncAnnotation*>(node);
+        if (!n->primitive.empty()) props["primitive"] = n->primitive;
+    }
+    else if (ct == "ThreadModelAnnotation") {
+        auto* n = static_cast<const ThreadModelAnnotation*>(node);
+        if (!n->model.empty()) props["model"] = n->model;
+    }
+    // MemoryBarrierAnnotation has no extra fields
+    // Async, Parallelism & Error Handling (Step 275)
+    else if (ct == "ExecAnnotation") {
+        auto* n = static_cast<const ExecAnnotation*>(node);
+        if (!n->mode.empty()) props["mode"] = n->mode;
+        if (!n->runtimeHint.empty()) props["runtimeHint"] = n->runtimeHint;
+    }
+    else if (ct == "BlockingAnnotation") {
+        auto* n = static_cast<const BlockingAnnotation*>(node);
+        if (!n->kind.empty()) props["kind"] = n->kind;
+    }
+    else if (ct == "ParallelAnnotation") {
+        auto* n = static_cast<const ParallelAnnotation*>(node);
+        if (!n->kind.empty()) props["kind"] = n->kind;
+    }
+    else if (ct == "TrapAnnotation") {
+        auto* n = static_cast<const TrapAnnotation*>(node);
+        if (!n->signal.empty()) props["signal"] = n->signal;
+    }
+    else if (ct == "ExceptionAnnotation") {
+        auto* n = static_cast<const ExceptionAnnotation*>(node);
+        if (!n->style.empty()) props["style"] = n->style;
+    }
+    else if (ct == "PanicAnnotation") {
+        auto* n = static_cast<const PanicAnnotation*>(node);
+        if (!n->behavior.empty()) props["behavior"] = n->behavior;
+    }
+    // Scope & Namespace (Step 276)
+    else if (ct == "BindingAnnotation") {
+        auto* n = static_cast<const BindingAnnotation*>(node);
+        if (!n->time.empty()) props["time"] = n->time;
+    }
+    else if (ct == "LookupAnnotation") {
+        auto* n = static_cast<const LookupAnnotation*>(node);
+        if (!n->mode.empty()) props["mode"] = n->mode;
+    }
+    else if (ct == "CaptureAnnotation") {
+        auto* n = static_cast<const CaptureAnnotation*>(node);
+        if (!n->strategy.empty()) props["strategy"] = n->strategy;
+    }
+    else if (ct == "VisibilityAnnotation") {
+        auto* n = static_cast<const VisibilityAnnotation*>(node);
+        if (!n->level.empty()) props["level"] = n->level;
+    }
+    else if (ct == "NamespaceAnnotation") {
+        auto* n = static_cast<const NamespaceAnnotation*>(node);
+        if (!n->style.empty()) props["style"] = n->style;
+    }
+    else if (ct == "ScopeAnnotation") {
+        auto* n = static_cast<const ScopeAnnotation*>(node);
+        if (!n->kind.empty()) props["kind"] = n->kind;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -240,6 +341,35 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "RiskAnnotation") return new RiskAnnotation();
     if (conceptName == "ContractAnnotation") return new ContractAnnotation();
     if (conceptName == "SemanticTagAnnotation") return new SemanticTagAnnotation();
+    // Type System — Layout & Constraints (Step 272)
+    if (conceptName == "BitWidthAnnotation") return new BitWidthAnnotation();
+    if (conceptName == "EndianAnnotation") return new EndianAnnotation();
+    if (conceptName == "LayoutAnnotation") return new LayoutAnnotation();
+    if (conceptName == "NullabilityAnnotation") return new NullabilityAnnotation();
+    if (conceptName == "VarianceAnnotation") return new VarianceAnnotation();
+    // Type System — Identity & Mutability (Step 273)
+    if (conceptName == "IdentityAnnotation") return new IdentityAnnotation();
+    if (conceptName == "MutAnnotation") return new MutAnnotation();
+    if (conceptName == "TypeStateAnnotation") return new TypeStateAnnotation();
+    // Concurrency (Step 274)
+    if (conceptName == "AtomicAnnotation") return new AtomicAnnotation();
+    if (conceptName == "SyncAnnotation") return new SyncAnnotation();
+    if (conceptName == "ThreadModelAnnotation") return new ThreadModelAnnotation();
+    if (conceptName == "MemoryBarrierAnnotation") return new MemoryBarrierAnnotation();
+    // Async, Parallelism & Error Handling (Step 275)
+    if (conceptName == "ExecAnnotation") return new ExecAnnotation();
+    if (conceptName == "BlockingAnnotation") return new BlockingAnnotation();
+    if (conceptName == "ParallelAnnotation") return new ParallelAnnotation();
+    if (conceptName == "TrapAnnotation") return new TrapAnnotation();
+    if (conceptName == "ExceptionAnnotation") return new ExceptionAnnotation();
+    if (conceptName == "PanicAnnotation") return new PanicAnnotation();
+    // Scope & Namespace (Step 276)
+    if (conceptName == "BindingAnnotation") return new BindingAnnotation();
+    if (conceptName == "LookupAnnotation") return new LookupAnnotation();
+    if (conceptName == "CaptureAnnotation") return new CaptureAnnotation();
+    if (conceptName == "VisibilityAnnotation") return new VisibilityAnnotation();
+    if (conceptName == "NamespaceAnnotation") return new NamespaceAnnotation();
+    if (conceptName == "ScopeAnnotation") return new ScopeAnnotation();
     return nullptr;
 }
 
@@ -395,6 +525,107 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
                 if (tag.is_string()) n->tags.push_back(tag.get<std::string>());
             }
         }
+    }
+    // Type System — Layout & Constraints (Step 272)
+    else if (ct == "BitWidthAnnotation") {
+        auto* n = static_cast<BitWidthAnnotation*>(node);
+        if (props.contains("width")) n->width = props["width"].get<int>();
+    }
+    else if (ct == "EndianAnnotation") {
+        auto* n = static_cast<EndianAnnotation*>(node);
+        if (props.contains("order")) n->order = props["order"].get<std::string>();
+    }
+    else if (ct == "LayoutAnnotation") {
+        auto* n = static_cast<LayoutAnnotation*>(node);
+        if (props.contains("mode")) n->mode = props["mode"].get<std::string>();
+        if (props.contains("alignment")) n->alignment = props["alignment"].get<int>();
+    }
+    else if (ct == "NullabilityAnnotation") {
+        auto* n = static_cast<NullabilityAnnotation*>(node);
+        if (props.contains("nullable")) n->nullable = props["nullable"].get<bool>();
+        if (props.contains("strategy")) n->strategy = props["strategy"].get<std::string>();
+    }
+    else if (ct == "VarianceAnnotation") {
+        auto* n = static_cast<VarianceAnnotation*>(node);
+        if (props.contains("variance")) n->variance = props["variance"].get<std::string>();
+    }
+    // Type System — Identity & Mutability (Step 273)
+    else if (ct == "IdentityAnnotation") {
+        auto* n = static_cast<IdentityAnnotation*>(node);
+        if (props.contains("mode")) n->mode = props["mode"].get<std::string>();
+    }
+    else if (ct == "MutAnnotation") {
+        auto* n = static_cast<MutAnnotation*>(node);
+        if (props.contains("depth")) n->depth = props["depth"].get<std::string>();
+    }
+    else if (ct == "TypeStateAnnotation") {
+        auto* n = static_cast<TypeStateAnnotation*>(node);
+        if (props.contains("state")) n->state = props["state"].get<std::string>();
+    }
+    // Concurrency (Step 274)
+    else if (ct == "AtomicAnnotation") {
+        auto* n = static_cast<AtomicAnnotation*>(node);
+        if (props.contains("consistency")) n->consistency = props["consistency"].get<std::string>();
+    }
+    else if (ct == "SyncAnnotation") {
+        auto* n = static_cast<SyncAnnotation*>(node);
+        if (props.contains("primitive")) n->primitive = props["primitive"].get<std::string>();
+    }
+    else if (ct == "ThreadModelAnnotation") {
+        auto* n = static_cast<ThreadModelAnnotation*>(node);
+        if (props.contains("model")) n->model = props["model"].get<std::string>();
+    }
+    // MemoryBarrierAnnotation has no extra fields
+    // Async, Parallelism & Error Handling (Step 275)
+    else if (ct == "ExecAnnotation") {
+        auto* n = static_cast<ExecAnnotation*>(node);
+        if (props.contains("mode")) n->mode = props["mode"].get<std::string>();
+        if (props.contains("runtimeHint")) n->runtimeHint = props["runtimeHint"].get<std::string>();
+    }
+    else if (ct == "BlockingAnnotation") {
+        auto* n = static_cast<BlockingAnnotation*>(node);
+        if (props.contains("kind")) n->kind = props["kind"].get<std::string>();
+    }
+    else if (ct == "ParallelAnnotation") {
+        auto* n = static_cast<ParallelAnnotation*>(node);
+        if (props.contains("kind")) n->kind = props["kind"].get<std::string>();
+    }
+    else if (ct == "TrapAnnotation") {
+        auto* n = static_cast<TrapAnnotation*>(node);
+        if (props.contains("signal")) n->signal = props["signal"].get<std::string>();
+    }
+    else if (ct == "ExceptionAnnotation") {
+        auto* n = static_cast<ExceptionAnnotation*>(node);
+        if (props.contains("style")) n->style = props["style"].get<std::string>();
+    }
+    else if (ct == "PanicAnnotation") {
+        auto* n = static_cast<PanicAnnotation*>(node);
+        if (props.contains("behavior")) n->behavior = props["behavior"].get<std::string>();
+    }
+    // Scope & Namespace (Step 276)
+    else if (ct == "BindingAnnotation") {
+        auto* n = static_cast<BindingAnnotation*>(node);
+        if (props.contains("time")) n->time = props["time"].get<std::string>();
+    }
+    else if (ct == "LookupAnnotation") {
+        auto* n = static_cast<LookupAnnotation*>(node);
+        if (props.contains("mode")) n->mode = props["mode"].get<std::string>();
+    }
+    else if (ct == "CaptureAnnotation") {
+        auto* n = static_cast<CaptureAnnotation*>(node);
+        if (props.contains("strategy")) n->strategy = props["strategy"].get<std::string>();
+    }
+    else if (ct == "VisibilityAnnotation") {
+        auto* n = static_cast<VisibilityAnnotation*>(node);
+        if (props.contains("level")) n->level = props["level"].get<std::string>();
+    }
+    else if (ct == "NamespaceAnnotation") {
+        auto* n = static_cast<NamespaceAnnotation*>(node);
+        if (props.contains("style")) n->style = props["style"].get<std::string>();
+    }
+    else if (ct == "ScopeAnnotation") {
+        auto* n = static_cast<ScopeAnnotation*>(node);
+        if (props.contains("kind")) n->kind = props["kind"].get<std::string>();
     }
 }
 

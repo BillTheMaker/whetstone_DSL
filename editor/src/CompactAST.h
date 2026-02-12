@@ -58,6 +58,115 @@ inline json extractSemanticSummary(const ASTNode* node) {
             auto* ta = static_cast<const SemanticTagAnnotation*>(a);
             if (!ta->tags.empty()) sem["tags"] = ta->tags;
         }
+        // Type System — Layout & Constraints (Step 272)
+        else if (a->conceptType == "BitWidthAnnotation") {
+            auto* ba = static_cast<const BitWidthAnnotation*>(a);
+            sem["bitWidth"] = ba->width;
+        }
+        else if (a->conceptType == "EndianAnnotation") {
+            auto* ea = static_cast<const EndianAnnotation*>(a);
+            if (!ea->order.empty()) sem["endian"] = ea->order;
+        }
+        else if (a->conceptType == "LayoutAnnotation") {
+            auto* la = static_cast<const LayoutAnnotation*>(a);
+            json obj;
+            if (!la->mode.empty()) obj["mode"] = la->mode;
+            if (la->alignment > 0) obj["alignment"] = la->alignment;
+            if (!obj.empty()) sem["layout"] = obj;
+        }
+        else if (a->conceptType == "NullabilityAnnotation") {
+            auto* na = static_cast<const NullabilityAnnotation*>(a);
+            json obj;
+            obj["nullable"] = na->nullable;
+            if (!na->strategy.empty()) obj["strategy"] = na->strategy;
+            sem["nullability"] = obj;
+        }
+        else if (a->conceptType == "VarianceAnnotation") {
+            auto* va = static_cast<const VarianceAnnotation*>(a);
+            if (!va->variance.empty()) sem["variance"] = va->variance;
+        }
+        // Type System — Identity & Mutability (Step 273)
+        else if (a->conceptType == "IdentityAnnotation") {
+            auto* ia = static_cast<const IdentityAnnotation*>(a);
+            if (!ia->mode.empty()) sem["identity"] = ia->mode;
+        }
+        else if (a->conceptType == "MutAnnotation") {
+            auto* ma = static_cast<const MutAnnotation*>(a);
+            if (!ma->depth.empty()) sem["mutability"] = ma->depth;
+        }
+        else if (a->conceptType == "TypeStateAnnotation") {
+            auto* ts = static_cast<const TypeStateAnnotation*>(a);
+            if (!ts->state.empty()) sem["typeState"] = ts->state;
+        }
+        // Concurrency (Step 274)
+        else if (a->conceptType == "AtomicAnnotation") {
+            auto* aa = static_cast<const AtomicAnnotation*>(a);
+            if (!aa->consistency.empty()) sem["atomic"] = aa->consistency;
+        }
+        else if (a->conceptType == "SyncAnnotation") {
+            auto* sa = static_cast<const SyncAnnotation*>(a);
+            if (!sa->primitive.empty()) sem["sync"] = sa->primitive;
+        }
+        else if (a->conceptType == "ThreadModelAnnotation") {
+            auto* tm = static_cast<const ThreadModelAnnotation*>(a);
+            if (!tm->model.empty()) sem["threadModel"] = tm->model;
+        }
+        else if (a->conceptType == "MemoryBarrierAnnotation") {
+            sem["memoryBarrier"] = true;
+        }
+        // Async, Parallelism & Error Handling (Step 275)
+        else if (a->conceptType == "ExecAnnotation") {
+            auto* ea = static_cast<const ExecAnnotation*>(a);
+            json obj;
+            if (!ea->mode.empty()) obj["mode"] = ea->mode;
+            if (!ea->runtimeHint.empty()) obj["runtime"] = ea->runtimeHint;
+            if (!obj.empty()) sem["exec"] = obj;
+        }
+        else if (a->conceptType == "BlockingAnnotation") {
+            auto* ba = static_cast<const BlockingAnnotation*>(a);
+            if (!ba->kind.empty()) sem["blocking"] = ba->kind;
+        }
+        else if (a->conceptType == "ParallelAnnotation") {
+            auto* pa = static_cast<const ParallelAnnotation*>(a);
+            if (!pa->kind.empty()) sem["parallel"] = pa->kind;
+        }
+        else if (a->conceptType == "TrapAnnotation") {
+            auto* ta = static_cast<const TrapAnnotation*>(a);
+            if (!ta->signal.empty()) sem["trap"] = ta->signal;
+        }
+        else if (a->conceptType == "ExceptionAnnotation") {
+            auto* ea = static_cast<const ExceptionAnnotation*>(a);
+            if (!ea->style.empty()) sem["exception"] = ea->style;
+        }
+        else if (a->conceptType == "PanicAnnotation") {
+            auto* pa = static_cast<const PanicAnnotation*>(a);
+            if (!pa->behavior.empty()) sem["panic"] = pa->behavior;
+        }
+        // Scope & Namespace (Step 276)
+        else if (a->conceptType == "BindingAnnotation") {
+            auto* ba = static_cast<const BindingAnnotation*>(a);
+            if (!ba->time.empty()) sem["binding"] = ba->time;
+        }
+        else if (a->conceptType == "LookupAnnotation") {
+            auto* la = static_cast<const LookupAnnotation*>(a);
+            if (!la->mode.empty()) sem["lookup"] = la->mode;
+        }
+        else if (a->conceptType == "CaptureAnnotation") {
+            auto* ca = static_cast<const CaptureAnnotation*>(a);
+            if (!ca->strategy.empty()) sem["capture"] = ca->strategy;
+        }
+        else if (a->conceptType == "VisibilityAnnotation") {
+            auto* va = static_cast<const VisibilityAnnotation*>(a);
+            if (!va->level.empty()) sem["visibility"] = va->level;
+        }
+        else if (a->conceptType == "NamespaceAnnotation") {
+            auto* na = static_cast<const NamespaceAnnotation*>(a);
+            if (!na->style.empty()) sem["namespace"] = na->style;
+        }
+        else if (a->conceptType == "ScopeAnnotation") {
+            auto* sa = static_cast<const ScopeAnnotation*>(a);
+            if (!sa->kind.empty()) sem["scope"] = sa->kind;
+        }
     }
     return sem.empty() ? json() : sem;
 }

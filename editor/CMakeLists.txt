@@ -1662,4 +1662,40 @@ target_link_libraries(step271_test PRIVATE
     tree_sitter_java tree_sitter_rust tree_sitter_go
     tree_sitter_org)
 
+# Step 272: Type System — Layout & Constraints
+add_executable(step272_test tests/step272_test.cpp)
+target_include_directories(step272_test PRIVATE src)
+target_link_libraries(step272_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 273: Type System — Identity & Mutability
+add_executable(step273_test tests/step273_test.cpp)
+target_include_directories(step273_test PRIVATE src)
+target_link_libraries(step273_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 274: Concurrency — Primitives & Memory Model
+add_executable(step274_test tests/step274_test.cpp)
+target_include_directories(step274_test PRIVATE src)
+target_link_libraries(step274_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 275: Async, Parallelism & Error Handling
+add_executable(step275_test tests/step275_test.cpp)
+target_include_directories(step275_test PRIVATE src)
+target_link_libraries(step275_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 276: Scope & Namespace Annotations
+add_executable(step276_test tests/step276_test.cpp)
+target_include_directories(step276_test PRIVATE src)
+target_link_libraries(step276_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 277: Phase 10c Integration Tests
+add_executable(step277_test tests/step277_test.cpp)
+target_include_directories(step277_test PRIVATE src)
+target_link_libraries(step277_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

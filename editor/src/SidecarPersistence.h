@@ -23,17 +23,50 @@ inline std::string sidecarPath(const std::string& workspaceRoot,
     return (base / (filePath + ".ast.json")).string();
 }
 
+// --- Check if a node type is a semantic annotation ---
+inline bool isSemanticAnnotation(const std::string& conceptType) {
+    return conceptType == "IntentAnnotation" ||
+           conceptType == "ComplexityAnnotation" ||
+           conceptType == "RiskAnnotation" ||
+           conceptType == "ContractAnnotation" ||
+           conceptType == "SemanticTagAnnotation" ||
+           // Type System (Steps 272-273)
+           conceptType == "BitWidthAnnotation" ||
+           conceptType == "EndianAnnotation" ||
+           conceptType == "LayoutAnnotation" ||
+           conceptType == "NullabilityAnnotation" ||
+           conceptType == "VarianceAnnotation" ||
+           conceptType == "IdentityAnnotation" ||
+           conceptType == "MutAnnotation" ||
+           conceptType == "TypeStateAnnotation" ||
+           // Concurrency (Step 274)
+           conceptType == "AtomicAnnotation" ||
+           conceptType == "SyncAnnotation" ||
+           conceptType == "ThreadModelAnnotation" ||
+           conceptType == "MemoryBarrierAnnotation" ||
+           // Async / Error Handling (Step 275)
+           conceptType == "ExecAnnotation" ||
+           conceptType == "BlockingAnnotation" ||
+           conceptType == "ParallelAnnotation" ||
+           conceptType == "TrapAnnotation" ||
+           conceptType == "ExceptionAnnotation" ||
+           conceptType == "PanicAnnotation" ||
+           // Scope & Namespace (Step 276)
+           conceptType == "BindingAnnotation" ||
+           conceptType == "LookupAnnotation" ||
+           conceptType == "CaptureAnnotation" ||
+           conceptType == "VisibilityAnnotation" ||
+           conceptType == "NamespaceAnnotation" ||
+           conceptType == "ScopeAnnotation";
+}
+
 // --- Count semantic annotations in an AST ---
 inline int countSemanticAnnotations(const ASTNode* node) {
     if (!node) return 0;
     int count = 0;
     auto annos = node->getChildren("annotations");
     for (const auto* a : annos) {
-        if (a->conceptType == "IntentAnnotation" ||
-            a->conceptType == "ComplexityAnnotation" ||
-            a->conceptType == "RiskAnnotation" ||
-            a->conceptType == "ContractAnnotation" ||
-            a->conceptType == "SemanticTagAnnotation")
+        if (isSemanticAnnotation(a->conceptType))
             ++count;
     }
     for (const auto* child : node->allChildren()) {
@@ -75,15 +108,6 @@ inline SidecarSaveResult saveSidecarAST(const std::string& workspaceRoot,
     result.annotationCount = countSemanticAnnotations(ast);
     result.success = true;
     return result;
-}
-
-// --- Check if a node type is a semantic annotation ---
-inline bool isSemanticAnnotation(const std::string& conceptType) {
-    return conceptType == "IntentAnnotation" ||
-           conceptType == "ComplexityAnnotation" ||
-           conceptType == "RiskAnnotation" ||
-           conceptType == "ContractAnnotation" ||
-           conceptType == "SemanticTagAnnotation";
 }
 
 // --- Find a matching node in the live AST ---

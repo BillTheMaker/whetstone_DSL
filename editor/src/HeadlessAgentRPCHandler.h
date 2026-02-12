@@ -1654,6 +1654,34 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         else if (type == "risk") conceptType = "RiskAnnotation";
         else if (type == "contract") conceptType = "ContractAnnotation";
         else if (type == "tags") conceptType = "SemanticTagAnnotation";
+        // Type System (Steps 272-273)
+        else if (type == "bitWidth") conceptType = "BitWidthAnnotation";
+        else if (type == "endian") conceptType = "EndianAnnotation";
+        else if (type == "layout") conceptType = "LayoutAnnotation";
+        else if (type == "nullability") conceptType = "NullabilityAnnotation";
+        else if (type == "variance") conceptType = "VarianceAnnotation";
+        else if (type == "identity") conceptType = "IdentityAnnotation";
+        else if (type == "mut") conceptType = "MutAnnotation";
+        else if (type == "typeState") conceptType = "TypeStateAnnotation";
+        // Concurrency (Step 274)
+        else if (type == "atomic") conceptType = "AtomicAnnotation";
+        else if (type == "sync") conceptType = "SyncAnnotation";
+        else if (type == "threadModel") conceptType = "ThreadModelAnnotation";
+        else if (type == "memoryBarrier") conceptType = "MemoryBarrierAnnotation";
+        // Async / Error Handling (Step 275)
+        else if (type == "exec") conceptType = "ExecAnnotation";
+        else if (type == "blocking") conceptType = "BlockingAnnotation";
+        else if (type == "parallel") conceptType = "ParallelAnnotation";
+        else if (type == "trap") conceptType = "TrapAnnotation";
+        else if (type == "exception") conceptType = "ExceptionAnnotation";
+        else if (type == "panic") conceptType = "PanicAnnotation";
+        // Scope & Namespace (Step 276)
+        else if (type == "binding") conceptType = "BindingAnnotation";
+        else if (type == "lookup") conceptType = "LookupAnnotation";
+        else if (type == "capture") conceptType = "CaptureAnnotation";
+        else if (type == "visibility") conceptType = "VisibilityAnnotation";
+        else if (type == "namespace") conceptType = "NamespaceAnnotation";
+        else if (type == "scope") conceptType = "ScopeAnnotation";
         else return headlessRpcError(id, -32602, "Unknown annotation type: " + type);
 
         // Remove existing annotation of same type (update semantics)
@@ -1722,6 +1750,12 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
                 } else if (a->conceptType == "SemanticTagAnnotation") {
                     auto* ta = static_cast<SemanticTagAnnotation*>(a);
                     entry = {{"type", "tags"}, {"tags", ta->tags}};
+                } else {
+                    // Generic fallback for all other semantic annotations
+                    entry = {{"type", a->conceptType}};
+                    json props = propertiesToJson(a);
+                    for (auto& [k, v] : props.items())
+                        entry[k] = v;
                 }
                 if (!entry.empty()) annos.push_back(entry);
             }
@@ -1749,6 +1783,11 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
                     } else if (a->conceptType == "SemanticTagAnnotation") {
                         auto* ta = static_cast<SemanticTagAnnotation*>(a);
                         entry = {{"type", "tags"}, {"tags", ta->tags}};
+                    } else {
+                        entry = {{"type", a->conceptType}};
+                        json props = propertiesToJson(a);
+                        for (auto& [k, v] : props.items())
+                            entry[k] = v;
                     }
                     if (!entry.empty()) annoList.push_back(entry);
                 }
