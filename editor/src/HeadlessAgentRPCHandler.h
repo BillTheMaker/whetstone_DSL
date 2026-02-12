@@ -1866,10 +1866,17 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
                     hints["bodyStatements"] = (int)body.size();
                     // Side effect heuristic: check for io/network calls
                     bool hasSideEffects = false;
+                    // Check body statements and their descendants
+                    std::vector<const ASTNode*> toCheck;
                     for (auto* stmt : body) {
-                        if (stmt->conceptType == "FunctionCall" ||
-                            stmt->conceptType == "MethodCall") {
-                            std::string callee = getNodeName(stmt);
+                        toCheck.push_back(stmt);
+                        for (auto* desc : stmt->allChildren())
+                            toCheck.push_back(desc);
+                    }
+                    for (auto* node : toCheck) {
+                        if (node->conceptType == "FunctionCall" ||
+                            node->conceptType == "MethodCall") {
+                            std::string callee = getNodeName(node);
                             if (callee.find("print") != std::string::npos ||
                                 callee.find("write") != std::string::npos ||
                                 callee.find("send") != std::string::npos ||
