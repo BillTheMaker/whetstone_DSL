@@ -1734,4 +1734,52 @@ target_link_libraries(step283_test PRIVATE
     tree_sitter_java tree_sitter_rust tree_sitter_go
     tree_sitter_org)
 
+# Step 284: EnvironmentSpec schema & AST node
+add_executable(step284_test tests/step284_test.cpp)
+target_include_directories(step284_test PRIVATE src)
+target_link_libraries(step284_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 285: Capability vocabulary & validation
+add_executable(step285_test tests/step285_test.cpp)
+target_include_directories(step285_test PRIVATE src)
+target_link_libraries(step285_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 286: Environment-aware pipeline hooks
+add_executable(step286_test tests/step286_test.cpp)
+target_include_directories(step286_test PRIVATE src)
+target_link_libraries(step286_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
+# Step 287: Environment-aware lowering decisions
+add_executable(step287_test tests/step287_test.cpp)
+target_include_directories(step287_test PRIVATE src)
+target_link_libraries(step287_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
+# Step 288: Host boundary AST nodes
+add_executable(step288_test tests/step288_test.cpp)
+target_include_directories(step288_test PRIVATE src)
+target_link_libraries(step288_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 289: Phase 10e integration tests
+add_executable(step289_test tests/step289_test.cpp)
+target_include_directories(step289_test PRIVATE src)
+target_link_libraries(step289_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go
+    tree_sitter_org)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

@@ -7,6 +7,9 @@
 #include "ast/Function.h"
 #include "ast/Serialization.h"
 #include "EnvironmentSpec.h"
+#include "ASTUtils.h"
+#include "CompactAST.h"
+#include "SidecarPersistence.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

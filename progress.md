@@ -743,9 +743,7 @@ Generic fallback added to getSemanticAnnotations RPC for extensible annotation t
 
 ## Phase 10e: Environment Layer (Steps 284-289)
 
-**Status:** IN PROGRESS
-
-### Completed so far:
+**Status:** PASS (200/200 checks across steps 284–289)
 
 **New files created:**
 - `editor/src/EnvironmentSpec.h` — EnvironmentSpec AST node (envId, envVersion, capabilities, constraints, scheduler, memory, bindingTimes, exceptions, ffi), CapabilityRequirement annotation, capability vocabulary (17 known capabilities), validateCapabilities() (E0501 diagnostics), validateEnvAnnotations() (E0502-E0505 diagnostics), getLoweringHints() (env-aware lowering patterns), envSpecToJson/envSpecFromJson helpers
@@ -757,15 +755,21 @@ Generic fallback added to getSemanticAnnotations RPC for extensible annotation t
 - `SidecarPersistence.h` — CapabilityRequirement in isSemanticAnnotation
 - `HeadlessAgentRPCHandler.h` — capabilityRequirement type in setSemanticAnnotation, 4 new RPCs: setEnvironment, getEnvironment, validateEnvironment, getLoweringHints
 - `AgentPermissionPolicy.h` — getEnvironment/validateEnvironment/getLoweringHints (read-only), setEnvironment (mutation)
+- `MCPServer.h` — registerEnvironmentTools() with 4 MCP tool definitions (whetstone_set_environment, whetstone_get_environment, whetstone_validate_environment, whetstone_get_lowering_hints)
 
-**Test files written:**
+**Test files:**
 - `step284_test.cpp` — 12 tests (EnvironmentSpec schema, JSON roundtrip, module attachment)
 - `step285_test.cpp` — 12 tests (capability vocabulary, validation, CapabilityRequirement)
+- `step286_test.cpp` — 12 tests (validateEnvAnnotations E0502-E0505, RPC validate/set/get, Linter permissions, MCP tool registration, env replacement)
+- `step287_test.cpp` — 12 tests (getLoweringHints: callback/std_async/coroutine, suppress_dealloc/explicit_delete/raii_cleanup, try_catch/expected, combined hints, RPC method, null safety)
+- `step288_test.cpp` — 12 tests (HostCall/ScheduleTask/ModuleLoad construction, JSON roundtrip, createNode, compact AST names, capability validation, nested body children)
+- `step289_test.cpp` — 8 integration tests (full env workflow, env switch clears issues, host boundary roundtrip, capability validation e2e, lowering hints change with env, batch env queries, MCP tool count 38+, compact AST with host boundary)
 
-### Remaining:
-- Write step286_test.cpp (environment-aware pipeline hooks, 12 tests)
-- Write step287_test.cpp (environment-aware lowering decisions, 12 tests)
-- Write step288_test.cpp (host boundary AST nodes, 12 tests)
-- Write step289_test.cpp (Phase 10e integration tests, 8 tests)
-- Add CMake targets for steps 284-289
-- Build, test, fix, commit
+**Key results:**
+- Phase 10e complete: all 6 steps pass (200/200 checks across steps 284–289)
+- 4 environment RPCs: setEnvironment, getEnvironment, validateEnvironment, getLoweringHints
+- 5 environment diagnostics: E0501 (unmet capability), E0502–E0505 (annotation/scheduler incompatibility)
+- 3 host boundary AST nodes: HostCall, ScheduleTask, ModuleLoad
+- Lowering hint patterns: callback, std_async, coroutine, suppress_dealloc, explicit_delete, raii_cleanup, try_catch, expected, checked_throw
+- 38 MCP tools total (was 34): +whetstone_set_environment, +whetstone_get_environment, +whetstone_validate_environment, +whetstone_get_lowering_hints
+- Sprint 10 complete: all 5 phases pass (phases 10a–10e)
