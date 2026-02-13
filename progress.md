@@ -843,3 +843,40 @@ generators. Prefix verification, annotation output, exhaustive no-Unknown check.
   and `SemannoAnnotationImpl : public virtual AnnotationVisitorExtended` to resolve
   diamond inheritance ambiguity in generator classes
 - Removed circular include: `EnvironmentSpec.h` no longer includes `ast/Serialization.h`
+
+### Step 295: Semanno Sidecar Integration (12 tests)
+**Status:** PASS (12/12 tests)
+
+Semanno sidecar persistence now supports full save/load roundtrip behavior,
+including empty sidecar file handling.
+
+**Key files:**
+- `editor/src/SemannoSidecar.h` — implemented sidecar API with structured
+  save/load results, path helper, line-keyed `L<line>: @semanno:...` emission,
+  and empty-module sidecar creation.
+- `editor/src/SidecarPersistence.h` — include fixes for AST helper symbols used
+  by sidecar merge logic.
+- `editor/tests/step295_test.cpp` — includes sidecar persistence integration
+  checks alongside Semanno sidecar tests.
+
+### Step 296: Phase 11a Integration Tests (8 tests)
+**Status:** PASS (8/8 tests)
+
+Full Phase 11a integration validation now passes end-to-end.
+
+**Key files:**
+- `editor/src/SemannoSidecar.h` — added result-based free-function API used by
+  Sprint 11 tests (`semannoSidecarPath`, `saveSemannoSidecar`,
+  `loadSemannoSidecar`), path/error/count reporting, and corrected line mapping
+  to use parent `spanStartLine`.
+- `editor/tests/step296_test.cpp` — integration suite executed and passing.
+
+**Verified checks:**
+- Parse/annotate/generate path preserves Subject 2-8 Semanno output.
+- Cross-language generators preserve Semanno annotations.
+- Exhaustive no-Unknown emission for 56+ annotation types.
+- Semanno parse roundtrip for structured properties.
+- Mixed legacy + new annotation handling in one module.
+- Semanno sidecar save/load integration with expected counts.
+- Language comment prefix conventions.
+- Marker annotation emission without property parentheses.

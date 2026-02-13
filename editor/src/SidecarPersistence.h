@@ -7,6 +7,9 @@
 #include "ast/ASTNode.h"
 #include "ast/Serialization.h"
 #include "ast/Annotation.h"
+#include "ASTUtils.h"
+#include "CompactAST.h"
+#include "SemannoSidecar.h"
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
