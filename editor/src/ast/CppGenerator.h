@@ -1,9 +1,12 @@
 #pragma once
 #include "ProjectionGenerator.h"
 #include "../TypeAwareMappings.h"
+#include "../SemannoAnnotationImpl.h"
 
-class CppGenerator : public ProjectionGenerator {
+class CppGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<CppGenerator> {
 public:
+    std::string commentPrefix() const { return "// "; }
+
     std::string generate(const ASTNode* node) override {
         return dispatchGenerate(this, node, "// Unknown concept: ");
     }

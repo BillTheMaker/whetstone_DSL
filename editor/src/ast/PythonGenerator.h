@@ -1,9 +1,12 @@
 #pragma once
 
 #include "ProjectionGenerator.h"
+#include "../SemannoAnnotationImpl.h"
 
-class PythonGenerator : public ProjectionGenerator {
+class PythonGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<PythonGenerator> {
 public:
+    std::string commentPrefix() const { return "# "; }
+
     std::string generate(const ASTNode* node) override {
         return dispatchGenerate(this, node, "# Unknown concept: ");
     }

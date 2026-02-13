@@ -153,5 +153,7 @@ public:
 #include "ast/JavaParser.h"
 #include "ast/RustParser.h"
 #include "ast/GoParser.h"
+#include "ast/KotlinParser.h"
+#include "ast/CSharpParser.h"
 private:
 };

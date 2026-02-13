@@ -1782,4 +1782,17 @@ target_link_libraries(step289_test PRIVATE
     tree_sitter_java tree_sitter_rust tree_sitter_go
     tree_sitter_org)
 
+# Phase 11a: Semanno Format + Annotation Codegen (Steps 290-296)
+foreach(STEP 290 291 292 293 294 295 296)
+    add_executable(step${STEP}_test tests/step${STEP}_test.cpp)
+    target_include_directories(step${STEP}_test PRIVATE src)
+    target_link_libraries(step${STEP}_test PRIVATE
+        nlohmann_json::nlohmann_json
+        unofficial::tree-sitter::tree-sitter
+        tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+        tree_sitter_javascript tree_sitter_typescript
+        tree_sitter_java tree_sitter_rust tree_sitter_go
+        tree_sitter_org)
+endforeach()
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

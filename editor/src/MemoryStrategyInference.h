@@ -77,7 +77,8 @@ private:
         // --- language-level defaults ---
 
         if (lang == "python" || lang == "elisp" || lang == "ruby" ||
-            lang == "javascript" || lang == "java" || lang == "csharp") {
+            lang == "javascript" || lang == "java" || lang == "csharp" ||
+            lang == "kotlin") {
             // GC languages → @Reclaim(Tracing) on the module
             out.push_back({mod->id, "ReclaimAnnotation", "Tracing",
                            lang + " uses tracing garbage collection",

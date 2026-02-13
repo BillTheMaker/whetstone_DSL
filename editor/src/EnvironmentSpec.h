@@ -6,7 +6,6 @@
 
 #include "ast/ASTNode.h"
 #include "ast/Annotation.h"
-#include "ast/Serialization.h"
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>

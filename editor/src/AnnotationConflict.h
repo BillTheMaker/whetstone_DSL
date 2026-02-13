@@ -71,3 +71,5 @@ inline void collectAnnotationConflicts(const ASTNode* node,
         collectAnnotationConflicts(child, out);
     }
 }
+
+#include "AnnotationConflictExtended.h"

@@ -1,11 +1,14 @@
 #pragma once
 #include "ProjectionGenerator.h"
 #include "Import.h"
+#include "../SemannoAnnotationImpl.h"
 #include <map>
 #include <unordered_map>
 
-class JavaGenerator : public ProjectionGenerator {
+class JavaGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<JavaGenerator> {
 public:
+    std::string commentPrefix() const { return "// "; }
+
     std::string generate(const ASTNode* node) override {
         return dispatchGenerate(this, node, "// Unknown concept: ");
     }

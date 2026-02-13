@@ -1,8 +1,11 @@
 #pragma once
 #include "ProjectionGenerator.h"
+#include "../SemannoAnnotationImpl.h"
 
-class ElispGenerator : public ProjectionGenerator {
+class ElispGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<ElispGenerator> {
 public:
+    std::string commentPrefix() const { return ";; "; }
+
     std::string generate(const ASTNode* node) override {
         return dispatchGenerate(this, node, "; Unknown concept: ");
     }

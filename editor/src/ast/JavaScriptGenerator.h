@@ -1,11 +1,14 @@
 #pragma once
 #include "ProjectionGenerator.h"
 #include "Import.h"
+#include "../SemannoAnnotationImpl.h"
 #include <unordered_map>
 #include <unordered_set>
 
-class JavaScriptGenerator : public ProjectionGenerator {
+class JavaScriptGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<JavaScriptGenerator> {
 public:
+    std::string commentPrefix() const { return "// "; }
+
     explicit JavaScriptGenerator(bool includeTypes = false)
         : includeTypes_(includeTypes) {}
 

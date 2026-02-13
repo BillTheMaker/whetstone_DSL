@@ -14,6 +14,9 @@
 #include "Import.h"
 #include "ExternalModule.h"
 #include "TypeSignature.h"
+#include "ClassDeclaration.h"
+#include "GenericType.h"
+#include "AsyncNodes.h"
 
 using json = nlohmann::json;
 
@@ -418,6 +421,49 @@ inline json propertiesToJson(const ASTNode* node) {
         if (!n->capability.empty()) props["capability"] = n->capability;
         props["required"] = n->required;
     }
+    // New AST nodes (Sprint 11c)
+    else if (ct == "ClassDeclaration") {
+        auto* n = static_cast<const ClassDeclaration*>(node);
+        props["name"] = n->name;
+        if (!n->superClass.empty()) props["superClass"] = n->superClass;
+        props["isAbstract"] = n->isAbstract;
+    }
+    else if (ct == "InterfaceDeclaration") {
+        auto* n = static_cast<const InterfaceDeclaration*>(node);
+        props["name"] = n->name;
+    }
+    else if (ct == "MethodDeclaration") {
+        auto* n = static_cast<const MethodDeclaration*>(node);
+        props["name"] = n->name;
+        if (!n->className.empty()) props["className"] = n->className;
+        props["isStatic"] = n->isStatic;
+        if (!n->visibility.empty()) props["visibility"] = n->visibility;
+        props["isOverride"] = n->isOverride;
+        props["isVirtual"] = n->isVirtual;
+    }
+    else if (ct == "GenericType") {
+        auto* n = static_cast<const GenericType*>(node);
+        props["baseName"] = n->baseName;
+    }
+    else if (ct == "TypeParameter") {
+        auto* n = static_cast<const TypeParameter*>(node);
+        props["name"] = n->name;
+        if (!n->constraint.empty()) props["constraint"] = n->constraint;
+    }
+    else if (ct == "AsyncFunction") {
+        auto* n = static_cast<const AsyncFunction*>(node);
+        props["name"] = n->name;
+        props["isAsync"] = n->isAsync;
+    }
+    // AwaitExpression — no extra properties
+    else if (ct == "LambdaExpression") {
+        auto* n = static_cast<const LambdaExpression*>(node);
+        if (!n->captureList.empty()) props["captureList"] = n->captureList;
+    }
+    else if (ct == "DecoratorAnnotation") {
+        auto* n = static_cast<const DecoratorAnnotation*>(node);
+        props["name"] = n->name;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -565,6 +611,16 @@ inline ASTNode* createNode(const std::string& conceptName) {
     // Environment Layer (Step 284-285)
     if (conceptName == "EnvironmentSpec") return new EnvironmentSpec();
     if (conceptName == "CapabilityRequirement") return new CapabilityRequirement();
+    // New AST nodes (Sprint 11c)
+    if (conceptName == "ClassDeclaration") return new ClassDeclaration();
+    if (conceptName == "InterfaceDeclaration") return new InterfaceDeclaration();
+    if (conceptName == "MethodDeclaration") return new MethodDeclaration();
+    if (conceptName == "GenericType") return new GenericType();
+    if (conceptName == "TypeParameter") return new TypeParameter();
+    if (conceptName == "AsyncFunction") return new AsyncFunction();
+    if (conceptName == "AwaitExpression") return new AwaitExpression();
+    if (conceptName == "LambdaExpression") return new LambdaExpression();
+    if (conceptName == "DecoratorAnnotation") return new DecoratorAnnotation();
     return nullptr;
 }
 
@@ -989,6 +1045,53 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
         auto* n = static_cast<CapabilityRequirement*>(node);
         if (props.contains("capability")) n->capability = props["capability"].get<std::string>();
         if (props.contains("required")) n->required = props["required"].get<bool>();
+    }
+    // New AST nodes (Sprint 11c)
+    else if (ct == "ClassDeclaration") {
+        auto* n = static_cast<ClassDeclaration*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("superClass")) n->superClass = props["superClass"].get<std::string>();
+        if (props.contains("isAbstract")) n->isAbstract = props["isAbstract"].get<bool>();
+    }
+    else if (ct == "InterfaceDeclaration") {
+        auto* n = static_cast<InterfaceDeclaration*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+    }
+    else if (ct == "MethodDeclaration") {
+        auto* n = static_cast<MethodDeclaration*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("className")) n->className = props["className"].get<std::string>();
+        if (props.contains("isStatic")) n->isStatic = props["isStatic"].get<bool>();
+        if (props.contains("visibility")) n->visibility = props["visibility"].get<std::string>();
+        if (props.contains("isOverride")) n->isOverride = props["isOverride"].get<bool>();
+        if (props.contains("isVirtual")) n->isVirtual = props["isVirtual"].get<bool>();
+    }
+    else if (ct == "GenericType") {
+        auto* n = static_cast<GenericType*>(node);
+        if (props.contains("baseName")) n->baseName = props["baseName"].get<std::string>();
+    }
+    else if (ct == "TypeParameter") {
+        auto* n = static_cast<TypeParameter*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("constraint")) n->constraint = props["constraint"].get<std::string>();
+    }
+    else if (ct == "AsyncFunction") {
+        auto* n = static_cast<AsyncFunction*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("isAsync")) n->isAsync = props["isAsync"].get<bool>();
+    }
+    // AwaitExpression — no extra properties
+    else if (ct == "LambdaExpression") {
+        auto* n = static_cast<LambdaExpression*>(node);
+        if (props.contains("captureList") && props["captureList"].is_array()) {
+            n->captureList.clear();
+            for (const auto& c : props["captureList"])
+                if (c.is_string()) n->captureList.push_back(c.get<std::string>());
+        }
+    }
+    else if (ct == "DecoratorAnnotation") {
+        auto* n = static_cast<DecoratorAnnotation*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
     }
 }
 

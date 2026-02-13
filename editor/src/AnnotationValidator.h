@@ -234,3 +234,5 @@ private:
         }
     }
 };
+
+#include "AnnotationValidatorExtended.h"

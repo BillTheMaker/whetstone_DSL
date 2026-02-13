@@ -9,3 +9,5 @@
 #include "JavaGenerator.h"
 #include "RustGenerator.h"
 #include "GoGenerator.h"
+#include "KotlinGenerator.h"
+#include "CSharpGenerator.h"

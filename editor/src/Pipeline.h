@@ -110,6 +110,14 @@ public:
             auto pr = TreeSitterParser::parseGoWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "kotlin") {
+            auto pr = TreeSitterParser::parseKotlinWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
+        } else if (language == "csharp") {
+            auto pr = TreeSitterParser::parseCSharpWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         }
         return nullptr;
     }
@@ -140,6 +148,12 @@ public:
             return gen.generate(ast);
         } else if (language == "go") {
             GoGenerator gen;
+            return gen.generate(ast);
+        } else if (language == "kotlin") {
+            KotlinGenerator gen;
+            return gen.generate(ast);
+        } else if (language == "csharp") {
+            CSharpGenerator gen;
             return gen.generate(ast);
         }
         return "";

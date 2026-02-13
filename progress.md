@@ -773,3 +773,73 @@ Generic fallback added to getSemanticAnnotations RPC for extensible annotation t
 - Lowering hint patterns: callback, std_async, coroutine, suppress_dealloc, explicit_delete, raii_cleanup, try_catch, expected, checked_throw
 - 38 MCP tools total (was 34): +whetstone_set_environment, +whetstone_get_environment, +whetstone_validate_environment, +whetstone_get_lowering_hints
 - Sprint 10 complete: all 5 phases pass (phases 10a–10e)
+
+---
+
+# Sprint 11 Progress — Dial It In
+
+## Phase 11a: Semanno Format + Annotation Codegen (Steps 290-296)
+
+### Step 290: SemannoFormat.h — Comment Format Standard (12 tests)
+**Status:** PASS (12/12 tests)
+
+`@semanno:type(key=value)` comment format standard with emitter and parser.
+Roundtrip-correct for all 8 annotation subjects + semantic core + environment.
+
+**Key files:**
+- `editor/src/SemannoFormat.h` — SemannoEmitter::emit() (67+ annotation types),
+  SemannoParser::parse() (comment prefix detection for `//`, `#`, `;;`),
+  SemannoParser::isSemannoComment(), value escaping, vector properties
+- `editor/tests/step290_test.cpp` — 12 tests: roundtrip for all 8 subjects,
+  marker annotations, vector properties, comment prefix parsing, value escaping
+
+### Step 291: ProjectionGenerator — Subject 2-4 Visitors (12 tests)
+**Status:** PASS (12/12 tests)
+
+Verifies dispatchGenerate() correctly routes Subject 2-4 annotation types
+through SemannoAnnotationImpl visitor methods (Python and C++ generators).
+
+**Key files:**
+- `editor/src/SemannoAnnotationImpl.h` — CRTP mixin with virtual inheritance
+  from AnnotationVisitorExtended, provides default visitor implementations
+  for all 56 annotation types
+- `editor/src/ast/ProjectionGenerator.h` — virtual inheritance from
+  AnnotationVisitorExtended, dispatchGenerate() template
+- `editor/tests/step291_test.cpp` — 12 tests: BitWidth, Endian, Layout,
+  Nullability, Variance, Atomic, Sync, Exec, Capture, Visibility dispatch
+
+### Step 292: ProjectionGenerator — Subject 5-8 + Semantic Visitors (12 tests)
+**Status:** PASS (12/12 tests)
+
+Verifies Subject 5-8, Semantic Core, and Environment annotation dispatch
+through all generators. Exhaustive no-Unknown checks.
+
+**Key files:**
+- `editor/tests/step292_test.cpp` — 12 tests: Intrinsic, CallingConv, Target,
+  TailCall, Loop, Meta, Synthetic, Policy, Intent, Capability dispatch
+
+### Step 293: Generator Implementations — Python/C++/Rust/Go (12 tests)
+**Status:** PASS (12/12 tests)
+
+Validates SemannoAnnotationImpl integration across Python, C++, Rust, and Go
+generators. Mixed annotation types, roundtrip verification, commentPrefix().
+
+**Key files:**
+- `editor/tests/step293_test.cpp` — 12 tests: type/concurrency/scope/shim/
+  optimization/meta/policy/semantic annotations across 4 generators
+
+### Step 294: Generator Implementations — Java/JS/Elisp (12 tests)
+**Status:** PASS (12/12 tests)
+
+Validates SemannoAnnotationImpl integration for Java, JavaScript, and Elisp
+generators. Prefix verification, annotation output, exhaustive no-Unknown check.
+
+**Key files:**
+- `editor/tests/step294_test.cpp` — 12 tests: prefix verification, annotation
+  output, roundtrip, exhaustive no-Unknown for all 56+ types
+
+**Infrastructure fixes applied:**
+- Virtual inheritance: `ProjectionGenerator : public virtual AnnotationVisitorExtended`
+  and `SemannoAnnotationImpl : public virtual AnnotationVisitorExtended` to resolve
+  diamond inheritance ambiguity in generator classes
+- Removed circular include: `EnvironmentSpec.h` no longer includes `ast/Serialization.h`

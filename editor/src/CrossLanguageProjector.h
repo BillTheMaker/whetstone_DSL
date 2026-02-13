@@ -19,6 +19,7 @@
 #include "ast/Type.h"
 #include "ast/Import.h"
 #include "ast/Annotation.h"
+#include "ast/Serialization.h"
 
 class CrossLanguageProjector {
 public:
@@ -190,6 +191,16 @@ private:
             a->idiomType = src->idiomType;
             a->rawSyntax = src->rawSyntax;
             return a;
+        }
+
+        // Generic clone: use Serialization roundtrip for all other annotation types
+        if (ct.find("Annotation") != std::string::npos ||
+            ct == "CapabilityRequirement" || ct == "HostCall" ||
+            ct == "ScheduleTask" || ct == "ModuleLoad") {
+            json nodeJson = toJson(anno);
+            nodeJson["id"] = anno->id + "_proj";
+            ASTNode* cloned = fromJson(nodeJson);
+            return cloned;
         }
 
         return nullptr;
@@ -535,7 +546,8 @@ private:
         if (targetLanguage == "rust" || targetLanguage == "cpp" ||
             targetLanguage == "java" || targetLanguage == "javascript" ||
             targetLanguage == "typescript" || targetLanguage == "python" ||
-            targetLanguage == "elisp") {
+            targetLanguage == "elisp" || targetLanguage == "kotlin" ||
+            targetLanguage == "csharp") {
             return "Tracing";
         }
         return strategy;
@@ -555,10 +567,9 @@ private:
 
         // If this is an annotation node, record its type
         const auto& ct = node->conceptType;
-        if (ct == "ReclaimAnnotation" || ct == "DeallocateAnnotation" ||
-            ct == "LifetimeAnnotation" || ct == "OwnerAnnotation" ||
-            ct == "AllocateAnnotation" || ct == "DerefStrategy" ||
-            ct == "OptimizationLock" || ct == "LangSpecific") {
+        if (ct.find("Annotation") != std::string::npos ||
+            ct == "DerefStrategy" || ct == "OptimizationLock" ||
+            ct == "LangSpecific" || ct == "CapabilityRequirement") {
             types.push_back(ct);
         }
 

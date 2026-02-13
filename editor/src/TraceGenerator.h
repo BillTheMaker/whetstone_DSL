@@ -87,7 +87,11 @@ enum class ScenarioType {
     CrossLanguage,
     Refactor,
     SecurityAudit,
-    MultiStepDebug
+    MultiStepDebug,
+    AnnotateAllSubjects,
+    ValidateAndFix,
+    SemannoExport,
+    CrossLanguageAnnotated
 };
 
 struct ScenarioParams {
@@ -136,6 +140,26 @@ static std::vector<CodeSample> getBuiltinCorpus() {
         // Rust samples
         {"rust", "fn binary_search(arr: &[i32], target: i32) -> Option<usize> {\n    let mut low = 0;\n    let mut high = arr.len();\n    while low < high {\n        let mid = low + (high - low) / 2;\n        if arr[mid] == target { return Some(mid); }\n        if arr[mid] < target { low = mid + 1; }\n        else { high = mid; }\n    }\n    None\n}\n",
          "Binary search implementation", 2},
+
+        // Kotlin samples
+        {"kotlin", "fun greet(name: String): String {\n    return \"Hello, $name!\"\n}\n\nfun sum(a: Int, b: Int): Int = a + b\n",
+         "Simple Kotlin functions", 1},
+        {"kotlin", "data class Point(val x: Double, val y: Double)\n\nfun distance(a: Point, b: Point): Double {\n    val dx = a.x - b.x\n    val dy = a.y - b.y\n    return Math.sqrt(dx * dx + dy * dy)\n}\n",
+         "Kotlin data class and math", 2},
+
+        // C# samples
+        {"csharp", "public class Calculator {\n    public int Add(int a, int b) {\n        return a + b;\n    }\n    public int Multiply(int a, int b) {\n        return a * b;\n    }\n}\n",
+         "Simple C# calculator class", 1},
+        {"csharp", "using System.Collections.Generic;\n\npublic class Stack<T> {\n    private List<T> items = new List<T>();\n    public void Push(T item) { items.Add(item); }\n    public T Pop() { var item = items[items.Count - 1]; items.RemoveAt(items.Count - 1); return item; }\n    public int Count => items.Count;\n}\n",
+         "Generic stack implementation", 2},
+
+        // Go samples
+        {"go", "package main\n\nfunc fibonacci(n int) int {\n    if n <= 1 {\n        return n\n    }\n    return fibonacci(n-1) + fibonacci(n-2)\n}\n",
+         "Recursive fibonacci", 1},
+
+        // Java samples
+        {"java", "public class StringUtils {\n    public static String reverse(String s) {\n        return new StringBuilder(s).reverse().toString();\n    }\n    public static boolean isPalindrome(String s) {\n        String rev = reverse(s);\n        return s.equals(rev);\n    }\n}\n",
+         "String utility methods", 1},
     };
 }
 
@@ -166,6 +190,14 @@ public:
                 return generateSecurityAudit(params);
             case ScenarioType::MultiStepDebug:
                 return generateMultiStepDebug(params);
+            case ScenarioType::AnnotateAllSubjects:
+                return generateAnnotateAllSubjects(params);
+            case ScenarioType::ValidateAndFix:
+                return generateValidateAndFix(params);
+            case ScenarioType::SemannoExport:
+                return generateSemannoExport(params);
+            case ScenarioType::CrossLanguageAnnotated:
+                return generateCrossLanguageAnnotated(params);
         }
         return {};
     }
@@ -179,7 +211,11 @@ public:
             ScenarioType::CrossLanguage,
             ScenarioType::Refactor,
             ScenarioType::SecurityAudit,
-            ScenarioType::MultiStepDebug
+            ScenarioType::MultiStepDebug,
+            ScenarioType::AnnotateAllSubjects,
+            ScenarioType::ValidateAndFix,
+            ScenarioType::SemannoExport,
+            ScenarioType::CrossLanguageAnnotated
         };
 
         for (int i = 0; i < count; ++i) {
@@ -479,6 +515,127 @@ private:
         trace.steps.push_back({"assistant",
             "Fixed the annotation issue. All functions now have proper memory annotations.", "", {}, {}});
 
+        return trace;
+    }
+
+    // --- Scenario: Annotate All Subjects ---
+    Trace generateAnnotateAllSubjects(const ScenarioParams& params) {
+        Trace trace;
+        trace.id = nextId();
+        trace.scenario = "annotate_all_subjects";
+        trace.difficulty = "advanced";
+        trace.language = params.language;
+        const auto& sample = pickSample(params.language);
+        trace.steps.push_back({"user",
+            "Add annotations from all 8 subjects (memory, type system, concurrency, "
+            "scope, shims, optimization, meta-programming, policy) to this code.", "", {}, {}});
+        trace.steps.push_back({"assistant",
+            "I'll analyze the code and apply annotations across all subject areas.", "", {}, {}});
+        json astResult = simulateGetAST(sample.source, params.language);
+        trace.steps.push_back({"tool_call", "", "whetstone_get_ast", json::object(), {}});
+        trace.steps.push_back({"tool_result", "", "whetstone_get_ast", {}, astResult});
+        trace.toolCallCount += 1;
+        addToolUsed(trace, "whetstone_get_ast");
+        trace.steps.push_back({"assistant",
+            "Applied annotations: @Reclaim(Tracing), @BitWidth(64), @Exec(sync), "
+            "@Visibility(public), @TailCall, @Policy(strict). All 8 subjects covered.", "", {}, {}});
+        return trace;
+    }
+
+    // --- Scenario: Validate and Fix ---
+    Trace generateValidateAndFix(const ScenarioParams& params) {
+        Trace trace;
+        trace.id = nextId();
+        trace.scenario = "validate_and_fix";
+        trace.difficulty = "intermediate";
+        trace.language = params.language;
+        trace.steps.push_back({"user",
+            "Validate all annotations and fix any conflicts or errors.", "", {}, {}});
+        trace.steps.push_back({"assistant",
+            "I'll run validation and conflict detection, then fix issues.", "", {}, {}});
+        json suggestResult = {
+            {"scopeId", "mod1"},
+            {"suggestions", json::array()},
+            {"diagnostics", json::array({{
+                {"severity", "error"},
+                {"message", "E0700: @Pure conflicts with @Blocking"},
+                {"nodeId", "fn1"}
+            }})}
+        };
+        trace.steps.push_back({"tool_call", "", "whetstone_suggest_annotations", json::object(), {}});
+        trace.steps.push_back({"tool_result", "", "whetstone_suggest_annotations", {}, suggestResult});
+        trace.toolCallCount += 1;
+        addToolUsed(trace, "whetstone_suggest_annotations");
+        trace.steps.push_back({"assistant",
+            "Found conflict E0700: @Pure vs @Blocking. Removed @Blocking to resolve.", "", {}, {}});
+        return trace;
+    }
+
+    // --- Scenario: Semanno Export ---
+    Trace generateSemannoExport(const ScenarioParams& params) {
+        Trace trace;
+        trace.id = nextId();
+        trace.scenario = "semanno_export";
+        trace.difficulty = "basic";
+        trace.language = params.language;
+        trace.steps.push_back({"user",
+            "Export the annotated code with Semanno inline comments.", "", {}, {}});
+        trace.steps.push_back({"assistant",
+            "I'll generate code with @semanno inline comments for all annotations.", "", {}, {}});
+        const auto& sample = pickSample(params.language);
+        json pipelineResult = {
+            {"success", true},
+            {"generatedCode", "// @semanno:intent(summary=\"math helpers\")\n" + sample.source},
+            {"parseDiagnostics", json::array()},
+            {"validationDiagnostics", json::array()},
+            {"violations", json::array()},
+            {"suggestions", json::array()},
+            {"foldCount", 0}, {"dceCount", 0}
+        };
+        trace.steps.push_back({"tool_call", "", "whetstone_run_pipeline",
+            {{"source", sample.source}, {"sourceLanguage", params.language},
+             {"targetLanguage", params.language}}, {}});
+        trace.steps.push_back({"tool_result", "", "whetstone_run_pipeline", {}, pipelineResult});
+        trace.toolCallCount += 1;
+        addToolUsed(trace, "whetstone_run_pipeline");
+        trace.steps.push_back({"assistant",
+            "Exported code with Semanno comments. All annotations are now "
+            "embedded as parseable inline comments.", "", {}, {}});
+        return trace;
+    }
+
+    // --- Scenario: Cross-Language Annotated ---
+    Trace generateCrossLanguageAnnotated(const ScenarioParams& params) {
+        Trace trace;
+        trace.id = nextId();
+        trace.scenario = "cross_language_annotated";
+        trace.difficulty = "advanced";
+        trace.language = params.language;
+        std::string target = (params.language == "python") ? "kotlin" :
+                             (params.language == "kotlin") ? "csharp" : "python";
+        trace.steps.push_back({"user",
+            "Project this annotated " + params.language + " code to " + target +
+            ", preserving all semantic annotations.", "", {}, {}});
+        trace.steps.push_back({"assistant",
+            "I'll project to " + target + " while ensuring annotations are preserved.", "", {}, {}});
+        json pipelineResult = {
+            {"success", true},
+            {"generatedCode", "// Generated annotated " + target + " code"},
+            {"parseDiagnostics", json::array()},
+            {"validationDiagnostics", json::array()},
+            {"violations", json::array()},
+            {"suggestions", json::array()},
+            {"foldCount", 0}, {"dceCount", 0}
+        };
+        trace.steps.push_back({"tool_call", "", "whetstone_run_pipeline",
+            {{"source", pickSample(params.language).source},
+             {"sourceLanguage", params.language}, {"targetLanguage", target}}, {}});
+        trace.steps.push_back({"tool_result", "", "whetstone_run_pipeline", {}, pipelineResult});
+        trace.toolCallCount += 1;
+        addToolUsed(trace, "whetstone_run_pipeline");
+        trace.steps.push_back({"assistant",
+            "Successfully projected to " + target + " with all annotations preserved. "
+            "Semanno comments are language-appropriate.", "", {}, {}});
         return trace;
     }
 
