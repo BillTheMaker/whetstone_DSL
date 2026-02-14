@@ -880,3 +880,33 @@ Full Phase 11a integration validation now passes end-to-end.
 - Semanno sidecar save/load integration with expected counts.
 - Language comment prefix conventions.
 - Marker annotation emission without property parentheses.
+
+---
+
+# Roadmap Planning — Sprints 12-25+
+
+## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
+
+Sprint 11 revised: Phase 11e changed from "Training Data Pipeline" to "Workflow
+Annotation Foundation" — routing annotation types (Subject 9), skeleton AST, and
+inference-to-routing bridge replace training data export (deferred to post-25).
+
+### Planning documents created:
+- `ARCHITECT.md` — Core thesis, skeleton AST concept, architecture invariants, key metrics
+- `roadmap.md` — Sprint 12-25+ high-level roadmap with post-25 training data notes
+- `sprint11_plan.md` — Revised: 11e is now workflow annotation foundation
+- `sprint12_plan.md` — Workflow Model + C++ Depth (22 steps, ~248 tests, 56+ tools)
+- `sprint13_plan.md` — GUI Overhaul Phase 1 (19 steps, ~212 tests)
+- `sprint14_plan.md` — Languages: C, WebAssembly, Common Lisp, Scheme (17 steps, ~188 tests)
+- `sprint15_plan.md` — Orchestration Engine (16 steps, ~180 tests, 68+ tools)
+- `sprint16_plan.md` — C++ Depth + Self-Hosting Phase 1 (11 steps, ~124 tests)
+- `sprint17_plan.md` — Languages: F#, VB.NET, SQL dialects (12 steps, ~136 tests)
+- `sprint18_plan.md` — Claude Code Plugin + MCP Workflow Tools (11 steps, ~124 tests, 75+ tools)
+- `sprint19_plan.md` — GUI Phase 2: Workflow Visualization (10 steps, ~112 tests)
+
+### Key architectural decisions:
+1. **Skeleton AST** = project specification before code exists (annotations on empty functions/classes)
+2. **Annotations are routing signals** — @Automatability, @ContextWidth, @Ambiguity determine worker dispatch
+3. **Orchestrator prepares context but never calls LLMs** — model-agnostic, cost-controlled
+4. **Plugin is MCP protocol** — not a proprietary binary, any MCP client can drive workflows
+5. **Training data deferred to post-25** — real workflow decisions are better training signal than synthetic pairs
