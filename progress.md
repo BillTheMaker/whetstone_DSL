@@ -1045,6 +1045,23 @@ setPropertiesFromJson).
   children (parameters/body), JSON roundtrip for all 5 types, nested class structure
   with generic + method + field roundtrip
 
+### Step 303: New AST Nodes — Async/Lambda/Decorator (12 tests)
+**Status:** PASS (12/12 tests)
+
+4 new AST node types for modern language constructs: async/await, lambdas/closures,
+and decorator annotations. Full JSON roundtrip via Serialization.h.
+
+**Key files:**
+- `editor/src/ast/AsyncNodes.h` — AsyncFunction (extends Function, isAsync flag),
+  AwaitExpression (children: expression), LambdaExpression (captureList vector;
+  children: parameters, body), DecoratorAnnotation (name; children: arguments)
+- `editor/src/ast/Serialization.h` — propertiesToJson/createNode/setPropertiesFromJson
+  for all 4 new types (captureList as JSON array)
+- `editor/tests/step303_test.cpp` — 12 tests: construction for all 4 types,
+  child roles (parameters/body/expression/arguments), JSON roundtrip for all 4,
+  captureList array preservation, async+await nested in module roundtrip,
+  lambda with captures inside function body roundtrip
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
