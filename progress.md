@@ -883,6 +883,170 @@ Full Phase 11a integration validation now passes end-to-end.
 
 ---
 
+## Phase 11b: Validation & Conflict Completion (Steps 297-301)
+
+### Step 297: AnnotationValidatorExtended — Subject 2-4 Rules (12 tests)
+**Status:** PASS (12/12 tests)
+
+Validates type system (E0600-E0608), concurrency (E0700-E0708), and scope
+(E0800-E0805) annotations with structured diagnostic codes.
+
+**Key files:**
+- `editor/src/AnnotationValidatorExtended.h` — `AnnotationValidatorExtended::validate()`
+  with `isPowerOf2()`, `isOneOf()` helpers, recursive AST walk, `hasThreadModelOnAncestor()`
+  for E0704
+- `editor/tests/step297_test.cpp` — 12 tests: BitWidth E0600 (invalid + valid),
+  Endian E0601, Layout E0602+E0603, Nullability E0604, Variance E0605,
+  Atomic E0700, Exec async E0704 (with/without ThreadModel), Capture E0802,
+  Visibility E0803, all-valid-no-diags
+
+**Rules implemented:**
+- E0600: BitWidth must be power of 2
+- E0601: Endian order must be "big" or "little"
+- E0602: Layout mode must be "packed" or "aligned"
+- E0603: Layout alignment must be power of 2
+- E0604: Nullability strategy must be "strict" or "nullable"
+- E0605: Variance must be "covariant", "contravariant", or "invariant"
+- E0606: Identity mode must be "nominal" or "structural"
+- E0607: Mut depth must be "shallow", "deep", or "interior"
+- E0608: TypeState must be "erased" or "reified"
+- E0700: Atomic consistency must be valid ordering
+- E0701: Sync primitive must be "monitor", "spin", or "semaphore"
+- E0702: ThreadModel must be "green", "os", or "fiber"
+- E0703: Exec mode must be "async" or "event"
+- E0704: Exec(async) requires ThreadModel on ancestor
+- E0705: Blocking kind must be "io" or "compute"
+- E0706: Parallel kind must be "data" or "task"
+- E0707: Exception style must be "checked" or "unchecked"
+- E0708: Panic behavior must be "abort" or "unwind"
+- E0800: Binding time must be "static" or "dynamic"
+- E0801: Lookup mode must be "lexical" or "hoisted"
+- E0802: Capture strategy must be "value", "ref", or "move"
+- E0803: Visibility must be "private", "internal", "friend", or "public"
+- E0804: Namespace style must be "qualified" or "flat"
+- E0805: Scope kind must be "local", "global_leaked", or "singleton"
+
+### Step 298: AnnotationValidatorExtended — Subject 5-8 Rules (12 tests)
+**Status:** PASS (12/12 tests)
+
+Validates shim/FFI (E0900-E0901), optimization (E1000-E1004), meta-programming
+(E1100-E1104), and policy (E1200-E1202) annotations.
+
+**Key files:**
+- `editor/src/AnnotationValidatorExtended.h` — extended with Subject 5-8 branches
+- `editor/tests/step298_test.cpp` — 12 tests: CallingConv E0900, Shim E0901,
+  Inline+TailCall E1000 (Always vs Hint), Loop hint E1001, Loop factor E1002,
+  Align E1003, Overflow E1004, Meta state E1100, Template E1104,
+  Policy strictness E1200, all-valid-no-diags
+
+**Rules implemented:**
+- E0900: CallingConv must be "stdcall", "cdecl", or "fastcall"
+- E0901: Shim strategy must be "vtable", "trampoline", "union_tag", or "cast"
+- E1000: Inline(Always) conflicts with TailCall
+- E1001: Loop hint must be "unroll", "vectorize", or "fuse"
+- E1002: Loop unroll factor must be positive
+- E1003: Align bytes must be positive power of 2
+- E1004: Overflow behavior must be "wrap", "saturation", or "panic"
+- E1100: Meta state must be "quoted" or "unquoted"
+- E1101: Meta phase must be "compile" or "runtime"
+- E1102: Symbol mode must be "gensym" or "interned"
+- E1103: Evaluate phase must be "compile_time" or "runtime"
+- E1104: Template specialization must be "trait", "monomorphize", or "erasure"
+- E1200: Policy strictness must be "high" or "low"
+- E1201: Policy perf must be "critical" or "normal"
+- E1202: Policy style must be "idiomatic" or "literal"
+
+### Step 299: Cross-Type Annotation Conflict Detection (12 tests)
+**Status:** PASS (12/12 tests)
+
+Detects semantic conflicts between different annotation families on the same node.
+Extends AnnotationConflict.h (which handles same-family parent/child conflicts)
+with cross-type detection.
+
+**Key files:**
+- `editor/src/AnnotationConflictExtended.h` — `CrossTypeConflict` struct,
+  `collectCrossTypeConflicts()` with conditional lambda predicates, recursive
+  child traversal
+- `editor/tests/step299_test.cpp` — 12 tests: 6 conflict pairs detected,
+  4 no-false-positive tests (Capture value, ConstExpr+event, Inline Hint,
+  Pack+packed), recursive child detection, multiple conflicts on same node
+
+**Conflict pairs:**
+1. @Pure + @Blocking — purity violated by blocking behavior
+2. @Atomic + @Sync — conflicting synchronization models
+3. @Capture(move) + @Owner(Shared_ARC) — move semantics incompatible with shared ref counting
+4. @ConstExpr + @Exec(async) — compile-time eval can't be async
+5. @Inline(Always) + @TailCall — inlining defeats tail call optimization
+6. @Pack + @Layout(aligned) — packing and alignment contradict
+
+### Step 300: TransformEngineExtended (12 tests)
+**Status:** PASS (12/12 tests)
+
+Extended transform engine with float constant folding, dead variable elimination,
+and annotation-aware optimization that respects @OptimizationLock and @BoundsCheck.
+
+**Key files:**
+- `editor/src/TransformEngineExtended.h` — extends TransformEngine with
+  `floatConstantFolding()` (bottom-up BinaryOperation folding on FloatLiterals),
+  `deadVariableElimination()` (removes unreferenced Variable declarations),
+  `annotationAwareOptimize()` (skips OptimizationLock/BoundsCheck-protected nodes),
+  `applyAllExtended()` (runs all 3 transforms)
+- `editor/tests/step300_test.cpp` — 12 tests: float add/mul folding, div-by-zero
+  safety, dead var removal, used var preservation, OptimizationLock blocking,
+  BoundsCheck skipping, nested float fold, multiple dead vars, applyAllExtended,
+  nodesModified count accuracy
+
+### Step 301: Phase 11b Integration Tests (8 tests)
+**Status:** PASS (8/8 tests)
+
+End-to-end integration tests for the full validation + conflict + transform pipeline.
+
+**Key files:**
+- `editor/tests/step301_test.cpp` — 8 integration tests:
+  1. Extended E06xx-E12xx codes appear in collectAllDiagnostics
+  2. Valid AST produces 0 diagnostics (no regressions)
+  3. Cross-type conflicts (E0210) appear in diagnostic output
+  4. Structured JSON fields correct (code/severity/nodeId/source)
+  5. Combined extended validation + cross-type conflict on same AST
+  6. annotationErrorCode extracts embedded [Exxxx] codes correctly
+  7. Pipeline wiring: validator + conflict API work together
+  8. Exhaustive coverage: all 7 subjects produce diagnostics for invalid input
+
+**Key results:**
+- Phase 11b complete: all 5 steps pass (56/56 tests across steps 297–301)
+- 33+ annotation types with explicit validation rules (E0600-E1202)
+- 6 cross-type conflict pairs detected with conditional predicates
+- Float constant folding, dead variable elimination, annotation-aware optimization
+- No regressions on existing E01xx-E05xx diagnostics
+
+---
+
+## Phase 11c: Parser Deepening (Steps 302-308)
+
+### Step 302: New AST Nodes — Class/Interface/Generic (12 tests)
+**Status:** PASS (12/12 tests)
+
+5 new AST node types for structured OOP and generic programming support.
+Full JSON roundtrip via Serialization.h (propertiesToJson, createNode,
+setPropertiesFromJson).
+
+**Key files:**
+- `editor/src/ast/ClassDeclaration.h` — ClassDeclaration (name, superClass,
+  isAbstract; children: interfaces, fields, methods, annotations),
+  InterfaceDeclaration (name; children: methods, annotations),
+  MethodDeclaration (extends Function with className, isStatic, visibility,
+  isOverride, isVirtual)
+- `editor/src/ast/GenericType.h` — GenericType (baseName; children: typeParameters),
+  TypeParameter (name, constraint)
+- `editor/src/ast/Serialization.h` — propertiesToJson/createNode/setPropertiesFromJson
+  for all 5 new types
+- `editor/tests/step302_test.cpp` — 12 tests: construction + properties for all 5
+  types, child roles (methods/fields/interfaces), MethodDeclaration inherits Function
+  children (parameters/body), JSON roundtrip for all 5 types, nested class structure
+  with generic + method + field roundtrip
+
+---
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

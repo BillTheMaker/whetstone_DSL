@@ -21,6 +21,8 @@
 #include "ast/Parser.h"
 #include "ast/Import.h"
 #include "AnnotationValidator.h"
+#include "AnnotationValidatorExtended.h"
+#include "AnnotationConflictExtended.h"
 #include "StrategyValidator.h"
 #include "Pipeline.h"
 
@@ -94,8 +96,14 @@ inline std::string parseErrorCode(const std::string& message) {
     return "E0100";
 }
 
-// Annotation validation: E0200..E0203
+// Annotation validation: E0200..E0203, E0600+ (extended)
 inline std::string annotationErrorCode(const std::string& message) {
+    // Check for embedded [Exxxx] codes first (extended validator)
+    auto pos = message.find("[E");
+    if (pos != std::string::npos && pos + 6 <= message.size()) {
+        return message.substr(pos + 1, 5);  // extract "E0600" from "[E0600]"
+    }
+    // Original memory annotation codes
     if (message.find("Missing Intent") != std::string::npos)
         return "E0200";
     if (message.find("aliased") != std::string::npos ||
@@ -224,6 +232,25 @@ inline std::vector<StructuredDiagnostic> collectAllDiagnostics(
     auto annoDiags = annoValidator.validate(ast);
     auto annoStructured = collectAnnotationDiagnostics(annoDiags);
     all.insert(all.end(), annoStructured.begin(), annoStructured.end());
+
+    // Extended annotation validation (Subjects 2-8)
+    AnnotationValidatorExtended extValidator;
+    auto extDiags = extValidator.validate(ast);
+    auto extStructured = collectAnnotationDiagnostics(extDiags);
+    all.insert(all.end(), extStructured.begin(), extStructured.end());
+
+    // Cross-type annotation conflict detection
+    std::vector<CrossTypeConflict> crossConflicts;
+    collectCrossTypeConflicts(ast, crossConflicts);
+    for (const auto& c : crossConflicts) {
+        StructuredDiagnostic sd;
+        sd.code = "E0210";
+        sd.severity = DiagnosticSeverity::Error;
+        sd.nodeId = c.nodeId;
+        sd.message = c.type1 + " + " + c.type2 + ": " + c.message;
+        sd.source = "annotation";
+        all.push_back(std::move(sd));
+    }
 
     // Strategy validation (post-optimization invariants)
     StrategyValidator stratValidator;

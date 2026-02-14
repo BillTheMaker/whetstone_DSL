@@ -1795,4 +1795,22 @@ foreach(STEP 290 291 292 293 294 295 296)
         tree_sitter_org)
 endforeach()
 
+# Phase 11b: Validation & Conflict Completion (Steps 297-301)
+foreach(STEP 297 298 299 300 301)
+    add_executable(step${STEP}_test tests/step${STEP}_test.cpp)
+    target_include_directories(step${STEP}_test PRIVATE src)
+    target_link_libraries(step${STEP}_test PRIVATE
+        nlohmann_json::nlohmann_json
+        unofficial::tree-sitter::tree-sitter
+        tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+        tree_sitter_javascript tree_sitter_typescript
+        tree_sitter_java tree_sitter_rust tree_sitter_go
+        tree_sitter_org)
+endforeach()
+
+# Phase 11c: Parser Deepening (Steps 302-308)
+add_executable(step302_test tests/step302_test.cpp)
+target_include_directories(step302_test PRIVATE src)
+target_link_libraries(step302_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
