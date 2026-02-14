@@ -903,6 +903,19 @@ inference-to-routing bridge replace training data export (deferred to post-25).
 - `sprint17_plan.md` — Languages: F#, VB.NET, SQL dialects (12 steps, ~136 tests)
 - `sprint18_plan.md` — Claude Code Plugin + MCP Workflow Tools (11 steps, ~124 tests, 75+ tools)
 - `sprint19_plan.md` — GUI Phase 2: Workflow Visualization (10 steps, ~112 tests)
+- `sprint20_plan.md` — Legacy Code Ingestion (11 steps, ~124 tests)
+- `sprint21_plan.md` — Cross-Language Transpilation Engine (11 steps, ~124 tests, 83+ tools)
+- `sprint22_plan.md` — Languages: Assembly + C++ remaining gaps (11 steps, ~124 tests)
+- `sprint23_plan.md` — Architect Mode + Tech Stack Selection (11 steps, ~124 tests, 87+ tools)
+- `sprint24_plan.md` — Security + Static Analysis (11 steps, ~124 tests, 90+ tools)
+- `sprint25_plan.md` — Integration, Self-Hosting, Polish (16 steps, ~180 tests)
+
+### Cumulative projections (Sprints 9-25):
+- **Steps:** ~508 (245-508)
+- **Tests:** ~5000+
+- **Languages:** 19+ parsers and generators
+- **MCP Tools:** 90+
+- **Annotation Types:** 80+ across 10 subjects
 
 ### Key architectural decisions:
 1. **Skeleton AST** = project specification before code exists (annotations on empty functions/classes)
