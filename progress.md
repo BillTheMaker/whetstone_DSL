@@ -1062,6 +1062,28 @@ and decorator annotations. Full JSON roundtrip via Serialization.h.
   captureList array preservation, async+await nested in module roundtrip,
   lambda with captures inside function body roundtrip
 
+### Step 304: Serialization + Dispatch for New Nodes (12 tests)
+**Status:** PASS (12/12 tests)
+
+All 9 new AST node types (ClassDeclaration, InterfaceDeclaration, MethodDeclaration,
+GenericType, TypeParameter, AsyncFunction, AwaitExpression, LambdaExpression,
+DecoratorAnnotation) dispatch through PythonGenerator and CppGenerator with
+language-appropriate output. JSON roundtrip preserves dispatch output identity.
+
+**Key files:**
+- `editor/src/ast/PythonGenerator.h` — 9 visitor implementations: class→`class Name(Super):`,
+  interface→`class Name(ABC):`, method→`def name(self):`, generic→`Name[T]`,
+  async→`async def name():`, await→`await expr`, lambda→`lambda x: body`,
+  decorator→`@name(args)`
+- `editor/src/ast/CppGeneratorTypes.h` — 9 visitor implementations: class→`class Name : public Super {}`,
+  interface→`class Name {}`, method→`virtual void name()`, generic→`Name<T>`,
+  async→`std::future<void> name()`, await→`co_await expr`, lambda→`[captures](auto x) { body }`,
+  decorator→`// @name`
+- `editor/src/ast/ProjectionGenerator.h` — dispatchGenerate branches for all 9 types (lines 322-339)
+- `editor/tests/step304_test.cpp` — 12 tests: per-type Python+C++ dispatch (9 types),
+  nested class-with-methods dispatch, async-with-await nested dispatch,
+  all-9-types JSON roundtrip→dispatch identity check
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
