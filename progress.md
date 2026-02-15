@@ -1245,6 +1245,26 @@ by priority (critical first) then creation time.
 **Files modified:**
 - `editor/CMakeLists.txt` — step321_test target
 
+### Step 322: WorkflowState — Project-Level Workflow Tracking
+**Status:** PASS (12/12 tests)
+
+Top-level state managing the full workflow lifecycle for a project: from skeleton
+creation through routing, execution, review, and completion. Auto-detects phase
+from item statuses, tracks audit trail, computes stats.
+
+**Files created:**
+- `editor/src/WorkflowState.h` — WorkflowPhase enum (Modeling/Routing/Executing/
+  Reviewing/Complete), StatusChange audit trail struct, WorkflowStats struct,
+  WorkflowState class with populateFromSkeleton, getStats, getPhase (auto-computed),
+  getHistory, recordChange, toJson/fromJson
+- `editor/tests/step322_test.cpp` — 12 tests: populate from skeleton, phase
+  auto-detection (empty, all pending, executing, reviewing, complete), stats
+  accuracy, history tracking, JSON roundtrip, empty workflow, phase transitions
+  through lifecycle, populate records history
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step322_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

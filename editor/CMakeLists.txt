@@ -1926,4 +1926,9 @@ add_executable(step321_test tests/step321_test.cpp)
 target_include_directories(step321_test PRIVATE src)
 target_link_libraries(step321_test PRIVATE nlohmann_json::nlohmann_json)
 
+# Step 322: WorkflowState — Project-Level Workflow Tracking
+add_executable(step322_test tests/step322_test.cpp)
+target_include_directories(step322_test PRIVATE src)
+target_link_libraries(step322_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
