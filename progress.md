@@ -1265,6 +1265,25 @@ from item statuses, tracks audit trail, computes stats.
 **Files modified:**
 - `editor/CMakeLists.txt` — step322_test target
 
+### Step 323: Workflow Sidecar Persistence
+**Status:** PASS (12/12 tests)
+
+Save and load workflow state to `.whetstone/<project>.workflow.json` so
+workflows survive across sessions. Handles directory creation, overwrite,
+delete, and multiple workflows in the same workspace.
+
+**Files created:**
+- `editor/src/WorkflowPersistence.h` — SaveResult struct, workflowSidecarPath,
+  ensureDirectoryExists, saveWorkflow (serialize + write), loadWorkflow
+  (read + deserialize, nullopt if missing), deleteWorkflow
+- `editor/tests/step323_test.cpp` — 12 tests: save/load roundtrip, all fields
+  preserved, history preserved, missing file nullopt, directory creation,
+  delete removes file, multiple workflows, results preserved, empty workflow,
+  sidecar path format, overwrite, delete nonexistent
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step323_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
