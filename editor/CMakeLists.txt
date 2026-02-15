@@ -1821,4 +1821,13 @@ add_executable(step304_test tests/step304_test.cpp)
 target_include_directories(step304_test PRIVATE src)
 target_link_libraries(step304_test PRIVATE nlohmann_json::nlohmann_json)
 
+# Step 305: Python + Java Parser Deepening
+add_executable(step305_test tests/step305_test.cpp)
+target_include_directories(step305_test PRIVATE src)
+target_link_libraries(step305_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python
+    tree_sitter_java)
+
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

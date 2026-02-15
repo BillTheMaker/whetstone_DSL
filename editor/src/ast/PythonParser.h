@@ -45,7 +45,7 @@ public:
 
     // ---------------------------------------------------------------
 private:
-    //  Python CST â†’ AST
+    //  Python CST -> AST
     // ---------------------------------------------------------------
     static void convertPythonModule(TSNode root, const std::string& source, Module* module) {
         uint32_t count = ts_node_named_child_count(root);
@@ -55,20 +55,38 @@ private:
             if (type == "function_definition") {
                 auto* fn = convertPythonFunction(child, source);
                 if (fn) module->addChild("functions", fn);
+            } else if (type == "class_definition") {
+                auto* cls = convertPythonClass(child, source);
+                if (cls) module->addChild("classes", cls);
+            } else if (type == "decorated_definition") {
+                convertPythonDecorated(child, source, module);
             }
         }
     }
 
     static Function* convertPythonFunction(TSNode node, const std::string& source) {
-        // Get function name
         TSNode nameNode = childByFieldName(node, "name");
         if (ts_node_is_null(nameNode)) return nullptr;
 
-        auto* fn = new Function();
-        fn->id = IdGenerator::next("fn");
-        applySpan(fn, node);
-        applySpan(fn, node);
-        fn->name = nodeText(nameNode, source);
+        // Detect async keyword (non-named child with text "async")
+        bool isAsync = false;
+        uint32_t totalCount = ts_node_child_count(node);
+        for (uint32_t i = 0; i < totalCount; ++i) {
+            TSNode ch = ts_node_child(node, i);
+            if (!ts_node_is_named(ch) && nodeText(ch, source) == "async") {
+                isAsync = true;
+                break;
+            }
+        }
+
+        Function* fn;
+        if (isAsync) {
+            fn = new AsyncFunction(IdGenerator::next("fn"), nodeText(nameNode, source));
+        } else {
+            fn = new Function();
+            fn->id = IdGenerator::next("fn");
+            fn->name = nodeText(nameNode, source);
+        }
         applySpan(fn, node);
 
         // Parameters
@@ -90,6 +108,136 @@ private:
         return fn;
     }
 
+    static ClassDeclaration* convertPythonClass(TSNode node, const std::string& source) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+
+        auto* cls = new ClassDeclaration(IdGenerator::next("cls"), nodeText(nameNode, source));
+        applySpan(cls, node);
+
+        // Superclasses — first argument is the primary superclass
+        TSNode superNode = childByFieldName(node, "superclasses");
+        if (!ts_node_is_null(superNode)) {
+            uint32_t sc = ts_node_named_child_count(superNode);
+            if (sc > 0) {
+                cls->superClass = nodeText(ts_node_named_child(superNode, 0), source);
+            }
+        }
+
+        // Body — extract methods
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            uint32_t count = ts_node_named_child_count(bodyNode);
+            for (uint32_t i = 0; i < count; ++i) {
+                TSNode child = ts_node_named_child(bodyNode, i);
+                std::string type = nodeType(child);
+                if (type == "function_definition") {
+                    auto* meth = convertPythonMethodDecl(child, source, cls->name);
+                    if (meth) cls->addChild("methods", meth);
+                } else if (type == "decorated_definition") {
+                    TSNode defNode = childByFieldName(child, "definition");
+                    if (!ts_node_is_null(defNode) && nodeType(defNode) == "function_definition") {
+                        auto* meth = convertPythonMethodDecl(defNode, source, cls->name);
+                        if (meth) {
+                            // Attach decorators
+                            uint32_t dc = ts_node_named_child_count(child);
+                            for (uint32_t j = 0; j < dc; ++j) {
+                                TSNode dChild = ts_node_named_child(child, j);
+                                if (nodeType(dChild) == "decorator") {
+                                    auto* dec = convertPythonDecoratorNode(dChild, source);
+                                    if (dec) meth->addChild("annotations", dec);
+                                }
+                            }
+                            cls->addChild("methods", meth);
+                        }
+                    }
+                }
+            }
+        }
+
+        return cls;
+    }
+
+    static MethodDeclaration* convertPythonMethodDecl(TSNode node, const std::string& source,
+                                                       const std::string& className) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+
+        auto* meth = new MethodDeclaration(IdGenerator::next("meth"), nodeText(nameNode, source));
+        applySpan(meth, node);
+        meth->className = className;
+
+        // Parameters
+        TSNode paramsNode = childByFieldName(node, "parameters");
+        if (!ts_node_is_null(paramsNode)) {
+            convertPythonParameters(paramsNode, source, meth);
+        }
+
+        // Body
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            convertPythonBody(bodyNode, source, meth);
+        }
+
+        return meth;
+    }
+
+    static void convertPythonDecorated(TSNode node, const std::string& source, Module* module) {
+        // Collect decorators
+        std::vector<DecoratorAnnotation*> decorators;
+        uint32_t count = ts_node_named_child_count(node);
+        for (uint32_t i = 0; i < count; ++i) {
+            TSNode child = ts_node_named_child(node, i);
+            if (nodeType(child) == "decorator") {
+                auto* dec = convertPythonDecoratorNode(child, source);
+                if (dec) decorators.push_back(dec);
+            }
+        }
+
+        // Get the wrapped definition
+        TSNode defNode = childByFieldName(node, "definition");
+        if (ts_node_is_null(defNode)) {
+            for (auto* d : decorators) delete d;
+            return;
+        }
+
+        std::string defType = nodeType(defNode);
+        if (defType == "function_definition") {
+            auto* fn = convertPythonFunction(defNode, source);
+            if (fn) {
+                for (auto* dec : decorators) fn->addChild("annotations", dec);
+                module->addChild("functions", fn);
+            } else {
+                for (auto* d : decorators) delete d;
+            }
+        } else if (defType == "class_definition") {
+            auto* cls = convertPythonClass(defNode, source);
+            if (cls) {
+                for (auto* dec : decorators) cls->addChild("annotations", dec);
+                module->addChild("classes", cls);
+            } else {
+                for (auto* d : decorators) delete d;
+            }
+        } else {
+            for (auto* d : decorators) delete d;
+        }
+    }
+
+    static DecoratorAnnotation* convertPythonDecoratorNode(TSNode node, const std::string& source) {
+        uint32_t dc = ts_node_named_child_count(node);
+        if (dc == 0) return nullptr;
+        TSNode exprNode = ts_node_named_child(node, 0);
+        std::string name = nodeText(exprNode, source);
+        // For call decorators like @app.route("/"), extract the function name
+        if (nodeType(exprNode) == "call") {
+            TSNode funcNode = childByFieldName(exprNode, "function");
+            if (!ts_node_is_null(funcNode)) name = nodeText(funcNode, source);
+        }
+        auto* dec = new DecoratorAnnotation(IdGenerator::next("dec"), name);
+        applySpan(dec, node);
+        return dec;
+    }
+
     static void convertPythonParameters(TSNode paramsNode, const std::string& source, Function* fn) {
         uint32_t count = ts_node_named_child_count(paramsNode);
         for (uint32_t i = 0; i < count; ++i) {
@@ -100,7 +248,6 @@ private:
                 applySpan(param, child);
                 fn->addChild("parameters", param);
             } else if (type == "default_parameter") {
-                // def f(x=10) â†’ Parameter with defaultValue
                 TSNode nameN = childByFieldName(child, "name");
                 TSNode valueN = childByFieldName(child, "value");
                 if (!ts_node_is_null(nameN)) {
@@ -117,7 +264,6 @@ private:
     }
 
     static void convertPythonBody(TSNode bodyNode, const std::string& source, Function* fn) {
-        // bodyNode is typically a "block" node
         uint32_t count = ts_node_named_child_count(bodyNode);
         for (uint32_t i = 0; i < count; ++i) {
             TSNode child = ts_node_named_child(bodyNode, i);
@@ -132,7 +278,6 @@ private:
             auto* ret = new Return();
             ret->id = IdGenerator::next("ret");
             applySpan(ret, node);
-            // The return value is the first named child (if any)
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) {
                 TSNode valNode = ts_node_named_child(node, 0);
@@ -240,7 +385,6 @@ private:
             applySpan(lit, node);
             return lit;
         } else if (type == "comparison_operator" || type == "boolean_operator") {
-            // Treat like binary op
             auto* binOp = new BinaryOperation();
             binOp->id = IdGenerator::next("binop");
             applySpan(binOp, node);
@@ -251,7 +395,6 @@ private:
                 ASTNode* right = convertPythonExpression(ts_node_named_child(node, count - 1), source);
                 if (right) binOp->setChild("right", right);
             }
-            // Operator is a non-named child between the named ones
             uint32_t totalCount = ts_node_child_count(node);
             for (uint32_t i = 0; i < totalCount; ++i) {
                 TSNode c = ts_node_child(node, i);
@@ -281,6 +424,21 @@ private:
                 }
             }
             return call;
+        } else if (type == "assignment") {
+            auto* assign = new Assignment();
+            assign->id = IdGenerator::next("assign");
+            applySpan(assign, node);
+            TSNode leftNode = childByFieldName(node, "left");
+            TSNode rightNode = childByFieldName(node, "right");
+            if (!ts_node_is_null(leftNode)) {
+                ASTNode* target = convertPythonExpression(leftNode, source);
+                if (target) assign->setChild("target", target);
+            }
+            if (!ts_node_is_null(rightNode)) {
+                ASTNode* value = convertPythonExpression(rightNode, source);
+                if (value) assign->setChild("value", value);
+            }
+            return assign;
         } else if (type == "parenthesized_expression") {
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) return convertPythonExpression(ts_node_named_child(node, 0), source);
@@ -298,6 +456,41 @@ private:
                 if (operand) unOp->setChild("operand", operand);
             }
             return unOp;
+        } else if (type == "await") {
+            auto* awExpr = new AwaitExpression(IdGenerator::next("await"));
+            applySpan(awExpr, node);
+            uint32_t count = ts_node_named_child_count(node);
+            if (count > 0) {
+                ASTNode* expr = convertPythonExpression(ts_node_named_child(node, 0), source);
+                if (expr) awExpr->setChild("expression", expr);
+            }
+            return awExpr;
+        } else if (type == "lambda") {
+            auto* lam = new LambdaExpression(IdGenerator::next("lam"));
+            applySpan(lam, node);
+            TSNode paramsNode = childByFieldName(node, "parameters");
+            if (!ts_node_is_null(paramsNode)) {
+                uint32_t pc = ts_node_named_child_count(paramsNode);
+                for (uint32_t i = 0; i < pc; ++i) {
+                    TSNode pChild = ts_node_named_child(paramsNode, i);
+                    if (nodeType(pChild) == "identifier") {
+                        auto* param = new Parameter(IdGenerator::next("param"), nodeText(pChild, source));
+                        applySpan(param, pChild);
+                        lam->addChild("parameters", param);
+                    }
+                }
+            }
+            TSNode bodyNode = childByFieldName(node, "body");
+            if (!ts_node_is_null(bodyNode)) {
+                ASTNode* bodyExpr = convertPythonExpression(bodyNode, source);
+                if (bodyExpr) {
+                    auto* exprStmt = new ExpressionStatement();
+                    exprStmt->id = IdGenerator::next("exprstmt");
+                    exprStmt->setChild("expression", bodyExpr);
+                    lam->addChild("body", exprStmt);
+                }
+            }
+            return lam;
         }
         // Fallback: treat as variable reference with raw text
         std::string text = nodeText(node, source);

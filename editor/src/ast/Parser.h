@@ -9,6 +9,9 @@
 #include "Expression.h"
 #include "Type.h"
 #include "Annotation.h"
+#include "ClassDeclaration.h"
+#include "GenericType.h"
+#include "AsyncNodes.h"
 #include <string>
 #include <memory>
 #include <vector>
@@ -153,7 +156,9 @@ public:
 #include "ast/JavaParser.h"
 #include "ast/RustParser.h"
 #include "ast/GoParser.h"
-#include "ast/KotlinParser.h"
-#include "ast/CSharpParser.h"
 private:
 };
+
+// Standalone parsers (not tree-sitter fragment includes)
+#include "ast/KotlinParser.h"
+#include "ast/CSharpParser.h"

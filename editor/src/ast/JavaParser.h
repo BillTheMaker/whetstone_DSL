@@ -83,16 +83,65 @@ private:
     static void convertJavaTypeDeclaration(TSNode node,
                                            const std::string& source,
                                            Module* module) {
+        std::string jtype = nodeType(node);
         TSNode nameNode = childByFieldName(node, "name");
         std::string className = nodeText(nameNode, source);
         TSNode bodyNode = childByFieldName(node, "body");
         if (ts_node_is_null(bodyNode)) return;
 
+        // Create ClassDeclaration or InterfaceDeclaration for supported types
+        ClassDeclaration* cls = nullptr;
+        InterfaceDeclaration* iface = nullptr;
+
+        if (jtype == "class_declaration") {
+            cls = new ClassDeclaration(IdGenerator::next("cls"), className);
+            applySpan(cls, node);
+
+            // Superclass
+            TSNode superNode = childByFieldName(node, "superclass");
+            if (!ts_node_is_null(superNode)) {
+                uint32_t sc = ts_node_named_child_count(superNode);
+                if (sc > 0) cls->superClass = nodeText(ts_node_named_child(superNode, 0), source);
+            }
+
+            // Abstract check
+            uint32_t nodeChildren = ts_node_named_child_count(node);
+            for (uint32_t i = 0; i < nodeChildren; ++i) {
+                TSNode ch = ts_node_named_child(node, i);
+                if (nodeType(ch) == "modifiers") {
+                    uint32_t mc = ts_node_child_count(ch);
+                    for (uint32_t j = 0; j < mc; ++j) {
+                        if (nodeText(ts_node_child(ch, j), source) == "abstract")
+                            cls->isAbstract = true;
+                    }
+                }
+            }
+
+            // Type parameters
+            TSNode typeParamsNode = childByFieldName(node, "type_parameters");
+            if (!ts_node_is_null(typeParamsNode)) {
+                convertJavaTypeParameters(typeParamsNode, source, cls);
+            }
+        } else if (jtype == "interface_declaration") {
+            iface = new InterfaceDeclaration(IdGenerator::next("iface"), className);
+            applySpan(iface, node);
+        }
+
+        // Process body members
         uint32_t count = ts_node_named_child_count(bodyNode);
         for (uint32_t i = 0; i < count; ++i) {
             TSNode child = ts_node_named_child(bodyNode, i);
             std::string type = nodeType(child);
             if (type == "method_declaration") {
+                // MethodDeclaration for class/interface hierarchy
+                if (cls) {
+                    auto* meth = convertJavaMethodDeclaration(child, source, className);
+                    if (meth) cls->addChild("methods", meth);
+                } else if (iface) {
+                    auto* meth = convertJavaMethodDeclaration(child, source, className);
+                    if (meth) iface->addChild("methods", meth);
+                }
+                // Backward compat: also add Function to module
                 auto* fn = convertJavaMethod(child, source, className);
                 if (fn) module->addChild("functions", fn);
             } else if (type == "constructor_declaration" || type == "compact_constructor_declaration") {
@@ -106,6 +155,86 @@ private:
                 convertJavaTypeDeclaration(child, source, module);
             }
         }
+
+        // Add class/interface to module
+        if (cls) module->addChild("classes", cls);
+        if (iface) module->addChild("classes", iface);
+    }
+
+    static void convertJavaTypeParameters(TSNode typeParamsNode, const std::string& source,
+                                           ClassDeclaration* cls) {
+        uint32_t tpc = ts_node_named_child_count(typeParamsNode);
+        for (uint32_t i = 0; i < tpc; ++i) {
+            TSNode tp = ts_node_named_child(typeParamsNode, i);
+            if (nodeType(tp) == "type_parameter") {
+                std::string tpName;
+                std::string constraint;
+                uint32_t tpcc = ts_node_named_child_count(tp);
+                for (uint32_t j = 0; j < tpcc; ++j) {
+                    TSNode tpChild = ts_node_named_child(tp, j);
+                    std::string tpType = nodeType(tpChild);
+                    if ((tpType == "identifier" || tpType == "type_identifier") && tpName.empty()) {
+                        tpName = nodeText(tpChild, source);
+                    } else if (tpType == "type_bound") {
+                        if (ts_node_named_child_count(tpChild) > 0) {
+                            constraint = nodeText(ts_node_named_child(tpChild, 0), source);
+                        }
+                    }
+                }
+                if (!tpName.empty()) {
+                    auto* typeParam = new TypeParameter(IdGenerator::next("tp"), tpName);
+                    typeParam->constraint = constraint;
+                    applySpan(typeParam, tp);
+                    cls->addChild("typeParameters", typeParam);
+                }
+            }
+        }
+    }
+
+    static MethodDeclaration* convertJavaMethodDeclaration(TSNode node,
+                                                            const std::string& source,
+                                                            const std::string& className) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+
+        auto* meth = new MethodDeclaration(IdGenerator::next("meth"), nodeText(nameNode, source));
+        applySpan(meth, node);
+        meth->className = className;
+
+        TSNode typeNode = childByFieldName(node, "type");
+        if (!ts_node_is_null(typeNode)) {
+            if (auto* t = convertJavaType(typeNode, source)) meth->setChild("returnType", t);
+        }
+
+        TSNode paramsNode = childByFieldName(node, "parameters");
+        if (!ts_node_is_null(paramsNode)) {
+            convertJavaParameters(paramsNode, source, meth);
+        }
+
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            convertJavaBlockStatements(bodyNode, source, meth);
+        }
+
+        // Check modifiers for visibility, static, abstract
+        uint32_t allCount = ts_node_named_child_count(node);
+        for (uint32_t i = 0; i < allCount; ++i) {
+            TSNode child = ts_node_named_child(node, i);
+            if (nodeType(child) == "modifiers") {
+                uint32_t mc = ts_node_child_count(child);
+                for (uint32_t j = 0; j < mc; ++j) {
+                    TSNode mod = ts_node_child(child, j);
+                    std::string modText = nodeText(mod, source);
+                    if (modText == "static") meth->isStatic = true;
+                    else if (modText == "public") meth->visibility = "public";
+                    else if (modText == "private") meth->visibility = "private";
+                    else if (modText == "protected") meth->visibility = "protected";
+                    else if (modText == "abstract") meth->isVirtual = true;
+                }
+            }
+        }
+
+        return meth;
     }
 
     static void convertJavaFieldDeclaration(TSNode node,
@@ -512,9 +641,49 @@ private:
                 return convertJavaExpression(ts_node_named_child(node, 0), source);
             }
         } else if (type == "lambda_expression") {
-            auto* ref = new VariableReference(IdGenerator::next("var"), nodeText(node, source));
-            applySpan(ref, node);
-            return ref;
+            auto* lam = new LambdaExpression(IdGenerator::next("lam"));
+            applySpan(lam, node);
+            TSNode paramsNode = childByFieldName(node, "parameters");
+            if (!ts_node_is_null(paramsNode)) {
+                std::string pType = nodeType(paramsNode);
+                if (pType == "identifier") {
+                    auto* param = new Parameter(IdGenerator::next("param"), nodeText(paramsNode, source));
+                    applySpan(param, paramsNode);
+                    lam->addChild("parameters", param);
+                } else {
+                    uint32_t pc = ts_node_named_child_count(paramsNode);
+                    for (uint32_t pi = 0; pi < pc; ++pi) {
+                        TSNode pChild = ts_node_named_child(paramsNode, pi);
+                        TSNode pName = childByFieldName(pChild, "name");
+                        if (ts_node_is_null(pName)) pName = pChild;
+                        std::string paramName = nodeText(pName, source);
+                        if (!paramName.empty()) {
+                            auto* param = new Parameter(IdGenerator::next("param"), paramName);
+                            applySpan(param, pChild);
+                            lam->addChild("parameters", param);
+                        }
+                    }
+                }
+            }
+            TSNode bodyNode = childByFieldName(node, "body");
+            if (!ts_node_is_null(bodyNode)) {
+                if (nodeType(bodyNode) == "block") {
+                    uint32_t bc = ts_node_named_child_count(bodyNode);
+                    for (uint32_t bi = 0; bi < bc; ++bi) {
+                        ASTNode* stmt = convertJavaStatement(ts_node_named_child(bodyNode, bi), source);
+                        if (stmt) lam->addChild("body", stmt);
+                    }
+                } else {
+                    ASTNode* expr = convertJavaExpression(bodyNode, source);
+                    if (expr) {
+                        auto* exprStmt = new ExpressionStatement();
+                        exprStmt->id = IdGenerator::next("exprstmt");
+                        exprStmt->setChild("expression", expr);
+                        lam->addChild("body", exprStmt);
+                    }
+                }
+            }
+            return lam;
         }
 
         std::string text = nodeText(node, source);
