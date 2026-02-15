@@ -1199,6 +1199,35 @@ Full pipeline integration for Kotlin + C#:
 
 ---
 
+# Sprint 12 — Workflow Model + C++ Depth
+
+## Phase 12a: Core Workflow Model
+
+### Step 320: WorkItem — Core Execution Model
+**Status:** PASS (12/12 tests)
+
+WorkItem extends SkeletonTask with execution lifecycle tracking — status
+transitions, worker assignment, timestamps, and results. This is the unit of
+work that flows through the routing engine.
+
+**Files created:**
+- `editor/src/WorkItem.h` — WorkItemResult struct (generatedCode, astJson,
+  diagnostics, confidence, tokens, reasoning + JSON roundtrip), WorkItem struct
+  (identity, routing, lifecycle, assignment, result), state machine helpers
+  (isTerminal, canTransition, transitionWorkItem), createWorkItem from
+  SkeletonTask, priorityToInt ordering, full JSON serialization
+- `editor/tests/step320_test.cpp` — 12 tests: construction from SkeletonTask,
+  unique ID generation, valid/invalid state transitions, timestamp population,
+  WorkItemResult roundtrip, WorkItem roundtrip, isTerminal, createdAt,
+  dependencies preserved, priority ordering, result attachment roundtrip
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step320_test target
+
+**State machine:** pending→ready→assigned→in-progress→(review→complete|rejected OR complete); rejected→ready
+
+---
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

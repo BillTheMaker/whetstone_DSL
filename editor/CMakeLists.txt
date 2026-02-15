@@ -1916,4 +1916,9 @@ target_link_libraries(step318_test PRIVATE
     tree_sitter_javascript tree_sitter_typescript
     tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+# Step 320: WorkItem — Core Execution Model
+add_executable(step320_test tests/step320_test.cpp)
+target_include_directories(step320_test PRIVATE src)
+target_link_libraries(step320_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
