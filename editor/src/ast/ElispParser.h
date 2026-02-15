@@ -314,8 +314,20 @@ private:
                     if (right) binOp->setChild("right", right);
                     return binOp;
                 }
+                // Check for (lambda (args) body)
+                if (firstText == "lambda") {
+                    return convertElispLambda(node, source);
+                }
             }
-            // Generic list â€” could be a function call
+            // Check for (lambda (args) body) with 2 children
+            if (count >= 2) {
+                TSNode firstChild = ts_node_named_child(node, 0);
+                std::string firstText = nodeText(firstChild, source);
+                if (firstText == "lambda") {
+                    return convertElispLambda(node, source);
+                }
+            }
+            // Generic list — could be a function call
             if (count >= 1) {
                 auto* call = new FunctionCall();
                 call->id = IdGenerator::next("call");
@@ -362,8 +374,27 @@ private:
         uint32_t count = ts_node_named_child_count(node);
         if (count < 1) return nullptr;
 
-        TSNode firstChild = ts_node_named_child(node, 0);
-        std::string formName = nodeText(firstChild, source);
+        // Check for lambda keyword — may be unnamed child
+        // Scan all children (including unnamed) for the keyword
+        std::string formName;
+        uint32_t totalChildren = ts_node_child_count(node);
+        for (uint32_t c = 0; c < totalChildren; ++c) {
+            TSNode ch = ts_node_child(node, c);
+            std::string chType = ts_node_type(ch);
+            if (chType == "(" || chType == ")") continue;
+            // First non-paren child is the keyword
+            formName = chType;
+            break;
+        }
+        // Fallback: use first named child text
+        if (formName.empty()) {
+            TSNode firstChild = ts_node_named_child(node, 0);
+            formName = nodeText(firstChild, source);
+        }
+
+        if (formName == "lambda") {
+            return convertElispLambdaFromSpecialForm(node, source);
+        }
 
         if (formName == "if" && count >= 3) {
             auto* ifStmt = new IfStatement();
@@ -384,6 +415,81 @@ private:
             if (arg) call->addChild("arguments", arg);
         }
         return call;
+    }
+
+    // Convert (lambda (args) body...) to LambdaExpression
+    static LambdaExpression* convertElispLambda(TSNode node, const std::string& source) {
+        auto* lambda = new LambdaExpression(IdGenerator::next("lambda"));
+        applySpan(lambda, node);
+
+        uint32_t count = ts_node_named_child_count(node);
+        // child 0 = "lambda" symbol, child 1 = arglist, rest = body
+        if (count >= 2) {
+            TSNode arglist = ts_node_named_child(node, 1);
+            if (nodeType(arglist) == "list") {
+                uint32_t ac = ts_node_named_child_count(arglist);
+                for (uint32_t a = 0; a < ac; ++a) {
+                    TSNode arg = ts_node_named_child(arglist, a);
+                    std::string argType = nodeType(arg);
+                    if (argType == "symbol" || argType == "identifier") {
+                        auto* param = new Parameter(IdGenerator::next("param"),
+                                                    nodeText(arg, source));
+                        applySpan(param, arg);
+                        lambda->addChild("parameters", param);
+                    }
+                }
+            }
+        }
+        // Body forms
+        for (uint32_t i = 2; i < count; ++i) {
+            ASTNode* expr = convertElispExpression(ts_node_named_child(node, i), source);
+            if (expr) {
+                auto* exprStmt = new ExpressionStatement();
+                exprStmt->id = IdGenerator::next("exprstmt");
+                applySpan(exprStmt, ts_node_named_child(node, i));
+                exprStmt->setChild("expression", expr);
+                lambda->addChild("body", exprStmt);
+            }
+        }
+        return lambda;
+    }
+
+    // Convert special_form lambda where "lambda" is an unnamed keyword child
+    // Named children: child 0 = arglist, child 1+ = body forms
+    static LambdaExpression* convertElispLambdaFromSpecialForm(TSNode node, const std::string& source) {
+        auto* lambda = new LambdaExpression(IdGenerator::next("lambda"));
+        applySpan(lambda, node);
+
+        uint32_t count = ts_node_named_child_count(node);
+        // Named child 0 = arglist (list), rest = body
+        if (count >= 1) {
+            TSNode arglist = ts_node_named_child(node, 0);
+            if (nodeType(arglist) == "list") {
+                uint32_t ac = ts_node_named_child_count(arglist);
+                for (uint32_t a = 0; a < ac; ++a) {
+                    TSNode arg = ts_node_named_child(arglist, a);
+                    std::string argType = nodeType(arg);
+                    if (argType == "symbol" || argType == "identifier") {
+                        auto* param = new Parameter(IdGenerator::next("param"),
+                                                    nodeText(arg, source));
+                        applySpan(param, arg);
+                        lambda->addChild("parameters", param);
+                    }
+                }
+            }
+        }
+        // Body forms (named children after arglist)
+        for (uint32_t i = 1; i < count; ++i) {
+            ASTNode* expr = convertElispExpression(ts_node_named_child(node, i), source);
+            if (expr) {
+                auto* exprStmt = new ExpressionStatement();
+                exprStmt->id = IdGenerator::next("exprstmt");
+                applySpan(exprStmt, ts_node_named_child(node, i));
+                exprStmt->setChild("expression", expr);
+                lambda->addChild("body", exprStmt);
+            }
+        }
+        return lambda;
     }
 
     // ---------------------------------------------------------------

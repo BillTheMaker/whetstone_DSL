@@ -49,7 +49,16 @@ private:
     static void convertGoSourceFile(TSNode root,
                                     const std::string& source,
                                     Module* module) {
+        // First pass: collect type declarations (structs/interfaces)
         uint32_t count = ts_node_named_child_count(root);
+        for (uint32_t i = 0; i < count; ++i) {
+            TSNode child = ts_node_named_child(root, i);
+            std::string type = nodeType(child);
+            if (type == "type_declaration") {
+                convertGoTypeDeclaration(child, source, module);
+            }
+        }
+        // Second pass: functions, methods, vars, imports
         for (uint32_t i = 0; i < count; ++i) {
             TSNode child = ts_node_named_child(root, i);
             std::string type = nodeType(child);
@@ -59,12 +68,9 @@ private:
                 auto* fn = convertGoFunction(child, source, "");
                 if (fn) module->addChild("functions", fn);
             } else if (type == "method_declaration") {
-                auto* fn = convertGoMethod(child, source);
-                if (fn) module->addChild("functions", fn);
+                convertGoMethodDecl(child, source, module);
             } else if (type == "var_declaration") {
                 convertGoVarDeclaration(child, source, module);
-            } else if (type == "type_declaration") {
-                convertGoTypeDeclaration(child, source, module);
             }
         }
     }
@@ -118,7 +124,57 @@ private:
             if (nodeType(spec) != "type_spec") continue;
             TSNode nameNode = childByFieldName(spec, "name");
             if (ts_node_is_null(nameNode)) continue;
-            auto* var = new Variable(IdGenerator::next("var"), nodeText(nameNode, source));
+            std::string typeName = nodeText(nameNode, source);
+
+            TSNode typeNode = childByFieldName(spec, "type");
+            if (!ts_node_is_null(typeNode)) {
+                std::string typeKind = nodeType(typeNode);
+                if (typeKind == "struct_type") {
+                    auto* cls = new ClassDeclaration(IdGenerator::next("cls"), typeName);
+                    applySpan(cls, spec);
+                    // Extract fields from struct body
+                    uint32_t fc = ts_node_named_child_count(typeNode);
+                    for (uint32_t f = 0; f < fc; ++f) {
+                        TSNode field = ts_node_named_child(typeNode, f);
+                        if (nodeType(field) == "field_declaration" ||
+                            nodeType(field) == "field_declaration_list") {
+                            TSNode fnameNode = childByFieldName(field, "name");
+                            if (!ts_node_is_null(fnameNode)) {
+                                auto* var = new Variable(IdGenerator::next("var"),
+                                                         nodeText(fnameNode, source));
+                                applySpan(var, field);
+                                cls->addChild("fields", var);
+                            }
+                        }
+                    }
+                    module->addChild("classes", cls);
+                    continue;
+                } else if (typeKind == "interface_type") {
+                    auto* iface = new InterfaceDeclaration(IdGenerator::next("iface"), typeName);
+                    applySpan(iface, spec);
+                    // Extract method signatures
+                    uint32_t mc = ts_node_named_child_count(typeNode);
+                    for (uint32_t m = 0; m < mc; ++m) {
+                        TSNode methSpec = ts_node_named_child(typeNode, m);
+                        if (nodeType(methSpec) == "method_spec" ||
+                            nodeType(methSpec) == "method_elem") {
+                            TSNode methName = childByFieldName(methSpec, "name");
+                            if (!ts_node_is_null(methName)) {
+                                auto* meth = new MethodDeclaration(
+                                    IdGenerator::next("meth"), nodeText(methName, source));
+                                meth->className = typeName;
+                                meth->isVirtual = true;
+                                applySpan(meth, methSpec);
+                                iface->addChild("methods", meth);
+                            }
+                        }
+                    }
+                    module->addChild("classes", iface);
+                    continue;
+                }
+            }
+            // Fallback: non-struct/interface type alias → Variable
+            auto* var = new Variable(IdGenerator::next("var"), typeName);
             module->addChild("variables", var);
         }
     }
@@ -170,6 +226,82 @@ private:
             receiverType = trimPointerPrefix(receiverType);
         }
         return convertGoFunction(node, source, receiverType);
+    }
+
+    // Create a MethodDeclaration and attach to existing ClassDeclaration
+    static void convertGoMethodDecl(TSNode node,
+                                    const std::string& source,
+                                    Module* module) {
+        TSNode recvNode = childByFieldName(node, "receiver");
+        std::string receiverType;
+        if (!ts_node_is_null(recvNode)) {
+            TSNode typeNode = findDescendantByField(recvNode, "type");
+            if (!ts_node_is_null(typeNode)) {
+                receiverType = nodeText(typeNode, source);
+            }
+            if (receiverType.empty()) {
+                TSNode nameNode = findDescendantByField(recvNode, "name");
+                if (!ts_node_is_null(nameNode)) {
+                    receiverType = nodeText(nameNode, source);
+                }
+            }
+            receiverType = trimPointerPrefix(receiverType);
+        }
+
+        // Extract method name
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return;
+        std::string methodName = nodeText(nameNode, source);
+
+        // Create MethodDeclaration
+        auto* meth = new MethodDeclaration(IdGenerator::next("meth"), methodName);
+        meth->className = receiverType;
+        applySpan(meth, node);
+
+        // Parameters
+        TSNode paramsNode = childByFieldName(node, "parameters");
+        if (!ts_node_is_null(paramsNode)) {
+            convertGoParameters(paramsNode, source, meth);
+        }
+        // Return type
+        TSNode resultNode = childByFieldName(node, "result");
+        if (!ts_node_is_null(resultNode)) {
+            if (auto* t = convertGoType(resultNode, source)) meth->setChild("returnType", t);
+        }
+        // Body
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            convertGoBlock(bodyNode, source, meth);
+        }
+
+        // Try to attach to existing ClassDeclaration
+        bool attached = false;
+        if (!receiverType.empty()) {
+            auto& classes = module->getChildren("classes");
+            for (auto* entry : classes) {
+                auto* cls = dynamic_cast<ClassDeclaration*>(entry);
+                if (cls && cls->name == receiverType) {
+                    cls->addChild("methods", meth);
+                    attached = true;
+                    break;
+                }
+            }
+        }
+        // Also add as backward-compat Function in functions list
+        auto* fn = convertGoFunction(node, source, receiverType);
+        if (fn) module->addChild("functions", fn);
+
+        // If not attached to any class, the MethodDeclaration is still owned by the class search
+        if (!attached) {
+            // Create a ClassDeclaration stub for the receiver type
+            if (!receiverType.empty()) {
+                auto* cls = new ClassDeclaration(IdGenerator::next("cls"), receiverType);
+                cls->addChild("methods", meth);
+                module->addChild("classes", cls);
+            } else {
+                delete meth;
+            }
+        }
     }
 
     static void convertGoParameters(TSNode paramsNode,
@@ -421,6 +553,44 @@ private:
             if (ts_node_named_child_count(node) > 0) {
                 return convertGoExpression(ts_node_named_child(node, 0), source);
             }
+        } else if (type == "expression_list") {
+            // Unwrap single-element expression lists
+            uint32_t elc = ts_node_named_child_count(node);
+            if (elc == 1) {
+                return convertGoExpression(ts_node_named_child(node, 0), source);
+            }
+            if (elc > 0) {
+                return convertGoExpression(ts_node_named_child(node, 0), source);
+            }
+        } else if (type == "func_literal") {
+            auto* lambda = new LambdaExpression(IdGenerator::next("lambda"));
+            applySpan(lambda, node);
+            TSNode paramsNode = childByFieldName(node, "parameters");
+            if (!ts_node_is_null(paramsNode)) {
+                uint32_t pc = ts_node_named_child_count(paramsNode);
+                for (uint32_t p = 0; p < pc; ++p) {
+                    TSNode paramChild = ts_node_named_child(paramsNode, p);
+                    if (nodeType(paramChild) == "parameter_declaration" ||
+                        nodeType(paramChild) == "variadic_parameter_declaration") {
+                        TSNode pnameNode = childByFieldName(paramChild, "name");
+                        if (!ts_node_is_null(pnameNode)) {
+                            auto* param = new Parameter(IdGenerator::next("param"),
+                                                        nodeText(pnameNode, source));
+                            applySpan(param, paramChild);
+                            lambda->addChild("parameters", param);
+                        }
+                    }
+                }
+            }
+            TSNode bodyNode = childByFieldName(node, "body");
+            if (!ts_node_is_null(bodyNode)) {
+                uint32_t bc = ts_node_named_child_count(bodyNode);
+                for (uint32_t b = 0; b < bc; ++b) {
+                    ASTNode* stmt = convertGoStatement(ts_node_named_child(bodyNode, b), source);
+                    if (stmt) lambda->addChild("body", stmt);
+                }
+            }
+            return lambda;
         }
 
         std::string text = nodeText(node, source);

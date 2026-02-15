@@ -55,6 +55,199 @@ private:
             if (type == "function_definition") {
                 auto* fn = convertCppFunction(child, source);
                 if (fn) module->addChild("functions", fn);
+            } else if (type == "class_specifier" || type == "struct_specifier") {
+                convertCppClassOrStruct(child, source, module, type == "struct_specifier");
+            } else if (type == "template_declaration") {
+                convertCppTemplateDecl(child, source, module);
+            }
+        }
+    }
+
+    static void convertCppClassOrStruct(TSNode node, const std::string& source,
+                                        Module* module, bool isStruct) {
+        TSNode nameNode = childByFieldName(node, "name");
+        std::string className;
+        if (!ts_node_is_null(nameNode)) {
+            className = nodeText(nameNode, source);
+        }
+        if (className.empty()) return;
+
+        auto* cls = new ClassDeclaration(IdGenerator::next("cls"), className);
+        applySpan(cls, node);
+
+        // Check for base class
+        TSNode baseClause = childByFieldName(node, "base_clause");
+        if (ts_node_is_null(baseClause)) {
+            // tree-sitter-cpp might use different field names — search children
+            uint32_t nc = ts_node_named_child_count(node);
+            for (uint32_t i = 0; i < nc; ++i) {
+                TSNode ch = ts_node_named_child(node, i);
+                if (nodeType(ch) == "base_class_clause") {
+                    baseClause = ch;
+                    break;
+                }
+            }
+        }
+        if (!ts_node_is_null(baseClause)) {
+            uint32_t bc = ts_node_named_child_count(baseClause);
+            for (uint32_t i = 0; i < bc; ++i) {
+                TSNode base = ts_node_named_child(baseClause, i);
+                std::string baseText = nodeText(base, source);
+                // Strip access specifier prefix
+                if (baseText.find("public ") == 0) baseText = baseText.substr(7);
+                else if (baseText.find("private ") == 0) baseText = baseText.substr(8);
+                else if (baseText.find("protected ") == 0) baseText = baseText.substr(10);
+                if (!baseText.empty() && cls->superClass.empty()) {
+                    cls->superClass = baseText;
+                }
+            }
+        }
+
+        // Process class body
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            std::string currentVisibility = isStruct ? "public" : "private";
+            uint32_t bc = ts_node_named_child_count(bodyNode);
+            for (uint32_t i = 0; i < bc; ++i) {
+                TSNode member = ts_node_named_child(bodyNode, i);
+                std::string memberType = nodeType(member);
+                if (memberType == "access_specifier") {
+                    std::string specText = nodeText(member, source);
+                    if (specText.find("public") != std::string::npos) currentVisibility = "public";
+                    else if (specText.find("private") != std::string::npos) currentVisibility = "private";
+                    else if (specText.find("protected") != std::string::npos) currentVisibility = "protected";
+                } else if (memberType == "function_definition") {
+                    auto* meth = convertCppMethodDecl(member, source, className, currentVisibility);
+                    if (meth) cls->addChild("methods", meth);
+                } else if (memberType == "declaration") {
+                    // Could be a field declaration
+                    TSNode declNode = childByFieldName(member, "declarator");
+                    if (!ts_node_is_null(declNode)) {
+                        std::string fieldName = nodeText(declNode, source);
+                        auto* var = new Variable(IdGenerator::next("var"), fieldName);
+                        applySpan(var, member);
+                        cls->addChild("fields", var);
+                    } else {
+                        // Try to find field names from named children
+                        uint32_t dc = ts_node_named_child_count(member);
+                        for (uint32_t d = 0; d < dc; ++d) {
+                            TSNode dchild = ts_node_named_child(member, d);
+                            std::string dtype = nodeType(dchild);
+                            if (dtype == "field_identifier" || dtype == "identifier") {
+                                // Skip type specifiers — just get the last identifier-like thing
+                            }
+                        }
+                    }
+                } else if (memberType == "field_declaration") {
+                    TSNode declNode = childByFieldName(member, "declarator");
+                    if (!ts_node_is_null(declNode)) {
+                        std::string fieldName = nodeText(declNode, source);
+                        auto* var = new Variable(IdGenerator::next("var"), fieldName);
+                        applySpan(var, member);
+                        cls->addChild("fields", var);
+                    }
+                }
+            }
+        }
+        module->addChild("classes", cls);
+    }
+
+    static MethodDeclaration* convertCppMethodDecl(TSNode node, const std::string& source,
+                                                    const std::string& className,
+                                                    const std::string& visibility) {
+        auto* meth = new MethodDeclaration();
+        meth->id = IdGenerator::next("meth");
+        meth->className = className;
+        meth->visibility = visibility;
+        applySpan(meth, node);
+
+        // Check for virtual keyword
+        TSNode typeNode = childByFieldName(node, "type");
+        if (!ts_node_is_null(typeNode)) {
+            std::string typeText = nodeText(typeNode, source);
+            auto* retType = new PrimitiveType(IdGenerator::next("type"), typeText);
+            meth->setChild("returnType", retType);
+        }
+
+        // Check full text for virtual/static keywords
+        std::string fullText = nodeText(node, source);
+        if (fullText.find("virtual ") != std::string::npos) meth->isVirtual = true;
+        if (fullText.find("static ") != std::string::npos) meth->isStatic = true;
+        if (fullText.find("override") != std::string::npos) meth->isOverride = true;
+
+        // Declarator
+        TSNode declaratorNode = childByFieldName(node, "declarator");
+        if (!ts_node_is_null(declaratorNode)) {
+            extractCppFunctionName(declaratorNode, source, meth);
+            extractCppParameters(declaratorNode, source, meth);
+        }
+
+        // Body
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            convertCppBody(bodyNode, source, meth);
+        }
+
+        return meth;
+    }
+
+    static void convertCppTemplateDecl(TSNode node, const std::string& source, Module* module) {
+        // template_declaration has template_parameter_list and a child declaration
+        TSNode paramsNode = childByFieldName(node, "parameters");
+        std::vector<std::pair<std::string, std::string>> typeParams; // name, constraint
+
+        if (!ts_node_is_null(paramsNode)) {
+            uint32_t pc = ts_node_named_child_count(paramsNode);
+            for (uint32_t p = 0; p < pc; ++p) {
+                TSNode param = ts_node_named_child(paramsNode, p);
+                std::string paramType = nodeType(param);
+                if (paramType == "type_parameter_declaration" ||
+                    paramType == "template_type_parameter") {
+                    TSNode pname = childByFieldName(param, "name");
+                    if (!ts_node_is_null(pname)) {
+                        typeParams.push_back({nodeText(pname, source), ""});
+                    } else {
+                        // Fallback: get all text
+                        std::string txt = nodeText(param, source);
+                        // Extract name from "typename T" or "class T"
+                        size_t sp = txt.rfind(' ');
+                        if (sp != std::string::npos) {
+                            typeParams.push_back({txt.substr(sp + 1), ""});
+                        } else {
+                            typeParams.push_back({txt, ""});
+                        }
+                    }
+                }
+            }
+        }
+
+        // Find the inner declaration (class_specifier, struct_specifier, function_definition)
+        uint32_t nc = ts_node_named_child_count(node);
+        for (uint32_t i = 0; i < nc; ++i) {
+            TSNode child = ts_node_named_child(node, i);
+            std::string childType = nodeType(child);
+            if (childType == "class_specifier" || childType == "struct_specifier") {
+                convertCppClassOrStruct(child, source, module, childType == "struct_specifier");
+                // Attach TypeParameters to the last class
+                auto& classes = module->getChildren("classes");
+                if (!classes.empty()) {
+                    auto* cls = dynamic_cast<ClassDeclaration*>(classes.back());
+                    if (cls) {
+                        for (auto& [tpName, tpConstraint] : typeParams) {
+                            auto* tp = new TypeParameter(IdGenerator::next("tp"), tpName);
+                            tp->constraint = tpConstraint;
+                            cls->addChild("typeParameters", tp);
+                        }
+                    }
+                }
+                return;
+            } else if (childType == "function_definition") {
+                auto* fn = convertCppFunction(child, source);
+                if (fn) module->addChild("functions", fn);
+                return;
+            } else if (childType == "declaration") {
+                // Template function declaration without body — skip for now
+                return;
             }
         }
     }
@@ -211,6 +404,9 @@ private:
             auto* exprStmt = new ExpressionStatement();
             exprStmt->id = IdGenerator::next("exprstmt");
             applySpan(exprStmt, node);
+            // Scan for lambda expressions inside declarations
+            ASTNode* lambdaNode = findCppLambdaInSubtree(node, source);
+            if (lambdaNode) exprStmt->setChild("expression", lambdaNode);
             return exprStmt;
         } else if (type == "if_statement") {
             auto* ifStmt = new IfStatement();
@@ -219,6 +415,68 @@ private:
             return ifStmt;
         }
         return nullptr;
+    }
+
+    // Recursively scan for lambda_expression nodes in a subtree
+    static ASTNode* findCppLambdaInSubtree(TSNode node, const std::string& source) {
+        std::string type = nodeType(node);
+        if (type == "lambda_expression") {
+            return convertCppLambdaExpression(node, source);
+        }
+        uint32_t count = ts_node_named_child_count(node);
+        for (uint32_t i = 0; i < count; ++i) {
+            ASTNode* found = findCppLambdaInSubtree(ts_node_named_child(node, i), source);
+            if (found) return found;
+        }
+        return nullptr;
+    }
+
+    static LambdaExpression* convertCppLambdaExpression(TSNode node, const std::string& source) {
+        auto* lambda = new LambdaExpression(IdGenerator::next("lambda"));
+        applySpan(lambda, node);
+
+        // Capture list
+        TSNode captureNode = childByFieldName(node, "captures");
+        if (!ts_node_is_null(captureNode)) {
+            uint32_t cc = ts_node_named_child_count(captureNode);
+            for (uint32_t c = 0; c < cc; ++c) {
+                TSNode cap = ts_node_named_child(captureNode, c);
+                std::string capText = nodeText(cap, source);
+                if (!capText.empty()) lambda->captureList.push_back(capText);
+            }
+        }
+
+        // Parameters
+        TSNode declNode = childByFieldName(node, "declarator");
+        if (!ts_node_is_null(declNode)) {
+            TSNode paramsNode = childByFieldName(declNode, "parameters");
+            if (!ts_node_is_null(paramsNode)) {
+                uint32_t pc = ts_node_named_child_count(paramsNode);
+                for (uint32_t p = 0; p < pc; ++p) {
+                    TSNode paramChild = ts_node_named_child(paramsNode, p);
+                    if (nodeType(paramChild) == "parameter_declaration") {
+                        TSNode pnameNode = childByFieldName(paramChild, "declarator");
+                        if (!ts_node_is_null(pnameNode)) {
+                            auto* param = new Parameter(IdGenerator::next("param"),
+                                                        nodeText(pnameNode, source));
+                            applySpan(param, paramChild);
+                            lambda->addChild("parameters", param);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Body
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            uint32_t bc = ts_node_named_child_count(bodyNode);
+            for (uint32_t b = 0; b < bc; ++b) {
+                ASTNode* stmt = convertCppStatement(ts_node_named_child(bodyNode, b), source);
+                if (stmt) lambda->addChild("body", stmt);
+            }
+        }
+        return lambda;
     }
 
     static ASTNode* convertCppExpression(TSNode node, const std::string& source) {
@@ -260,6 +518,8 @@ private:
         } else if (type == "parenthesized_expression") {
             uint32_t count = ts_node_named_child_count(node);
             if (count > 0) return convertCppExpression(ts_node_named_child(node, 0), source);
+        } else if (type == "lambda_expression") {
+            return convertCppLambdaExpression(node, source);
         }
         // Fallback
         std::string text = nodeText(node, source);

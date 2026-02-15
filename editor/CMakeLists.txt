@@ -1838,4 +1838,13 @@ target_link_libraries(step306_test PRIVATE
     tree_sitter_typescript
     tree_sitter_rust)
 
+# Step 307: Go + C++ + Elisp Parser Deepening
+add_executable(step307_test tests/step307_test.cpp)
+target_include_directories(step307_test PRIVATE src)
+target_link_libraries(step307_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_go
+    tree_sitter_cpp
+    tree_sitter_elisp)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
