@@ -67,8 +67,14 @@ private:
                 if (fn) module->addChild("functions", fn);
             } else if (type == "impl_item") {
                 convertRustImpl(child, source, module);
-            } else if (type == "struct_item" || type == "enum_item" || type == "trait_item") {
-                // Record type name as a custom type variable for visibility.
+            } else if (type == "struct_item") {
+                auto* cls = convertRustStruct(child, source);
+                if (cls) module->addChild("classes", cls);
+            } else if (type == "trait_item") {
+                auto* iface = convertRustTrait(child, source);
+                if (iface) module->addChild("classes", iface);
+            } else if (type == "enum_item") {
+                // Record enum name as variable for visibility
                 TSNode nameNode = childByFieldName(child, "name");
                 if (!ts_node_is_null(nameNode)) {
                     auto* var = new Variable(IdGenerator::next("var"), nodeText(nameNode, source));
@@ -78,6 +84,78 @@ private:
         }
     }
 
+    static ClassDeclaration* convertRustStruct(TSNode node, const std::string& source) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+
+        auto* cls = new ClassDeclaration(IdGenerator::next("cls"), nodeText(nameNode, source));
+        applySpan(cls, node);
+
+        // Extract fields from field_declaration_list body
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            uint32_t fc = ts_node_named_child_count(bodyNode);
+            for (uint32_t i = 0; i < fc; ++i) {
+                TSNode fieldNode = ts_node_named_child(bodyNode, i);
+                if (nodeType(fieldNode) == "field_declaration") {
+                    TSNode fName = childByFieldName(fieldNode, "name");
+                    if (!ts_node_is_null(fName)) {
+                        auto* var = new Variable(IdGenerator::next("var"), nodeText(fName, source));
+                        applySpan(var, fieldNode);
+                        TSNode fType = childByFieldName(fieldNode, "type");
+                        if (!ts_node_is_null(fType)) {
+                            if (auto* t = convertRustType(fType, source)) var->setChild("type", t);
+                        }
+                        cls->addChild("fields", var);
+                    }
+                }
+            }
+        }
+
+        return cls;
+    }
+
+    static InterfaceDeclaration* convertRustTrait(TSNode node, const std::string& source) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+
+        auto* iface = new InterfaceDeclaration(IdGenerator::next("iface"), nodeText(nameNode, source));
+        applySpan(iface, node);
+
+        // Extract method signatures from declaration_list body
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            uint32_t mc = ts_node_named_child_count(bodyNode);
+            for (uint32_t i = 0; i < mc; ++i) {
+                TSNode methNode = ts_node_named_child(bodyNode, i);
+                std::string mType = nodeType(methNode);
+                if (mType == "function_signature_item" || mType == "function_item") {
+                    TSNode mName = childByFieldName(methNode, "name");
+                    if (!ts_node_is_null(mName)) {
+                        auto* meth = new MethodDeclaration(IdGenerator::next("meth"), nodeText(mName, source));
+                        applySpan(meth, methNode);
+                        meth->className = iface->name;
+                        meth->isVirtual = true;
+
+                        TSNode paramsNode = childByFieldName(methNode, "parameters");
+                        if (!ts_node_is_null(paramsNode)) {
+                            convertRustParameters(paramsNode, source, meth);
+                        }
+
+                        TSNode retNode = childByFieldName(methNode, "return_type");
+                        if (!ts_node_is_null(retNode)) {
+                            if (auto* t = convertRustType(retNode, source)) meth->setChild("returnType", t);
+                        }
+
+                        iface->addChild("methods", meth);
+                    }
+                }
+            }
+        }
+
+        return iface;
+    }
+
     static void convertRustImpl(TSNode node,
                                 const std::string& source,
                                 Module* module) {
@@ -85,14 +163,70 @@ private:
         std::string typeName = nodeText(typeNode, source);
         TSNode bodyNode = childByFieldName(node, "body");
         if (ts_node_is_null(bodyNode)) return;
+
+        // Find existing ClassDeclaration for this type to attach methods
+        ClassDeclaration* targetCls = nullptr;
+        auto& classes = module->getChildren("classes");
+        for (auto* entry : classes) {
+            auto* cls = dynamic_cast<ClassDeclaration*>(entry);
+            if (cls && cls->name == typeName) {
+                targetCls = cls;
+                break;
+            }
+        }
+
         uint32_t count = ts_node_named_child_count(bodyNode);
         for (uint32_t i = 0; i < count; ++i) {
             TSNode child = ts_node_named_child(bodyNode, i);
             if (nodeType(child) == "function_item" || nodeType(child) == "function_signature_item") {
+                // Backward compat: add as Function to module.functions
                 auto* fn = convertRustFunction(child, source, typeName);
                 if (fn) module->addChild("functions", fn);
+
+                // If we have a ClassDeclaration, also add MethodDeclaration
+                if (targetCls) {
+                    auto* meth = convertRustMethodDecl(child, source, typeName);
+                    if (meth) targetCls->addChild("methods", meth);
+                }
             }
         }
+    }
+
+    static MethodDeclaration* convertRustMethodDecl(TSNode node,
+                                                     const std::string& source,
+                                                     const std::string& typeName) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+
+        auto* meth = new MethodDeclaration(IdGenerator::next("meth"), nodeText(nameNode, source));
+        applySpan(meth, node);
+        meth->className = typeName;
+
+        // Check visibility modifiers
+        uint32_t allCount = ts_node_named_child_count(node);
+        for (uint32_t i = 0; i < allCount; ++i) {
+            TSNode ch = ts_node_named_child(node, i);
+            if (nodeType(ch) == "visibility_modifier") {
+                meth->visibility = "public";
+            }
+        }
+
+        TSNode paramsNode = childByFieldName(node, "parameters");
+        if (!ts_node_is_null(paramsNode)) {
+            convertRustParameters(paramsNode, source, meth);
+        }
+
+        TSNode retNode = childByFieldName(node, "return_type");
+        if (!ts_node_is_null(retNode)) {
+            if (auto* t = convertRustType(retNode, source)) meth->setChild("returnType", t);
+        }
+
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            convertRustBlock(bodyNode, source, meth);
+        }
+
+        return meth;
     }
 
     static Function* convertRustFunction(TSNode node,
@@ -100,15 +234,22 @@ private:
                                          const std::string& receiverType) {
         TSNode nameNode = childByFieldName(node, "name");
         if (ts_node_is_null(nameNode)) return nullptr;
-        auto* fn = new Function();
-        fn->id = IdGenerator::next("fn");
-        applySpan(fn, node);
+
+        // Detect async keyword
+        bool isAsync = rustNodeHasAsyncKeyword(node, source);
+
+        Function* fn;
         std::string name = nodeText(nameNode, source);
-        if (!receiverType.empty()) {
-            fn->name = receiverType + "." + name;
+        if (!receiverType.empty()) name = receiverType + "." + name;
+
+        if (isAsync) {
+            fn = new AsyncFunction(IdGenerator::next("fn"), name);
         } else {
+            fn = new Function();
+            fn->id = IdGenerator::next("fn");
             fn->name = name;
         }
+        applySpan(fn, node);
 
         TSNode paramsNode = childByFieldName(node, "parameters");
         if (!ts_node_is_null(paramsNode)) {
@@ -128,6 +269,18 @@ private:
         auto* lifetime = new LifetimeAnnotation(IdGenerator::next("anno"), "RAII");
         fn->addChild("annotations", lifetime);
         return fn;
+    }
+
+    static bool rustNodeHasAsyncKeyword(TSNode node, const std::string& source) {
+        uint32_t totalCount = ts_node_child_count(node);
+        for (uint32_t i = 0; i < totalCount; ++i) {
+            TSNode ch = ts_node_child(node, i);
+            if (!ts_node_is_named(ch) && nodeText(ch, source) == "async") return true;
+        }
+        // Fallback: check source text prefix
+        std::string fullText = nodeText(node, source);
+        if (fullText.substr(0, 6) == "async ") return true;
+        return false;
     }
 
     static void convertRustParameters(TSNode paramsNode,
@@ -367,6 +520,51 @@ private:
                 if (idx) access->setChild("index", idx);
             }
             return access;
+        } else if (type == "closure_expression") {
+            auto* lam = new LambdaExpression(IdGenerator::next("lam"));
+            applySpan(lam, node);
+            TSNode paramsNode = childByFieldName(node, "parameters");
+            if (!ts_node_is_null(paramsNode)) {
+                uint32_t pc = ts_node_named_child_count(paramsNode);
+                for (uint32_t pi = 0; pi < pc; ++pi) {
+                    TSNode pChild = ts_node_named_child(paramsNode, pi);
+                    std::string pType = nodeType(pChild);
+                    std::string paramName;
+                    if (pType == "identifier") {
+                        paramName = nodeText(pChild, source);
+                    } else if (pType == "parameter") {
+                        TSNode pName = childByFieldName(pChild, "pattern");
+                        if (ts_node_is_null(pName)) pName = pChild;
+                        paramName = nodeText(pName, source);
+                    } else {
+                        paramName = nodeText(pChild, source);
+                    }
+                    if (!paramName.empty()) {
+                        auto* param = new Parameter(IdGenerator::next("param"), paramName);
+                        applySpan(param, pChild);
+                        lam->addChild("parameters", param);
+                    }
+                }
+            }
+            TSNode bodyNode = childByFieldName(node, "body");
+            if (!ts_node_is_null(bodyNode)) {
+                if (nodeType(bodyNode) == "block") {
+                    uint32_t bc = ts_node_named_child_count(bodyNode);
+                    for (uint32_t bi = 0; bi < bc; ++bi) {
+                        ASTNode* stmt = convertRustStatement(ts_node_named_child(bodyNode, bi), source);
+                        if (stmt) lam->addChild("body", stmt);
+                    }
+                } else {
+                    ASTNode* expr = convertRustExpression(bodyNode, source);
+                    if (expr) {
+                        auto* exprStmt = new ExpressionStatement();
+                        exprStmt->id = IdGenerator::next("exprstmt");
+                        exprStmt->setChild("expression", expr);
+                        lam->addChild("body", exprStmt);
+                    }
+                }
+            }
+            return lam;
         } else if (type == "identifier") {
             auto* ref = new VariableReference(IdGenerator::next("var"), nodeText(node, source));
             applySpan(ref, node);

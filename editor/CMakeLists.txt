@@ -1829,5 +1829,13 @@ target_link_libraries(step305_test PRIVATE
     tree_sitter_python
     tree_sitter_java)
 
+# Step 306: TypeScript/JavaScript + Rust Parser Deepening
+add_executable(step306_test tests/step306_test.cpp)
+target_include_directories(step306_test PRIVATE src)
+target_link_libraries(step306_test PRIVATE
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_javascript
+    tree_sitter_typescript
+    tree_sitter_rust)
 
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

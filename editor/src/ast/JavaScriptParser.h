@@ -59,41 +59,105 @@ private:
                 auto* fn = convertJavaScriptFunction(child, source, language);
                 if (fn) module->addChild("functions", fn);
             } else if (type == "class_declaration") {
-                convertJavaScriptClass(child, source, module, language);
+                convertJavaScriptClassDecl(child, source, module, language);
             } else if (type == "lexical_declaration" || type == "variable_declaration") {
                 convertJavaScriptVariableFunctions(child, source, module, language);
             } else if (type == "export_statement") {
-                TSNode decl = ts_node_named_child(child, 0);
-                std::string declType = nodeType(decl);
-                if (declType == "function_declaration") {
-                    auto* fn = convertJavaScriptFunction(decl, source, language);
-                    if (fn) module->addChild("functions", fn);
-                } else if (declType == "class_declaration") {
-                    convertJavaScriptClass(decl, source, module, language);
-                } else if (declType == "lexical_declaration" || declType == "variable_declaration") {
-                    convertJavaScriptVariableFunctions(decl, source, module, language);
+                uint32_t ec = ts_node_named_child_count(child);
+                for (uint32_t j = 0; j < ec; ++j) {
+                    TSNode decl = ts_node_named_child(child, j);
+                    std::string declType = nodeType(decl);
+                    if (declType == "function_declaration") {
+                        auto* fn = convertJavaScriptFunction(decl, source, language);
+                        if (fn) module->addChild("functions", fn);
+                    } else if (declType == "class_declaration") {
+                        convertJavaScriptClassDecl(decl, source, module, language);
+                    } else if (declType == "lexical_declaration" || declType == "variable_declaration") {
+                        convertJavaScriptVariableFunctions(decl, source, module, language);
+                    }
                 }
             }
         }
     }
 
-    static void convertJavaScriptClass(TSNode node,
-                                       const std::string& source,
-                                       Module* module,
-                                       const std::string& language) {
+    static void convertJavaScriptClassDecl(TSNode node,
+                                           const std::string& source,
+                                           Module* module,
+                                           const std::string& language) {
         TSNode nameNode = childByFieldName(node, "name");
         std::string className = nodeText(nameNode, source);
-        TSNode bodyNode = childByFieldName(node, "body");
-        if (ts_node_is_null(bodyNode)) return;
-        uint32_t count = ts_node_named_child_count(bodyNode);
-        for (uint32_t i = 0; i < count; ++i) {
-            TSNode child = ts_node_named_child(bodyNode, i);
-            std::string type = nodeType(child);
-            if (type == "method_definition") {
-                auto* fn = convertJavaScriptMethod(child, source, language, className);
-                if (fn) module->addChild("functions", fn);
+
+        auto* cls = new ClassDeclaration(IdGenerator::next("cls"), className);
+        applySpan(cls, node);
+
+        // Superclass — check for heritage clause with "extends"
+        // In tree-sitter-javascript, the superclass is in a child named
+        // "class_heritage" or we look for an identifier after "extends"
+        uint32_t allCount = ts_node_named_child_count(node);
+        for (uint32_t i = 0; i < allCount; ++i) {
+            TSNode ch = ts_node_named_child(node, i);
+            std::string chType = nodeType(ch);
+            if (chType == "class_heritage") {
+                // The heritage node contains the superclass identifier
+                uint32_t hc = ts_node_named_child_count(ch);
+                if (hc > 0) {
+                    cls->superClass = nodeText(ts_node_named_child(ch, 0), source);
+                }
             }
         }
+
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            uint32_t count = ts_node_named_child_count(bodyNode);
+            for (uint32_t i = 0; i < count; ++i) {
+                TSNode child = ts_node_named_child(bodyNode, i);
+                std::string type = nodeType(child);
+                if (type == "method_definition") {
+                    // Create MethodDeclaration on the class
+                    auto* meth = convertJavaScriptMethodDecl(child, source, language, className);
+                    if (meth) cls->addChild("methods", meth);
+
+                    // Backward compat: also add as Function to module.functions
+                    auto* fn = convertJavaScriptMethod(child, source, language, className);
+                    if (fn) module->addChild("functions", fn);
+                }
+            }
+        }
+
+        module->addChild("classes", cls);
+    }
+
+    static MethodDeclaration* convertJavaScriptMethodDecl(TSNode node,
+                                                           const std::string& source,
+                                                           const std::string& language,
+                                                           const std::string& className) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+
+        std::string name = nodeText(nameNode, source);
+        auto* meth = new MethodDeclaration(IdGenerator::next("meth"), name);
+        applySpan(meth, node);
+        meth->className = className;
+
+        // Check for static keyword
+        uint32_t totalCount = ts_node_child_count(node);
+        for (uint32_t i = 0; i < totalCount; ++i) {
+            TSNode ch = ts_node_child(node, i);
+            std::string text = nodeText(ch, source);
+            if (text == "static") meth->isStatic = true;
+        }
+
+        TSNode paramsNode = childByFieldName(node, "parameters");
+        if (!ts_node_is_null(paramsNode)) {
+            convertJavaScriptParameters(paramsNode, source, meth, language);
+        }
+
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            convertJavaScriptBody(bodyNode, source, meth, language);
+        }
+
+        return meth;
     }
 
     static void convertJavaScriptVariableFunctions(TSNode node,
@@ -122,10 +186,19 @@ private:
                                                const std::string& language) {
         TSNode nameNode = childByFieldName(node, "name");
         if (ts_node_is_null(nameNode)) return nullptr;
-        auto* fn = new Function();
-        fn->id = IdGenerator::next("fn");
+
+        // Detect async keyword
+        bool isAsync = jsNodeHasAsyncKeyword(node, source);
+
+        Function* fn;
+        if (isAsync) {
+            fn = new AsyncFunction(IdGenerator::next("fn"), nodeText(nameNode, source));
+        } else {
+            fn = new Function();
+            fn->id = IdGenerator::next("fn");
+            fn->name = nodeText(nameNode, source);
+        }
         applySpan(fn, node);
-        fn->name = nodeText(nameNode, source);
 
         TSNode paramsNode = childByFieldName(node, "parameters");
         if (!ts_node_is_null(paramsNode)) {
@@ -200,6 +273,19 @@ private:
         return fn;
     }
 
+    static bool jsNodeHasAsyncKeyword(TSNode node, const std::string& source) {
+        uint32_t totalCount = ts_node_child_count(node);
+        for (uint32_t i = 0; i < totalCount; ++i) {
+            TSNode ch = ts_node_child(node, i);
+            if (!ts_node_is_named(ch) && nodeText(ch, source) == "async") return true;
+        }
+        // Also check named children text for "async" keyword
+        // In some tree-sitter JS grammars, "async" appears differently
+        std::string fullText = nodeText(node, source);
+        if (fullText.substr(0, 6) == "async ") return true;
+        return false;
+    }
+
     static void convertJavaScriptParameters(TSNode paramsNode,
                                             const std::string& source,
                                             Function* fn,
@@ -250,7 +336,7 @@ private:
                                       Function* fn,
                                       const std::string& language) {
         std::string type = nodeType(bodyNode);
-        if (type == "statement_block" || type == "statement_block") {
+        if (type == "statement_block") {
             uint32_t count = ts_node_named_child_count(bodyNode);
             for (uint32_t i = 0; i < count; ++i) {
                 ASTNode* stmt = convertJavaScriptStatement(ts_node_named_child(bodyNode, i), source, language);
@@ -430,6 +516,67 @@ private:
                 if (idx) access->setChild("index", idx);
             }
             return access;
+        } else if (type == "await_expression") {
+            auto* awExpr = new AwaitExpression(IdGenerator::next("await"));
+            applySpan(awExpr, node);
+            uint32_t count = ts_node_named_child_count(node);
+            if (count > 0) {
+                ASTNode* expr = convertJavaScriptExpression(ts_node_named_child(node, 0), source, language);
+                if (expr) awExpr->setChild("expression", expr);
+            }
+            return awExpr;
+        } else if (type == "arrow_function") {
+            auto* lam = new LambdaExpression(IdGenerator::next("lam"));
+            applySpan(lam, node);
+            TSNode paramsNode = childByFieldName(node, "parameters");
+            if (!ts_node_is_null(paramsNode)) {
+                uint32_t pc = ts_node_named_child_count(paramsNode);
+                for (uint32_t pi = 0; pi < pc; ++pi) {
+                    TSNode pChild = ts_node_named_child(paramsNode, pi);
+                    std::string pType = nodeType(pChild);
+                    std::string paramName;
+                    if (pType == "identifier") {
+                        paramName = nodeText(pChild, source);
+                    } else {
+                        TSNode pName = childByFieldName(pChild, "pattern");
+                        if (ts_node_is_null(pName)) pName = childByFieldName(pChild, "name");
+                        if (ts_node_is_null(pName)) pName = pChild;
+                        paramName = nodeText(pName, source);
+                    }
+                    if (!paramName.empty()) {
+                        auto* param = new Parameter(IdGenerator::next("param"), paramName);
+                        applySpan(param, pChild);
+                        lam->addChild("parameters", param);
+                    }
+                }
+            } else {
+                // Single parameter without parens: x => ...
+                TSNode paramNode = childByFieldName(node, "parameter");
+                if (!ts_node_is_null(paramNode)) {
+                    auto* param = new Parameter(IdGenerator::next("param"), nodeText(paramNode, source));
+                    applySpan(param, paramNode);
+                    lam->addChild("parameters", param);
+                }
+            }
+            TSNode bodyNode = childByFieldName(node, "body");
+            if (!ts_node_is_null(bodyNode)) {
+                if (nodeType(bodyNode) == "statement_block") {
+                    uint32_t bc = ts_node_named_child_count(bodyNode);
+                    for (uint32_t bi = 0; bi < bc; ++bi) {
+                        ASTNode* stmt = convertJavaScriptStatement(ts_node_named_child(bodyNode, bi), source, language);
+                        if (stmt) lam->addChild("body", stmt);
+                    }
+                } else {
+                    ASTNode* expr = convertJavaScriptExpression(bodyNode, source, language);
+                    if (expr) {
+                        auto* exprStmt = new ExpressionStatement();
+                        exprStmt->id = IdGenerator::next("exprstmt");
+                        exprStmt->setChild("expression", expr);
+                        lam->addChild("body", exprStmt);
+                    }
+                }
+            }
+            return lam;
         } else if (type == "identifier") {
             auto* ref = new VariableReference(IdGenerator::next("var"), nodeText(node, source));
             applySpan(ref, node);
