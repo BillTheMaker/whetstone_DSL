@@ -1,5 +1,8 @@
 #pragma once
 #include "ProjectionGenerator.h"
+#include "ClassDeclaration.h"
+#include "GenericType.h"
+#include "AsyncNodes.h"
 #include "../SemannoAnnotationImpl.h"
 
 class ElispGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<ElispGenerator> {
@@ -487,6 +490,123 @@ public:
 
     std::string visitCustomType(const CustomType* type) override {
         return type->typeName;
+    }
+
+    // --- New AST node visitors (Step 308) ---
+
+    std::string visitClassDeclaration(const ASTNode* node) override {
+        auto* cls = static_cast<const ClassDeclaration*>(node);
+        std::ostringstream oss;
+        auto annotations = cls->getChildren("annotations");
+        for (const auto* a : annotations) oss << generate(a) << "\n";
+        oss << "(cl-defstruct " << cls->name;
+        if (!cls->superClass.empty()) oss << "\n  (:include " << cls->superClass << ")";
+        auto fields = cls->getChildren("fields");
+        for (const auto* f : fields) {
+            auto* var = static_cast<const Variable*>(f);
+            oss << "\n  (" << var->name << " nil)";
+        }
+        oss << ")\n";
+        auto methods = cls->getChildren("methods");
+        for (const auto* m : methods) oss << "\n" << generate(m);
+        return oss.str();
+    }
+
+    std::string visitInterfaceDeclaration(const ASTNode* node) override {
+        auto* iface = static_cast<const InterfaceDeclaration*>(node);
+        std::ostringstream oss;
+        oss << "; Interface: " << iface->name << "\n";
+        auto methods = iface->getChildren("methods");
+        for (const auto* m : methods) {
+            auto* meth = static_cast<const MethodDeclaration*>(m);
+            oss << "(cl-defgeneric " << meth->name << " (self))\n";
+        }
+        return oss.str();
+    }
+
+    std::string visitMethodDeclaration(const ASTNode* node) override {
+        auto* meth = static_cast<const MethodDeclaration*>(node);
+        std::ostringstream oss;
+        auto annotations = meth->getChildren("annotations");
+        for (const auto* a : annotations) oss << generate(a) << "\n";
+        oss << "(cl-defmethod " << meth->name << " ((self";
+        if (!meth->className.empty()) oss << " " << meth->className;
+        oss << ")";
+        auto params = meth->getChildren("parameters");
+        for (const auto* p : params) oss << " " << visitParameter(static_cast<const Parameter*>(p));
+        oss << ")\n";
+        auto body = meth->getChildren("body");
+        if (body.empty()) {
+            oss << "  nil)\n";
+        } else {
+            for (const auto* s : body) oss << "  " << generate(s) << "\n";
+            oss << ")\n";
+        }
+        return oss.str();
+    }
+
+    std::string visitGenericType(const ASTNode* node) override {
+        auto* gen = static_cast<const GenericType*>(node);
+        return gen->baseName;
+    }
+
+    std::string visitTypeParameter(const ASTNode* node) override {
+        auto* tp = static_cast<const TypeParameter*>(node);
+        return tp->name;
+    }
+
+    std::string visitAsyncFunction(const ASTNode* node) override {
+        auto* af = static_cast<const AsyncFunction*>(node);
+        std::ostringstream oss;
+        auto annotations = af->getChildren("annotations");
+        for (const auto* a : annotations) oss << generate(a) << "\n";
+        oss << "(defun " << af->name << " (";
+        auto params = af->getChildren("parameters");
+        for (size_t i = 0; i < params.size(); ++i) {
+            if (i > 0) oss << " ";
+            oss << visitParameter(static_cast<const Parameter*>(params[i]));
+        }
+        oss << ")\n";
+        oss << "  ;; async\n";
+        auto body = af->getChildren("body");
+        if (body.empty()) {
+            oss << "  nil)\n";
+        } else {
+            for (const auto* s : body) oss << "  " << generate(s) << "\n";
+            oss << ")\n";
+        }
+        return oss.str();
+    }
+
+    std::string visitAwaitExpression(const ASTNode* node) override {
+        auto* aw = static_cast<const AwaitExpression*>(node);
+        auto* expr = aw->getChild("expression");
+        return "(async-get " + (expr ? generate(expr) : "nil") + ")";
+    }
+
+    std::string visitLambdaExpression(const ASTNode* node) override {
+        auto* lam = static_cast<const LambdaExpression*>(node);
+        std::ostringstream oss;
+        oss << "(lambda (";
+        auto params = lam->getChildren("parameters");
+        for (size_t i = 0; i < params.size(); ++i) {
+            if (i > 0) oss << " ";
+            oss << static_cast<const Parameter*>(params[i])->name;
+        }
+        oss << ")";
+        auto body = lam->getChildren("body");
+        if (body.empty()) {
+            oss << " nil";
+        } else {
+            for (const auto* s : body) oss << "\n  " << generate(s);
+        }
+        oss << ")";
+        return oss.str();
+    }
+
+    std::string visitDecoratorAnnotation(const ASTNode* node) override {
+        auto* dec = static_cast<const DecoratorAnnotation*>(node);
+        return "; @" + dec->name;
     }
 
     std::string visitDerefStrategy(const DerefStrategy* annotation) override {

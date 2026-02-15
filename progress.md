@@ -1084,6 +1084,55 @@ language-appropriate output. JSON roundtrip preserves dispatch output identity.
   nested class-with-methods dispatch, async-with-await nested dispatch,
   all-9-types JSON roundtrip→dispatch identity check
 
+### Step 305: Python + Java Parser Deepening (12 tests)
+**Status:** PASS (12/12 tests)
+
+Python: class, async def, await, lambda, @decorator.
+Java: class, interface, generics.
+
+### Step 306: JS/TS + Rust Parser Deepening (12 tests)
+**Status:** PASS (12/12 tests)
+
+JS/TS: class, async/await, arrow functions.
+Rust: struct, impl, trait, async fn, closures.
+
+### Step 307: Go + C++ + Elisp Parser Deepening (12 tests)
+**Status:** PASS (12/12 tests)
+
+Go: struct/interface, method receivers.
+C++: class/struct, templates, virtual methods, lambdas.
+Elisp: lambda forms.
+
+### Step 308: Generator Updates + Phase 11c Integration (8 tests)
+**Status:** PASS (8/8 tests)
+
+All 8 generators now produce language-appropriate output for all 9 new AST
+node types (ClassDeclaration, InterfaceDeclaration, MethodDeclaration,
+GenericType, TypeParameter, AsyncFunction, AwaitExpression, LambdaExpression,
+DecoratorAnnotation).
+
+**Files modified:**
+- `editor/src/ast/RustGenerator.h` — 9 new visitor methods: struct/impl, trait,
+  fn(&self), async fn, .await, |closures|, // @decorator
+- `editor/src/ast/GoGenerator.h` — 9 new visitor methods: type struct, type interface,
+  func receiver, func (goroutine async), <-channel await, func() lambda
+- `editor/src/ast/JavaGenerator.h` — 9 new visitor methods: class extends, interface,
+  public void method, List<T>, CompletableFuture async, .get() await, (x) -> lambda, @annotation
+- `editor/src/ast/JavaScriptGenerator.h` — 9 new visitor methods: class extends,
+  class (interface fallback), method(), Name<T>, async function, await, (x) => arrow, // @decorator
+- `editor/src/ast/ElispGenerator.h` — 9 new visitor methods: cl-defstruct, cl-defgeneric,
+  cl-defmethod, baseName (dynamic types), defun ;; async, (async-get), (lambda), ; @decorator
+- `editor/tests/step308_test.cpp` — 8 integration tests
+- `editor/CMakeLists.txt` — step308_test target
+
+**Key results:**
+- Phase 11c complete: all 7 steps pass (80/80 tests across steps 302-308)
+- All 8 generators produce non-empty, language-appropriate output for all 9 new AST types
+- Language idioms verified: Rust struct+impl, Go type struct, Java extends/implements,
+  JS extends/arrow, Python ABC/async def/lambda, C++ virtual/co_await/captures, Elisp defstruct/lambda
+- JSON roundtrip → generate identity verified for ClassDeclaration
+- TypeScript inherits JavaScript generator implementations
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

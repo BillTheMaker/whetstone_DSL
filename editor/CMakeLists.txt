@@ -1847,4 +1847,9 @@ target_link_libraries(step307_test PRIVATE
     tree_sitter_cpp
     tree_sitter_elisp)
 
+# Step 308: Generator Updates + Phase 11c Integration Tests
+add_executable(step308_test tests/step308_test.cpp)
+target_include_directories(step308_test PRIVATE src)
+target_link_libraries(step308_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
