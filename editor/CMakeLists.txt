@@ -1921,4 +1921,9 @@ add_executable(step320_test tests/step320_test.cpp)
 target_include_directories(step320_test PRIVATE src)
 target_link_libraries(step320_test PRIVATE nlohmann_json::nlohmann_json)
 
+# Step 321: TaskQueue — Priority Queue with Dependencies
+add_executable(step321_test tests/step321_test.cpp)
+target_include_directories(step321_test PRIVATE src)
+target_link_libraries(step321_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

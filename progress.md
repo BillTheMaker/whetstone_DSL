@@ -1226,6 +1226,25 @@ work that flows through the routing engine.
 
 **State machine:** pending→ready→assigned→in-progress→(review→complete|rejected OR complete); rejected→ready
 
+### Step 321: TaskQueue — Priority Queue with Dependencies
+**Status:** PASS (12/12 tests)
+
+Ordered queue that respects both priority levels and dependency chains.
+Items whose dependencies are unsatisfied stay blocked; ready items are ordered
+by priority (critical first) then creation time.
+
+**Files created:**
+- `editor/src/TaskQueue.h` — TaskQueue class with enqueue, dequeue, peek,
+  complete, reject, getReady, getBlocked, getByStatus, getItem, updateItem;
+  dependency resolution on completion, priority-based sorting
+- `editor/tests/step321_test.cpp` — 12 tests: enqueue/dequeue ordering,
+  priority ordering, dependency blocking, reject/re-enqueue, getReady
+  filtering, empty queue, getByStatus, size tracking, completion cascading
+  (A→B→C chain), mixed priorities with deps, peek no-remove, updateItem
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step321_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
