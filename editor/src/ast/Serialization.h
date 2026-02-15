@@ -377,6 +377,8 @@ inline json propertiesToJson(const ASTNode* node) {
         auto* n = static_cast<const AmbiguityAnnotation*>(node);
         if (!n->intent.empty()) props["intent"] = n->intent;
         if (!n->options.empty()) props["options"] = n->options;
+        if (!n->level.empty()) props["level"] = n->level;
+        if (!n->description.empty()) props["description"] = n->description;
     }
     else if (ct == "CandidateAnnotation") {
         auto* n = static_cast<const CandidateAnnotation*>(node);
@@ -399,6 +401,32 @@ inline json propertiesToJson(const ASTNode* node) {
         if (!n->selection.empty()) props["selection"] = n->selection;
         if (!n->author.empty()) props["author"] = n->author;
         if (!n->reason.empty()) props["reason"] = n->reason;
+    }
+    // Subject 9: Workflow Routing (Step 315)
+    else if (ct == "ContextWidthAnnotation") {
+        auto* n = static_cast<const ContextWidthAnnotation*>(node);
+        if (!n->width.empty()) props["width"] = n->width;
+    }
+    else if (ct == "ReviewAnnotation") {
+        auto* n = static_cast<const ReviewAnnotation*>(node);
+        props["required"] = n->required;
+        if (!n->reviewer.empty()) props["reviewer"] = n->reviewer;
+        if (!n->reason.empty()) props["reason"] = n->reason;
+    }
+    else if (ct == "AutomatabilityAnnotation") {
+        auto* n = static_cast<const AutomatabilityAnnotation*>(node);
+        if (!n->strategy.empty()) props["strategy"] = n->strategy;
+        if (n->confidence > 0.0) props["confidence"] = n->confidence;
+    }
+    else if (ct == "PriorityAnnotation") {
+        auto* n = static_cast<const PriorityAnnotation*>(node);
+        if (!n->level.empty()) props["level"] = n->level;
+        if (!n->blockedBy.empty()) props["blockedBy"] = n->blockedBy;
+    }
+    else if (ct == "ImplementationStatusAnnotation") {
+        auto* n = static_cast<const ImplementationStatusAnnotation*>(node);
+        if (!n->status.empty()) props["status"] = n->status;
+        if (!n->assignee.empty()) props["assignee"] = n->assignee;
     }
     // Host Boundary (Step 288)
     else if (ct == "HostCall") {
@@ -604,6 +632,12 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "TradeoffAnnotation") return new TradeoffAnnotation();
     if (conceptName == "ChoiceAnnotation") return new ChoiceAnnotation();
     if (conceptName == "DecisionAnnotation") return new DecisionAnnotation();
+    // Subject 9: Workflow Routing (Step 315)
+    if (conceptName == "ContextWidthAnnotation") return new ContextWidthAnnotation();
+    if (conceptName == "ReviewAnnotation") return new ReviewAnnotation();
+    if (conceptName == "AutomatabilityAnnotation") return new AutomatabilityAnnotation();
+    if (conceptName == "PriorityAnnotation") return new PriorityAnnotation();
+    if (conceptName == "ImplementationStatusAnnotation") return new ImplementationStatusAnnotation();
     // Host Boundary (Step 288)
     if (conceptName == "HostCall") return new HostCall();
     if (conceptName == "ScheduleTask") return new ScheduleTask();
@@ -994,6 +1028,8 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
             for (const auto& o : props["options"])
                 if (o.is_string()) n->options.push_back(o.get<std::string>());
         }
+        if (props.contains("level")) n->level = props["level"].get<std::string>();
+        if (props.contains("description")) n->description = props["description"].get<std::string>();
     }
     else if (ct == "CandidateAnnotation") {
         auto* n = static_cast<CandidateAnnotation*>(node);
@@ -1024,6 +1060,36 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
         if (props.contains("selection")) n->selection = props["selection"].get<std::string>();
         if (props.contains("author")) n->author = props["author"].get<std::string>();
         if (props.contains("reason")) n->reason = props["reason"].get<std::string>();
+    }
+    // Subject 9: Workflow Routing (Step 315)
+    else if (ct == "ContextWidthAnnotation") {
+        auto* n = static_cast<ContextWidthAnnotation*>(node);
+        if (props.contains("width")) n->width = props["width"].get<std::string>();
+    }
+    else if (ct == "ReviewAnnotation") {
+        auto* n = static_cast<ReviewAnnotation*>(node);
+        if (props.contains("required")) n->required = props["required"].get<bool>();
+        if (props.contains("reviewer")) n->reviewer = props["reviewer"].get<std::string>();
+        if (props.contains("reason")) n->reason = props["reason"].get<std::string>();
+    }
+    else if (ct == "AutomatabilityAnnotation") {
+        auto* n = static_cast<AutomatabilityAnnotation*>(node);
+        if (props.contains("strategy")) n->strategy = props["strategy"].get<std::string>();
+        if (props.contains("confidence")) n->confidence = props["confidence"].get<double>();
+    }
+    else if (ct == "PriorityAnnotation") {
+        auto* n = static_cast<PriorityAnnotation*>(node);
+        if (props.contains("level")) n->level = props["level"].get<std::string>();
+        if (props.contains("blockedBy") && props["blockedBy"].is_array()) {
+            n->blockedBy.clear();
+            for (const auto& b : props["blockedBy"])
+                if (b.is_string()) n->blockedBy.push_back(b.get<std::string>());
+        }
+    }
+    else if (ct == "ImplementationStatusAnnotation") {
+        auto* n = static_cast<ImplementationStatusAnnotation*>(node);
+        if (props.contains("status")) n->status = props["status"].get<std::string>();
+        if (props.contains("assignee")) n->assignee = props["assignee"].get<std::string>();
     }
     // Host Boundary (Step 288)
     else if (ct == "HostCall") {

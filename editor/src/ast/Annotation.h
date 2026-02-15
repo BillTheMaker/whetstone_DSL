@@ -506,6 +506,9 @@ class AmbiguityAnnotation : public Annotation {
 public:
     std::string intent;
     std::vector<std::string> options;
+    // Workflow routing fields (Subject 9)
+    std::string level;       // "none" | "low" | "medium" | "high"
+    std::string description;
     AmbiguityAnnotation() { conceptType = "AmbiguityAnnotation"; }
 };
 
@@ -537,4 +540,41 @@ public:
     std::string author;
     std::string reason;
     DecisionAnnotation() { conceptType = "DecisionAnnotation"; }
+};
+
+// ── Subject 9: Workflow Routing Annotations ──────────────────────
+
+class ContextWidthAnnotation : public Annotation {
+public:
+    std::string width;  // "local" | "file" | "project" | "cross-project"
+    ContextWidthAnnotation() { conceptType = "ContextWidthAnnotation"; }
+};
+
+class ReviewAnnotation : public Annotation {
+public:
+    bool required = false;
+    std::string reviewer;  // "human" | "agent" | "either"
+    std::string reason;
+    ReviewAnnotation() { conceptType = "ReviewAnnotation"; }
+};
+
+class AutomatabilityAnnotation : public Annotation {
+public:
+    std::string strategy;   // "deterministic" | "template" | "slm" | "llm" | "human"
+    double confidence = 0.0;
+    AutomatabilityAnnotation() { conceptType = "AutomatabilityAnnotation"; }
+};
+
+class PriorityAnnotation : public Annotation {
+public:
+    std::string level;  // "critical" | "high" | "medium" | "low"
+    std::vector<std::string> blockedBy;
+    PriorityAnnotation() { conceptType = "PriorityAnnotation"; }
+};
+
+class ImplementationStatusAnnotation : public Annotation {
+public:
+    std::string status;    // "skeleton" | "partial" | "complete" | "needs-review"
+    std::string assignee;
+    ImplementationStatusAnnotation() { conceptType = "ImplementationStatusAnnotation"; }
 };

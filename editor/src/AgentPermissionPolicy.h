@@ -63,7 +63,9 @@ struct AgentPermissionPolicy {
             method == "getUnannotatedNodes" ||
             method == "getEnvironment" ||
             method == "validateEnvironment" ||
-            method == "getLoweringHints") {
+            method == "getLoweringHints" ||
+            method == "getProjectModel" ||
+            method == "inferAnnotations") {
             return true;
         }
 
@@ -85,7 +87,9 @@ struct AgentPermissionPolicy {
             method == "saveAnnotatedAST" ||
             method == "setSemanticAnnotation" ||
             method == "removeSemanticAnnotation" ||
-            method == "setEnvironment") {
+            method == "setEnvironment" ||
+            method == "createSkeleton" ||
+            method == "addSkeletonNode") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

@@ -401,6 +401,8 @@ public:
             auto* a = static_cast<const AmbiguityAnnotation*>(anno);
             appendProp(props, "intent", a->intent, first);
             appendVec(props, "options", a->options, first);
+            appendProp(props, "level", a->level, first);
+            appendProp(props, "description", a->description, first);
         } else if (ct == "CandidateAnnotation") {
             tag = "candidate";
             auto* a = static_cast<const CandidateAnnotation*>(anno);
@@ -423,6 +425,37 @@ public:
             appendProp(props, "selection", a->selection, first);
             appendProp(props, "author", a->author, first);
             appendProp(props, "reason", a->reason, first);
+
+        // --- Subject 9: Workflow Routing ---
+        } else if (ct == "ContextWidthAnnotation") {
+            tag = "contextwidth";
+            auto* a = static_cast<const ContextWidthAnnotation*>(anno);
+            appendProp(props, "width", a->width, first);
+        } else if (ct == "ReviewAnnotation") {
+            tag = "review";
+            auto* a = static_cast<const ReviewAnnotation*>(anno);
+            appendBool(props, "required", a->required, first);
+            appendProp(props, "reviewer", a->reviewer, first);
+            appendProp(props, "reason", a->reason, first);
+        } else if (ct == "AutomatabilityAnnotation") {
+            tag = "automatability";
+            auto* a = static_cast<const AutomatabilityAnnotation*>(anno);
+            appendProp(props, "strategy", a->strategy, first);
+            if (a->confidence > 0.0) {
+                if (!first) props += ",";
+                props += "confidence=" + std::to_string(a->confidence);
+                first = false;
+            }
+        } else if (ct == "PriorityAnnotation") {
+            tag = "priority";
+            auto* a = static_cast<const PriorityAnnotation*>(anno);
+            appendProp(props, "level", a->level, first);
+            appendVec(props, "blockedBy", a->blockedBy, first);
+        } else if (ct == "ImplementationStatusAnnotation") {
+            tag = "implstatus";
+            auto* a = static_cast<const ImplementationStatusAnnotation*>(anno);
+            appendProp(props, "status", a->status, first);
+            appendProp(props, "assignee", a->assignee, first);
 
         // --- Semantic Core ---
         } else if (ct == "IntentAnnotation") {

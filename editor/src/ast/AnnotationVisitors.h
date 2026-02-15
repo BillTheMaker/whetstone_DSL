@@ -75,6 +75,13 @@ public:
     virtual std::string visitChoiceAnnotation(const ChoiceAnnotation*) = 0;
     virtual std::string visitDecisionAnnotation(const DecisionAnnotation*) = 0;
 
+    // Subject 9: Workflow Routing
+    virtual std::string visitContextWidthAnnotation(const ContextWidthAnnotation*) = 0;
+    virtual std::string visitReviewAnnotation(const ReviewAnnotation*) = 0;
+    virtual std::string visitAutomatabilityAnnotation(const AutomatabilityAnnotation*) = 0;
+    virtual std::string visitPriorityAnnotation(const PriorityAnnotation*) = 0;
+    virtual std::string visitImplementationStatusAnnotation(const ImplementationStatusAnnotation*) = 0;
+
     // Semantic Core
     virtual std::string visitIntentAnnotation(const IntentAnnotation*) = 0;
     virtual std::string visitComplexityAnnotation(const ComplexityAnnotation*) = 0;

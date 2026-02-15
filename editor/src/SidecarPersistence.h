@@ -95,6 +95,12 @@ inline bool isSemanticAnnotation(const std::string& conceptType) {
            conceptType == "TradeoffAnnotation" ||
            conceptType == "ChoiceAnnotation" ||
            conceptType == "DecisionAnnotation" ||
+           // Subject 9: Workflow Routing (Step 315)
+           conceptType == "ContextWidthAnnotation" ||
+           conceptType == "ReviewAnnotation" ||
+           conceptType == "AutomatabilityAnnotation" ||
+           conceptType == "PriorityAnnotation" ||
+           conceptType == "ImplementationStatusAnnotation" ||
            // Environment Layer (Step 285)
            conceptType == "CapabilityRequirement";
 }

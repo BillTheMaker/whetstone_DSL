@@ -96,6 +96,13 @@ public:
     std::string visitChoiceAnnotation(const ChoiceAnnotation* a) override { return semanno(a); }
     std::string visitDecisionAnnotation(const DecisionAnnotation* a) override { return semanno(a); }
 
+    // Subject 9: Workflow Routing
+    std::string visitContextWidthAnnotation(const ContextWidthAnnotation* a) override { return semanno(a); }
+    std::string visitReviewAnnotation(const ReviewAnnotation* a) override { return semanno(a); }
+    std::string visitAutomatabilityAnnotation(const AutomatabilityAnnotation* a) override { return semanno(a); }
+    std::string visitPriorityAnnotation(const PriorityAnnotation* a) override { return semanno(a); }
+    std::string visitImplementationStatusAnnotation(const ImplementationStatusAnnotation* a) override { return semanno(a); }
+
     // Semantic Core
     std::string visitIntentAnnotation(const IntentAnnotation* a) override { return semanno(a); }
     std::string visitComplexityAnnotation(const ComplexityAnnotation* a) override { return semanno(a); }

@@ -1133,6 +1133,70 @@ DecoratorAnnotation).
 - JSON roundtrip → generate identity verified for ClassDeclaration
 - TypeScript inherits JavaScript generator implementations
 
+## Phase 11d: New Languages — Kotlin + C# (Steps 309-313)
+
+### Step 309: Kotlin Parser (12 tests)
+**Status:** PASS (12/12 tests)
+
+KotlinParser (regex-based, standalone) parses: fun → Function, suspend fun →
+AsyncFunction, class/data class → ClassDeclaration, val/var → Variable.
+Module target language set to "kotlin".
+
+### Step 310: Kotlin Generator (12 tests)
+**Status:** PASS (12/12 tests)
+
+KotlinGenerator produces idiomatic Kotlin: fun, val, suspend fun, class : Super(),
+interface, { params -> body } lambdas, @decorator, generic types.
+Type mappings: int→Int, string→String, bool→Boolean, void→Unit, double→Double.
+Collection types: List<>, Set<>, Map<>, Array<>, Pair<>.
+
+### Step 311: C# Parser (12 tests)
+**Status:** PASS (12/12 tests)
+
+CSharpParser (regex-based, standalone) parses: methods with visibility/return-type
+detection, async methods → AsyncFunction, class → ClassDeclaration, interface →
+InterfaceDeclaration. Skips using directives and namespace wrappers.
+
+### Step 312: C# Generator (12 tests)
+**Status:** PASS (12/12 tests)
+
+CSharpGenerator produces idiomatic C#: public void, Allman braces, foreach..in,
+class : Base, interface, public async Task, await, (x) => lambda, [Attribute].
+Type mappings: int, float, double, string, bool, void.
+Collection types: List<>, HashSet<>, Dictionary<>.
+
+### Step 313: New Languages Integration + MCP (8 tests)
+**Status:** PASS (8/8 tests)
+
+Full pipeline integration for Kotlin + C#:
+- Pipeline.parse() and Pipeline.generate() route correctly for both languages
+- Cross-language projection verified (Python→Kotlin, Java→C#)
+- MemoryStrategyInference runs without error on Kotlin/C# modules
+- All 10 generators produce non-empty output
+- Final count: 10 parsers, 10 generators
+
+**Files created:**
+- `editor/tests/step309_test.cpp` — 12 Kotlin parser tests
+- `editor/tests/step310_test.cpp` — 12 Kotlin generator tests
+- `editor/tests/step311_test.cpp` — 12 C# parser tests
+- `editor/tests/step312_test.cpp` — 12 C# generator tests
+- `editor/tests/step313_test.cpp` — 8 integration tests
+
+**Files modified:**
+- `editor/src/ast/KotlinGenerator.h` — 9 new AST node visitors (class, interface,
+  method, generic, type param, suspend fun, await, lambda, @decorator)
+- `editor/src/ast/CSharpGenerator.h` — 9 new AST node visitors (class, interface,
+  method, generic, type param, async Task, await, lambda, [Attribute])
+- `editor/src/Pipeline.h` — fixed Kotlin/C# parser routing (KotlinParser/CSharpParser
+  instead of TreeSitterParser)
+- `editor/CMakeLists.txt` — 5 new test targets (steps 309-313)
+
+**Key results:**
+- Phase 11d complete: all 5 steps pass (56/56 tests across steps 309-313)
+- 10 language parsers, 10 language generators fully operational
+- No regressions: Phase 11c (80/80) still passes
+- Total Phase 11c+11d: 136/136 tests
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

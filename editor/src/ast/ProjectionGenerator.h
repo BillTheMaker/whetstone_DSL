@@ -294,6 +294,18 @@ std::string dispatchGenerate(Gen* gen, const ASTNode* node, const std::string& u
     } else if (node->conceptType == "DecisionAnnotation") {
         return gen->visitDecisionAnnotation(static_cast<const DecisionAnnotation*>(node));
     }
+    // Subject 9: Workflow Routing
+    else if (node->conceptType == "ContextWidthAnnotation") {
+        return gen->visitContextWidthAnnotation(static_cast<const ContextWidthAnnotation*>(node));
+    } else if (node->conceptType == "ReviewAnnotation") {
+        return gen->visitReviewAnnotation(static_cast<const ReviewAnnotation*>(node));
+    } else if (node->conceptType == "AutomatabilityAnnotation") {
+        return gen->visitAutomatabilityAnnotation(static_cast<const AutomatabilityAnnotation*>(node));
+    } else if (node->conceptType == "PriorityAnnotation") {
+        return gen->visitPriorityAnnotation(static_cast<const PriorityAnnotation*>(node));
+    } else if (node->conceptType == "ImplementationStatusAnnotation") {
+        return gen->visitImplementationStatusAnnotation(static_cast<const ImplementationStatusAnnotation*>(node));
+    }
     // Semantic Core
     else if (node->conceptType == "IntentAnnotation") {
         return gen->visitIntentAnnotation(static_cast<const IntentAnnotation*>(node));

@@ -1716,6 +1716,12 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         else if (type == "tradeoff") conceptType = "TradeoffAnnotation";
         else if (type == "choice") conceptType = "ChoiceAnnotation";
         else if (type == "decision") conceptType = "DecisionAnnotation";
+        // Subject 9: Workflow Routing (Step 315)
+        else if (type == "contextWidth") conceptType = "ContextWidthAnnotation";
+        else if (type == "review") conceptType = "ReviewAnnotation";
+        else if (type == "automatability") conceptType = "AutomatabilityAnnotation";
+        else if (type == "priority") conceptType = "PriorityAnnotation";
+        else if (type == "implementationStatus") conceptType = "ImplementationStatusAnnotation";
         // Environment Layer (Step 285)
         else if (type == "capabilityRequirement") conceptType = "CapabilityRequirement";
         else return headlessRpcError(id, -32602, "Unknown annotation type: " + type);
@@ -2083,6 +2089,161 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         }
         return headlessRpcResult(id, {{"hints", hintsJson},
             {"count", (int)hintsJson.size()}});
+    }
+
+    // --- Step 317: Workflow Annotation Foundation ---
+
+    // createSkeleton — create a new skeleton module
+    if (method == "createSkeleton") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string name = params.value("name", "skeleton");
+        std::string language = params.value("language", "python");
+
+        // Create skeleton module using openBuffer with empty content
+        std::string bufPath = "skel_" + name;
+        auto* buf = state.openBuffer(bufPath, "", language);
+        // Replace the default empty module with a properly named skeleton
+        auto* rawMod = createSkeletonModule(name, language);
+        buf->sync.setAST(std::unique_ptr<Module>(rawMod));
+        buf->modified = true;
+        return headlessRpcResult(id, {{"bufferId", bufPath},
+            {"name", name}, {"language", language}});
+    }
+
+    // addSkeletonNode — add function/class skeleton with annotations
+    if (method == "addSkeletonNode") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        std::string nodeType = params.value("nodeType", "function");
+        std::string name = params.value("name", "unnamed");
+        std::vector<std::string> paramNames;
+        if (params.contains("parameters") && params["parameters"].is_array()) {
+            for (const auto& p : params["parameters"])
+                if (p.is_string()) paramNames.push_back(p.get<std::string>());
+        }
+
+        // Build annotations from params
+        std::vector<ASTNode*> annos;
+        if (params.contains("contextWidth")) {
+            auto* cw = new ContextWidthAnnotation();
+            static int cwC = 0;
+            cw->id = "rpc_cw_" + std::to_string(++cwC);
+            cw->width = params["contextWidth"].get<std::string>();
+            annos.push_back(cw);
+        }
+        if (params.contains("automatability")) {
+            auto* aa = new AutomatabilityAnnotation();
+            static int aaC = 0;
+            aa->id = "rpc_aa_" + std::to_string(++aaC);
+            aa->strategy = params["automatability"].get<std::string>();
+            annos.push_back(aa);
+        }
+        if (params.contains("priority")) {
+            auto* pa = new PriorityAnnotation();
+            static int paC = 0;
+            pa->id = "rpc_pa_" + std::to_string(++paC);
+            pa->level = params["priority"].get<std::string>();
+            if (params.contains("blockedBy") && params["blockedBy"].is_array()) {
+                for (const auto& b : params["blockedBy"])
+                    if (b.is_string()) pa->blockedBy.push_back(b.get<std::string>());
+            }
+            annos.push_back(pa);
+        }
+
+        std::string nodeId;
+        if (nodeType == "class") {
+            std::vector<std::string> methods;
+            if (params.contains("methods") && params["methods"].is_array()) {
+                for (const auto& m : params["methods"])
+                    if (m.is_string()) methods.push_back(m.get<std::string>());
+            }
+            auto* cls = addSkeletonClass(ast, name, methods, {});
+            nodeId = cls->id;
+        } else {
+            auto* fn = addSkeletonFunction(ast, name, paramNames, "", annos);
+            nodeId = fn->id;
+        }
+
+        state.activeBuffer->modified = true;
+        return headlessRpcResult(id, {{"nodeId", nodeId}, {"name", name},
+            {"nodeType", nodeType}});
+    }
+
+    // getProjectModel — skeleton summary + task list
+    if (method == "getProjectModel") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        auto summary = getSkeletonSummary(ast);
+        auto tasks = skeletonToTaskList(ast);
+
+        json tasksJson = json::array();
+        for (const auto& t : tasks) {
+            json tj;
+            tj["nodeId"] = t.nodeId;
+            tj["nodeName"] = t.nodeName;
+            tj["nodeType"] = t.nodeType;
+            tj["contextWidth"] = t.contextWidth;
+            tj["automatability"] = t.automatability;
+            tj["priority"] = t.priority;
+            tj["reviewRequired"] = t.reviewRequired;
+            tj["status"] = t.status;
+            if (!t.dependencies.empty())
+                tj["dependencies"] = t.dependencies;
+            tasksJson.push_back(tj);
+        }
+
+        return headlessRpcResult(id, {
+            {"totalNodes", summary.totalNodes},
+            {"skeletonNodes", summary.skeletonNodes},
+            {"implementedNodes", summary.implementedNodes},
+            {"tasks", tasksJson}
+        });
+    }
+
+    // inferAnnotations — run AnnotationInference on active buffer
+    if (method == "inferAnnotations") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.activeBuffer)
+            return headlessRpcError(id, -32602, "No active buffer");
+        Module* ast = state.activeAST();
+        if (!ast)
+            return headlessRpcError(id, -32602, "No AST available");
+
+        AnnotationInference infEngine;
+        auto inferred = infEngine.inferAll(ast);
+
+        json suggestionsJson = json::array();
+        for (const auto& inf : inferred) {
+            json sj;
+            sj["nodeId"] = inf.nodeId;
+            sj["annotationType"] = inf.annotationType;
+            if (!inf.key.empty()) sj["key"] = inf.key;
+            if (!inf.value.empty()) sj["value"] = inf.value;
+            sj["reason"] = inf.reason;
+            sj["confidence"] = inf.confidence;
+            suggestionsJson.push_back(sj);
+        }
+
+        return headlessRpcResult(id, {
+            {"suggestions", suggestionsJson},
+            {"count", (int)suggestionsJson.size()}
+        });
     }
 
     return headlessRpcError(id, -32601, "Method not found");

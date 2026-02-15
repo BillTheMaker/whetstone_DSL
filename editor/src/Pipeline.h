@@ -111,11 +111,11 @@ public:
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
         } else if (language == "kotlin") {
-            auto pr = TreeSitterParser::parseKotlinWithDiagnostics(source);
+            auto pr = KotlinParser::parseKotlinWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
         } else if (language == "csharp") {
-            auto pr = TreeSitterParser::parseCSharpWithDiagnostics(source);
+            auto pr = CSharpParser::parseCSharpWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
         }

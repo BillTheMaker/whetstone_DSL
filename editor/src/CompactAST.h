@@ -8,6 +8,7 @@
 #include "ast/Serialization.h"
 #include "ast/Annotation.h"
 #include "ast/HostBoundary.h"
+#include "ASTUtils.h"
 #include "EnvironmentSpec.h"
 #include <nlohmann/json.hpp>
 #include <string>
@@ -320,6 +321,33 @@ inline json extractSemanticSummary(const ASTNode* node) {
             if (!da->choiceId.empty()) obj["choiceId"] = da->choiceId;
             if (!da->selection.empty()) obj["selection"] = da->selection;
             if (!obj.empty()) sem["decision"] = obj;
+        }
+        // Subject 9: Workflow Routing (Step 315)
+        else if (a->conceptType == "ContextWidthAnnotation") {
+            auto* cw = static_cast<const ContextWidthAnnotation*>(a);
+            if (!cw->width.empty()) sem["contextWidth"] = cw->width;
+        }
+        else if (a->conceptType == "ReviewAnnotation") {
+            auto* ra = static_cast<const ReviewAnnotation*>(a);
+            json obj;
+            obj["required"] = ra->required;
+            if (!ra->reviewer.empty()) obj["reviewer"] = ra->reviewer;
+            sem["review"] = obj;
+        }
+        else if (a->conceptType == "AutomatabilityAnnotation") {
+            auto* aa = static_cast<const AutomatabilityAnnotation*>(a);
+            json obj;
+            if (!aa->strategy.empty()) obj["strategy"] = aa->strategy;
+            if (aa->confidence > 0.0) obj["confidence"] = aa->confidence;
+            sem["automatability"] = obj;
+        }
+        else if (a->conceptType == "PriorityAnnotation") {
+            auto* pa = static_cast<const PriorityAnnotation*>(a);
+            if (!pa->level.empty()) sem["priority"] = pa->level;
+        }
+        else if (a->conceptType == "ImplementationStatusAnnotation") {
+            auto* isa = static_cast<const ImplementationStatusAnnotation*>(a);
+            if (!isa->status.empty()) sem["implStatus"] = isa->status;
         }
         // Environment Layer (Step 285)
         else if (a->conceptType == "CapabilityRequirement") {

@@ -35,6 +35,8 @@
 #include "SemanticTags.h"
 #include "ProjectState.h"
 #include "SidecarPersistence.h"
+#include "AnnotationInference.h"
+#include "SkeletonAST.h"
 
 #include <nlohmann/json.hpp>
 #include <string>

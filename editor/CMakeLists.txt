@@ -1852,4 +1852,68 @@ add_executable(step308_test tests/step308_test.cpp)
 target_include_directories(step308_test PRIVATE src)
 target_link_libraries(step308_test PRIVATE nlohmann_json::nlohmann_json)
 
+# Step 309: Kotlin Parser Tests
+add_executable(step309_test tests/step309_test.cpp)
+target_include_directories(step309_test PRIVATE src)
+target_link_libraries(step309_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 310: Kotlin Generator Tests
+add_executable(step310_test tests/step310_test.cpp)
+target_include_directories(step310_test PRIVATE src)
+target_link_libraries(step310_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 311: C# Parser Tests
+add_executable(step311_test tests/step311_test.cpp)
+target_include_directories(step311_test PRIVATE src)
+target_link_libraries(step311_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 312: C# Generator Tests
+add_executable(step312_test tests/step312_test.cpp)
+target_include_directories(step312_test PRIVATE src)
+target_link_libraries(step312_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 313: New Languages Integration Tests
+add_executable(step313_test tests/step313_test.cpp)
+target_include_directories(step313_test PRIVATE src)
+target_link_libraries(step313_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+# Step 314: Generalized Annotation Inference Engine
+add_executable(step314_test tests/step314_test.cpp)
+target_include_directories(step314_test PRIVATE src)
+target_link_libraries(step314_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 315: Routing Annotation Types (Subject 9)
+add_executable(step315_test tests/step315_test.cpp)
+target_include_directories(step315_test PRIVATE src)
+target_link_libraries(step315_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 316: Skeleton AST Support
+add_executable(step316_test tests/step316_test.cpp)
+target_include_directories(step316_test PRIVATE src)
+target_link_libraries(step316_test PRIVATE nlohmann_json::nlohmann_json)
+
+# Step 317: Architect Tooling — RPC + MCP
+add_executable(step317_test tests/step317_test.cpp)
+target_include_directories(step317_test PRIVATE src)
+target_link_libraries(step317_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step318_test tests/step318_test.cpp)
+target_include_directories(step318_test PRIVATE src)
+target_link_libraries(step318_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
