@@ -2039,6 +2039,9 @@ state transitions, key symbol visibility, and panel layout persistence.
 - Navigation foundation in place: breadcrumbs, status model, symbol navigation,
   find/replace model, and full keyboard-centric integration path
 - Key symbol consistency validated across all primary interaction surfaces
+- Post-sprint architecture gate passed: refactored `MenuBar::buildDefaults` into
+  helper functions to satisfy the max function length constraint (<=80 lines),
+  with `step354_test`, `step355_test`, and `step360_test` revalidated
 
 # Roadmap Planning — Sprints 12-25+
 

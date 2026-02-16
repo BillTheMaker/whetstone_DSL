@@ -105,113 +105,127 @@ public:
     static MenuBar buildDefaults(const KeybindingRegistry& reg,
                                  const WhetstoneTheme& theme = getDefaultDarkTheme()) {
         MenuBar bar;
-
-        auto makeAction = [&](const std::string& id, const std::string& fallback) -> MenuItem {
-            MenuItem item;
-            item.id = id;
-            item.label = fallback;
-
-            for (const auto& action : reg.getActions()) {
-                if (action.id == id) {
-                    item.label = action.label;
-                    break;
-                }
-            }
-
-            auto layout = KeySymbolRenderer::renderActionWithKey(item.label, id, reg, theme);
-            item.shortcut = layout.shortcut;
-            item.symbols = layout.symbols;
-            return item;
-        };
-
-        // File
-        {
-            Menu m;
-            m.title = "File";
-            m.items.push_back(makeAction("new-file", "New"));
-            m.items.push_back(makeAction("open-file", "Open File"));
-            m.items.push_back(MenuItem::separator());
-            m.items.push_back(makeAction("save-buffer", "Save"));
-            m.items.push_back(makeAction("save-all", "Save All"));
-            m.items.push_back(MenuItem::separator());
-            m.items.push_back(makeAction("close-buffer", "Close"));
-            bar.addMenu(m);
-        }
-
-        // Edit
-        {
-            Menu m;
-            m.title = "Edit";
-            m.items.push_back(makeAction("undo", "Undo"));
-            m.items.push_back(makeAction("redo", "Redo"));
-            m.items.push_back(MenuItem::separator());
-            m.items.push_back(makeAction("find-in-file", "Find"));
-            m.items.push_back(makeAction("find-in-project", "Find in Project"));
-            bar.addMenu(m);
-        }
-
-        // View
-        {
-            Menu m;
-            m.title = "View";
-            m.items.push_back(makeAction("toggle-file-tree", "Toggle File Tree"));
-            m.items.push_back(makeAction("toggle-ast-view", "Toggle AST"));
-            m.items.push_back(makeAction("toggle-diagnostics", "Toggle Diagnostics"));
-            m.items.push_back(makeAction("toggle-annotations", "Toggle Annotations"));
-            m.items.push_back(MenuItem::separator());
-            m.items.push_back(makeAction("reset-layout", "Reset Layout"));
-            bar.addMenu(m);
-        }
-
-        // Tools
-        {
-            Menu m;
-            m.title = "Tools";
-            m.items.push_back(makeAction("run-pipeline", "Run Pipeline"));
-            m.items.push_back(makeAction("generate-code", "Generate Code"));
-            m.items.push_back(makeAction("infer-annotations", "Infer Annotations"));
-            m.items.push_back(makeAction("validate", "Validate"));
-            m.items.push_back(MenuItem::separator());
-            m.items.push_back(makeAction("export-semanno", "Export Semanno"));
-            bar.addMenu(m);
-        }
-
-        // Workflow
-        {
-            Menu m;
-            m.title = "Workflow";
-            m.items.push_back(makeAction("create-workflow", "Create Workflow"));
-            m.items.push_back(makeAction("route-all", "Route All"));
-            m.items.push_back(makeAction("view-ready-tasks", "View Ready Tasks"));
-            m.items.push_back(makeAction("save-workflow", "Save Workflow"));
-            bar.addMenu(m);
-        }
-
-        // Help with submenu
-        {
-            Menu m;
-            m.title = "Help";
-            MenuItem about = makeAction("about", "About");
-            MenuItem shortcuts = makeAction("keyboard-shortcuts", "Keyboard Shortcuts");
-
-            MenuItem docs;
-            docs.id = "docs";
-            docs.label = "Documentation";
-            docs.hasSubmenu = true;
-            docs.submenuItems.push_back(makeAction("docs-getting-started", "Getting Started"));
-            docs.submenuItems.push_back(makeAction("docs-keybindings", "Keybindings"));
-
-            m.items.push_back(about);
-            m.items.push_back(shortcuts);
-            m.items.push_back(MenuItem::separator());
-            m.items.push_back(docs);
-            bar.addMenu(m);
-        }
-
+        appendFileMenu(bar, reg, theme);
+        appendEditMenu(bar, reg, theme);
+        appendViewMenu(bar, reg, theme);
+        appendToolsMenu(bar, reg, theme);
+        appendWorkflowMenu(bar, reg, theme);
+        appendHelpMenu(bar, reg, theme);
         return bar;
     }
 
 private:
+    static MenuItem makeActionItem(const KeybindingRegistry& reg,
+                                   const WhetstoneTheme& theme,
+                                   const std::string& id,
+                                   const std::string& fallback) {
+        MenuItem item;
+        item.id = id;
+        item.label = fallback;
+
+        for (const auto& action : reg.getActions()) {
+            if (action.id == id) {
+                item.label = action.label;
+                break;
+            }
+        }
+
+        auto layout = KeySymbolRenderer::renderActionWithKey(item.label, id, reg, theme);
+        item.shortcut = layout.shortcut;
+        item.symbols = layout.symbols;
+        return item;
+    }
+
+    static void appendFileMenu(MenuBar& bar,
+                               const KeybindingRegistry& reg,
+                               const WhetstoneTheme& theme) {
+        Menu m;
+        m.title = "File";
+        m.items.push_back(makeActionItem(reg, theme, "new-file", "New"));
+        m.items.push_back(makeActionItem(reg, theme, "open-file", "Open File"));
+        m.items.push_back(MenuItem::separator());
+        m.items.push_back(makeActionItem(reg, theme, "save-buffer", "Save"));
+        m.items.push_back(makeActionItem(reg, theme, "save-all", "Save All"));
+        m.items.push_back(MenuItem::separator());
+        m.items.push_back(makeActionItem(reg, theme, "close-buffer", "Close"));
+        bar.addMenu(m);
+    }
+
+    static void appendEditMenu(MenuBar& bar,
+                               const KeybindingRegistry& reg,
+                               const WhetstoneTheme& theme) {
+        Menu m;
+        m.title = "Edit";
+        m.items.push_back(makeActionItem(reg, theme, "undo", "Undo"));
+        m.items.push_back(makeActionItem(reg, theme, "redo", "Redo"));
+        m.items.push_back(MenuItem::separator());
+        m.items.push_back(makeActionItem(reg, theme, "find-in-file", "Find"));
+        m.items.push_back(makeActionItem(reg, theme, "find-in-project", "Find in Project"));
+        bar.addMenu(m);
+    }
+
+    static void appendViewMenu(MenuBar& bar,
+                               const KeybindingRegistry& reg,
+                               const WhetstoneTheme& theme) {
+        Menu m;
+        m.title = "View";
+        m.items.push_back(makeActionItem(reg, theme, "toggle-file-tree", "Toggle File Tree"));
+        m.items.push_back(makeActionItem(reg, theme, "toggle-ast-view", "Toggle AST"));
+        m.items.push_back(makeActionItem(reg, theme, "toggle-diagnostics", "Toggle Diagnostics"));
+        m.items.push_back(makeActionItem(reg, theme, "toggle-annotations", "Toggle Annotations"));
+        m.items.push_back(MenuItem::separator());
+        m.items.push_back(makeActionItem(reg, theme, "reset-layout", "Reset Layout"));
+        bar.addMenu(m);
+    }
+
+    static void appendToolsMenu(MenuBar& bar,
+                                const KeybindingRegistry& reg,
+                                const WhetstoneTheme& theme) {
+        Menu m;
+        m.title = "Tools";
+        m.items.push_back(makeActionItem(reg, theme, "run-pipeline", "Run Pipeline"));
+        m.items.push_back(makeActionItem(reg, theme, "generate-code", "Generate Code"));
+        m.items.push_back(makeActionItem(reg, theme, "infer-annotations", "Infer Annotations"));
+        m.items.push_back(makeActionItem(reg, theme, "validate", "Validate"));
+        m.items.push_back(MenuItem::separator());
+        m.items.push_back(makeActionItem(reg, theme, "export-semanno", "Export Semanno"));
+        bar.addMenu(m);
+    }
+
+    static void appendWorkflowMenu(MenuBar& bar,
+                                   const KeybindingRegistry& reg,
+                                   const WhetstoneTheme& theme) {
+        Menu m;
+        m.title = "Workflow";
+        m.items.push_back(makeActionItem(reg, theme, "create-workflow", "Create Workflow"));
+        m.items.push_back(makeActionItem(reg, theme, "route-all", "Route All"));
+        m.items.push_back(makeActionItem(reg, theme, "view-ready-tasks", "View Ready Tasks"));
+        m.items.push_back(makeActionItem(reg, theme, "save-workflow", "Save Workflow"));
+        bar.addMenu(m);
+    }
+
+    static void appendHelpMenu(MenuBar& bar,
+                               const KeybindingRegistry& reg,
+                               const WhetstoneTheme& theme) {
+        Menu m;
+        m.title = "Help";
+        MenuItem about = makeActionItem(reg, theme, "about", "About");
+        MenuItem shortcuts = makeActionItem(reg, theme, "keyboard-shortcuts", "Keyboard Shortcuts");
+
+        MenuItem docs;
+        docs.id = "docs";
+        docs.label = "Documentation";
+        docs.hasSubmenu = true;
+        docs.submenuItems.push_back(makeActionItem(reg, theme, "docs-getting-started", "Getting Started"));
+        docs.submenuItems.push_back(makeActionItem(reg, theme, "docs-keybindings", "Keybindings"));
+
+        m.items.push_back(about);
+        m.items.push_back(shortcuts);
+        m.items.push_back(MenuItem::separator());
+        m.items.push_back(docs);
+        bar.addMenu(m);
+    }
+
     std::vector<Menu> menus_;
     std::string openMenu_;
 };
