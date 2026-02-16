@@ -1956,4 +1956,9 @@ target_link_libraries(step325_test PRIVATE
     tree_sitter_javascript tree_sitter_typescript
     tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+# Step 326: RoutingEngine — Annotation-to-Dispatch Logic
+add_executable(step326_test tests/step326_test.cpp)
+target_include_directories(step326_test PRIVATE src)
+target_link_libraries(step326_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

@@ -1333,6 +1333,27 @@ rejection flow, persistence roundtrip, stats accuracy, and a combined
 
 **Phase 12a complete:** 6/6 steps (320-325), 68/68 tests passing
 
+## Phase 12b: Routing Engine + Workers
+
+### Step 326: RoutingEngine — Annotation-to-Dispatch Logic
+**Status:** PASS (12/12 tests)
+
+Given a WorkItem with routing annotations, produces a RoutingDecision with
+worker type, context width, token budget, review requirements, confidence,
+and reasoning. Priority cascade: explicit override → ambiguity gate →
+context width escalation → getter/setter patterns → defaults.
+
+**Files created:**
+- `editor/src/RoutingEngine.h` — RoutingDecision struct (with JSON helpers),
+  estimateContextBudget, agentRoleForWorker, isGetterSetterPattern, RoutingEngine
+  class with route, routeBatch, routeAndApply
+- `editor/tests/step326_test.cpp` — 12 tests: explicit override, ambiguity→human,
+  getter/setter→deterministic, cross-project→llm, project→llm, review annotation,
+  batch routing, default local/file, confidence levels, context budgets
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step326_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
