@@ -2043,6 +2043,48 @@ state transitions, key symbol visibility, and panel layout persistence.
   helper functions to satisfy the max function length constraint (<=80 lines),
   with `step354_test`, `step355_test`, and `step360_test` revalidated
 
+---
+
+# Sprint 14 Progress — Language Batch 1
+
+### Step 361: C Parser — Functions, Structs, Enums
+**Status:** PASS (12/12 tests)
+
+Added a standalone C parser (regex/text-based, no new tree-sitter dependency)
+that handles core C declarations and preprocessor constructs needed for the
+pipeline entry point in Sprint 14.
+
+**Files created:**
+- `editor/src/ast/CParser.h` — C parser support:
+  - `parseC(...)` and `parseCWithDiagnostics(...)`
+  - preprocessor parsing: `#include`, `#define` (object/function-like), `#pragma`
+  - header-guard shape recognition (`#ifndef/#ifdef/#endif`) into pragma-style nodes
+  - C declarations: functions, structs, typedef-struct, enums (named + anonymous),
+    top-level variables, function-pointer parameters
+  - comment stripping for C line/block comments before declaration parsing
+- `editor/tests/step361_test.cpp` — 12 tests covering:
+  1. function parsing
+  2. struct parsing
+  3. typedef struct parsing
+  4. enum parsing (named + anonymous)
+  5. preprocessor directives
+  6. static/extern qualifiers
+  7. function-pointer parameter parsing
+  8. pointer variable parsing
+  9. multiple functions per file
+  10. C++ parser backward compatibility
+  11. C comment handling
+  12. pipeline routing for `"c"` language + header-guard pattern
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/CParser.h`
+- `editor/src/Pipeline.h` — add parse routing for language `"c"`
+- `editor/CMakeLists.txt` — `step361_test` target
+
+**Verification run:**
+- `step361_test` — PASS (12/12) new step coverage
+- `step360_test` — PASS (8/8) regression coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
