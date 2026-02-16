@@ -2705,6 +2705,45 @@ memory-strategy inference.
 - `editor/src/AnnotationInferenceLisp.h` remains within header-size guidance
   (`129` lines)
 
+### Step 377: Phase 14d Integration + Sprint 14 Summary
+**Status:** PASS (8/8 tests)
+
+Completed phase-level integration validation for Scheme and finalized Sprint 14
+with cross-language interoperability checks across C, WAT, Common Lisp, and
+Scheme.
+
+**Files created:**
+- `editor/tests/step377_test.cpp` — 8 integration tests covering:
+  1. all 14 language parse/generate route smoke checks
+  2. C <-> WAT <-> Common Lisp <-> Scheme projection matrix
+  3. Lisp-source -> WAT generation path
+  4. C -> Common Lisp memory-default translation validation
+  5. Semanno comment-prefix correctness across the 4 new languages
+  6. language-appropriate annotation defaults across the 4 new languages
+  7. `Pipeline.run()` success with each of the 4 new languages as source
+  8. Sprint 14 route/matrix totals sanity checks
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step377_test` target
+
+**Verification run:**
+- `step377_test` — PASS (8/8) new step coverage
+- `step376_test` — PASS (12/12) regression coverage
+- `step375_test` — PASS (12/12) regression coverage
+- `step374_test` — PASS (12/12) regression coverage
+- `step373_test` — PASS (8/8) regression coverage
+
+**Sprint 14 completion snapshot (Steps 361-377):**
+- Phase 14a (C): complete
+- Phase 14b (WAT): complete
+- Phase 14c (Common Lisp): complete
+- Phase 14d (Scheme): complete
+- Sprint 14 integration: complete
+
+**Architecture gate check:**
+- `editor/tests/step377_test.cpp` remains within project file-size guidance
+  for test artifacts (`188` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
