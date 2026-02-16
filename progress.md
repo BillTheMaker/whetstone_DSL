@@ -3102,6 +3102,50 @@ prompt rendering, JSON transport format, and token estimation utilities.
 - `editor/src/ContextBundle.h` within header-size limit (`168` <= `600`)
 - `editor/tests/step385_test.cpp` within test-file size guidance (`192` lines)
 
+### Step 386: Result Acceptance Protocol
+**Status:** PASS (12/12 tests)
+
+Added a standardized acceptance pipeline for external model submissions:
+syntax/annotation validation, diagnostic accounting, review-gate decisioning,
+structured acceptance output, dependency cascade on acceptance, and requeue on
+validation failure.
+
+**Files created:**
+- `editor/src/ResultAcceptance.h` — acceptance primitives:
+  - `ResultSubmission`
+  - `ResultAcceptance`
+  - `validateSuggestedAnnotations(...)`
+  - `evaluateResultSubmission(...)`
+- `editor/tests/step386_test.cpp` — 12 tests covering:
+  1. valid code acceptance
+  2. syntax rejection with feedback
+  3. malformed suggested-annotation rejection
+  4. diagnostics preventing auto-approval
+  5. low-confidence review path
+  6. suggested-annotation payload carry-through
+  7. aggregated diagnostic counts across validation stages
+  8. partial acceptance (valid + review required)
+  9. multiple-submission latest-wins behavior
+  10. dependency cascade on acceptance
+  11. acceptance payload in RPC response
+  12. non-agent worker submission guard
+
+**Files modified:**
+- `editor/src/HeadlessOrchestratorRPC.h` — `submitExternalResult` now uses
+  `evaluateResultSubmission(...)`, emits acceptance metadata, supports review
+  resubmission, and requeues invalid submissions with validator feedback
+- `editor/CMakeLists.txt` — `step386_test` target
+
+**Verification run:**
+- `step386_test` — PASS (12/12) new step coverage
+- `step385_test` — PASS (12/12) regression coverage
+- `step384_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ResultAcceptance.h` within header-size limit (`125` <= `600`)
+- `editor/src/HeadlessOrchestratorRPC.h` within header-size limit (`309` <= `600`)
+- `editor/tests/step386_test.cpp` within test-file size guidance (`269` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

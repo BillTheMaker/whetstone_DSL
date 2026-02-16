@@ -2,6 +2,7 @@
 // Step 382: Orchestrator RPC surface for headless agent requests.
 
 #include "HeadlessEditorState.h"
+#include "ResultAcceptance.h"
 #include <optional>
 
 static inline json orchestratorRpcError(const json& id, int code,
@@ -216,25 +217,34 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
             return orchestratorRpcError(id, -32602, "Work item not found");
         if (!(item->workerType == "slm" || item->workerType == "llm"))
             return orchestratorRpcError(id, -32000, "submitExternalResult only supports slm/llm items");
-        if (item->status != WI_IN_PROGRESS && item->status != WI_ASSIGNED)
+        if (item->status != WI_IN_PROGRESS &&
+            item->status != WI_ASSIGNED &&
+            item->status != WI_REVIEW)
             return orchestratorRpcError(id, -32000,
-                "Item must be assigned or in-progress for external submission");
+                "Item must be assigned, in-progress, or review for external submission");
 
         WorkItem updated = *item;
         if (updated.status == WI_ASSIGNED) transitionWorkItem(updated, WI_IN_PROGRESS);
-
-        const auto& result = params["result"];
-        updated.result.generatedCode = result.value("generatedCode", "");
-        updated.result.confidence = result.value("confidence", 0.0f);
-        updated.result.reasoning = result.value("reasoning", "");
-        updated.result.tokensGenerated = result.value("tokensGenerated", 0);
-        updated.result.tokensBudget = result.value("tokensBudget",
-                                                   estimateContextBudget(updated.contextWidth));
-        if (result.contains("astJson")) updated.result.astJson = result["astJson"];
-        if (result.contains("diagnostics") && result["diagnostics"].is_array()) {
-            updated.result.diagnostics = result["diagnostics"].get<std::vector<json>>();
+        if (updated.status == WI_REVIEW) {
+            updated.status = WI_IN_PROGRESS;
         }
 
+        ResultSubmission submission;
+        submission.itemId = itemId;
+        submission.generatedCode = params["result"].value("generatedCode", "");
+        submission.confidence = params["result"].value("confidence", 0.0f);
+        submission.reasoning = params["result"].value("reasoning", "");
+        if (params["result"].contains("suggestedAnnotations")) {
+            submission.suggestedAnnotations =
+                params["result"]["suggestedAnnotations"].get<std::vector<json>>();
+        }
+
+        std::string language = state.activeBuffer ? state.activeBuffer->language
+                                                  : state.defaultLanguage;
+        WorkItemResult evaluatedResult;
+        ResultAcceptance acceptance = evaluateResultSubmission(
+            submission, updated, language, state.reviewGate, state.reviewPolicy, evaluatedResult);
+        updated.result = evaluatedResult;
         state.workflow->queue.updateItem(itemId, updated);
 
         std::vector<OrchestratorEvent> events;
@@ -247,12 +257,23 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
             workItemTimestamp()
         });
 
-        ReviewDecision reviewDecision =
-            state.reviewGate.shouldAutoApprove(updated, updated.result, state.reviewPolicy);
-        if (reviewDecision.approved) {
+        if (!acceptance.validationPassed) {
+            WorkflowOrchestrator orchestrator(*state.workflow, state.routingEngine,
+                                              state.workerRegistry, state.contextAssembler,
+                                              state.reviewGate);
+            orchestrator.setReviewPolicy(state.reviewPolicy);
+            orchestrator.setBuffers(collectOrchestratorBufferInfos(state));
+            std::string feedback = acceptance.validationErrors.empty()
+                ? "validation failed"
+                : acceptance.validationErrors.front();
+            orchestrator.rejectAndRequeue(itemId, feedback, "validator");
+            events.push_back({"rejected", itemId,
+                              {{"reason", feedback}},
+                              workItemTimestamp()});
+        } else if (acceptance.autoApproved) {
             state.workflow->queue.complete(itemId);
             events.push_back({"auto-approved", itemId,
-                              {{"rule", reviewDecision.ruleMatched}},
+                              {{"rule", "acceptance-auto-approve"}},
                               workItemTimestamp()});
             events.push_back({"completed", itemId, json::object(), workItemTimestamp()});
         } else {
@@ -264,7 +285,7 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
             transitionWorkItem(reviewItem, WI_REVIEW);
             state.workflow->queue.updateItem(itemId, reviewItem);
             events.push_back({"sent-to-review", itemId,
-                              {{"reason", reviewDecision.reasoning}},
+                              {{"reason", "validation passed, awaiting review"}},
                               workItemTimestamp()});
         }
 
@@ -278,6 +299,7 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
         auto latest = state.workflow->queue.getItem(itemId);
         return orchestratorRpcResult(id, {
             {"success", true},
+            {"acceptance", acceptance.toJson()},
             {"events", orchestratorEventsToJson(events)},
             {"item", latest ? workItemToJson(*latest) : json::object()}
         });
