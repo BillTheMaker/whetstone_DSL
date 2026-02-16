@@ -4019,6 +4019,61 @@ the SQL AST nodes introduced in Step 410 and parsed in Step 411.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+### Step 413: T-SQL Parser + Generator
+**Status:** PASS (12/12 tests)
+
+Added Microsoft SQL Server (T-SQL) dialect support with parser and generator
+coverage for dialect-specific constructs (`TOP`, `IDENTITY`, `NVARCHAR`,
+`DECLARE`/`SET`/`PRINT`, stored procedures).
+
+**Files created:**
+- `editor/src/ast/TSQLParser.h` — T-SQL parse support:
+  - `parseTSQL(...)` and `parseTSQLWithDiagnostics(...)`
+  - `CREATE TABLE`, `CREATE INDEX`, `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+  - `SELECT TOP n` captured via `SelectQuery` child `"top"`
+  - `CREATE PROCEDURE ... AS BEGIN ... END` mapped to `Function` markers
+  - `DECLARE`, `SET`, `PRINT` mapped to `Variable`, `Assignment`,
+    and `ExpressionStatement(FunctionCall)`
+- `editor/src/ast/TSQLGenerator.h` — T-SQL generation support:
+  - `SELECT TOP n` emission
+  - `CREATE PROCEDURE ... AS BEGIN ... END`
+  - `DECLARE` / `SET` / `PRINT` statements
+  - T-SQL-oriented primitive type mapping (`INT`, `FLOAT`, `NVARCHAR(MAX)`, `BIT`)
+- `editor/tests/step413_test.cpp` — 12 tests covering:
+  1. CREATE TABLE with IDENTITY and NVARCHAR parse
+  2. SELECT TOP + WHERE parse
+  3. CREATE PROCEDURE parse marker
+  4. DECLARE parse
+  5. SET parse
+  6. PRINT parse
+  7. SELECT TOP generation
+  8. CREATE TABLE with IDENTITY generation
+  9. PROCEDURE BEGIN/END generation
+  10. DECLARE/SET/PRINT generation
+  11. pipeline parse/generate alias routing (`tsql`, `sqlserver`, `mssql`)
+  12. parser-to-generator T-SQL flow
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/TSQLParser.h`
+- `editor/src/ast/Generator.h` — include `TSQLGenerator.h`
+- `editor/src/Pipeline.h` — parse + generate routing for `tsql`, `sqlserver`, `mssql`
+- `editor/CMakeLists.txt` — `step413_test` target
+
+**Verification run:**
+- `step413_test` — PASS (12/12) new step coverage
+- `step412_test` — PASS (12/12) regression coverage
+- `step411_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/TSQLParser.h` within header-size limit (`377` <= `600`)
+- `editor/src/ast/TSQLGenerator.h` within header-size limit (`161` <= `600`)
+- `editor/tests/step413_test.cpp` within test-file size guidance (`213` lines)
+- `editor/src/Pipeline.h` within header-size limit (`261` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

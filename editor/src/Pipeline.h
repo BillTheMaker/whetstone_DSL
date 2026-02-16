@@ -130,6 +130,10 @@ public:
             auto pr = PostgreSQLParser::parsePostgreSQLWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "tsql" || language == "sqlserver" || language == "mssql") {
+            auto pr = TSQLParser::parseTSQLWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         } else if (language == "c") {
             auto pr = CParser::parseCWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
@@ -192,6 +196,9 @@ public:
             return gen.generate(ast);
         } else if (language == "postgresql" || language == "postgres") {
             PostgreSQLGenerator gen;
+            return gen.generate(ast);
+        } else if (language == "tsql" || language == "sqlserver" || language == "mssql") {
+            TSQLGenerator gen;
             return gen.generate(ast);
         } else if (language == "c") {
             CGenerator gen;
