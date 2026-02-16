@@ -3063,6 +3063,45 @@ and next-action guidance for clients.
 - `editor/src/WorkflowProtocol.h` within header-size limit (`185` <= `600`)
 - `editor/tests/step384_test.cpp` within test-file size guidance (`177` lines)
 
+### Step 385: Context Bundle Format
+**Status:** PASS (12/12 tests)
+
+Standardized the external-model context contract with a structured bundle,
+prompt rendering, JSON transport format, and token estimation utilities.
+
+**Files created:**
+- `editor/src/ContextBundle.h` — context bundle model:
+  - `ContextBundle` + `AttemptSummary`
+  - `buildBundle(workItem, workerContext, routingDecision)`
+  - `bundleToPrompt(bundle)` (model-agnostic prompt rendering)
+  - `bundleToJson(bundle)` / `ContextBundle::fromJson(...)`
+  - `estimateBundleTokens(bundle)`
+- `editor/tests/step385_test.cpp` — 12 tests covering:
+  1. required bundle field population
+  2. prompt structure readability
+  3. rejection-history inclusion
+  4. token-estimate reasonableness
+  5. routing budget propagation
+  6. annotation-constraint extraction
+  7. intent propagation
+  8. empty-field handling
+  9. JSON roundtrip
+  10. model-agnostic prompt format
+  11. output-format policy (`code-only` vs `code-with-explanation`)
+  12. previous-attempt ordering
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step385_test` target
+
+**Verification run:**
+- `step385_test` — PASS (12/12) new step coverage
+- `step384_test` — PASS (12/12) regression coverage
+- `step383_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ContextBundle.h` within header-size limit (`168` <= `600`)
+- `editor/tests/step385_test.cpp` within test-file size guidance (`192` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
