@@ -182,6 +182,9 @@ public:
                    language == "lisp" || language == "cl") {
             CommonLispGenerator gen;
             return gen.generate(ast);
+        } else if (language == "scheme" || language == "scm") {
+            SchemeGenerator gen;
+            return gen.generate(ast);
         }
         return "";
     }

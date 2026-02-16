@@ -14,3 +14,4 @@
 #include "CGenerator.h"
 #include "WatGenerator.h"
 #include "CommonLispGenerator.h"
+#include "SchemeGenerator.h"

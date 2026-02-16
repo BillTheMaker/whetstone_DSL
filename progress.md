@@ -2611,6 +2611,51 @@ signals.
 - `editor/src/ast/SchemeParser.h` is within header size limit
   (`461` lines <= `600`)
 
+### Step 375: Scheme Generator
+**Status:** PASS (12/12 tests)
+
+Added a dedicated Scheme generator and pipeline generation routing for Scheme
+targets, with Scheme-specific output conventions and continuation/tail-call
+annotation handling.
+
+**Files created:**
+- `editor/src/ast/SchemeGenerator.h` — Scheme generation support:
+  - module/function/variable emission using `define` forms
+  - Scheme-flavored block lowering (`let` / `begin`)
+  - boolean/null mapping to `#t`, `#f`, and `'()`
+  - continuation-aware call lowering to `call/cc`
+  - record-style class projection output (`define-record-type`)
+  - Scheme semanno comment output for owner/tail-call/exec annotations
+- `editor/tests/step375_test.cpp` — 12 tests covering:
+  1. define-function generation
+  2. lambda output
+  3. let binding output
+  4. boolean mapping
+  5. S-expression balance/formatting
+  6. Python -> Scheme pipeline route
+  7. Common Lisp -> Scheme pipeline route
+  8. Scheme -> Python pipeline route
+  9. semanno comment prefix behavior
+  10. parse -> generate -> parse roundtrip
+  11. tail-call annotation preservation in output
+  12. continuation annotation mapping to `call/cc`
+
+**Files modified:**
+- `editor/src/ast/Generator.h` — include `SchemeGenerator.h`
+- `editor/src/Pipeline.h` — add generate routing for `\"scheme\"` and `\"scm\"`
+- `editor/CMakeLists.txt` — `step375_test` target
+
+**Verification run:**
+- `step375_test` — PASS (12/12) new step coverage
+- `step374_test` — PASS (12/12) regression coverage
+- `step373_test` — PASS (8/8) regression coverage
+- `step372_test` — PASS (12/12) regression coverage
+- `step371_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/SchemeGenerator.h` is within header size limit
+  (`159` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
