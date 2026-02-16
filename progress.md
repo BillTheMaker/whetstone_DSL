@@ -1584,6 +1584,27 @@ serialization roundtrip and CompactAST node name support.
   MacroDefinition
 - `editor/CMakeLists.txt` — step337_test target
 
+### Step 338: EnumDeclaration + NamespaceDeclaration
+**Status:** PASS (12/12 tests)
+
+Added EnumDeclaration (scoped/unscoped, underlying type, EnumMember children),
+NamespaceDeclaration (with body children, supports nesting), and TypeAlias (using
+vs typedef). Full JSON serialization roundtrip and CompactAST names for all 4 types.
+
+**Files created:**
+- `editor/src/ast/EnumNamespaceNodes.h` — EnumDeclaration, EnumMember,
+  NamespaceDeclaration, TypeAlias
+- `editor/tests/step338_test.cpp` — 12 tests: construction, scoped vs unscoped enum,
+  members with values, namespace with body, typedef vs using, JSON roundtrip for all
+  4 types, CompactAST names, nested namespace, enum inside namespace
+
+**Files modified:**
+- `editor/src/ast/Serialization.h` — propertiesToJson/createNode/setPropertiesFromJson
+  for all 4 types
+- `editor/src/CompactAST.h` — getNodeName for EnumDeclaration, EnumMember,
+  NamespaceDeclaration, TypeAlias
+- `editor/CMakeLists.txt` — step338_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

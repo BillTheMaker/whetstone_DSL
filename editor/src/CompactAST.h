@@ -431,6 +431,15 @@ inline std::string getNodeName(const ASTNode* node) {
         return static_cast<const PragmaDirective*>(node)->directive;
     if (ct == "MacroDefinition")
         return static_cast<const MacroDefinition*>(node)->name;
+    // Enum/Namespace/TypeAlias (Step 338)
+    if (ct == "EnumDeclaration")
+        return static_cast<const EnumDeclaration*>(node)->name;
+    if (ct == "EnumMember")
+        return static_cast<const EnumMember*>(node)->name;
+    if (ct == "NamespaceDeclaration")
+        return static_cast<const NamespaceDeclaration*>(node)->name;
+    if (ct == "TypeAlias")
+        return static_cast<const TypeAlias*>(node)->aliasName;
     return "";
 }
 

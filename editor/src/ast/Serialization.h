@@ -18,6 +18,7 @@
 #include "GenericType.h"
 #include "AsyncNodes.h"
 #include "PreprocessorNodes.h"
+#include "EnumNamespaceNodes.h"
 
 using json = nlohmann::json;
 
@@ -523,6 +524,28 @@ inline json propertiesToJson(const ASTNode* node) {
         if (n->isFunctionLike) props["isFunctionLike"] = n->isFunctionLike;
         if (!n->parameters.empty()) props["parameters"] = n->parameters;
     }
+    // Enum/Namespace/TypeAlias nodes (Step 338)
+    else if (ct == "EnumDeclaration") {
+        auto* n = static_cast<const EnumDeclaration*>(node);
+        props["name"] = n->name;
+        if (n->isScoped) props["isScoped"] = n->isScoped;
+        if (!n->underlyingType.empty()) props["underlyingType"] = n->underlyingType;
+    }
+    else if (ct == "EnumMember") {
+        auto* n = static_cast<const EnumMember*>(node);
+        props["name"] = n->name;
+        if (!n->value.empty()) props["value"] = n->value;
+    }
+    else if (ct == "NamespaceDeclaration") {
+        auto* n = static_cast<const NamespaceDeclaration*>(node);
+        props["name"] = n->name;
+    }
+    else if (ct == "TypeAlias") {
+        auto* n = static_cast<const TypeAlias*>(node);
+        props["aliasName"] = n->aliasName;
+        props["targetType"] = n->targetType;
+        if (!n->isUsing) props["isUsing"] = n->isUsing;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -689,6 +712,10 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "IncludeDirective") return new IncludeDirective();
     if (conceptName == "PragmaDirective") return new PragmaDirective();
     if (conceptName == "MacroDefinition") return new MacroDefinition();
+    if (conceptName == "EnumDeclaration") return new EnumDeclaration();
+    if (conceptName == "EnumMember") return new EnumMember();
+    if (conceptName == "NamespaceDeclaration") return new NamespaceDeclaration();
+    if (conceptName == "TypeAlias") return new TypeAlias();
     return nullptr;
 }
 
@@ -1229,6 +1256,28 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
             for (const auto& p : props["parameters"])
                 if (p.is_string()) n->parameters.push_back(p.get<std::string>());
         }
+    }
+    // Enum/Namespace/TypeAlias nodes (Step 338)
+    else if (ct == "EnumDeclaration") {
+        auto* n = static_cast<EnumDeclaration*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("isScoped")) n->isScoped = props["isScoped"].get<bool>();
+        if (props.contains("underlyingType")) n->underlyingType = props["underlyingType"].get<std::string>();
+    }
+    else if (ct == "EnumMember") {
+        auto* n = static_cast<EnumMember*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("value")) n->value = props["value"].get<std::string>();
+    }
+    else if (ct == "NamespaceDeclaration") {
+        auto* n = static_cast<NamespaceDeclaration*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+    }
+    else if (ct == "TypeAlias") {
+        auto* n = static_cast<TypeAlias*>(node);
+        if (props.contains("aliasName")) n->aliasName = props["aliasName"].get<std::string>();
+        if (props.contains("targetType")) n->targetType = props["targetType"].get<std::string>();
+        if (props.contains("isUsing")) n->isUsing = props["isUsing"].get<bool>();
     }
 }
 
