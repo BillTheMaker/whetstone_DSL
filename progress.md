@@ -2744,6 +2744,51 @@ Scheme.
 - `editor/tests/step377_test.cpp` remains within project file-size guidance
   for test artifacts (`188` lines)
 
+### Step 378: Orchestrator Core Main Loop
+**Status:** PASS (12/12 tests)
+
+Implemented Sprint 15 orchestration-loop core as a dedicated workflow engine
+that advances ready work items through routing, context assembly, execution,
+review, completion, and blocker reporting.
+
+**Files created:**
+- `editor/src/WorkflowOrchestrator.h` — orchestration core:
+  - `step()` (advance one ready item one stage-set)
+  - `advance()` (advance all currently ready items)
+  - `runToCompletion()` (progress until no further non-blocked progress)
+  - `runUntil(predicate)` (predicate-controlled progression)
+  - `getBlockers()` with typed blockers:
+    `needs-human`, `needs-review`, `needs-external-model`
+  - event stream via `OrchestratorEvent` (`routed`, `context-assembled`,
+    `executed`, `auto-approved`, `sent-to-review`, `completed`, `blocked`)
+- `editor/tests/step378_test.cpp` — 12 tests covering:
+  1. single deterministic/template completion in one step
+  2. dependency cascade promotion
+  3. human-task blocker classification
+  4. agent-task external-model blocker classification
+  5. `runToCompletion()` deterministic completion behavior
+  6. stage event emission coverage
+  7. review blocker reporting
+  8. empty-workflow no-op behavior
+  9. mixed workflow partial progress behavior
+  10. `runUntil(...)` predicate stop behavior
+  11. blocked-event detail payload includes blockers
+  12. agent context payload preservation
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step378_test` target
+
+**Verification run:**
+- `step378_test` — PASS (12/12) new step coverage
+- `step377_test` — PASS (8/8) regression coverage
+- `step376_test` — PASS (12/12) regression coverage
+- `step375_test` — PASS (12/12) regression coverage
+- `step331_test` — PASS (8/8) orchestration-foundation regression
+
+**Architecture gate check:**
+- `editor/src/WorkflowOrchestrator.h` is within header size limit
+  (`231` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
