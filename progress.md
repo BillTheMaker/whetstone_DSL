@@ -1935,6 +1935,42 @@ focus target for click handling.
 - `step356_test` — PASS (12/12) regression coverage
 - `step357_test` — PASS (12/12) new step coverage
 
+### Step 358: Go-to-Definition + Go-to-Symbol
+**Status:** PASS (12/12 tests)
+
+Implemented headless navigation tooling for symbol discovery and jump resolution:
+file-level and project-level symbol lists, symbol filtering, icon/type metadata,
+and go-to-definition lookup with current-file preference and cross-file fallback.
+
+**Files created:**
+- `editor/src/panels/NavigationTools.h` — navigation model:
+  - symbol collection (`collectFileSymbols`, `collectProjectSymbols`)
+  - symbol filtering (`filterSymbols`)
+  - F12-style definition lookup (`goToDefinition`)
+  - no-match messaging (`definitionStatusMessage`)
+  - line-order sorting and icon assignment
+- `editor/tests/step358_test.cpp` — 12 tests covering:
+  1. definition jump from function call
+  2. file symbol listing
+  3. project symbol listing
+  4. icon presence by symbol type
+  5. symbol filtering
+  6. cross-file definition jump
+  7. no-match message
+  8. line-number sort order
+  9. empty-query behavior
+  10. case-insensitive filtering
+  11. current-file definition preference
+  12. null-call safety
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step358_test` target
+
+**Verification run:**
+- `step356_test` — PASS (12/12) regression coverage
+- `step357_test` — PASS (12/12) regression coverage
+- `step358_test` — PASS (12/12) new step coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
