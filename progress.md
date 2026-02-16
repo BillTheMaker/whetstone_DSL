@@ -4512,6 +4512,61 @@ orchestration handoff, external-result submission, human review, and completion.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+## Phase 18b: Multi-Model Dispatch
+
+### Step 423: Model Profile Registry
+**Status:** PASS (12/12 tests)
+
+Added a model-profile registry for mapping workflow worker classes (`slm`, `llm`,
+deterministic/template) to concrete model profiles with context-window and cost
+metadata, including `.whetstone/config.json`-style override support.
+
+**Files created:**
+- `editor/src/ModelProfileRegistry.h` — model profile support:
+  - `ModelProfile` schema (`name`, `contextWindow`, cost rates, speed class, capabilities)
+  - default profile set:
+    - `claude-opus`
+    - `claude-sonnet`
+    - `claude-haiku`
+    - `local-slm`
+  - default worker mappings:
+    - `llm` -> `claude-sonnet`
+    - `slm` -> `claude-haiku`
+    - `deterministic`/`template` -> `local-slm`
+  - profile registration/listing/lookup
+  - worker mapping override API
+  - JSON/file override loading for profiles and worker mappings
+  - manifest export (`toJson`)
+- `editor/tests/step423_test.cpp` — 12 tests covering:
+  1. default profile presence
+  2. default `llm` mapping
+  3. default `slm` mapping
+  4. worker-to-profile resolution
+  5. custom profile registration
+  6. mapping validation for missing profiles
+  7. mapping override behavior
+  8. profile override via JSON payload
+  9. worker-mapping override via JSON payload
+  10. file-based override loading
+  11. invalid JSON error path
+  12. registry JSON export shape
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step423_test` target
+
+**Verification run:**
+- `step423_test` — PASS (12/12) new step coverage
+- `step422_test` — PASS (8/8) regression coverage
+- `step421_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ModelProfileRegistry.h` within header-size limit (`172` <= `600`)
+- `editor/tests/step423_test.cpp` within test-file size guidance (`169` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
