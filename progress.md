@@ -2789,6 +2789,48 @@ review, completion, and blocker reporting.
 - `editor/src/WorkflowOrchestrator.h` is within header size limit
   (`231` lines <= `600`)
 
+### Step 379: Parallel Dispatch + Batching
+**Status:** PASS (12/12 tests)
+
+Extended the orchestration engine with explicit batch advancement, shared
+project-context reuse, and batch-level progress accounting.
+
+**Files created:**
+- `editor/tests/step379_test.cpp` — 12 tests covering:
+  1. independent tasks advancing in one batch
+  2. shared project-context token savings
+  3. blocked item accounting in batch results
+  4. dependency waiting behavior in batch mode
+  5. priority ordering in batch event stream
+  6. empty-batch behavior
+  7. single-item batch behavior
+  8. mixed independent/dependent behavior
+  9. `advance()` compatibility over batched events
+  10. shared-context event marker emission
+  11. review-path handling in batch mode
+  12. `runToCompletion()` stop on blockers
+
+**Files modified:**
+- `editor/src/WorkflowOrchestrator.h` — add batch orchestration support:
+  - `BatchResult` struct (`events`, `itemsAdvanced`, `itemsBlocked`,
+    `contextTokensSaved`)
+  - `advanceBatch()` for multi-item ready-queue advancement
+  - shared project-context reuse path with token-savings accounting
+  - `advance()` now returns `advanceBatch().events` for API continuity
+  - event detail now indicates shared project-context reuse
+- `editor/CMakeLists.txt` — `step379_test` target
+
+**Verification run:**
+- `step379_test` — PASS (12/12) new step coverage
+- `step378_test` — PASS (12/12) regression coverage
+- `step377_test` — PASS (8/8) regression coverage
+- `step331_test` — PASS (8/8) workflow-foundation regression
+- `step325_test` — PASS (8/8) workflow-state regression
+
+**Architecture gate check:**
+- `editor/src/WorkflowOrchestrator.h` remains within header-size limit
+  (`284` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

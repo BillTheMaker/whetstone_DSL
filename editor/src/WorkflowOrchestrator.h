@@ -22,6 +22,13 @@ struct BlockerInfo {
     std::string description;
 };
 
+struct BatchResult {
+    std::vector<OrchestratorEvent> events;
+    int itemsAdvanced = 0;
+    int itemsBlocked = 0;
+    int contextTokensSaved = 0;
+};
+
 class WorkflowOrchestrator {
 public:
     WorkflowOrchestrator(WorkflowState& workflowState,
@@ -49,13 +56,51 @@ public:
     }
 
     std::vector<OrchestratorEvent> advance() {
-        std::vector<OrchestratorEvent> all;
+        return advanceBatch().events;
+    }
+
+    BatchResult advanceBatch() {
+        BatchResult batch;
         auto ready = state_->queue.getReady();
+        if (ready.empty()) return batch;
+
+        WorkerContext sharedProjectContext;
+        bool sharedContextReady = false;
+        int sharedContextCost = 0;
+
         for (const auto& item : ready) {
-            auto events = advanceItem(item);
-            all.insert(all.end(), events.begin(), events.end());
+            WorkerContext forcedContext;
+            bool hasForcedContext = false;
+
+            if (item.contextWidth == "project" || item.contextWidth == "cross-project") {
+                if (!sharedContextReady) {
+                    sharedProjectContext = context_->assembleContext(
+                        item, buffers_, item.contextWidth, estimateContextBudget(item.contextWidth));
+                    sharedContextCost = estimateTokens(sharedProjectContext.projectSummary) +
+                                        estimateTokens(sharedProjectContext.bufferContent);
+                    sharedContextReady = true;
+                } else {
+                    forcedContext = context_->assembleContext(
+                        item, buffers_, "local", estimateContextBudget("local"));
+                    forcedContext.projectSummary = sharedProjectContext.projectSummary;
+                    forcedContext.bufferContent = sharedProjectContext.bufferContent;
+                    hasForcedContext = true;
+                    batch.contextTokensSaved += sharedContextCost;
+                }
+            }
+
+            auto events = advanceItem(item, hasForcedContext, forcedContext);
+            if (!events.empty()) {
+                batch.itemsAdvanced++;
+                bool blocked = false;
+                for (const auto& ev : events) {
+                    if (ev.type == "blocked") blocked = true;
+                }
+                if (blocked) batch.itemsBlocked++;
+            }
+            batch.events.insert(batch.events.end(), events.begin(), events.end());
         }
-        return all;
+        return batch;
     }
 
     WorkflowStats runToCompletion() {
@@ -163,7 +208,9 @@ private:
         return arr;
     }
 
-    std::vector<OrchestratorEvent> advanceItem(const WorkItem& readyItem) {
+    std::vector<OrchestratorEvent> advanceItem(const WorkItem& readyItem,
+                                               bool hasForcedContext = false,
+                                               const WorkerContext& forcedContext = WorkerContext{}) {
         std::vector<OrchestratorEvent> events;
 
         auto maybeItem = state_->queue.getItem(readyItem.id);
@@ -181,11 +228,17 @@ private:
 
         events.push_back(makeEvent("routed", item.id, decision.toJson()));
 
-        WorkerContext ctx = context_->assembleContext(item, buffers_, item.contextWidth,
-                                                      decision.contextBudgetTokens);
+        WorkerContext ctx;
+        if (hasForcedContext) {
+            ctx = forcedContext;
+        } else {
+            ctx = context_->assembleContext(item, buffers_, item.contextWidth,
+                                            decision.contextBudgetTokens);
+        }
         events.push_back(makeEvent("context-assembled", item.id,
                                    json{{"contextWidth", item.contextWidth},
-                                        {"tokensBudget", decision.contextBudgetTokens}}));
+                                        {"tokensBudget", decision.contextBudgetTokens},
+                                        {"sharedProjectContext", hasForcedContext}}));
 
         WorkerInterface* worker = workers_->getWorker(item.workerType);
         if (!worker) {
