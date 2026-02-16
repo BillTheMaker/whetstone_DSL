@@ -17,6 +17,7 @@
 #include "ClassDeclaration.h"
 #include "GenericType.h"
 #include "AsyncNodes.h"
+#include "PreprocessorNodes.h"
 
 using json = nlohmann::json;
 
@@ -505,6 +506,23 @@ inline json propertiesToJson(const ASTNode* node) {
         auto* n = static_cast<const DecoratorAnnotation*>(node);
         props["name"] = n->name;
     }
+    // Preprocessor nodes (Step 337)
+    else if (ct == "IncludeDirective") {
+        auto* n = static_cast<const IncludeDirective*>(node);
+        props["path"] = n->path;
+        if (n->isSystem) props["isSystem"] = n->isSystem;
+    }
+    else if (ct == "PragmaDirective") {
+        auto* n = static_cast<const PragmaDirective*>(node);
+        props["directive"] = n->directive;
+    }
+    else if (ct == "MacroDefinition") {
+        auto* n = static_cast<const MacroDefinition*>(node);
+        props["name"] = n->name;
+        if (!n->body.empty()) props["body"] = n->body;
+        if (n->isFunctionLike) props["isFunctionLike"] = n->isFunctionLike;
+        if (!n->parameters.empty()) props["parameters"] = n->parameters;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -668,6 +686,9 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "AwaitExpression") return new AwaitExpression();
     if (conceptName == "LambdaExpression") return new LambdaExpression();
     if (conceptName == "DecoratorAnnotation") return new DecoratorAnnotation();
+    if (conceptName == "IncludeDirective") return new IncludeDirective();
+    if (conceptName == "PragmaDirective") return new PragmaDirective();
+    if (conceptName == "MacroDefinition") return new MacroDefinition();
     return nullptr;
 }
 
@@ -1187,6 +1208,27 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
     else if (ct == "DecoratorAnnotation") {
         auto* n = static_cast<DecoratorAnnotation*>(node);
         if (props.contains("name")) n->name = props["name"].get<std::string>();
+    }
+    // Preprocessor nodes (Step 337)
+    else if (ct == "IncludeDirective") {
+        auto* n = static_cast<IncludeDirective*>(node);
+        if (props.contains("path")) n->path = props["path"].get<std::string>();
+        if (props.contains("isSystem")) n->isSystem = props["isSystem"].get<bool>();
+    }
+    else if (ct == "PragmaDirective") {
+        auto* n = static_cast<PragmaDirective*>(node);
+        if (props.contains("directive")) n->directive = props["directive"].get<std::string>();
+    }
+    else if (ct == "MacroDefinition") {
+        auto* n = static_cast<MacroDefinition*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("body")) n->body = props["body"].get<std::string>();
+        if (props.contains("isFunctionLike")) n->isFunctionLike = props["isFunctionLike"].get<bool>();
+        if (props.contains("parameters") && props["parameters"].is_array()) {
+            n->parameters.clear();
+            for (const auto& p : props["parameters"])
+                if (p.is_string()) n->parameters.push_back(p.get<std::string>());
+        }
     }
 }
 

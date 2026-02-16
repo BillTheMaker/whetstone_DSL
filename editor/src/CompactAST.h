@@ -424,6 +424,13 @@ inline std::string getNodeName(const ASTNode* node) {
         return static_cast<const ModuleLoad*>(node)->moduleName;
     if (ct == "ScheduleTask")
         return static_cast<const ScheduleTask*>(node)->queue;
+    // Preprocessor nodes (Step 337)
+    if (ct == "IncludeDirective")
+        return static_cast<const IncludeDirective*>(node)->path;
+    if (ct == "PragmaDirective")
+        return static_cast<const PragmaDirective*>(node)->directive;
+    if (ct == "MacroDefinition")
+        return static_cast<const MacroDefinition*>(node)->name;
     return "";
 }
 

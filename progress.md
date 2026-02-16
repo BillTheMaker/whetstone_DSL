@@ -1561,6 +1561,29 @@ verify diamond detection, and JSON serialization roundtrip.
   parse→generate roundtrip, C++→Java extends+implements, C++→Python multi-base, template
   3 params, diamond inheritance detection, mixed template+inheritance+virtual pipeline
 
+## Phase 12d: C++ AST Depth — Preprocessor, Enums, Namespaces
+
+### Step 337: Preprocessor AST Nodes
+**Status:** PASS (12/12 tests)
+
+Added first-class AST nodes for C++ preprocessor directives: IncludeDirective (path,
+isSystem), PragmaDirective (directive), MacroDefinition (name, parameters, body,
+isFunctionLike). Statement-level nodes that attach to Module children. Full JSON
+serialization roundtrip and CompactAST node name support.
+
+**Files created:**
+- `editor/src/ast/PreprocessorNodes.h` — IncludeDirective, PragmaDirective, MacroDefinition
+- `editor/tests/step337_test.cpp` — 12 tests: construction, system vs local include,
+  JSON roundtrip, pragma, function-like vs object-like macros, CompactAST names, module
+  with mixed nodes, empty body, createNode dispatch
+
+**Files modified:**
+- `editor/src/ast/Serialization.h` — propertiesToJson/createNode/setPropertiesFromJson
+  for all 3 preprocessor types
+- `editor/src/CompactAST.h` — getNodeName for IncludeDirective, PragmaDirective,
+  MacroDefinition
+- `editor/CMakeLists.txt` — step337_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
