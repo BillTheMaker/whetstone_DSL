@@ -4227,6 +4227,57 @@ annotation mapper, and cross-stack class-to-SQL flow checkpoints.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+# Sprint 18 Progress — Claude Code Plugin + MCP Workflow Tools
+
+## Phase 18a: Claude Code Integration
+
+### Step 417: MCP Server Configuration + Discovery
+**Status:** PASS (12/12 tests)
+
+Added MCP server discovery/configuration utilities for plugin-style client setup.
+This provides a concrete path toward `.mcp.json` generation and manifest
+inspection without adding a custom plugin binary.
+
+**Files created:**
+- `editor/src/MCPServerConfig.h` — MCP config/discovery support:
+  - binary path resolution (`whetstone_mcp`) from explicit candidates, common
+    build locations, and PATH fallback
+  - workspace-root detection (walk-up for `.git`, `CMakeLists.txt`, `progress.md`)
+  - primary-language detection from workspace extension frequency
+  - `.mcp.json` config JSON construction and file writing
+  - server manifest generation from `MCPServer::getTools()` with category grouping
+  - unified discovery snapshot with binary path, workspace root, language,
+    tool count, and per-category counts
+- `editor/tests/step417_test.cpp` — 12 tests covering:
+  1. explicit candidate binary path resolution
+  2. default binary path resolution
+  3. workspace root detection
+  4. primary-language detection (C++ majority)
+  5. primary-language detection (Python majority)
+  6. `.mcp.json` structure generation
+  7. workspace/language arg generation
+  8. `.mcp.json` write-out
+  9. manifest tool-count threshold (68+)
+  10. required category presence
+  11. tool-name categorization mapping
+  12. end-to-end discovery snapshot
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step417_test` target
+
+**Verification run:**
+- `step417_test` — PASS (12/12) new step coverage
+- `step416_test` — PASS (8/8) regression coverage
+- `step415_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MCPServerConfig.h` within header-size limit (`246` <= `600`)
+- `editor/tests/step417_test.cpp` within test-file size guidance (`159` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
