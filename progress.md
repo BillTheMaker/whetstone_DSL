@@ -4567,6 +4567,53 @@ metadata, including `.whetstone/config.json`-style override support.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 424: Context Window Optimization
+**Status:** PASS (12/12 tests)
+
+Added context-window-aware bundle optimization so routing profiles can adapt
+prompt/context scope to the selected model budget (`local`, `file`, `project`)
+with deterministic truncation behavior.
+
+**Files created:**
+- `editor/src/ContextWindowOptimizer.h` — context optimization support:
+  - token estimation heuristic
+  - usable-input budget derivation from model context window
+  - scope selection:
+    - small window -> `local`
+    - medium window -> `file`
+    - large window -> `project`
+  - worker-aware optimization via `ModelProfileRegistry` mapping
+  - truncation marker + budget clamp behavior
+- `editor/tests/step424_test.cpp` — 12 tests covering:
+  1. token estimation baseline
+  2. empty-input token estimate edge case
+  3. budget floor behavior
+  4. small-model local scope
+  5. medium-model file scope
+  6. large-model project scope
+  7. instruction-prefix preservation
+  8. truncation path under hard budget pressure
+  9. token estimate budget adherence
+  10. worker-mapping optimization path
+  11. unknown-worker fallback behavior
+  12. project-scope composition includes file/local sections
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step424_test` target
+
+**Verification run:**
+- `step424_test` — PASS (12/12) new step coverage
+- `step423_test` — PASS (12/12) regression coverage
+- `step422_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ContextWindowOptimizer.h` within header-size limit (`115` <= `600`)
+- `editor/tests/step424_test.cpp` within test-file size guidance (`156` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
