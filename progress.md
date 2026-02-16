@@ -4424,6 +4424,52 @@ headless JSON-RPC path.
   - `editor/src/MCPServer.h` (`1735` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 421: Workspace Onboarding Flow
+**Status:** PASS (12/12 tests)
+
+Added one-call MCP workspace onboarding so a client can bootstrap workflow
+state on a new repo by indexing files, selecting key source files, running
+annotation inference, saving sidecars, and creating `.whetstone` metadata.
+
+**Files created:**
+- `editor/tests/step421_test.cpp` — 12 tests covering:
+  1. `whetstone_onboard_workspace` tool registration
+  2. index/list call sequencing
+  3. `root` forwarding to `indexWorkspace`
+  4. `maxFiles` processing cap
+  5. ignored/non-source path filtering
+  6. language-count aggregation
+  7. inference + sidecar aggregate counters
+  8. open-file failure warning/continue behavior
+  9. infer failure warning/continue behavior
+  10. index failure hard-stop behavior
+  11. `.whetstone/README.md` bootstrap + workflow suggestion payload
+  12. headless end-to-end onboarding against a temp workspace
+
+**Files modified:**
+- `editor/src/MCPServer.h` — added Step 421 onboarding support:
+  - `whetstone_onboard_workspace` tool registration
+  - composite onboarding execution (`runWorkspaceOnboarding`) with:
+    - `indexWorkspace`
+    - `workspaceList`
+    - candidate source-file selection + language detection
+    - `openFile` + `inferAnnotations` + `saveAnnotatedAST` loop
+    - `.whetstone/README.md` bootstrap via `fileCreate`
+    - warning collection and next-tool workflow suggestion
+- `editor/CMakeLists.txt` — `step421_test` target
+
+**Verification run:**
+- `step421_test` — PASS (12/12) new step coverage
+- `step420_test` — PASS (12/12) regression coverage
+- `step419_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step421_test.cpp` within test-file size guidance (`355` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
