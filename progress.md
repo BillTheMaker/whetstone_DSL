@@ -4176,6 +4176,57 @@ bounds checks, index contracts, and cross-stack ORM<->schema consistency.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+### Step 416: Phase 17b Integration + Sprint Summary
+**Status:** PASS (8/8 tests)
+
+Added Phase 17b integration validation across the 3 SQL dialect paths, the SQL
+annotation mapper, and cross-stack class-to-SQL flow checkpoints.
+
+**Files created:**
+- `editor/tests/step416_test.cpp` — 8 integration tests covering:
+  1. SQL dialect parse routes (`postgresql`, `tsql`/`sqlserver`, `mysql`/`mariadb`)
+  2. SQL dialect generate route behavior differences
+  3. high-risk SQL inference (`DELETE` without `WHERE`)
+  4. SQL complexity inference from JOIN depth
+  5. bounds-check inference from `LIMIT`/`TOP`
+  6. cross-stack flow checkpoint (`Python class` parse + `C# class` generation + SQL table DDL)
+  7. ORM-schema contract mapping inference
+  8. Sprint 17 totals verification checkpoint (F#, VB.NET, and 3 SQL dialects available)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step416_test` target
+
+**Verification run:**
+- `step416_test` — PASS (8/8) new step coverage
+- `step415_test` — PASS (12/12) regression coverage
+- `step414_test` — PASS (12/12) regression coverage
+
+**Phase 17b completion snapshot (Steps 410-416):**
+- Step 410: SQL AST nodes + serialization
+- Step 411: PostgreSQL parser
+- Step 412: PostgreSQL generator
+- Step 413: T-SQL parser + generator
+- Step 414: MySQL parser + generator
+- Step 415: SQL annotation mapping
+- Step 416: phase integration + summary
+
+**Sprint 17 completion snapshot (Steps 405-416):**
+- Phase 17a complete (Steps 405-409, 56 tests)
+- Phase 17b complete (Steps 410-416, 80 tests)
+- Sprint 17 total: 12 steps, 136 tests
+
+**Architecture gate check (end of Sprint 17):**
+- `editor/tests/step416_test.cpp` within test-file size guidance (`181` lines)
+- `editor/src/SqlAnnotationMapper.h` within header-size limit (`246` <= `600`)
+- `editor/src/ast/PostgreSQLGenerator.h` within header-size limit (`412` <= `600`)
+- `editor/src/ast/TSQLParser.h` within header-size limit (`377` <= `600`)
+- `editor/src/ast/MySQLParser.h` within header-size limit (`331` <= `600`)
+- `editor/src/Pipeline.h` within header-size limit (`268` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
