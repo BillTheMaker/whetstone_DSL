@@ -52,6 +52,14 @@ public:
             }
         }
 
+        // Copy classes and statements for cross-language structural projection.
+        for (auto* child : source->getChildren("classes")) {
+            if (ASTNode* n = cloneNode(child, targetLanguage)) mod->addChild("classes", n);
+        }
+        for (auto* child : source->getChildren("statements")) {
+            if (ASTNode* n = cloneNode(child, targetLanguage)) mod->addChild("statements", n);
+        }
+
         // Copy module-level variables
         for (auto* child : source->getChildren("variables")) {
             if (child->conceptType == "Variable") {
@@ -539,7 +547,10 @@ private:
             return cloneAnnotation(node, targetLanguage);
         }
 
-        return nullptr;
+        // Generic clone fallback for declaration nodes not yet specialized.
+        json nodeJson = toJson(node);
+        nodeJson["id"] = node->id + "_proj";
+        return fromJson(nodeJson);
     }
 
     static std::string adaptReclaimStrategy(const std::string& strategy,

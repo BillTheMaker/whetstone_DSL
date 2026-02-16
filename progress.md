@@ -2168,6 +2168,41 @@ gets meaningful defaults and risk signals aligned with explicit-memory patterns.
   refactor by extracting target adaptation logic into
   `editor/src/ProjectionAdaptation.h`
 
+### Step 364: C Integration + Self-Hosting Prep
+**Status:** PASS (8/8 tests)
+
+Added phase-level integration coverage for the C pipeline and projection paths,
+including pipeline execution, C parser/generator roundtrip checks, ownership
+projection behavior, and MCP tool contract stability.
+
+**Files created:**
+- `editor/tests/step364_test.cpp` — 8 integration tests covering:
+  1. C parse -> generate -> reparse declaration continuity
+  2. C struct -> Python class-form generation
+  3. Python class shape -> C struct + constructor-style method generation
+  4. C manual ownership -> Rust `Owner(Box)` adaptation
+  5. `Pipeline.run(..., \"c\", \"cpp\")` success path with generated output
+  6. Combined C inference: malloc + pointer parameter + unchecked index access
+  7. simplified dependency-style C header parsing
+  8. MCP tools/list stability + run_pipeline language schema acceptance
+
+**Files modified:**
+- `editor/src/CrossLanguageProjector.h` — integration support:
+  - copy `classes` and `statements` roles during projection
+  - generic serialization fallback clone for unhandled declaration nodes
+- `editor/CMakeLists.txt` — `step364_test` target with parser-linked test deps
+
+**Verification run:**
+- `step364_test` — PASS (8/8) new step coverage
+- `step363_test` — PASS (12/12) regression coverage
+- `step362_test` — PASS (12/12) regression coverage
+- `step361_test` — PASS (12/12) regression coverage
+- `step360_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CrossLanguageProjector.h` remains within header size limit
+  (`596` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
