@@ -174,6 +174,10 @@ public:
         } else if (language == "wat" || language == "wasm") {
             WatGenerator gen;
             return gen.generate(ast);
+        } else if (language == "common-lisp" || language == "commonlisp" ||
+                   language == "lisp" || language == "cl") {
+            CommonLispGenerator gen;
+            return gen.generate(ast);
         }
         return "";
     }

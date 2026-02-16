@@ -2442,6 +2442,51 @@ surface forms.
 - `editor/src/ast/CommonLispParser.h` is within header size limit
   (`598` lines <= `600`)
 
+### Step 371: Common Lisp Generator
+**Status:** PASS (12/12 tests)
+
+Added a dedicated Common Lisp generator and integrated target-language routing
+for Common Lisp aliases in the pipeline.
+
+**Files created:**
+- `editor/src/ast/CommonLispGenerator.h` — Common Lisp generation support:
+  - module/function emission as idiomatic S-expressions
+  - `defclass` + `defmethod` output for CLOS class/method projection
+  - typed parameter declarations via `(declare (type ...))`
+  - `let` emission from block-scoped variable statements
+  - macro emission via `defmacro`
+  - function-level exception annotation mapping to `handler-case` wrappers
+  - comment prefix alignment (`;; `) with explicit owner annotation formatting
+- `editor/tests/step371_test.cpp` — 12 tests covering:
+  1. `defun` generation
+  2. `defclass` output
+  3. `lambda` output
+  4. `let` binding emission
+  5. S-expression shape / balanced output
+  6. typed `declare` emission
+  7. Python -> Common Lisp pipeline route
+  8. Java -> Common Lisp pipeline route
+  9. Semanno comment prefix (`;;`)
+  10. parse -> generate -> parse roundtrip
+  11. CLOS method dispatch output
+  12. condition-system wrapper from exception annotation
+
+**Files modified:**
+- `editor/src/ast/Generator.h` — include `CommonLispGenerator.h`
+- `editor/src/Pipeline.h` — add generate routing for `\"common-lisp\"`,
+  `\"commonlisp\"`, `\"lisp\"`, and `\"cl\"`
+- `editor/CMakeLists.txt` — `step371_test` target
+
+**Verification run:**
+- `step371_test` — PASS (12/12) new step coverage
+- `step370_test` — PASS (12/12) regression coverage
+- `step369_test` — PASS (8/8) regression coverage
+- `step366_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/CommonLispGenerator.h` remains within header-size limit
+  (`267` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

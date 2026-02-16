@@ -13,3 +13,4 @@
 #include "CSharpGenerator.h"
 #include "CGenerator.h"
 #include "WatGenerator.h"
+#include "CommonLispGenerator.h"
