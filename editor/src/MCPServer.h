@@ -1600,6 +1600,33 @@ private:
             [this](const json& args) {
                 return callWhetstone("submitExternalResult", args);
             };
+
+        // whetstone_get_event_stream
+        tools_.push_back({"whetstone_get_event_stream",
+            "Poll workflow events emitted since a stream version. "
+            "Returns normalized event records for visualization and clients.",
+            {{"type", "object"}, {"properties", {
+                {"sinceVersion", {{"type", "integer"},
+                    {"description", "Return events with version > sinceVersion"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_get_event_stream"] =
+            [this](const json& args) {
+                return callWhetstone("getEventStream", args);
+            };
+
+        // whetstone_get_recent_events
+        tools_.push_back({"whetstone_get_recent_events",
+            "Get the latest N workflow events from the event stream.",
+            {{"type", "object"}, {"properties", {
+                {"count", {{"type", "integer"},
+                    {"description", "How many most-recent events to return (default 20)"}}}
+            }}}
+        });
+        toolHandlers_["whetstone_get_recent_events"] =
+            [this](const json& args) {
+                return callWhetstone("getRecentEvents", args);
+            };
     }
 
     void registerReviewTools() {

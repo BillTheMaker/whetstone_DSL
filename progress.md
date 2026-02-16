@@ -3146,6 +3146,60 @@ validation failure.
 - `editor/src/HeadlessOrchestratorRPC.h` within header-size limit (`309` <= `600`)
 - `editor/tests/step386_test.cpp` within test-file size guidance (`269` lines)
 
+### Step 387: Orchestrator Event Stream
+**Status:** PASS (12/12 tests)
+
+Added a versioned event stream for orchestration telemetry and exposed polling
+APIs through RPC + MCP for client-side visualization and progress UIs.
+
+**Files created:**
+- `editor/src/EventStream.h` — versioned stream:
+  - `emit(OrchestratorEvent)`
+  - `poll(sinceVersion)`
+  - `subscribe(callback)`
+  - `getVersion()`
+  - `getRecent(count)`
+  - stream-event JSON serialization
+- `editor/tests/step387_test.cpp` — 12 tests covering:
+  1. emit/poll baseline
+  2. since-version filtering
+  3. version tracking
+  4. subscriber callback firing
+  5. normalized orchestration event-type emission
+  6. recent-event ordering/count
+  7. empty stream behavior
+  8. no-duplicate polling under frequent reads
+  9. event JSON structure
+  10. MCP event-stream tool registration
+  11. `getEventStream` since-version behavior
+  12. `getRecentEvents` count behavior
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — add `EventStream eventStream`
+- `editor/src/HeadlessAgentRPCHandler.h` — emit `workflow.created` event on workflow init
+- `editor/src/HeadlessOrchestratorRPC.h` — event emission mapping and new RPC methods:
+  - `getEventStream`
+  - `getRecentEvents`
+  - mapped event names (`task.*`, `workflow.*`) and `workflow.progress/complete` emission
+- `editor/src/AgentPermissionPolicy.h` — read permissions for
+  `getEventStream` / `getRecentEvents`
+- `editor/src/MCPServer.h` — MCP tools:
+  - `whetstone_get_event_stream`
+  - `whetstone_get_recent_events`
+- `editor/CMakeLists.txt` — `step387_test` target
+
+**Verification run:**
+- `step387_test` — PASS (12/12) new step coverage
+- `step386_test` — PASS (12/12) regression coverage
+- `step382_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/EventStream.h` within header-size limit (`68` <= `600`)
+- `editor/src/HeadlessOrchestratorRPC.h` within header-size limit (`374` <= `600`)
+- `editor/tests/step387_test.cpp` within test-file size guidance (`204` lines)
+- Legacy oversized header persists:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

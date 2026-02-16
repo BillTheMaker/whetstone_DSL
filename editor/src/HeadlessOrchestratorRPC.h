@@ -43,6 +43,28 @@ static inline json orchestratorBlockersToJson(const std::vector<BlockerInfo>& bl
     return arr;
 }
 
+static inline std::string streamTypeForOrchestratorType(const std::string& type) {
+    if (type == "routed") return "task.routed";
+    if (type == "context-assembled") return "task.context-assembled";
+    if (type == "executed") return "task.executed";
+    if (type == "auto-approved") return "task.auto-approved";
+    if (type == "sent-to-review") return "task.sent-to-review";
+    if (type == "completed") return "task.completed";
+    if (type == "rejected") return "task.rejected";
+    if (type == "escalated") return "task.escalated";
+    if (type == "blocked") return "workflow.blocked";
+    return type;
+}
+
+static inline void emitWorkflowEvents(HeadlessEditorState& state,
+                                      const std::vector<OrchestratorEvent>& events) {
+    for (const auto& event : events) {
+        OrchestratorEvent mapped = event;
+        mapped.type = streamTypeForOrchestratorType(event.type);
+        state.eventStream.emit(mapped);
+    }
+}
+
 static inline std::map<std::string, BufferInfo> collectOrchestratorBufferInfos(
     HeadlessEditorState& state) {
     std::map<std::string, BufferInfo> infos;
@@ -81,6 +103,7 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
             state.workflowProgress = WorkflowProgress(state.workflow->getStats().total);
         }
         state.workflowProgress->recordEvent(event);
+        emitWorkflowEvents(state, {event});
         return orchestratorRpcResult(id, {{"event", orchestratorEventToJson(event)}});
     }
 
@@ -103,6 +126,7 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
         for (const auto& event : batch.events) {
             state.workflowProgress->recordEvent(event);
         }
+        emitWorkflowEvents(state, batch.events);
 
         return orchestratorRpcResult(id, {
             {"events", orchestratorEventsToJson(batch.events)},
@@ -148,6 +172,7 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
         for (const auto& event : allEvents) {
             state.workflowProgress->recordEvent(event);
         }
+        emitWorkflowEvents(state, allEvents);
 
         return orchestratorRpcResult(id, {
             {"events", orchestratorEventsToJson(allEvents)},
@@ -197,6 +222,12 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
             orchestrator.setBuffers(collectOrchestratorBufferInfos(state));
             snapshot.blockers = orchestrator.getBlockers();
         }
+        state.eventStream.emit({
+            "workflow.progress",
+            "",
+            snapshot.toJson(),
+            workItemTimestamp()
+        });
         return orchestratorRpcResult(id, snapshot.toJson());
     }
 
@@ -270,6 +301,9 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
             events.push_back({"rejected", itemId,
                               {{"reason", feedback}},
                               workItemTimestamp()});
+            events.push_back({"escalated", itemId,
+                              {{"reason", "validation-failed-requeue"}},
+                              workItemTimestamp()});
         } else if (acceptance.autoApproved) {
             state.workflow->queue.complete(itemId);
             events.push_back({"auto-approved", itemId,
@@ -295,6 +329,13 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
         for (const auto& event : events) {
             state.workflowProgress->recordEvent(event);
         }
+        emitWorkflowEvents(state, events);
+
+        if (state.workflow->getStats().total > 0 &&
+            state.workflow->getStats().complete == state.workflow->getStats().total) {
+            state.eventStream.emit({"workflow.complete", "", json::object(),
+                                    workItemTimestamp()});
+        }
 
         auto latest = state.workflow->queue.getItem(itemId);
         return orchestratorRpcResult(id, {
@@ -302,6 +343,30 @@ inline std::optional<json> tryHandleHeadlessOrchestratorRPC(
             {"acceptance", acceptance.toJson()},
             {"events", orchestratorEventsToJson(events)},
             {"item", latest ? workItemToJson(*latest) : json::object()}
+        });
+    }
+
+    if (method == "getEventStream") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return orchestratorRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        int sinceVersion = params.value("sinceVersion", 0);
+        auto events = state.eventStream.poll(sinceVersion);
+        return orchestratorRpcResult(id, {
+            {"version", state.eventStream.getVersion()},
+            {"events", EventStream::toJson(events)}
+        });
+    }
+
+    if (method == "getRecentEvents") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return orchestratorRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        int count = params.value("count", 20);
+        auto events = state.eventStream.getRecent(count);
+        return orchestratorRpcResult(id, {
+            {"version", state.eventStream.getVersion()},
+            {"events", EventStream::toJson(events)}
         });
     }
 

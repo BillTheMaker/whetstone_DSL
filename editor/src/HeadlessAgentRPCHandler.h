@@ -2262,6 +2262,12 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         std::string bufferId = state.activeBuffer->path;
         int count = state.workflow->populateFromSkeleton(state.activeAST(), bufferId);
         state.workflowProgress = WorkflowProgress(count);
+        state.eventStream.emit({
+            "workflow.created",
+            "",
+            {{"projectName", projectName}, {"itemCount", count}},
+            workItemTimestamp()
+        });
 
         auto stats = state.workflow->getStats();
         return headlessRpcResult(id, {

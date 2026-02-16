@@ -44,6 +44,7 @@
 #include "ContextAssembler.h"
 #include "ReviewGate.h"
 #include "WorkflowProgress.h"
+#include "EventStream.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -143,6 +144,7 @@ struct HeadlessEditorState {
     bool                 verbose = false;
     std::optional<WorkflowState> workflow;
     std::optional<WorkflowProgress> workflowProgress;
+    EventStream         eventStream;
     RoutingEngine        routingEngine;
     WorkerRegistry       workerRegistry = WorkerRegistry::getDefaultRegistry();
     ContextAssembler     contextAssembler;

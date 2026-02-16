@@ -72,7 +72,9 @@ struct AgentPermissionPolicy {
             method == "getRoutingExplanation" ||
             method == "getReviewPolicy" ||
             method == "getBlockers" ||
-            method == "getProgress") {
+            method == "getProgress" ||
+            method == "getEventStream" ||
+            method == "getRecentEvents") {
             return true;
         }
 
