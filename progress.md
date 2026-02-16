@@ -3342,6 +3342,101 @@ workflow templates, dependency graph, event stream, and protocol phases.
 - Legacy oversized header persists:
   - `editor/src/MCPServer.h` (`1679` > `600`)
 
+# Sprint 16 Progress — C++ Depth + Self-Hosting Phase 1
+
+## Phase 16a: C++ Type System Depth
+
+### Step 394: TypeAlias + Nested Type Access
+**Status:** PASS (12/12 tests)
+
+Verified TypeAlias parsing (using/typedef), nested qualified names (Foo::Bar::Baz),
+and CppQualifiers detection helpers.
+
+**Files created:**
+- `editor/src/ast/CppAdvancedNodes.h` — CppQualifiers struct (const/constexpr/static/mutable/
+  smartPointerKind), AutoType node, CastExpression node, detection helpers
+  (detectSmartPointerKind, extractSmartPointerInner, detectQualifiers, isAutoType,
+  isConstMethod, detectCastKind, smartPointerOwnership, castRiskLevel)
+- `editor/tests/step394_test.cpp` — 12 tests covering using/typedef parsing, nested types,
+  construction, multiple aliases, generator format, qualified names, namespaces,
+  span tracking, template targets, pointer typedefs, qualifier detection
+
+### Step 395: Static Members + Const/Constexpr
+**Status:** PASS (12/12 tests)
+
+Tests for const, constexpr, static, and mutable qualifier detection on methods,
+variables, and class members. MethodDeclaration already supports isStatic/isVirtual/
+isOverride flags.
+
+**Files created:**
+- `editor/tests/step395_test.cpp` — 12 tests covering const/constexpr/static detection,
+  trailing const methods, static method parsing, virtual/override, CppQualifiers
+  JSON roundtrip, field declarations, combined qualifiers, mutable detection
+
+### Step 396: Smart Pointer Patterns
+**Status:** PASS (12/12 tests)
+
+Recognition of unique_ptr/shared_ptr/weak_ptr, inner type extraction, ownership
+annotation mapping (Unique/Shared_ARC/Weak), and cross-language projection concept.
+
+**Files created:**
+- `editor/tests/step396_test.cpp` — 12 tests covering detection of each smart pointer
+  type, inner type extraction, ownership mapping, parser integration with smart
+  pointer params/returns, no false positives, make_unique, cross-language mapping,
+  new/delete expressions
+
+### Step 397: Auto Type Deduction
+**Status:** PASS (12/12 tests)
+
+AutoType AST node for deferred type resolution. Parser handles auto, auto*, auto&,
+const auto&, trailing return types, and C++20 abbreviated templates.
+
+**Files created:**
+- `editor/tests/step397_test.cpp` — 12 tests covering AutoType construction, modifiers,
+  isAutoType detection, auto return types, auto variables, auto pointers, const auto
+  refs, trailing return types, auto parameters, span tracking
+
+### Step 398: Cast Expressions
+**Status:** PASS (12/12 tests)
+
+CastExpression AST node with castKind (static/dynamic/reinterpret/const), targetType,
+and operand child. Risk level annotations: reinterpret_cast=high, dynamic/const=medium,
+static=low.
+
+**Files created:**
+- `editor/tests/step398_test.cpp` — 12 tests covering construction, detection of all
+  4 cast kinds, risk levels, parser integration with cast expressions, operand
+  children, multiple casts, span tracking, risk annotation mapping
+
+### Step 399: Phase 16a Integration
+**Status:** PASS (8/8 tests)
+
+End-to-end Phase 16a validation combining all new C++ constructs.
+
+**Files created:**
+- `editor/tests/step399_test.cpp` — 8 integration tests covering:
+  1. Parse Whetstone-style header with type alias, class, smart pointers
+  2. Roundtrip parse → generate → parse
+  3. Qualifier detection on mixed code
+  4. Smart pointer ownership mapping
+  5. Cast risk assessment
+  6. Auto type detection
+  7. Complex class with static/virtual/const methods
+  8. Pipeline integration (C++ parse + infer + validate + generate)
+
+**Phase 16a completion snapshot (Steps 394-399):**
+- Step 394: TypeAlias + nested type access (12 tests)
+- Step 395: Static/const/constexpr qualifiers (12 tests)
+- Step 396: Smart pointer patterns (12 tests)
+- Step 397: Auto type deduction (12 tests)
+- Step 398: Cast expressions (12 tests)
+- Step 399: Phase 16a integration (8 tests)
+
+**Architecture gate check (end of Phase 16a):**
+- `editor/src/ast/CppAdvancedNodes.h` within header-size limit (`156` <= `600`)
+- Legacy oversized header persists:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
