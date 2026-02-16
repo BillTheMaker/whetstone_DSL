@@ -2602,6 +2602,145 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- getReviewQueue ---
+    if (method == "getReviewQueue") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+
+        auto reviewItems = state.workflow->queue.getByStatus(WI_REVIEW);
+        json arr = json::array();
+        for (const auto& wi : reviewItems) {
+            arr.push_back({
+                {"itemId", wi.id},
+                {"nodeName", wi.nodeName},
+                {"nodeType", wi.nodeType},
+                {"bufferId", wi.bufferId},
+                {"workerType", wi.workerType},
+                {"priority", wi.priority},
+                {"confidence", wi.result.confidence},
+                {"reviewRequired", wi.reviewRequired},
+                {"status", wi.status}
+            });
+        }
+
+        return headlessRpcResult(id, {
+            {"items", arr},
+            {"count", (int)arr.size()}
+        });
+    }
+
+    // --- getReviewContext ---
+    if (method == "getReviewContext") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string itemId = params.value("itemId", "");
+        if (itemId.empty())
+            return headlessRpcError(id, -32602, "Missing itemId");
+
+        auto item = state.workflow->queue.getItem(itemId);
+        if (!item)
+            return headlessRpcError(id, -32602, "Work item not found");
+
+        std::string summary;
+        summary += "Review Item: " + item->id + "\n";
+        summary += "Node: " + item->nodeName + " (" + item->nodeType + ")\n";
+        summary += "Worker: " + item->workerType + ", Priority: " + item->priority + "\n";
+        summary += "Status: " + item->status + ", ReviewRequired: ";
+        summary += item->reviewRequired ? "true\n" : "false\n";
+        summary += "Confidence: " + std::to_string(item->result.confidence) + "\n";
+        summary += "Reasoning: " + item->result.reasoning + "\n";
+        summary += "Generated Code:\n" + item->result.generatedCode + "\n";
+        if (!item->rejectionFeedback.empty()) {
+            summary += "Previous Feedback: " + item->rejectionFeedback + "\n";
+        }
+
+        return headlessRpcResult(id, {
+            {"item", workItemToJson(*item)},
+            {"generatedCode", item->result.generatedCode},
+            {"confidence", item->result.confidence},
+            {"reasoning", item->result.reasoning},
+            {"dependencies", item->dependencies},
+            {"humanSummary", summary}
+        });
+    }
+
+    // --- approveReviewItem ---
+    if (method == "approveReviewItem") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string itemId = params.value("itemId", "");
+        std::string feedback = params.value("feedback", "");
+        if (itemId.empty())
+            return headlessRpcError(id, -32602, "Missing itemId");
+
+        auto item = state.workflow->queue.getItem(itemId);
+        if (!item)
+            return headlessRpcError(id, -32602, "Work item not found");
+        if (item->status != WI_REVIEW)
+            return headlessRpcError(id, -32000,
+                "Cannot approve item in status: " + item->status);
+
+        WorkItem updated = *item;
+        bool ok = transitionWorkItem(updated, WI_COMPLETE);
+        if (!ok)
+            return headlessRpcError(id, -32000, "Approve transition failed");
+        if (!feedback.empty()) updated.result.reasoning += "\nReviewer Note: " + feedback;
+
+        state.workflow->queue.updateItem(itemId, updated);
+        state.workflow->recordChange(itemId, WI_REVIEW, WI_COMPLETE,
+                                     "human:" + sessionId, feedback);
+
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"item", workItemToJson(updated)}
+        });
+    }
+
+    // --- rejectReviewItem ---
+    if (method == "rejectReviewItem") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string itemId = params.value("itemId", "");
+        std::string feedback = params.value("feedback", "");
+        if (itemId.empty())
+            return headlessRpcError(id, -32602, "Missing itemId");
+        if (feedback.empty())
+            return headlessRpcError(id, -32602, "Missing feedback");
+
+        auto item = state.workflow->queue.getItem(itemId);
+        if (!item)
+            return headlessRpcError(id, -32602, "Work item not found");
+        if (item->status != WI_REVIEW)
+            return headlessRpcError(id, -32000,
+                "Cannot reject item in status: " + item->status);
+
+        bool ok = state.workflow->queue.reject(itemId, feedback);
+        if (!ok)
+            return headlessRpcError(id, -32000, "Reject failed");
+        state.workflow->recordChange(itemId, WI_REVIEW, WI_READY,
+                                     "human:" + sessionId, feedback);
+
+        auto updated = state.workflow->queue.getItem(itemId);
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"item", updated ? workItemToJson(*updated) : json::object()}
+        });
+    }
+
     // --- setReviewPolicy ---
     if (method == "setReviewPolicy") {
         if (!AgentPermissionPolicy::canInvoke(role, method))

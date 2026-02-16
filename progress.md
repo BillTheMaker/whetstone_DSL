@@ -4373,6 +4373,57 @@ blocker items.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+### Step 420: Human Review Interface via MCP
+**Status:** PASS (12/12 tests)
+
+Added human-review MCP capabilities so review-required items can be listed,
+inspected with readable context, and explicitly approved/rejected through the
+headless JSON-RPC path.
+
+**Files created:**
+- `editor/tests/step420_test.cpp` — 12 tests covering:
+  1. MCP review tools are registered
+  2. tool-to-RPC mapping for `whetstone_get_review_queue`
+  3. review queue returns review items
+  4. review queue empty behavior
+  5. review context includes human-readable summary
+  6. review context missing-item error
+  7. approve path marks item complete
+  8. approve wrong-status error
+  9. reject requires feedback
+  10. reject moves item back to ready
+  11. reject wrong-status error
+  12. MCP end-to-end queue+approve flow
+
+**Files modified:**
+- `editor/src/AgentPermissionPolicy.h` — added review RPC permissions:
+  - read: `getReviewQueue`, `getReviewContext`
+  - mutate: `approveReviewItem`, `rejectReviewItem`
+- `editor/src/MCPServer.h` — added review MCP tools and handlers:
+  - `whetstone_get_review_queue` -> `getReviewQueue`
+  - `whetstone_get_review_context` -> `getReviewContext`
+  - `whetstone_approve_item` -> `approveReviewItem`
+  - `whetstone_reject_item` -> `rejectReviewItem`
+- `editor/src/HeadlessAgentRPCHandler.h` — implemented review RPC methods:
+  - `getReviewQueue`
+  - `getReviewContext` (includes `humanSummary`)
+  - `approveReviewItem`
+  - `rejectReviewItem`
+- `editor/CMakeLists.txt` — `step420_test` target
+
+**Verification run:**
+- `step420_test` — PASS (12/12) new step coverage
+- `step419_test` — PASS (12/12) regression coverage
+- `step418_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentPermissionPolicy.h` within header-size limit (`128` <= `600`)
+- `editor/tests/step420_test.cpp` within test-file size guidance (`204` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1735` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

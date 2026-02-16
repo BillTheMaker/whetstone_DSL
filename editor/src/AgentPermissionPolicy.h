@@ -71,6 +71,8 @@ struct AgentPermissionPolicy {
             method == "getWorkItem" ||
             method == "getRoutingExplanation" ||
             method == "getReviewPolicy" ||
+            method == "getReviewQueue" ||
+            method == "getReviewContext" ||
             method == "getBlockers" ||
             method == "getProgress" ||
             method == "getEventStream" ||
@@ -108,6 +110,8 @@ struct AgentPermissionPolicy {
             method == "routeAllReady" ||
             method == "executeTask" ||
             method == "setReviewPolicy" ||
+            method == "approveReviewItem" ||
+            method == "rejectReviewItem" ||
             method == "orchestrateStep" ||
             method == "orchestrateAdvance" ||
             method == "orchestrateRunDeterministic" ||
