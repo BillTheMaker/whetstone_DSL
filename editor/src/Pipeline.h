@@ -122,6 +122,10 @@ public:
             auto pr = CParser::parseCWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "wat" || language == "wasm") {
+            auto pr = WatParser::parseWatWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         }
         return nullptr;
     }

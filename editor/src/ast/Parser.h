@@ -165,3 +165,4 @@ private:
 #include "ast/KotlinParser.h"
 #include "ast/CSharpParser.h"
 #include "ast/CParser.h"
+#include "ast/WatParser.h"

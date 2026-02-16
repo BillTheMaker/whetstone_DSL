@@ -2203,6 +2203,47 @@ projection behavior, and MCP tool contract stability.
 - `editor/src/CrossLanguageProjector.h` remains within header size limit
   (`596` lines <= `600`)
 
+### Step 365: WAT Parser
+**Status:** PASS (12/12 tests)
+
+Added a standalone WebAssembly text-format parser (`wat`/`wasm`) and wired it
+into the shared parsing pipeline.
+
+**Files created:**
+- `editor/src/ast/WatParser.h` — WAT parser support:
+  - `parseWat(...)` and `parseWatWithDiagnostics(...)`
+  - balanced-expression scanning inside `(module ...)`
+  - function parsing for params/results/locals
+  - import/export/global/memory/table top-level mapping
+  - instruction-shape mapping for `i32.add`, `call`, `if`, `block`, `loop`
+  - line-comment stripping for `;; ...`
+- `editor/tests/step365_test.cpp` — 12 tests covering:
+  1. module parsing
+  2. function params/results
+  3. locals
+  4. exports
+  5. imports
+  6. globals
+  7. `i32.add` mapping
+  8. `call` mapping
+  9. `if` mapping
+  10. block/loop mapping
+  11. empty module
+  12. pipeline `wat` and `wasm` routing + type preservation
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/WatParser.h`
+- `editor/src/Pipeline.h` — add parse routing for `\"wat\"` and `\"wasm\"`
+- `editor/CMakeLists.txt` — `step365_test` target
+
+**Verification run:**
+- `step365_test` — PASS (12/12) new step coverage
+- `step364_test` — PASS (8/8) regression coverage
+- `step363_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/WatParser.h` is within header size limit (`231` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
