@@ -1961,4 +1961,9 @@ add_executable(step326_test tests/step326_test.cpp)
 target_include_directories(step326_test PRIVATE src)
 target_link_libraries(step326_test PRIVATE nlohmann_json::nlohmann_json)
 
+# Step 327: WorkerRegistry — Worker Abstractions
+add_executable(step327_test tests/step327_test.cpp)
+target_include_directories(step327_test PRIVATE src)
+target_link_libraries(step327_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

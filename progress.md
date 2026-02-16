@@ -1354,6 +1354,26 @@ context width escalation → getter/setter patterns → defaults.
 **Files modified:**
 - `editor/CMakeLists.txt` — step326_test target
 
+### Step 327: WorkerRegistry — Worker Abstractions
+**Status:** PASS (12/12 tests)
+
+Worker interface with 5 concrete implementations: DeterministicWorker
+(intent-based code gen), TemplateWorker (getter/setter/accessor patterns),
+SLMAgentWorker/LLMAgentWorker (context bundle preparation for external
+invocation), HumanWorker (marks for human review). Registry with lookup.
+
+**Files created:**
+- `editor/src/WorkerRegistry.h` — WorkerContext struct, WorkerInterface
+  abstract base, DeterministicWorker, TemplateWorker, SLMAgentWorker,
+  LLMAgentWorker, HumanWorker, WorkerRegistry with getDefaultRegistry
+- `editor/tests/step327_test.cpp` — 12 tests: deterministic with/without
+  intent, template getter/setter/boolean accessor, LLM context bundle,
+  human review marking, registry lookup, canHandle filtering, worker type
+  strings, SLM context assembly, rejection feedback in context
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step327_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
