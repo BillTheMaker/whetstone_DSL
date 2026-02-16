@@ -3496,6 +3496,45 @@ coverage reporting, and graceful degradation on missing expected constructs.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 402: Parse AnnotationValidatorExtended.h
+**Status:** PASS (12/12 tests)
+
+Validated self-hosting parse coverage for a class-heavy production header
+(`AnnotationValidatorExtended.h`): class/method extraction, static helper
+method recognition, validator-style cast-pattern helper checks, complexity
+inference on parsed AST, and graceful degradation accounting.
+
+**Files created:**
+- `editor/tests/step402_test.cpp` — 12 tests covering:
+  1. parse real header file from disk
+  2. `AnnotationValidatorExtended` class capture
+  3. class method extraction
+  4. public `validate` signature capture
+  5. private helper method capture (`validateNode`, `validateAnnotation`)
+  6. static helper method parsing (`isPowerOf2`, `isOneOf`)
+  7. expected-structure 100% coverage
+  8. validator-style `static_cast` detection helper checks
+  9. complexity inference execution on parsed AST
+  10. static-helper class snippet parse stability
+  11. coverage report content checks
+  12. graceful degradation via opaque coverage accounting
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step402_test` target
+
+**Verification run:**
+- `step402_test` — PASS (12/12) new step coverage
+- `step401_test` — PASS (12/12) regression coverage
+- `step400_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step402_test.cpp` within test-file size guidance (`239` lines)
+- `editor/src/AnnotationValidatorExtended.h` within header-size limit (`349` <= `600`)
+- `editor/src/SelfHostHarness.h` remains within header-size limit (`308` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
