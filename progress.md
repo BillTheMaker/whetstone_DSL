@@ -3244,6 +3244,104 @@ progress tracking into one executable workflow path.
 - Legacy oversized header persists:
   - `editor/src/MCPServer.h` (`1679` > `600`)
 
+## Phase 15c: Advanced Routing + Optimization
+
+### Step 389: Routing Rules Engine
+**Status:** PASS (12/12 tests)
+
+Configurable, composable routing rules engine. Rules have conditions (AND-combined)
+and actions. First matching rule wins. Default rules encode same logic as the
+hardcoded RoutingEngine cascade.
+
+**Files created:**
+- `editor/src/RoutingRules.h` — RuleCondition, RoutingAction, RoutingRule structs;
+  RulesEngine class with addRule, evaluate, getDefaultRules, loadRules/saveRules;
+  7 condition types: annotation, complexity, contextWidth, nodeType, rejectionCount,
+  language, pattern
+- `editor/tests/step389_test.cpp` — 12 tests covering first-match wins, AND conditions,
+  annotation match, complexity threshold, pattern matching, defaults, custom override,
+  fallthrough, priority ordering, JSON persistence, budget multiplier, rejection escalation
+
+### Step 390: Cost Estimation + Optimization
+**Status:** PASS (12/12 tests)
+
+Token cost estimation and optimization suggestions before executing a workflow.
+Estimates context/output tokens per worker type with rough USD cost projection.
+
+**Files created:**
+- `editor/src/CostEstimator.h` — OptimizationSuggestion, CostEstimate structs;
+  CostEstimator class with estimate() and suggest(); collectAllItems() helper;
+  3 suggestion types: use-template, narrow-context, batch
+- `editor/tests/step390_test.cpp` — 12 tests covering token counts, deterministic
+  zero cost, suggestions, getter detection, context narrowing, batching, empty
+  workflow, large workflow, JSON serialization, worker breakdown, completed exclusion,
+  cost proportionality
+
+### Step 391: Workflow Templates
+**Status:** PASS (12/12 tests)
+
+5 pre-built workflow templates for common project patterns. Each creates a populated
+WorkflowState with work items, routing hints, and dependencies.
+
+**Files created:**
+- `editor/src/WorkflowTemplates.h` — TemplateInfo, TemplateParams structs;
+  WorkflowTemplates class with getTemplates(), applyTemplate(), isValidTemplate();
+  Templates: crud-api, module-refactor, cross-language-port, test-suite,
+  legacy-modernization
+- `editor/tests/step391_test.cpp` — 12 tests covering template count, CRUD skeleton,
+  cross-language routing, param validation, test generation, valid WorkflowState,
+  refactor template, descriptions, default params, modernization, dependencies,
+  function count defaults
+
+### Step 392: Dependency Graph Data
+**Status:** PASS (12/12 tests)
+
+Export workflow dependency graph as structured data for Sprint 19's GUI visualization.
+Computes critical path (longest dependency chain).
+
+**Files created:**
+- `editor/src/DependencyGraph.h` — GraphNode, GraphEdge, GraphData structs;
+  buildDependencyGraph(), graphToJson(), getCriticalPath() functions
+- `editor/tests/step392_test.cpp` — 12 tests covering node count, edge matching,
+  critical path, status match, worker type, JSON serialization, empty graph,
+  single node, diamond dependencies, update after completion, labels, 5-chain path
+
+### Step 393: Phase 15c Integration + Sprint 15 Summary
+**Status:** PASS (8/8 tests)
+
+End-to-end Sprint 15c validation connecting routing rules, cost estimation,
+workflow templates, dependency graph, event stream, and protocol phases.
+
+**Files created:**
+- `editor/tests/step393_test.cpp` — 8 integration tests covering:
+  1. custom routing rules override
+  2. cost estimation with optimization suggestions for 10-function workflow
+  3. CRUD template → route → deterministic execution
+  4. dependency graph 5-function chain critical path
+  5. event stream captures workflow transitions
+  6. full protocol phase validation
+  7. optimization reduces cost (narrow context)
+  8. Sprint 15 totals verification
+
+**Sprint 15 completion snapshot (Steps 378-393):**
+- Phase 15a (378-383): Orchestrator core, parallel dispatch, feedback, progress, RPC
+- Phase 15b (384-388): MCP protocol, context bundles, result acceptance, event stream
+- Phase 15c (389-393): Rules engine, cost estimation, templates, dependency graph
+
+**Sprint 15 totals:**
+- Steps: 16 (378-393)
+- Tests: ~180 (68 + 56 + 56)
+- New headers: 9 (Orchestrator, WorkflowProgress, WorkflowProtocol, ContextBundle,
+  EventStream, RoutingRules, CostEstimator, WorkflowTemplates, DependencyGraph)
+
+**Architecture gate check (end of Sprint 15):**
+- `editor/src/RoutingRules.h` within header-size limit (`276` <= `600`)
+- `editor/src/CostEstimator.h` within header-size limit (`227` <= `600`)
+- `editor/src/WorkflowTemplates.h` within header-size limit (`220` <= `600`)
+- `editor/src/DependencyGraph.h` within header-size limit (`175` <= `600`)
+- Legacy oversized header persists:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
