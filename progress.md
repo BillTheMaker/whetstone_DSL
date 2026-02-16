@@ -4470,6 +4470,48 @@ annotation inference, saving sidecars, and creating `.whetstone` metadata.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 422: Phase 18a Integration
+**Status:** PASS (8/8 tests)
+
+Added Sprint 18a integration coverage validating the end-to-end MCP protocol
+path: config readiness, onboarding, skeleton/workflow setup, deterministic
+orchestration handoff, external-result submission, human review, and completion.
+
+**Files created:**
+- `editor/tests/step422_test.cpp` — 8 integration tests covering:
+  1. MCP config structure for Phase 18a
+  2. 75+ tool inventory + required Phase 18a tool presence
+  3. workflow prompt-template availability (`MCPWorkflowPrompts`)
+  4. onboard -> skeleton -> workflow tool sequence (mocked backend)
+  5. orchestrate -> blocker -> submit -> review -> progress flow (mocked)
+  6. full Phase 18a protocol end-to-end (mocked state machine)
+  7. real headless review completion via MCP review tools
+  8. real headless onboarding smoke with `.whetstone` bootstrap
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step422_test` target
+
+**Verification run:**
+- `step422_test` — PASS (8/8) new phase-integration coverage
+- `step421_test` — PASS (12/12) regression coverage
+- `step420_test` — PASS (12/12) regression coverage
+
+**Phase 18a completion snapshot (Steps 417-422):**
+- Step 417: MCP configuration/discovery
+- Step 418: workflow prompt templates
+- Step 419: agent workflow loop
+- Step 420: human review MCP interface
+- Step 421: workspace onboarding tool
+- Step 422: end-to-end integration coverage
+
+**Architecture gate check (end of Phase 18a):**
+- `editor/tests/step422_test.cpp` within integration-test size guidance (`316` lines)
+- `editor/tests/step421_test.cpp` within test-file size guidance (`355` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
