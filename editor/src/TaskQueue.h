@@ -144,6 +144,10 @@ public:
         for (auto& item : items_) {
             if (item.id == itemId) {
                 item = updated;
+                // If item became complete, re-evaluate blocked dependencies
+                if (updated.status == WI_COMPLETE) {
+                    resolveDependencies();
+                }
                 return true;
             }
         }

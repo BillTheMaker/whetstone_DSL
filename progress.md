@@ -1312,6 +1312,27 @@ access; Refactor/Generator can mutate.
 
 **Tool count:** 50+ (42 existing + 8 workflow execution tools)
 
+### Step 325: Phase 12a Integration Tests
+**Status:** PASS (8/8 tests)
+
+End-to-end workflow lifecycle from skeleton to completion. Covers priority
+ordering, dependency chains (A→B→C cascade), full lifecycle with results,
+rejection flow, persistence roundtrip, stats accuracy, and a combined
+5-function workflow with mixed priorities and dependencies.
+
+**Files created:**
+- `editor/tests/step325_test.cpp` — 8 integration tests: skeleton→workflow,
+  priority ordering, dependency chain cascade, full lifecycle with result,
+  rejection flow, persistence save/load, stats accuracy, combined 5-item
+  workflow completing to phase=Complete
+
+**Files modified:**
+- `editor/src/TaskQueue.h` — updateItem triggers resolveDependencies when
+  item status becomes complete (fixes cascade through RPC path)
+- `editor/CMakeLists.txt` — step325_test target
+
+**Phase 12a complete:** 6/6 steps (320-325), 68/68 tests passing
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
