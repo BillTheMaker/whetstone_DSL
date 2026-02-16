@@ -1546,6 +1546,21 @@ rest as implements.
   virtual, template class, CRTP, cross-language (Python/Java/Rust), variadic templates,
   combined template + inheritance, method visibility, full roundtrip
 
+### Step 336: Phase 12c Integration Tests
+**Status:** PASS (8/8 tests)
+
+Full integration pipeline for C++ inheritance + templates. Parse real C++ classes with
+multiple inheritance, CRTP, and templates via tree-sitter, generate cross-language output,
+verify diamond detection, and JSON serialization roundtrip.
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step336_test target with tree-sitter libraries
+
+**Files created:**
+- `editor/tests/step336_test.cpp` — 8 tests: parse Whetstone-style class, CRTP detection,
+  parse→generate roundtrip, C++→Java extends+implements, C++→Python multi-base, template
+  3 params, diamond inheritance detection, mixed template+inheritance+virtual pipeline
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
