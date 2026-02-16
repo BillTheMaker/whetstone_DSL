@@ -7,6 +7,7 @@
 #include <map>
 #include <optional>
 #include <algorithm>
+#include <fstream>
 #include <nlohmann/json.hpp>
 
 enum class KeyModifier : uint8_t {
@@ -49,11 +50,37 @@ struct KeyCombo {
             if (hasModifier(modifiers, KeyModifier::Alt)) result += "\xE2\x8C\xA5";   // ⌥
             if (hasModifier(modifiers, KeyModifier::Shift)) result += "\xE2\x87\xA7"; // ⇧
             if (hasModifier(modifiers, KeyModifier::Super)) result += "\xE2\x8C\x98"; // ⌘
-            result += key;
+            result += keyToSymbol(key);
         } else {
             result = toString(); // Linux/Windows uses text form
         }
         return result;
+    }
+
+    static std::string normalizeKey(const std::string& in) {
+        std::string k = in;
+        std::transform(k.begin(), k.end(), k.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+        return k;
+    }
+
+    static std::string keyToSymbol(const std::string& keyName) {
+        std::string k = normalizeKey(keyName);
+        if (k == "ENTER" || k == "RETURN") return "\xE2\x86\xB5"; // ↵
+        if (k == "ESC" || k == "ESCAPE") return "\xE2\x8E\x8B";   // ⎋
+        if (k == "TAB") return "\xE2\x87\xA5";                    // ⇥
+        if (k == "SPACE") return "\xE2\x90\xA0";                  // ␠
+        if (k == "BACKSPACE") return "\xE2\x8C\xAB";              // ⌫
+        if (k == "DELETE") return "\xE2\x8C\xA6";                 // ⌦
+        return keyName;
+    }
+
+    std::string toSymbolsAuto() const {
+#ifdef __APPLE__
+        return toSymbols(true);
+#else
+        return toSymbols(false);
+#endif
     }
 
     bool operator==(const KeyCombo& other) const {
@@ -86,6 +113,23 @@ struct KeyCombo {
     }
     static KeyCombo shiftFkey(const std::string& k) {
         return {static_cast<uint8_t>(KeyModifier::Shift), k};
+    }
+
+    struct InputState {
+        bool ctrl = false;
+        bool alt = false;
+        bool shift = false;
+        bool super = false;
+        std::string key;
+    };
+
+    bool matches(const InputState& input) const {
+        if (normalizeKey(key) != normalizeKey(input.key)) return false;
+        if (hasModifier(modifiers, KeyModifier::Ctrl) != input.ctrl) return false;
+        if (hasModifier(modifiers, KeyModifier::Alt) != input.alt) return false;
+        if (hasModifier(modifiers, KeyModifier::Shift) != input.shift) return false;
+        if (hasModifier(modifiers, KeyModifier::Super) != input.super) return false;
+        return true;
     }
 };
 
@@ -141,6 +185,7 @@ public:
     }
 
     std::map<std::string, KeyCombo> getAllBindings() const { return bindings_; }
+    std::map<std::string, KeyCombo> getAll() const { return bindings_; }
 
     int actionCount() const { return static_cast<int>(actions_.size()); }
     int bindingCount() const { return static_cast<int>(bindings_.size()); }
@@ -214,6 +259,33 @@ public:
                 bindings_[id] = KeyCombo::fromJson(cj);
             }
         }
+    }
+
+    bool saveToJson(const std::string& path) const {
+        std::ofstream out(path);
+        if (!out.good()) return false;
+        out << toJson().dump(2);
+        return out.good();
+    }
+
+    bool loadFromJsonFile(const std::string& path) {
+        std::ifstream in(path);
+        if (!in.good()) return false;
+        nlohmann::json j;
+        try {
+            in >> j;
+            loadFromJson(j);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    std::optional<std::string> processInput(const KeyCombo::InputState& input) const {
+        for (const auto& [actionId, combo] : bindings_) {
+            if (combo.matches(input)) return actionId;
+        }
+        return std::nullopt;
     }
 
 private:

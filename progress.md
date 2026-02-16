@@ -1626,7 +1626,95 @@ alias_declaration, and type_definition node types.
   object-like/function-like macros, scoped/plain enums, namespace with body, using alias,
   typedef, mixed file, backward compat
 
+### Step 340: C++ Generator — Preprocessor, Enum, Namespace
+**Status:** PASS (12/12 tests)
+
+All 9 generators (C++, Python, Java, Rust, Go, JavaScript, Elisp, Kotlin, C#)
+now produce language-appropriate output for all 6 new AST node types:
+IncludeDirective, PragmaDirective, MacroDefinition, EnumDeclaration,
+NamespaceDeclaration, TypeAlias. ProjectionGenerator.h dispatch extended
+with 6 new branches + default visitor methods.
+
+**Files modified:**
+- `editor/src/ast/ProjectionGenerator.h` — 6 new virtual visitors + dispatch branches,
+  added PreprocessorNodes.h + EnumNamespaceNodes.h includes
+- `editor/src/ast/CppGeneratorTypes.h` — 6 visitor implementations (native C++ output)
+- `editor/src/ast/PythonGenerator.h` — import, class(Enum), def macro, type alias
+- `editor/src/ast/JavaGenerator.h` — import, enum, package, static final
+- `editor/src/ast/RustGenerator.h` — use, enum, mod, macro_rules!, type alias
+- `editor/src/ast/GoGenerator.h` — import, type+iota, package, const
+- `editor/src/ast/JavaScriptGenerator.h` — import, Object.freeze enum, const, JSDoc typedef
+- `editor/src/ast/ElispGenerator.h` — require, defconst enum, defmacro, defalias
+- `editor/src/ast/KotlinGenerator.h` — import, enum class, package, typealias
+- `editor/src/ast/CSharpGenerator.h` — using, enum, namespace, #pragma, type alias
+
+**Files created:**
+- `editor/tests/step340_test.cpp` — 12 tests: C++ include/enum/namespace output,
+  Python/Java/Rust/Go enum adaptation, cross-language includes (8 generators),
+  using/typedef, Kotlin+C# enum, pragma+define, all 9 generators non-empty for 6 types
+
+### Step 341: Phase 12d Integration + Sprint 12 Summary
+**Status:** PASS (8/8 tests)
+
+End-to-end integration tests for full C++ depth: realistic header parsing (includes
++ pragma + namespace + enum + class + function), JSON roundtrip, enum-inside-namespace
+scoping, cross-language enum output (6 languages), combined namespace+class+enum pipeline,
+batch serialization verification, CompactAST names, self-hosting progress (simplified
+Whetstone header fragment parsed successfully).
+
+**Files created:**
+- `editor/tests/step341_test.cpp` — 8 integration tests
+
+**Key results:**
+- Phase 12d complete: all 5 steps pass (56/56 tests across steps 337–341)
+- All 10 generators produce language-appropriate output for 6 new C++ node types
+- C++ parser handles: preprocessor, enum class, namespace, type alias
+- Self-hosting milestone: simplified Whetstone header fragment parses correctly
+- Sprint 12 complete: all 4 phases pass (248/248 tests across steps 320–341)
+- 56+ MCP tools, workflow engine, routing engine, review gates, C++ depth
+
 ---
+
+# Sprint 13 Progress — GUI Overhaul Phase 1
+
+---
+
+### Step 351: Keybinding Registry
+**Status:** PASS (12/12 tests)
+
+Expanded the centralized keybinding registry so actions have stable bindings
+that can be displayed with symbols, matched from input state, and persisted
+to/from disk. This extends the earlier keybinding foundation with stronger
+runtime and persistence primitives for the upcoming command palette/menu work.
+
+**Files modified:**
+- `editor/src/KeybindingRegistry.h` — added:
+  - `KeyCombo::InputState` and `KeyCombo::matches(...)` for key state matching
+  - `KeyCombo::keyToSymbol(...)`, `normalizeKey(...)`, `toSymbolsAuto(...)`
+  - `KeybindingRegistry::getAll()` alias for settings/UI consumption
+  - `KeybindingRegistry::processInput(...) -> optional<actionId>`
+  - `KeybindingRegistry::saveToJson(path)` and `loadFromJsonFile(path)`
+- `editor/CMakeLists.txt` — `step351_test` target
+
+**Files created:**
+- `editor/tests/step351_test.cpp` — 12 tests covering:
+  1. bind + retrieve
+  2. default bindings
+  3. `KeyCombo::toString`
+  4. mac-style symbol rendering
+  5. input processing match
+  6. input processing no-match
+  7. file save/load roundtrip
+  8. rebinding
+  9. conflict detection
+  10. display symbol retrieval
+  11. modifier bitmask helpers
+  12. exact match behavior + `getAll`
+
+**Verification run:**
+- `step343_test` — PASS (12/12) regression coverage
+- `step350_test` — PASS (8/8) latest completed sprint checkpoint
+- `step351_test` — PASS (12/12) new step coverage
 
 # Roadmap Planning — Sprints 12-25+
 
