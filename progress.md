@@ -3620,6 +3620,60 @@ from inferred complexity metadata, and explicit gap-reporting behavior.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+# Sprint 17 Progress — Language Batch 2
+
+## Phase 17a: F# Parser + Generator
+
+### Step 405: F# Parser
+**Status:** PASS (12/12 tests)
+
+Added a standalone F# parser covering core functional declarations and routing.
+Parses top-level `let` function forms, mutable variables, discriminated unions,
+record types, module declarations, async computation expressions, match markers,
+and pipe-operator chains.
+
+**Files created:**
+- `editor/src/ast/FSharpParser.h` — F# parse support:
+  - `parseFSharp(...)` and `parseFSharpWithDiagnostics(...)`
+  - `let name params = ...` → `Function`
+  - `let mutable x = ...` → `Variable` + `MutAnnotation`
+  - `type Name = | Case...` (single-line/multi-line) → `EnumDeclaration`
+  - `type Name = { field: Type; ... }` → `ClassDeclaration` with field children
+  - `module Name` → `NamespaceDeclaration`
+  - `match ... with` marker → `IfStatement`
+  - `|>` pipeline chains → `FunctionCall` markers
+  - indentation-aware top-level handling for significant-whitespace behavior
+- `editor/tests/step405_test.cpp` — 12 tests covering:
+  1. `let` function parsing
+  2. mutable variable parsing
+  3. discriminated union parsing
+  4. record type parsing
+  5. match mapping marker
+  6. async computation parsing
+  7. module/namespace parsing
+  8. pipeline operator chain parsing
+  9. significant-whitespace top-level behavior
+  10. diagnostics entry point
+  11. mixed top-level forms
+  12. pipeline parse routing for `fsharp` / `f#` / `fs`
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/FSharpParser.h`
+- `editor/src/Pipeline.h` — parse routing for `fsharp`, `f#`, `fs`
+- `editor/CMakeLists.txt` — `step405_test` target
+
+**Verification run:**
+- `step405_test` — PASS (12/12) new step coverage
+- `step404_test` — PASS (8/8) regression coverage
+- `step403_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/FSharpParser.h` within header-size limit (`265` <= `600`)
+- `editor/tests/step405_test.cpp` within test-file size guidance (`220` lines)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

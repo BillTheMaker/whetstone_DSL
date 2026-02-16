@@ -118,6 +118,10 @@ public:
             auto pr = CSharpParser::parseCSharpWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "fsharp" || language == "f#" || language == "fs") {
+            auto pr = FSharpParser::parseFSharpWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         } else if (language == "c") {
             auto pr = CParser::parseCWithDiagnostics(source);
             diags = std::move(pr.diagnostics);

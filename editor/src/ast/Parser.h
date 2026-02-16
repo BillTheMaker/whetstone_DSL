@@ -164,6 +164,7 @@ private:
 // Standalone parsers (not tree-sitter fragment includes)
 #include "ast/KotlinParser.h"
 #include "ast/CSharpParser.h"
+#include "ast/FSharpParser.h"
 #include "ast/CParser.h"
 #include "ast/WatParser.h"
 #include "ast/CommonLispParser.h"
