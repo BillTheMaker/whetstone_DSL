@@ -2533,6 +2533,38 @@ plus Common Lisp memory-strategy defaults.
 - `editor/src/MemoryStrategyInference.h` remains within header-size limit
   (`384` lines <= `600`)
 
+### Step 373: Common Lisp Integration
+**Status:** PASS (8/8 tests)
+
+Added phase-level integration validation for Common Lisp parse/generate
+roundtrips, cross-language projection paths, inference integration, and CL
+artifact compatibility with Semanno and compact AST tooling.
+
+**Files created:**
+- `editor/tests/step373_test.cpp` — 8 integration tests covering:
+  1. Common Lisp parse -> generate -> parse roundtrip shape
+  2. Python class -> Common Lisp CLOS generation path
+  3. Common Lisp defclass retained through Python projection
+  4. Common Lisp class hierarchy retained through Java projection
+  5. Common Lisp annotation inference integration (macro/dynamic/tail-call)
+  6. Semanno sidecar save/load roundtrip on `.lisp` path
+  7. `Pipeline.run()` success with Common Lisp source
+  8. compact AST node naming on Common Lisp module
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step373_test` target
+
+**Verification run:**
+- `step373_test` — PASS (8/8) new step coverage
+- `step372_test` — PASS (12/12) regression coverage
+- `step371_test` — PASS (12/12) regression coverage
+- `step370_test` — PASS (12/12) regression coverage
+- `step369_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step373_test.cpp` remains within project file-size guidance
+  for test artifacts (`147` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
