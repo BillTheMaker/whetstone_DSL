@@ -3861,6 +3861,60 @@ Semanno annotation behavior across all 3 .NET-targeted outputs.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+## Phase 17b: SQL Dialect Support
+
+### Step 410: SQL AST Nodes
+**Status:** PASS (12/12 tests)
+
+Added first-class SQL AST node types and wired JSON serialization/deserialization
+and compact-node naming support so SQL structures can participate in existing
+pipeline tooling.
+
+**Files created:**
+- `editor/src/ast/SqlNodes.h` — SQL node definitions:
+  - `TableDeclaration`
+  - `ColumnDefinition`
+  - `SelectQuery`
+  - `InsertStatement`
+  - `UpdateStatement`
+  - `DeleteStatement`
+  - `JoinClause`
+  - `WhereClause`
+  - `IndexDefinition`
+- `editor/tests/step410_test.cpp` — 12 tests covering:
+  1. table construction
+  2. column construction
+  3. select query + clause children
+  4. insert statement construction
+  5. update statement construction
+  6. delete statement construction
+  7. index construction
+  8. table+columns+index JSON roundtrip
+  9. select query JSON roundtrip
+  10. compact AST naming for SQL nodes
+  11. `createNode` SQL concept dispatch
+  12. full query graph roundtrip
+
+**Files modified:**
+- `editor/src/ast/Serialization.h` — SQL node property serialization,
+  `createNode` mapping, and deserialization
+- `editor/src/CompactAST.h` — SQL node name mapping in `getNodeName`
+- `editor/CMakeLists.txt` — `step410_test` target
+
+**Verification run:**
+- `step410_test` — PASS (12/12) new step coverage
+- `step409_test` — PASS (8/8) regression coverage
+- `step408_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/SqlNodes.h` within header-size limit (`112` <= `600`)
+- `editor/tests/step410_test.cpp` within test-file size guidance (`202` lines)
+- `editor/src/CompactAST.h` at header-size limit (`600` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

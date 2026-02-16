@@ -19,6 +19,7 @@
 #include "AsyncNodes.h"
 #include "PreprocessorNodes.h"
 #include "EnumNamespaceNodes.h"
+#include "SqlNodes.h"
 
 using json = nlohmann::json;
 
@@ -546,6 +547,50 @@ inline json propertiesToJson(const ASTNode* node) {
         props["targetType"] = n->targetType;
         if (!n->isUsing) props["isUsing"] = n->isUsing;
     }
+    // SQL nodes (Step 410)
+    else if (ct == "TableDeclaration") {
+        auto* n = static_cast<const TableDeclaration*>(node);
+        if (!n->name.empty()) props["name"] = n->name;
+        if (!n->schema.empty()) props["schema"] = n->schema;
+    }
+    else if (ct == "ColumnDefinition") {
+        auto* n = static_cast<const ColumnDefinition*>(node);
+        if (!n->name.empty()) props["name"] = n->name;
+        if (!n->dataType.empty()) props["dataType"] = n->dataType;
+        props["nullable"] = n->nullable;
+        if (!n->defaultValue.empty()) props["defaultValue"] = n->defaultValue;
+    }
+    else if (ct == "SelectQuery") {
+        auto* n = static_cast<const SelectQuery*>(node);
+        if (n->distinct) props["distinct"] = n->distinct;
+    }
+    else if (ct == "InsertStatement") {
+        auto* n = static_cast<const InsertStatement*>(node);
+        if (!n->tableName.empty()) props["tableName"] = n->tableName;
+    }
+    else if (ct == "UpdateStatement") {
+        auto* n = static_cast<const UpdateStatement*>(node);
+        if (!n->tableName.empty()) props["tableName"] = n->tableName;
+    }
+    else if (ct == "DeleteStatement") {
+        auto* n = static_cast<const DeleteStatement*>(node);
+        if (!n->tableName.empty()) props["tableName"] = n->tableName;
+    }
+    else if (ct == "JoinClause") {
+        auto* n = static_cast<const JoinClause*>(node);
+        if (!n->joinType.empty()) props["joinType"] = n->joinType;
+        if (!n->tableName.empty()) props["tableName"] = n->tableName;
+    }
+    else if (ct == "WhereClause") {
+        auto* n = static_cast<const WhereClause*>(node);
+        if (!n->expression.empty()) props["expression"] = n->expression;
+    }
+    else if (ct == "IndexDefinition") {
+        auto* n = static_cast<const IndexDefinition*>(node);
+        if (!n->name.empty()) props["name"] = n->name;
+        if (!n->tableName.empty()) props["tableName"] = n->tableName;
+        if (n->unique) props["unique"] = n->unique;
+    }
     // NullLiteral, ListLiteral, IndexAccess, Block, Assignment, IfStatement,
     // WhileLoop, Return, ExpressionStatement, ListType, SetType, MapType,
     // TupleType, ArrayType, OptionalType — no extra properties
@@ -716,6 +761,15 @@ inline ASTNode* createNode(const std::string& conceptName) {
     if (conceptName == "EnumMember") return new EnumMember();
     if (conceptName == "NamespaceDeclaration") return new NamespaceDeclaration();
     if (conceptName == "TypeAlias") return new TypeAlias();
+    if (conceptName == "TableDeclaration") return new TableDeclaration();
+    if (conceptName == "ColumnDefinition") return new ColumnDefinition();
+    if (conceptName == "SelectQuery") return new SelectQuery();
+    if (conceptName == "InsertStatement") return new InsertStatement();
+    if (conceptName == "UpdateStatement") return new UpdateStatement();
+    if (conceptName == "DeleteStatement") return new DeleteStatement();
+    if (conceptName == "JoinClause") return new JoinClause();
+    if (conceptName == "WhereClause") return new WhereClause();
+    if (conceptName == "IndexDefinition") return new IndexDefinition();
     return nullptr;
 }
 
@@ -1278,6 +1332,50 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
         if (props.contains("aliasName")) n->aliasName = props["aliasName"].get<std::string>();
         if (props.contains("targetType")) n->targetType = props["targetType"].get<std::string>();
         if (props.contains("isUsing")) n->isUsing = props["isUsing"].get<bool>();
+    }
+    // SQL nodes (Step 410)
+    else if (ct == "TableDeclaration") {
+        auto* n = static_cast<TableDeclaration*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("schema")) n->schema = props["schema"].get<std::string>();
+    }
+    else if (ct == "ColumnDefinition") {
+        auto* n = static_cast<ColumnDefinition*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("dataType")) n->dataType = props["dataType"].get<std::string>();
+        if (props.contains("nullable")) n->nullable = props["nullable"].get<bool>();
+        if (props.contains("defaultValue")) n->defaultValue = props["defaultValue"].get<std::string>();
+    }
+    else if (ct == "SelectQuery") {
+        auto* n = static_cast<SelectQuery*>(node);
+        if (props.contains("distinct")) n->distinct = props["distinct"].get<bool>();
+    }
+    else if (ct == "InsertStatement") {
+        auto* n = static_cast<InsertStatement*>(node);
+        if (props.contains("tableName")) n->tableName = props["tableName"].get<std::string>();
+    }
+    else if (ct == "UpdateStatement") {
+        auto* n = static_cast<UpdateStatement*>(node);
+        if (props.contains("tableName")) n->tableName = props["tableName"].get<std::string>();
+    }
+    else if (ct == "DeleteStatement") {
+        auto* n = static_cast<DeleteStatement*>(node);
+        if (props.contains("tableName")) n->tableName = props["tableName"].get<std::string>();
+    }
+    else if (ct == "JoinClause") {
+        auto* n = static_cast<JoinClause*>(node);
+        if (props.contains("joinType")) n->joinType = props["joinType"].get<std::string>();
+        if (props.contains("tableName")) n->tableName = props["tableName"].get<std::string>();
+    }
+    else if (ct == "WhereClause") {
+        auto* n = static_cast<WhereClause*>(node);
+        if (props.contains("expression")) n->expression = props["expression"].get<std::string>();
+    }
+    else if (ct == "IndexDefinition") {
+        auto* n = static_cast<IndexDefinition*>(node);
+        if (props.contains("name")) n->name = props["name"].get<std::string>();
+        if (props.contains("tableName")) n->tableName = props["tableName"].get<std::string>();
+        if (props.contains("unique")) n->unique = props["unique"].get<bool>();
     }
 }
 

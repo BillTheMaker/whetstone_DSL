@@ -8,6 +8,7 @@
 #include "ast/Serialization.h"
 #include "ast/Annotation.h"
 #include "ast/HostBoundary.h"
+#include "ast/SqlNodes.h"
 #include "ASTUtils.h"
 #include "EnvironmentSpec.h"
 #include <nlohmann/json.hpp>
@@ -431,7 +432,6 @@ inline std::string getNodeName(const ASTNode* node) {
         return static_cast<const PragmaDirective*>(node)->directive;
     if (ct == "MacroDefinition")
         return static_cast<const MacroDefinition*>(node)->name;
-    // Enum/Namespace/TypeAlias (Step 338)
     if (ct == "EnumDeclaration")
         return static_cast<const EnumDeclaration*>(node)->name;
     if (ct == "EnumMember")
@@ -440,6 +440,24 @@ inline std::string getNodeName(const ASTNode* node) {
         return static_cast<const NamespaceDeclaration*>(node)->name;
     if (ct == "TypeAlias")
         return static_cast<const TypeAlias*>(node)->aliasName;
+    if (ct == "TableDeclaration")
+        return static_cast<const TableDeclaration*>(node)->name;
+    if (ct == "ColumnDefinition")
+        return static_cast<const ColumnDefinition*>(node)->name;
+    if (ct == "SelectQuery")
+        return "select";
+    if (ct == "InsertStatement")
+        return static_cast<const InsertStatement*>(node)->tableName;
+    if (ct == "UpdateStatement")
+        return static_cast<const UpdateStatement*>(node)->tableName;
+    if (ct == "DeleteStatement")
+        return static_cast<const DeleteStatement*>(node)->tableName;
+    if (ct == "JoinClause")
+        return static_cast<const JoinClause*>(node)->tableName;
+    if (ct == "WhereClause")
+        return "where";
+    if (ct == "IndexDefinition")
+        return static_cast<const IndexDefinition*>(node)->name;
     return "";
 }
 
