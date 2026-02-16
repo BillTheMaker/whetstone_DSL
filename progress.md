@@ -2123,6 +2123,51 @@ includes, and method-name lowering for class-style methods.
 - `step361_test` — PASS (12/12) regression coverage
 - `step360_test` — PASS (8/8) regression coverage
 
+### Step 363: C Memory Annotation Mapping
+**Status:** PASS (12/12 tests)
+
+Implemented C-specific memory and semantic annotation inference so C code now
+gets meaningful defaults and risk signals aligned with explicit-memory patterns.
+
+**Files created:**
+- `editor/src/ProjectionAdaptation.h` — extracted projection adaptation helpers:
+  - C owner strategy adaptation for Rust targets (`Manual -> Box`,
+    `Transferred -> Moved`)
+  - pointer-type adaptation for Rust references (`T* -> &T`)
+
+**Files modified:**
+- `editor/src/MemoryStrategyInference.h` — C-specific memory inference:
+  - module defaults: `Owner(Manual)`, `Lifetime(Scope)`, `Reclaim(Explicit)`
+  - malloc/calloc detection: function-level owner/reclaim suggestions
+  - pointer parameter inference: `Owner(Borrowed)`
+  - pointer return inference by naming convention:
+    - `get*/borrow*/peek*/view*` -> `Owner(Borrowed)`
+    - otherwise -> `Owner(Transferred)`
+  - local/static variable lifetime inference:
+    - locals -> `Lifetime(Scope)`
+    - static storage -> `Lifetime(Static)`
+- `editor/src/AnnotationInference.h` — C pattern inference:
+  - `goto` pattern -> `Complexity(high)` + `Risk(medium)`
+  - unchecked array indexing -> `BoundsCheck(unchecked)`
+  - `void*` usage -> `Risk(high)` + `Ambiguity(medium)`
+  - header guard detection -> `Synthetic(guard)`
+- `editor/src/CrossLanguageProjector.h` — uses `ProjectionAdaptation` helpers
+  for ownership and pointer-type adaptation without exceeding header size limits
+- `editor/tests/step363_test.cpp` — 12 tests covering defaults, C-specific rules,
+  confidence bounds, header-guard synthesis, and C->Rust ownership adaptation
+- `editor/CMakeLists.txt` — `step363_test` target
+
+**Verification run:**
+- `step363_test` — PASS (12/12) new step coverage
+- `step362_test` — PASS (12/12) regression coverage
+- `step361_test` — PASS (12/12) regression coverage
+- `step360_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CrossLanguageProjector.h` remained under the 600-line cap after
+  refactor by extracting target adaptation logic into
+  `editor/src/ProjectionAdaptation.h`
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

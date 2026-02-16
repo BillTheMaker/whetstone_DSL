@@ -5,11 +5,15 @@
 #include "ast/Variable.h"
 #include "ast/Statement.h"
 #include "ast/Expression.h"
+#include "ast/Type.h"
 #include "ast/Annotation.h"
+#include "ast/PreprocessorNodes.h"
 #include "MemoryStrategyInference.h"
 #include <string>
 #include <vector>
 #include <set>
+#include <algorithm>
+#include <cctype>
 
 class AnnotationInference {
 public:
@@ -28,10 +32,14 @@ public:
 
         // Delegate memory annotations to existing MemoryStrategyInference
         if (root->conceptType == "Module") {
+            auto* mod = static_cast<const Module*>(root);
             MemoryStrategyInference memInf;
             auto memSuggestions = memInf.inferAnnotations(root);
             for (const auto& s : memSuggestions) {
                 out.push_back({s.nodeId, s.annotationType, "strategy", s.strategy, s.reason, s.confidence});
+            }
+            if (mod->targetLanguage == "c") {
+                inferCModule(mod, out);
             }
         }
 
@@ -376,5 +384,157 @@ private:
             if (hasCrossFileCalls(child)) return true;
         }
         return false;
+    }
+
+    void inferCModule(const Module* mod, std::vector<InferredAnnotation>& out) const {
+        if (!mod) return;
+        inferCHeaderGuard(mod, out);
+        for (auto* fnNode : mod->getChildren("functions")) {
+            if (fnNode->conceptType != "Function") continue;
+            inferCFunction(fnNode, out);
+        }
+    }
+
+    void inferCHeaderGuard(const Module* mod, std::vector<InferredAnnotation>& out) const {
+        bool hasIfndef = false;
+        bool hasEndif = false;
+        for (auto* stmt : mod->getChildren("statements")) {
+            if (stmt->conceptType != "PragmaDirective") continue;
+            auto* pragma = static_cast<const PragmaDirective*>(stmt);
+            std::string d = lowerAscii(pragma->directive);
+            if (startsWith(d, "ifndef") || startsWith(d, "ifdef")) hasIfndef = true;
+            if (startsWith(d, "endif")) hasEndif = true;
+        }
+        if (hasIfndef && hasEndif &&
+            !hasInferred(out, mod->id, "SyntheticAnnotation", "guard")) {
+            out.push_back({mod->id, "SyntheticAnnotation", "generator", "guard",
+                          "C header guard pattern detected", 0.93});
+        }
+    }
+
+    void inferCFunction(const ASTNode* fn, std::vector<InferredAnnotation>& out) const {
+        std::set<std::string> existing;
+        for (const auto* a : fn->getChildren("annotations")) {
+            existing.insert(a->conceptType);
+        }
+
+        bool hasGoto = false;
+        bool hasVoidPtrPattern = false;
+        bool hasArrayAccess = false;
+        bool hasBoundsCheck = false;
+        for (auto* bodyNode : fn->getChildren("body")) {
+            hasGoto = hasGoto || hasGotoPattern(bodyNode);
+            hasVoidPtrPattern = hasVoidPtrPattern || hasVoidPtrPatternNode(bodyNode);
+            hasArrayAccess = hasArrayAccess || hasArrayAccessNode(bodyNode);
+            hasBoundsCheck = hasBoundsCheck || hasBoundsCheckNode(bodyNode);
+        }
+
+        if (hasGoto && !existing.count("ComplexityAnnotation")) {
+            out.push_back({fn->id, "ComplexityAnnotation", "timeComplexity", "high",
+                          "goto usage increases control-flow complexity", 0.90});
+        }
+        if (hasGoto && !existing.count("RiskAnnotation")) {
+            out.push_back({fn->id, "RiskAnnotation", "level", "medium",
+                          "goto usage is error-prone in C code paths", 0.82});
+        }
+        if (hasVoidPtrPattern && !existing.count("RiskAnnotation")) {
+            out.push_back({fn->id, "RiskAnnotation", "level", "high",
+                          "void* conversion erases type guarantees", 0.90});
+        }
+        if (hasVoidPtrPattern && !existing.count("AmbiguityAnnotation")) {
+            out.push_back({fn->id, "AmbiguityAnnotation", "level", "medium",
+                          "void* usage introduces type ambiguity", 0.84});
+        }
+        if (hasArrayAccess && !hasBoundsCheck && !existing.count("BoundsCheckAnnotation")) {
+            out.push_back({fn->id, "BoundsCheckAnnotation", "mode", "unchecked",
+                          "Array access without guard detected", 0.80});
+        }
+    }
+
+    bool hasGotoPattern(const ASTNode* node) const {
+        if (!node) return false;
+        if (node->conceptType == "FunctionCall") {
+            auto* fc = static_cast<const FunctionCall*>(node);
+            if (lowerAscii(fc->functionName) == "goto") return true;
+        }
+        for (auto* child : node->allChildren()) {
+            if (hasGotoPattern(child)) return true;
+        }
+        return false;
+    }
+
+    bool hasVoidPtrPatternNode(const ASTNode* node) const {
+        if (!node) return false;
+        if (node->conceptType == "Variable") {
+            auto* typeNode = node->getChild("type");
+            if (containsVoidPtr(typeNode)) return true;
+        }
+        if (node->conceptType == "FunctionCall") {
+            auto* fc = static_cast<const FunctionCall*>(node);
+            if (lowerAscii(fc->functionName).find("void*") != std::string::npos) return true;
+        }
+        for (auto* child : node->allChildren()) {
+            if (hasVoidPtrPatternNode(child)) return true;
+        }
+        return false;
+    }
+
+    bool hasArrayAccessNode(const ASTNode* node) const {
+        if (!node) return false;
+        if (node->conceptType == "IndexAccess") return true;
+        for (auto* child : node->allChildren()) {
+            if (hasArrayAccessNode(child)) return true;
+        }
+        return false;
+    }
+
+    bool hasBoundsCheckNode(const ASTNode* node) const {
+        if (!node) return false;
+        if (node->conceptType == "BoundsCheckAnnotation") return true;
+        if (node->conceptType == "FunctionCall") {
+            auto* fc = static_cast<const FunctionCall*>(node);
+            std::string fn = lowerAscii(fc->functionName);
+            if (fn == "bounds_check" || fn == "assert" || fn == "check_bounds") return true;
+        }
+        for (auto* child : node->allChildren()) {
+            if (hasBoundsCheckNode(child)) return true;
+        }
+        return false;
+    }
+
+    static bool containsVoidPtr(const ASTNode* typeNode) {
+        if (!typeNode) return false;
+        if (typeNode->conceptType == "PrimitiveType") {
+            auto* p = static_cast<const PrimitiveType*>(typeNode);
+            return lowerAscii(p->kind).find("void*") != std::string::npos;
+        }
+        if (typeNode->conceptType == "CustomType") {
+            auto* c = static_cast<const CustomType*>(typeNode);
+            return lowerAscii(c->typeName).find("void*") != std::string::npos;
+        }
+        return false;
+    }
+
+    static bool hasInferred(const std::vector<InferredAnnotation>& out,
+                            const std::string& nodeId,
+                            const std::string& annotationType,
+                            const std::string& value) {
+        for (const auto& a : out) {
+            if (a.nodeId == nodeId && a.annotationType == annotationType && a.value == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static std::string lowerAscii(const std::string& value) {
+        std::string out = value;
+        std::transform(out.begin(), out.end(), out.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        return out;
+    }
+
+    static bool startsWith(const std::string& value, const std::string& prefix) {
+        return value.rfind(prefix, 0) == 0;
     }
 };

@@ -10,10 +10,12 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <cctype>
 #include "ast/ASTNode.h"
 #include "ast/Module.h"
 #include "ast/Function.h"
 #include "ast/Variable.h"
+#include "ast/Type.h"
 #include "ast/Expression.h"
 #include "ast/Annotation.h"
 
@@ -92,8 +94,7 @@ private:
             inferCppModule(mod, out);
         }
         else if (lang == "c") {
-            out.push_back({mod->id, "DeallocateAnnotation", "Explicit",
-                           "C requires explicit malloc/free", 0.90});
+            inferCModule(mod, out);
         }
         else if (lang == "rust") {
             out.push_back({mod->id, "OwnerAnnotation", "Single",
@@ -119,10 +120,25 @@ private:
                        "C++ idiom: RAII with scope-based cleanup", 0.70});
     }
 
+    void inferCModule(const Module* mod,
+                      std::vector<Suggestion>& out) const {
+        out.push_back({mod->id, "OwnerAnnotation", "Manual",
+                       "C defaults to manual ownership", 0.95});
+        out.push_back({mod->id, "LifetimeAnnotation", "Scope",
+                       "C locals default to lexical scope lifetime", 0.92});
+        out.push_back({mod->id, "ReclaimAnnotation", "Explicit",
+                       "C uses explicit reclamation (free)", 0.95});
+    }
+
     void inferFunction(const Function* fn, const std::string& lang,
                        std::vector<Suggestion>& out) const {
         // Skip if function already has a memory annotation
         if (hasMemoryAnnotation(fn)) return;
+
+        if (lang == "c") {
+            inferCFunction(fn, out);
+            return;
+        }
 
         // Check body for patterns
         bool hasAlloc = false;
@@ -162,6 +178,41 @@ private:
         }
     }
 
+    void inferCFunction(const Function* fn,
+                        std::vector<Suggestion>& out) const {
+        bool hasAlloc = false;
+
+        for (auto* paramNode : fn->getChildren("parameters")) {
+            if (paramNode->conceptType != "Parameter") continue;
+            auto* typeNode = paramNode->getChild("type");
+            if (isPointerType(typeNode)) {
+                out.push_back({paramNode->id, "OwnerAnnotation", "Borrowed",
+                               "Pointer parameters in C are borrowed by default",
+                               0.86});
+            }
+        }
+
+        for (auto* stmt : fn->getChildren("body")) {
+            hasAlloc = hasAlloc || containsAllocCall(stmt);
+            inferCLocalLifetime(stmt, out);
+        }
+
+        auto* retType = fn->getChild("returnType");
+        if (isPointerType(retType)) {
+            out.push_back({fn->id, "OwnerAnnotation", inferCReturnOwner(fn->name),
+                           "C pointer returns are convention-based ownership transfers",
+                           0.72});
+        }
+
+        if (hasAlloc) {
+            out.push_back({fn->id, "OwnerAnnotation", "Manual",
+                           "malloc/calloc allocation indicates manual ownership",
+                           0.94});
+            out.push_back({fn->id, "ReclaimAnnotation", "Explicit",
+                           "malloc/calloc requires explicit free", 0.94});
+        }
+    }
+
     static bool hasMemoryAnnotation(const ASTNode* node) {
         for (auto* anno : node->getChildren("annotations")) {
             const auto& ct = anno->conceptType;
@@ -188,6 +239,77 @@ private:
         for (auto* child : node->allChildren()) {
             scanForAllocDealloc(child, hasAlloc, hasDealloc);
         }
+    }
+
+    static bool containsAllocCall(const ASTNode* node) {
+        if (!node) return false;
+        if (node->conceptType == "FunctionCall") {
+            auto* fc = static_cast<const FunctionCall*>(node);
+            if (fc->functionName == "malloc" || fc->functionName == "calloc") {
+                return true;
+            }
+        }
+        for (auto* child : node->allChildren()) {
+            if (containsAllocCall(child)) return true;
+        }
+        return false;
+    }
+
+    static void inferCLocalLifetime(const ASTNode* node,
+                                    std::vector<Suggestion>& out) {
+        if (!node) return;
+        if (node->conceptType == "Variable") {
+            auto* v = static_cast<const Variable*>(node);
+            auto* typeNode = v->getChild("type");
+            std::string typeKind = typeString(typeNode);
+            std::string lowered = lowerAscii(typeKind);
+            if (lowered.find("static") != std::string::npos) {
+                out.push_back({v->id, "LifetimeAnnotation", "Static",
+                               "Static storage duration detected in C declaration",
+                               0.90});
+            } else {
+                out.push_back({v->id, "LifetimeAnnotation", "Scope",
+                               "Local C variable uses scope-bound lifetime", 0.88});
+            }
+        }
+        for (auto* child : node->allChildren()) {
+            inferCLocalLifetime(child, out);
+        }
+    }
+
+    static std::string inferCReturnOwner(const std::string& fnName) {
+        std::string lower = lowerAscii(fnName);
+        if (startsWith(lower, "get") || startsWith(lower, "borrow") ||
+            startsWith(lower, "peek") || startsWith(lower, "view")) {
+            return "Borrowed";
+        }
+        return "Transferred";
+    }
+
+    static bool isPointerType(const ASTNode* typeNode) {
+        return typeString(typeNode).find('*') != std::string::npos;
+    }
+
+    static std::string typeString(const ASTNode* typeNode) {
+        if (!typeNode) return "";
+        if (typeNode->conceptType == "PrimitiveType") {
+            return static_cast<const PrimitiveType*>(typeNode)->kind;
+        }
+        if (typeNode->conceptType == "CustomType") {
+            return static_cast<const CustomType*>(typeNode)->typeName;
+        }
+        return "";
+    }
+
+    static std::string lowerAscii(const std::string& input) {
+        std::string out = input;
+        std::transform(out.begin(), out.end(), out.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        return out;
+    }
+
+    static bool startsWith(const std::string& value, const std::string& prefix) {
+        return value.rfind(prefix, 0) == 0;
     }
 
     static std::string feedbackKey(const Suggestion& suggestion) {

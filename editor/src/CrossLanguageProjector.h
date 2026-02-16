@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "ProjectionAdaptation.h"
 #include "ast/ASTNode.h"
 #include "ast/Module.h"
 #include "ast/Function.h"
@@ -157,7 +158,9 @@ private:
         }
         if (ct == "OwnerAnnotation") {
             auto* src = static_cast<const OwnerAnnotation*>(anno);
-            auto* a = new OwnerAnnotation(src->id + "_proj", src->strategy);
+            auto* a = new OwnerAnnotation(
+                src->id + "_proj",
+                ProjectionAdaptation::adaptOwnerStrategy(src->strategy, targetLanguage));
             a->ownerType = src->ownerType;
             return a;
         }
@@ -240,6 +243,7 @@ private:
             auto* typeChild = src->getChild("type");
             if (typeChild) {
                 ASTNode* t = cloneNode(typeChild, targetLanguage);
+                t = ProjectionAdaptation::adaptTypeForTarget(t, targetLanguage);
                 if (t) p->setChild("type", t);
             }
             auto* defaultValue = src->getChild("defaultValue");

@@ -2151,4 +2151,8 @@ add_executable(step362_test tests/step362_test.cpp)
 target_include_directories(step362_test PRIVATE src)
 target_link_libraries(step362_test PRIVATE nlohmann_json::nlohmann_json)
 
+add_executable(step363_test tests/step363_test.cpp)
+target_include_directories(step363_test PRIVATE src)
+target_link_libraries(step363_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
