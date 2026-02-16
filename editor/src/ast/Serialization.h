@@ -483,11 +483,13 @@ inline json propertiesToJson(const ASTNode* node) {
     else if (ct == "GenericType") {
         auto* n = static_cast<const GenericType*>(node);
         props["baseName"] = n->baseName;
+        if (n->isClassTemplate) props["isClassTemplate"] = n->isClassTemplate;
     }
     else if (ct == "TypeParameter") {
         auto* n = static_cast<const TypeParameter*>(node);
         props["name"] = n->name;
         if (!n->constraint.empty()) props["constraint"] = n->constraint;
+        if (n->isVariadic) props["isVariadic"] = n->isVariadic;
     }
     else if (ct == "AsyncFunction") {
         auto* n = static_cast<const AsyncFunction*>(node);
@@ -1160,11 +1162,13 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
     else if (ct == "GenericType") {
         auto* n = static_cast<GenericType*>(node);
         if (props.contains("baseName")) n->baseName = props["baseName"].get<std::string>();
+        if (props.contains("isClassTemplate")) n->isClassTemplate = props["isClassTemplate"].get<bool>();
     }
     else if (ct == "TypeParameter") {
         auto* n = static_cast<TypeParameter*>(node);
         if (props.contains("name")) n->name = props["name"].get<std::string>();
         if (props.contains("constraint")) n->constraint = props["constraint"].get<std::string>();
+        if (props.contains("isVariadic")) n->isVariadic = props["isVariadic"].get<bool>();
     }
     else if (ct == "AsyncFunction") {
         auto* n = static_cast<AsyncFunction*>(node);

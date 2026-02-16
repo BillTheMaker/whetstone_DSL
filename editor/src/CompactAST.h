@@ -410,6 +410,13 @@ inline std::string getNodeName(const ASTNode* node) {
         return static_cast<const InterfaceDeclaration*>(node)->name;
     if (ct == "MethodDeclaration")
         return static_cast<const MethodDeclaration*>(node)->name;
+    // Generic types (Sprint 12c)
+    if (ct == "GenericType") {
+        auto* g = static_cast<const GenericType*>(node);
+        return g->isClassTemplate ? ("template:" + g->baseName) : g->baseName;
+    }
+    if (ct == "TypeParameter")
+        return static_cast<const TypeParameter*>(node)->name;
     // Host Boundary (Step 288)
     if (ct == "HostCall")
         return static_cast<const HostCall*>(node)->name;
