@@ -4074,6 +4074,62 @@ coverage for dialect-specific constructs (`TOP`, `IDENTITY`, `NVARCHAR`,
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+### Step 414: MySQL Parser + Generator
+**Status:** PASS (12/12 tests)
+
+Added MySQL/MariaDB dialect support with parser + generator behavior for
+dialect-specific features (`AUTO_INCREMENT`, backtick identifiers,
+`ENGINE=InnoDB`, `LIMIT`, `GROUP_CONCAT`).
+
+**Files created:**
+- `editor/src/ast/MySQLParser.h` — MySQL parse support:
+  - `parseMySQL(...)` and `parseMySQLWithDiagnostics(...)`
+  - `CREATE TABLE`, `CREATE INDEX`, `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+  - backtick identifier normalization
+  - table engine extraction via `TableDeclaration` child `"engine"`
+  - `LIMIT` extraction via `SelectQuery` child `"limit"`
+  - `GROUP_CONCAT(...)` projection marker via `FunctionCall`
+- `editor/src/ast/MySQLGenerator.h` — MySQL generation support:
+  - backtick quoting for table/column identifiers
+  - `CREATE TABLE ... ENGINE=...` emission
+  - MySQL select generation with `LIMIT`
+  - `GROUP_CONCAT(*)` generation path
+  - MySQL alias support in DML emitters
+- `editor/tests/step414_test.cpp` — 12 tests covering:
+  1. CREATE TABLE parse with `AUTO_INCREMENT` and engine
+  2. SELECT `LIMIT` parse
+  3. `GROUP_CONCAT` projection parse marker
+  4. INSERT/UPDATE/DELETE parse coverage
+  5. diagnostics entrypoint
+  6. CREATE TABLE generation with backticks + engine
+  7. SELECT generation with LIMIT
+  8. `GROUP_CONCAT` generation
+  9. INSERT generation with backticks
+  10. UPDATE/DELETE generation with backticks
+  11. pipeline parse + generate alias routing (`mysql`, `mariadb`)
+  12. parser-to-generator MySQL flow
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/MySQLParser.h`
+- `editor/src/ast/Generator.h` — include `MySQLGenerator.h`
+- `editor/src/Pipeline.h` — parse + generate routing for `mysql`, `mariadb`
+- `editor/CMakeLists.txt` — `step414_test` target
+
+**Verification run:**
+- `step414_test` — PASS (12/12) new step coverage
+- `step413_test` — PASS (12/12) regression coverage
+- `step412_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/MySQLParser.h` within header-size limit (`331` <= `600`)
+- `editor/src/ast/MySQLGenerator.h` within header-size limit (`178` <= `600`)
+- `editor/tests/step414_test.cpp` within test-file size guidance (`209` lines)
+- `editor/src/Pipeline.h` within header-size limit (`268` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

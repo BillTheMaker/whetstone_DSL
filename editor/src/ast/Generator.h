@@ -15,6 +15,7 @@
 #include "VBNetGenerator.h"
 #include "PostgreSQLGenerator.h"
 #include "TSQLGenerator.h"
+#include "MySQLGenerator.h"
 #include "CGenerator.h"
 #include "WatGenerator.h"
 #include "CommonLispGenerator.h"

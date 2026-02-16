@@ -168,6 +168,7 @@ private:
 #include "ast/VBNetParser.h"
 #include "ast/PostgreSQLParser.h"
 #include "ast/TSQLParser.h"
+#include "ast/MySQLParser.h"
 #include "ast/CParser.h"
 #include "ast/WatParser.h"
 #include "ast/CommonLispParser.h"
