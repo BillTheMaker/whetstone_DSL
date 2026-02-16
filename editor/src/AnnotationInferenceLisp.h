@@ -16,6 +16,31 @@
             out.push_back({fn->id, "PolicyAnnotation", "style", "literal",
                           "optimize declaration favors literal policy output", 0.86});
         }
+        if ((hasCallNamed(fn, "call/cc") || hasCallNamed(fn, "call-with-current-continuation")) &&
+            !hasInferred(out, fn->id, "ExecAnnotation", "continuation")) {
+            out.push_back({fn->id, "ExecAnnotation", "mode", "continuation",
+                          "Scheme continuation primitives detected", 0.92});
+        }
+        if (hasCallNamed(fn, "make-parameter") &&
+            !hasInferred(out, fn->id, "BindingAnnotation", "parameter")) {
+            out.push_back({fn->id, "BindingAnnotation", "time", "parameter",
+                          "Scheme make-parameter indicates parameter binding model", 0.90});
+        }
+        if (hasCallNamed(fn, "guard") &&
+            !hasInferred(out, fn->id, "ExceptionAnnotation", "guard")) {
+            out.push_back({fn->id, "ExceptionAnnotation", "style", "guard",
+                          "Scheme guard form indicates guard-style exception handling", 0.88});
+        }
+        if (hasCallNamed(fn, "handler-case") &&
+            !hasInferred(out, fn->id, "ExceptionAnnotation", "condition")) {
+            out.push_back({fn->id, "ExceptionAnnotation", "style", "condition",
+                          "Common Lisp condition-system form detected", 0.88});
+        }
+        if (!fnName.empty() && isTailRecursive(fn, fnName) &&
+            !hasInferred(out, fn->id, "LoopAnnotation", "tail-recursive")) {
+            out.push_back({fn->id, "LoopAnnotation", "hint", "tail-recursive",
+                          "Tail recursion pattern maps to Scheme loop idiom", 0.85});
+        }
         if (fn->conceptType == "MethodDeclaration" && fnName.size() > 0 &&
             !hasInferred(out, fn->id, "SyntheticAnnotation", "clos-method")) {
             out.push_back({fn->id, "SyntheticAnnotation", "generator", "clos-method",
@@ -37,9 +62,15 @@
     }
 
     void inferMacro(const ASTNode* macroNode, std::vector<InferredAnnotation>& out) const {
-        if (!hasInferred(out, macroNode->id, "MetaAnnotation", "quoted")) {
-            out.push_back({macroNode->id, "MetaAnnotation", "state", "quoted",
-                          "Macro definitions operate over quoted forms", 0.92});
+        std::string metaState = "quoted";
+        for (auto* anno : macroNode->getChildren("annotations")) {
+            if (anno->conceptType != "MetaAnnotation") continue;
+            auto* m = static_cast<const MetaAnnotation*>(anno);
+            if (m->state == "hygienic") metaState = "hygienic";
+        }
+        if (!hasInferred(out, macroNode->id, "MetaAnnotation", metaState)) {
+            out.push_back({macroNode->id, "MetaAnnotation", "state", metaState,
+                          "Macro form state inferred from language macro style", 0.92});
         }
         if (!hasInferred(out, macroNode->id, "SyntheticAnnotation", "macro")) {
             out.push_back({macroNode->id, "SyntheticAnnotation", "generator", "macro",

@@ -2656,6 +2656,55 @@ annotation handling.
 - `editor/src/ast/SchemeGenerator.h` is within header size limit
   (`159` lines <= `600`)
 
+### Step 376: Scheme-Specific Annotations + CL Differentiation
+**Status:** PASS (12/12 tests)
+
+Added Scheme-specific inference signals and explicit Common Lisp vs Scheme
+differentiation rules in annotation inference, plus Scheme memory defaults in
+memory-strategy inference.
+
+**Files created:**
+- `editor/tests/step376_test.cpp` — 12 tests covering:
+  1. Scheme tail recursion -> `TailCall`
+  2. `call/cc` -> `Exec(continuation)`
+  3. `define-syntax` -> `Meta(hygienic)`
+  4. CL -> Scheme projection path
+  5. Scheme -> CL projection path
+  6. GC defaults for both Scheme and CL
+  7. differentiated macro meta states (quoted vs hygienic)
+  8. differentiated binding states (dynamic vs parameter)
+  9. differentiated exception styles (condition vs guard)
+  10. Scheme/CL annotation fidelity through projection
+  11. tail-recursive loop idiom signal (`Loop(tail-recursive)`)
+  12. confidence bound checks
+
+**Files modified:**
+- `editor/src/AnnotationInferenceLisp.h` — add Lisp/Scheme-specific inference:
+  - continuation detection (`call/cc`, `call-with-current-continuation`)
+  - parameter-binding detection (`make-parameter`)
+  - condition-vs-guard exception style differentiation
+  - tail-recursive loop signal (`LoopAnnotation: tail-recursive`)
+  - macro meta-state differentiation via existing hygienic/quoted metadata
+- `editor/src/MemoryStrategyInference.h` — add Scheme defaults:
+  - include `scheme/scm` in tracing-GC defaults
+  - shared GC ownership default for Lisp-family modules
+- `editor/CMakeLists.txt` — `step376_test` target
+
+**Verification run:**
+- `step376_test` — PASS (12/12) new step coverage
+- `step375_test` — PASS (12/12) regression coverage
+- `step374_test` — PASS (12/12) regression coverage
+- `step373_test` — PASS (8/8) regression coverage
+- `step372_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AnnotationInference.h` remains within header-size limit
+  (`599` lines <= `600`)
+- `editor/src/MemoryStrategyInference.h` remains within header-size limit
+  (`384` lines <= `600`)
+- `editor/src/AnnotationInferenceLisp.h` remains within header-size guidance
+  (`129` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
