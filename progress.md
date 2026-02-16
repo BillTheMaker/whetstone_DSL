@@ -2085,6 +2085,44 @@ pipeline entry point in Sprint 14.
 - `step361_test` — PASS (12/12) new step coverage
 - `step360_test` — PASS (8/8) regression coverage
 
+### Step 362: C Generator
+**Status:** PASS (12/12 tests)
+
+Added a dedicated C generator and routed pipeline generation for `"c"`.
+The generator emits C-oriented forms for structs, enums, typedefs, macros,
+includes, and method-name lowering for class-style methods.
+
+**Files created:**
+- `editor/src/ast/CGenerator.h` — C generation support:
+  - module emission including statements/classes/functions
+  - `ClassDeclaration` -> `typedef struct ...`
+  - `MethodDeclaration` -> `ClassName_method(...)` naming
+  - C null literal output (`NULL`)
+  - C preprocessor and enum/type-alias output
+- `editor/tests/step362_test.cpp` — 12 tests covering:
+  1. function generation
+  2. struct output
+  3. typedef output
+  4. enum output
+  5. preprocessor output
+  6. pointer type output
+  7. owner/manual annotation comment presence
+  8. class-to-struct generation
+  9. method-to-C function naming
+  10. comment prefix
+  11. string/null literal behavior
+  12. pipeline `"c"` generation route
+
+**Files modified:**
+- `editor/src/ast/Generator.h` — include `CGenerator.h`
+- `editor/src/Pipeline.h` — add generate routing for language `"c"`
+- `editor/CMakeLists.txt` — `step362_test` target
+
+**Verification run:**
+- `step362_test` — PASS (12/12) new step coverage
+- `step361_test` — PASS (12/12) regression coverage
+- `step360_test` — PASS (8/8) regression coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

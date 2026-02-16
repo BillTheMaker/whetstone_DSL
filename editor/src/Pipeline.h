@@ -159,6 +159,9 @@ public:
         } else if (language == "csharp") {
             CSharpGenerator gen;
             return gen.generate(ast);
+        } else if (language == "c") {
+            CGenerator gen;
+            return gen.generate(ast);
         }
         return "";
     }

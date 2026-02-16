@@ -11,3 +11,4 @@
 #include "GoGenerator.h"
 #include "KotlinGenerator.h"
 #include "CSharpGenerator.h"
+#include "CGenerator.h"
