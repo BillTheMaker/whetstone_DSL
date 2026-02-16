@@ -3022,6 +3022,47 @@ MCP orchestration tool loop closure.
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
   - `editor/src/MCPServer.h` (`1652` > `600`)
 
+### Step 384: Workflow Session Protocol
+**Status:** PASS (12/12 tests)
+
+Implemented a formal MCP workflow-session protocol model with explicit phases,
+transition validation, command-history tracking, workflow-state phase inference,
+and next-action guidance for clients.
+
+**Files created:**
+- `editor/src/WorkflowProtocol.h` — protocol model:
+  - `WorkflowSession` (session metadata + command history)
+  - `ProtocolAction` (phase + suggested command + reason)
+  - phase helpers: `workflowProtocolPhases`, `validateTransition`,
+    `protocolPhaseForCommand`, `recordWorkflowCommand`
+  - workflow-aware helpers: `detectProtocolPhaseFromWorkflow`,
+    `getNextAction`, `getSessionSummary`
+- `editor/tests/step384_test.cpp` — 12 tests covering:
+  1. phase-order transition validity
+  2. invalid transition rejection
+  3. per-phase next-action suggestions
+  4. command-history tracking
+  5. session-summary accuracy
+  6. complete-phase auto-detection from workflow
+  7. assist-phase auto-detection from workflow
+  8. session JSON roundtrip persistence
+  9. empty-project plan behavior
+  10. unknown-phase guards
+  11. monotonic phase advancement via command recording
+  12. workflow-aware next-action override
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step384_test` target
+
+**Verification run:**
+- `step384_test` — PASS (12/12) new step coverage
+- `step383_test` — PASS (8/8) regression coverage
+- `step382_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowProtocol.h` within header-size limit (`185` <= `600`)
+- `editor/tests/step384_test.cpp` within test-file size guidance (`177` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
