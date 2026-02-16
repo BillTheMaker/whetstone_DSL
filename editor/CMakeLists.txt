@@ -1996,4 +1996,9 @@ target_link_libraries(step331_test PRIVATE
     tree_sitter_javascript tree_sitter_typescript
     tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+# Step 332: Multiple Inheritance in ClassDeclaration
+add_executable(step332_test tests/step332_test.cpp)
+target_include_directories(step332_test PRIVATE src)
+target_link_libraries(step332_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

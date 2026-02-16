@@ -1467,6 +1467,30 @@ mixed skeleton lifecycle.
 **Phase 12b complete:** Steps 326-331 (RoutingEngine, WorkerRegistry,
 ContextAssembler, Routing RPC+MCP, ReviewGate, Integration Tests)
 
+## Phase 12c: C++ AST Depth — Inheritance + CRTP
+
+### Step 332: Multiple Inheritance in ClassDeclaration
+**Status:** PASS (12/12 tests)
+
+Upgraded ClassDeclaration from single superClass string to vector<BaseClass> with
+access specifiers (public/protected/private) and virtual inheritance flags. Backward
+compatible: legacy superClass field still works via getBases() migration. Added
+diamond inheritance detection via static hasDiamondInheritance() with BFS traversal.
+
+**Files modified:**
+- `editor/src/ast/ClassDeclaration.h` — BaseClass struct, addBase(), getBases(),
+  hasDiamondInheritance() static method
+- `editor/src/ast/Serialization.h` — baseClasses array serialization/deserialization
+  with legacy superClass backward compat
+- `editor/src/CompactAST.h` — getNodeName for ClassDeclaration, InterfaceDeclaration,
+  MethodDeclaration
+- `editor/CMakeLists.txt` — step332_test target
+
+**Files created:**
+- `editor/tests/step332_test.cpp` — 12 tests: backward compat, multiple bases,
+  access specifiers, virtual inheritance, JSON roundtrip, diamond detection, legacy
+  migration, addBase helper, full serialization roundtrip
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

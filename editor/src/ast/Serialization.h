@@ -455,6 +455,17 @@ inline json propertiesToJson(const ASTNode* node) {
         props["name"] = n->name;
         if (!n->superClass.empty()) props["superClass"] = n->superClass;
         props["isAbstract"] = n->isAbstract;
+        if (!n->baseClasses.empty()) {
+            json bases = json::array();
+            for (const auto& bc : n->baseClasses) {
+                json bj;
+                bj["name"] = bc.name;
+                bj["accessSpecifier"] = bc.accessSpecifier;
+                bj["isVirtual"] = bc.isVirtual;
+                bases.push_back(bj);
+            }
+            props["baseClasses"] = bases;
+        }
     }
     else if (ct == "InterfaceDeclaration") {
         auto* n = static_cast<const InterfaceDeclaration*>(node);
@@ -1118,6 +1129,20 @@ inline void setPropertiesFromJson(ASTNode* node, const json& props) {
         if (props.contains("name")) n->name = props["name"].get<std::string>();
         if (props.contains("superClass")) n->superClass = props["superClass"].get<std::string>();
         if (props.contains("isAbstract")) n->isAbstract = props["isAbstract"].get<bool>();
+        if (props.contains("baseClasses")) {
+            n->baseClasses.clear();
+            for (const auto& bj : props["baseClasses"]) {
+                BaseClass bc;
+                bc.name = bj.value("name", "");
+                bc.accessSpecifier = bj.value("accessSpecifier", "public");
+                bc.isVirtual = bj.value("isVirtual", false);
+                n->baseClasses.push_back(bc);
+            }
+            // Sync superClass from first base for backward compat
+            if (!n->baseClasses.empty() && n->superClass.empty()) {
+                n->superClass = n->baseClasses[0].name;
+            }
+        }
     }
     else if (ct == "InterfaceDeclaration") {
         auto* n = static_cast<InterfaceDeclaration*>(node);

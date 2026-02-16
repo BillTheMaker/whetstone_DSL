@@ -403,6 +403,13 @@ inline std::string getNodeName(const ASTNode* node) {
     if (ct == "BooleanLiteral")
         return static_cast<const BooleanLiteral*>(node)->value
             ? "true" : "false";
+    // Class declarations (Sprint 11c + 12c)
+    if (ct == "ClassDeclaration")
+        return static_cast<const ClassDeclaration*>(node)->name;
+    if (ct == "InterfaceDeclaration")
+        return static_cast<const InterfaceDeclaration*>(node)->name;
+    if (ct == "MethodDeclaration")
+        return static_cast<const MethodDeclaration*>(node)->name;
     // Host Boundary (Step 288)
     if (ct == "HostCall")
         return static_cast<const HostCall*>(node)->name;
