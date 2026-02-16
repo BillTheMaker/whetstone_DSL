@@ -3725,6 +3725,54 @@ output, record-style class output, and F#-style type mappings.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 407: VB.NET Parser
+**Status:** PASS (12/12 tests)
+
+Added a standalone VB.NET parser with case-insensitive keyword handling for
+core block forms and declarations. Covers `Sub`/`Function`, `Class`,
+`Interface`, `Module`, `Dim`, `If...Then`, and `For Each...In` recognition.
+
+**Files created:**
+- `editor/src/ast/VBNetParser.h` — VB.NET parse support:
+  - `parseVBNet(...)` and `parseVBNetWithDiagnostics(...)`
+  - `Sub` and `Function` signature extraction
+  - `Class` and `Interface` declaration extraction
+  - `Module` mapping to `NamespaceDeclaration`
+  - `Dim ... As ...` variable extraction
+  - `If ... Then` marker to `IfStatement`
+  - `For Each ... In ...` marker to `ForLoop` with iterator extraction
+  - case-insensitive token matching helpers
+- `editor/tests/step407_test.cpp` — 12 tests covering:
+  1. `Sub` parsing
+  2. `Function` parsing
+  3. class parsing
+  4. interface parsing
+  5. module/namespace parsing
+  6. `Dim` variable parsing
+  7. `If...Then` mapping
+  8. `For Each...In` mapping
+  9. case-insensitive keyword handling
+  10. diagnostics entry point
+  11. mixed-file parsing
+  12. pipeline parse routing for `vbnet` / `vb` / `vb.net`
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/VBNetParser.h`
+- `editor/src/Pipeline.h` — parse routing for `vbnet`, `vb`, `vb.net`
+- `editor/CMakeLists.txt` — `step407_test` target
+
+**Verification run:**
+- `step407_test` — PASS (12/12) new step coverage
+- `step406_test` — PASS (12/12) regression coverage
+- `step405_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/VBNetParser.h` within header-size limit (`184` <= `600`)
+- `editor/tests/step407_test.cpp` within test-file size guidance (`205` lines)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

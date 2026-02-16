@@ -122,6 +122,10 @@ public:
             auto pr = FSharpParser::parseFSharpWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "vbnet" || language == "vb" || language == "vb.net") {
+            auto pr = VBNetParser::parseVBNetWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         } else if (language == "c") {
             auto pr = CParser::parseCWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
