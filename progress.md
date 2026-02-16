@@ -2978,6 +2978,50 @@ submit external model output back into the workflow loop.
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
   - `editor/src/MCPServer.h` (`1652` > `600`)
 
+### Step 383: Phase 15a Integration Tests
+**Status:** PASS (8/8 tests)
+
+Added end-to-end integration validation for Sprint 15a orchestration behavior:
+mixed deterministic/agent/human flows, dependency gating, rejection escalation,
+shared-context optimization, progress tracking, external-result submission, and
+MCP orchestration tool loop closure.
+
+**Files created:**
+- `editor/tests/step383_test.cpp` — 8 integration tests covering:
+  1. mixed 5-item workflow partial deterministic completion profile
+  2. dependency-chain progression constraints
+  3. rejection escalation through deterministic -> slm -> llm
+  4. shared project-context token-savings path
+  5. progress snapshot updates during orchestration
+  6. `submitExternalResult` completion path for agent-prepared task
+  7. blocker-category surfacing (`needs-human`, `needs-external-model`)
+  8. MCP end-to-end loop (`run_deterministic` -> `submit_result` -> `get_progress`)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step383_test` target
+
+**Verification run:**
+- `step383_test` — PASS (8/8) new integration coverage
+- `step382_test` — PASS (12/12) regression coverage
+- `step381_test` — PASS (12/12) regression coverage
+- `step380_test` — PASS (12/12) regression coverage
+
+**Sprint 15a completion snapshot (Steps 378-383):**
+- Step 378: orchestrator core loop
+- Step 379: batching + shared-context optimization
+- Step 380: rejection rerouting feedback loop
+- Step 381: progress/ETA tracking
+- Step 382: orchestrator RPC + MCP tools
+- Step 383: phase integration coverage
+
+**Architecture gate check (end of Sprint 15a):**
+- `editor/tests/step383_test.cpp` within test-file size guidance (`222` lines)
+- `editor/src/HeadlessOrchestratorRPC.h` within header-size limit (`287` <= `600`)
+- `editor/src/WorkflowProgress.h` within header-size limit (`303` <= `600`)
+- Legacy oversized headers persist and need planned split before Sprint 15b+:
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+  - `editor/src/MCPServer.h` (`1652` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
