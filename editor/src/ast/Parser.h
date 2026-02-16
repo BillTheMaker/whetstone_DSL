@@ -167,3 +167,4 @@ private:
 #include "ast/CParser.h"
 #include "ast/WatParser.h"
 #include "ast/CommonLispParser.h"
+#include "ast/SchemeParser.h"

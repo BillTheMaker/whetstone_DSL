@@ -131,6 +131,10 @@ public:
             auto pr = CommonLispParser::parseCommonLispWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "scheme" || language == "scm") {
+            auto pr = SchemeParser::parseSchemeWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         }
         return nullptr;
     }

@@ -2565,6 +2565,52 @@ artifact compatibility with Semanno and compact AST tooling.
 - `editor/tests/step373_test.cpp` remains within project file-size guidance
   for test artifacts (`147` lines)
 
+### Step 374: Scheme Parser
+**Status:** PASS (12/12 tests)
+
+Added a dedicated Scheme parser with S-expression parsing and Scheme-specific
+form mapping into the Whetstone AST, including continuation and hygienic macro
+signals.
+
+**Files created:**
+- `editor/src/ast/SchemeParser.h` — Scheme parse support:
+  - recursive S-expression reader with Scheme comment and quote handling
+  - top-level mapping for `define` (function/value) and `define-syntax`
+  - expression mapping for `lambda`, `let`/`let*`/`letrec`, `if`, `cond`,
+    `do`, `begin`, `call-with-current-continuation`/`call/cc`, `quote`,
+    and `values`
+  - continuation call mapping with `Exec(mode=continuation)` annotation
+  - `define-syntax` mapping to `MacroDefinition` with hygienic `Meta` signal
+- `editor/tests/step374_test.cpp` — 12 tests covering:
+  1. `define` function parsing
+  2. `define` variable parsing
+  3. `lambda` parsing
+  4. `let` variants mapping
+  5. `if`/`cond` mapping
+  6. `do` loop mapping
+  7. `call/cc` continuation annotation mapping
+  8. `define-syntax` hygienic macro mapping
+  9. `values` contract mapping
+  10. `begin` sequence mapping
+  11. deep nesting parsing
+  12. mixed forms + pipeline scheme/scm routing + malformed diagnostics
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/SchemeParser.h`
+- `editor/src/Pipeline.h` — add parse routing for `\"scheme\"` and `\"scm\"`
+- `editor/CMakeLists.txt` — `step374_test` target
+
+**Verification run:**
+- `step374_test` — PASS (12/12) new step coverage
+- `step373_test` — PASS (8/8) regression coverage
+- `step372_test` — PASS (12/12) regression coverage
+- `step371_test` — PASS (12/12) regression coverage
+- `step370_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/SchemeParser.h` is within header size limit
+  (`461` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
