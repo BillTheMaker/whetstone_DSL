@@ -11,6 +11,8 @@ namespace WhetstoneIcons {
 constexpr const char* FileSource   = "\xF0\x9F\x93\x84"; // document
 constexpr const char* FileHeader   = "\xF0\x9F\x93\x83"; // page with curl
 constexpr const char* FileConfig   = "\xE2\x9A\x99";     // gear
+constexpr const char* FileImage    = "\xF0\x9F\x96\xBC"; // framed picture
+constexpr const char* FileGeneric  = "\xF0\x9F\x93\x84"; // generic document
 constexpr const char* Folder       = "\xF0\x9F\x93\x81"; // folder
 constexpr const char* FolderOpen   = "\xF0\x9F\x93\x82"; // open folder
 
@@ -46,7 +48,7 @@ inline std::string fallback(const std::string& icon) {
         {DiagError, "[ERR]"}, {DiagWarning, "[WARN]"},
         {DiagInfo, "[INFO]"}, {DiagHint, "[HINT]"},
         {Pending, "[...]"}, {InProgress, "[>>]"},
-        {Complete, "[OK]"}, {Rejected, "[X]"}, {Review, "[?]"},
+        {Complete, "[OK]"}, {Rejected, "[FAIL]"}, {Review, "[?]"},
         {NodeFunction, "fn"}, {NodeClass, "cls"},
         {NodeVariable, "var"}, {NodeModule, "mod"},
         {FileSource, "[]"}, {Folder, "/"}, {FolderOpen, "/"},
@@ -68,7 +70,7 @@ inline std::string iconForNodeType(const std::string& conceptType) {
     return NodeModule; // default
 }
 
-// Get icon for diagnostic severity
+// Get icon for diagnostic severity (by int: 1=error, 2=warning, 3=info, 4=hint)
 inline std::string iconForSeverity(int severity) {
     switch (severity) {
         case 1: return DiagError;
@@ -77,6 +79,15 @@ inline std::string iconForSeverity(int severity) {
         case 4: return DiagHint;
         default: return DiagInfo;
     }
+}
+
+// Get icon for diagnostic severity (by name)
+inline std::string iconForSeverity(const std::string& severity) {
+    if (severity == "error") return DiagError;
+    if (severity == "warning") return DiagWarning;
+    if (severity == "info") return DiagInfo;
+    if (severity == "hint") return DiagHint;
+    return DiagInfo;
 }
 
 // Get icon for workflow status
