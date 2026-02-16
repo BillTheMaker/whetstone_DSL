@@ -1863,6 +1863,42 @@ a full keyboard-driven command execution path.
 - `step354_test` — PASS (12/12) regression coverage
 - `step355_test` — PASS (8/8) new integration coverage
 
+### Step 356: Breadcrumb Navigation
+**Status:** PASS (12/12 tests)
+
+Implemented a breadcrumb bar model that tracks AST path from module root to
+cursor node, supports click-based navigation targets, and exposes sibling lists
+for dropdown navigation. The model uses compact node names (`getNodeName`) and
+theme-derived colors for consistent visual integration.
+
+**Files created:**
+- `editor/src/panels/BreadcrumbBar.h` — headless breadcrumb model:
+  - `buildBreadcrumbBar(...)` path generation from module/cursor
+  - clickable navigation helper (`navigateBreadcrumbClick`)
+  - sibling dropdown helpers (`breadcrumbSiblings`, `breadcrumbSiblingNames`)
+  - theme color wiring + overflow signal for deep paths
+- `editor/tests/step356_test.cpp` — 12 tests covering:
+  1. module name segment
+  2. cursor-driven nested updates
+  3. click navigation
+  4. sibling dropdown population
+  5. empty-file fallback
+  6. deep path overflow handling
+  7. theme color usage
+  8. annotation nodes in path
+  9. compact naming for class/method
+  10. out-of-range click safety
+  11. root sibling behavior
+  12. foreign-node fallback to module-only
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step356_test` target
+
+**Verification run:**
+- `step354_test` — PASS (12/12) regression coverage
+- `step355_test` — PASS (8/8) regression coverage
+- `step356_test` — PASS (12/12) new step coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
