@@ -1446,6 +1446,27 @@ review. Explicit @Review(required) always overrides auto-approve.
 
 **Tool count:** 56+ (54 existing + 2 review tools)
 
+### Step 331: Phase 12b Integration Tests
+**Status:** PASS (8/8 tests)
+
+Full routing pipeline integration tests covering skeleton→workflow→route→execute→review
+lifecycle. Tests verify mixed worker type routing, getter template auto-approve,
+LLM context preparation, human routing for high-ambiguity, dependency chains with
+mixed routing, rejection with feedback flow, review policy switching, and 5-function
+mixed skeleton lifecycle.
+
+**Files created:**
+- `editor/tests/step331_test.cpp` — 8 integration tests: skeleton_route_all,
+  getter_full_lifecycle, complex_llm_context, high_ambiguity_human,
+  dependency_mixed_routing, rejection_with_feedback, review_policy_switch,
+  full_lifecycle_mixed
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step331_test target with tree-sitter libraries
+
+**Phase 12b complete:** Steps 326-331 (RoutingEngine, WorkerRegistry,
+ContextAssembler, Routing RPC+MCP, ReviewGate, Integration Tests)
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
