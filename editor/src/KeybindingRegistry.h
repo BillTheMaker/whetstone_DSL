@@ -205,6 +205,7 @@ public:
 
         // View actions
         registerAction("command-palette", "Command Palette", "View");
+        registerAction("keyboard-shortcuts", "Keyboard Shortcuts", "Help");
         registerAction("toggle-file-tree", "Toggle File Tree", "View");
         registerAction("toggle-ast-view", "Toggle AST View", "View");
         registerAction("toggle-diagnostics", "Toggle Diagnostics", "View");
@@ -234,6 +235,7 @@ public:
         bind("find-in-file", KeyCombo::ctrl("F"));
         bind("find-in-project", KeyCombo::ctrlShift("F"));
         bind("command-palette", KeyCombo::ctrl("P"));
+        bind("keyboard-shortcuts", KeyCombo::ctrlShift("?"));
         bind("toggle-file-tree", KeyCombo::ctrl("B"));
         bind("toggle-diagnostics", KeyCombo::ctrlShift("D"));
         bind("run-pipeline", KeyCombo::fkey("F5"));

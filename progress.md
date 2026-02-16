@@ -1827,6 +1827,42 @@ symbol display path is consistent with step 352.
 - `step353_test` — PASS (12/12) regression coverage
 - `step354_test` — PASS (12/12) new step coverage
 
+### Step 355: Phase 13c Integration — Keyboard Shortcuts Help Panel
+**Status:** PASS (8/8 tests)
+
+Integrated a dedicated keyboard-shortcuts panel model and connected the end-to-end
+keyboard flow across the keybinding registry, command palette, and menu bar.
+This provides grouped/filterable shortcut rows plus refresh-on-rebind behavior and
+a full keyboard-driven command execution path.
+
+**Files created:**
+- `editor/src/KeyboardShortcutsPanel.h` — panel data model:
+  - visibility state, filter text, grouped rows by category
+  - row projection from `KeybindingRegistry` (label/category/symbols)
+  - customize-request signal (`requestCustomize` / `consumeCustomizeRequest`)
+- `editor/tests/step355_test.cpp` — 8 integration tests:
+  1. defaults appear in shortcuts panel
+  2. Ctrl+S resolves to save action
+  3. Ctrl+P opens command palette
+  4. command palette entries include key symbols
+  5. menu entries include key symbols
+  6. rebind propagates to shortcuts panel
+  7. symbol rendering works for current platform mode
+  8. keyboard workflow: Ctrl+P → query pipeline → execute run-pipeline
+
+**Files modified:**
+- `editor/src/KeybindingRegistry.h` — added `keyboard-shortcuts` action and default
+  binding (`Ctrl+Shift+?`) to support help-panel keyboard access
+- `editor/src/CommandPalette.h` — added `symbols` field on command entries and
+  populated symbol strings from keybindings
+- `editor/CMakeLists.txt` — `step355_test` target
+
+**Verification run:**
+- `step351_test` — PASS (12/12) regression coverage
+- `step353_test` — PASS (12/12) regression coverage
+- `step354_test` — PASS (12/12) regression coverage
+- `step355_test` — PASS (8/8) new integration coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

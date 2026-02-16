@@ -12,6 +12,7 @@ struct CommandEntry {
     std::string id;
     std::string label;
     std::string shortcut;
+    std::string symbols;
     std::string icon;
     std::string category;
     std::string inputHint;
@@ -64,7 +65,8 @@ public:
                          const std::string& inputHint = "",
                          bool inlineInput = false,
                          const std::vector<std::string>& aliases = {},
-                         const std::string& icon = "") {
+                         const std::string& icon = "",
+                         const std::string& symbols = "") {
         auto& entry = commands_[id];
         entry.id = id;
         entry.label = label;
@@ -75,6 +77,7 @@ public:
         entry.inlineInput = inlineInput;
         entry.aliases = aliases;
         entry.icon = icon;
+        entry.symbols = symbols;
     }
 
     void registerFromKeybindings(const KeybindingRegistry& registry) {
@@ -89,7 +92,8 @@ public:
                 "",
                 false,
                 {action.id},
-                WhetstoneIcons::Search
+                WhetstoneIcons::Search,
+                binding.toSymbolsAuto()
             );
         }
     }
