@@ -14,6 +14,8 @@
 #include "Annotation.h"
 #include "AnnotationVisitors.h"
 #include "HostBoundary.h"
+#include "PreprocessorNodes.h"
+#include "EnumNamespaceNodes.h"
 
 class ProjectionGenerator : public virtual AnnotationVisitorExtended {
 public:
@@ -74,6 +76,14 @@ public:
     virtual std::string visitAwaitExpression(const ASTNode* node) { return ""; }
     virtual std::string visitLambdaExpression(const ASTNode* node) { return ""; }
     virtual std::string visitDecoratorAnnotation(const ASTNode* node) { return ""; }
+
+    // Preprocessor/Enum/Namespace visitors (Step 340)
+    virtual std::string visitIncludeDirective(const ASTNode* node) { return ""; }
+    virtual std::string visitPragmaDirective(const ASTNode* node) { return ""; }
+    virtual std::string visitMacroDefinition(const ASTNode* node) { return ""; }
+    virtual std::string visitEnumDeclaration(const ASTNode* node) { return ""; }
+    virtual std::string visitNamespaceDeclaration(const ASTNode* node) { return ""; }
+    virtual std::string visitTypeAlias(const ASTNode* node) { return ""; }
 
     // Host boundary visitors
     virtual std::string visitHostCall(const HostCall* node) { return ""; }
@@ -349,6 +359,20 @@ std::string dispatchGenerate(Gen* gen, const ASTNode* node, const std::string& u
         return gen->visitLambdaExpression(node);
     } else if (node->conceptType == "DecoratorAnnotation") {
         return gen->visitDecoratorAnnotation(node);
+    }
+    // Preprocessor/Enum/Namespace dispatch (Step 340)
+    else if (node->conceptType == "IncludeDirective") {
+        return gen->visitIncludeDirective(node);
+    } else if (node->conceptType == "PragmaDirective") {
+        return gen->visitPragmaDirective(node);
+    } else if (node->conceptType == "MacroDefinition") {
+        return gen->visitMacroDefinition(node);
+    } else if (node->conceptType == "EnumDeclaration") {
+        return gen->visitEnumDeclaration(node);
+    } else if (node->conceptType == "NamespaceDeclaration") {
+        return gen->visitNamespaceDeclaration(node);
+    } else if (node->conceptType == "TypeAlias") {
+        return gen->visitTypeAlias(node);
     }
 
     return unknownPrefix + node->conceptType;

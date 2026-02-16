@@ -665,4 +665,62 @@ public:
     std::string visitConstExprAnnotation(const ConstExprAnnotation*) override {
         return "; @constexpr - Compile-time evaluable";
     }
+
+    // --- Preprocessor/Enum/Namespace visitors (Step 340) ---
+
+    std::string visitIncludeDirective(const ASTNode* node) override {
+        auto* inc = static_cast<const IncludeDirective*>(node);
+        std::string mod = inc->path;
+        auto dot = mod.rfind('.');
+        if (dot != std::string::npos) mod = mod.substr(0, dot);
+        return "(require '" + mod + ")";
+    }
+
+    std::string visitPragmaDirective(const ASTNode* node) override {
+        auto* prag = static_cast<const PragmaDirective*>(node);
+        return ";; pragma " + prag->directive;
+    }
+
+    std::string visitMacroDefinition(const ASTNode* node) override {
+        auto* mac = static_cast<const MacroDefinition*>(node);
+        if (mac->isFunctionLike) {
+            std::ostringstream oss;
+            oss << "(defmacro " << mac->name << " (";
+            for (size_t i = 0; i < mac->parameters.size(); ++i) {
+                if (i > 0) oss << " ";
+                oss << mac->parameters[i];
+            }
+            oss << ")\n  " << (mac->body.empty() ? "nil" : mac->body) << ")";
+            return oss.str();
+        }
+        return "(defconst " + mac->name + " " + (mac->body.empty() ? "nil" : mac->body) + ")";
+    }
+
+    std::string visitEnumDeclaration(const ASTNode* node) override {
+        auto* e = static_cast<const EnumDeclaration*>(node);
+        std::ostringstream oss;
+        auto members = e->getChildren("members");
+        for (size_t i = 0; i < members.size(); ++i) {
+            auto* m = static_cast<const EnumMember*>(members[i]);
+            oss << "(defconst " << e->name << "-" << m->name << " "
+                << (m->value.empty() ? std::to_string(i) : m->value) << ")";
+            if (i + 1 < members.size()) oss << "\n";
+        }
+        return oss.str();
+    }
+
+    std::string visitNamespaceDeclaration(const ASTNode* node) override {
+        auto* ns = static_cast<const NamespaceDeclaration*>(node);
+        std::ostringstream oss;
+        oss << ";; namespace " << ns->name << "\n";
+        auto body = ns->getChildren("body");
+        for (const auto* child : body)
+            oss << generate(child) << "\n";
+        return oss.str();
+    }
+
+    std::string visitTypeAlias(const ASTNode* node) override {
+        auto* ta = static_cast<const TypeAlias*>(node);
+        return "(defalias '" + ta->aliasName + " '" + ta->targetType + ")";
+    }
 };

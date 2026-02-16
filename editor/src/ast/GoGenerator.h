@@ -573,6 +573,53 @@ public:
         return "// @constexpr";
     }
 
+    // --- Preprocessor/Enum/Namespace visitors (Step 340) ---
+
+    std::string visitIncludeDirective(const ASTNode* node) override {
+        auto* inc = static_cast<const IncludeDirective*>(node);
+        return "import \"" + inc->path + "\"";
+    }
+
+    std::string visitPragmaDirective(const ASTNode* node) override {
+        auto* prag = static_cast<const PragmaDirective*>(node);
+        return "// pragma " + prag->directive;
+    }
+
+    std::string visitMacroDefinition(const ASTNode* node) override {
+        auto* mac = static_cast<const MacroDefinition*>(node);
+        return "const " + mac->name + " = " + (mac->body.empty() ? "0" : mac->body);
+    }
+
+    std::string visitEnumDeclaration(const ASTNode* node) override {
+        auto* e = static_cast<const EnumDeclaration*>(node);
+        std::ostringstream oss;
+        oss << "type " << e->name << " int\n\nconst (\n";
+        auto members = e->getChildren("members");
+        for (size_t i = 0; i < members.size(); ++i) {
+            auto* m = static_cast<const EnumMember*>(members[i]);
+            oss << "    " << m->name;
+            if (i == 0) oss << " " << e->name << " = iota";
+            oss << "\n";
+        }
+        oss << ")";
+        return oss.str();
+    }
+
+    std::string visitNamespaceDeclaration(const ASTNode* node) override {
+        auto* ns = static_cast<const NamespaceDeclaration*>(node);
+        std::ostringstream oss;
+        oss << "package " << ns->name << "\n";
+        auto body = ns->getChildren("body");
+        for (const auto* child : body)
+            oss << generate(child) << "\n";
+        return oss.str();
+    }
+
+    std::string visitTypeAlias(const ASTNode* node) override {
+        auto* ta = static_cast<const TypeAlias*>(node);
+        return "type " + ta->aliasName + " = " + ta->targetType;
+    }
+
 private:
     static std::string emitImport(const Import* imp) {
         std::string moduleName = imp->moduleName.empty() ? "" : imp->moduleName;

@@ -320,6 +320,79 @@
         return "constexpr";
     }
 
+    // --- Preprocessor/Enum/Namespace visitors (Step 340) ---
+
+    std::string visitIncludeDirective(const ASTNode* node) override {
+        auto* inc = static_cast<const IncludeDirective*>(node);
+        if (inc->isSystem)
+            return "#include <" + inc->path + ">";
+        return "#include \"" + inc->path + "\"";
+    }
+
+    std::string visitPragmaDirective(const ASTNode* node) override {
+        auto* prag = static_cast<const PragmaDirective*>(node);
+        return "#pragma " + prag->directive;
+    }
+
+    std::string visitMacroDefinition(const ASTNode* node) override {
+        auto* mac = static_cast<const MacroDefinition*>(node);
+        std::ostringstream oss;
+        oss << "#define " << mac->name;
+        if (mac->isFunctionLike) {
+            oss << "(";
+            for (size_t i = 0; i < mac->parameters.size(); ++i) {
+                if (i > 0) oss << ", ";
+                oss << mac->parameters[i];
+            }
+            oss << ")";
+        }
+        if (!mac->body.empty()) oss << " " << mac->body;
+        return oss.str();
+    }
+
+    std::string visitEnumDeclaration(const ASTNode* node) override {
+        auto* e = static_cast<const EnumDeclaration*>(node);
+        std::ostringstream oss;
+        if (e->isScoped)
+            oss << "enum class " << e->name;
+        else
+            oss << "enum " << e->name;
+        if (!e->underlyingType.empty())
+            oss << " : " << e->underlyingType;
+        oss << " {\n";
+        auto members = e->getChildren("members");
+        for (size_t i = 0; i < members.size(); ++i) {
+            auto* m = static_cast<const EnumMember*>(members[i]);
+            oss << "    " << m->name;
+            if (!m->value.empty()) oss << " = " << m->value;
+            if (i + 1 < members.size()) oss << ",";
+            oss << "\n";
+        }
+        oss << "};\n";
+        return oss.str();
+    }
+
+    std::string visitNamespaceDeclaration(const ASTNode* node) override {
+        auto* ns = static_cast<const NamespaceDeclaration*>(node);
+        std::ostringstream oss;
+        if (ns->name.empty())
+            oss << "namespace {\n";
+        else
+            oss << "namespace " << ns->name << " {\n";
+        auto body = ns->getChildren("body");
+        for (const auto* child : body)
+            oss << "    " << generate(child) << "\n";
+        oss << "}\n";
+        return oss.str();
+    }
+
+    std::string visitTypeAlias(const ASTNode* node) override {
+        auto* ta = static_cast<const TypeAlias*>(node);
+        if (ta->isUsing)
+            return "using " + ta->aliasName + " = " + ta->targetType + ";";
+        return "typedef " + ta->targetType + " " + ta->aliasName + ";";
+    }
+
 private:
     // Check enclosing function's memory annotations to determine smart-pointer wrapper
     std::string getMemoryTypeWrapper(const Variable* variable) const {
