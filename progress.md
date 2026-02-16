@@ -3535,6 +3535,43 @@ inference on parsed AST, and graceful degradation accounting.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 403: Annotate + Generate from Self-Hosted AST
+**Status:** PASS (12/12 tests)
+
+Added self-hosting coverage for inference + generation workflows over real
+project headers (`AnnotationConflictExtended.h` and `AnnotationValidatorExtended.h`),
+including pipeline execution and Semanno roundtrip checks from inferred
+complexity metadata.
+
+**Files created:**
+- `editor/tests/step403_test.cpp` — 12 tests covering:
+  1. parse both self-host headers
+  2. inference output on conflict AST
+  3. complexity inference on validator AST
+  4. C++ generation from conflict AST
+  5. C++ generation from validator AST
+  6. conflict parse/generate/parse roundtrip
+  7. validator parse/generate/parse roundtrip
+  8. `Pipeline.run()` success for conflict header
+  9. `Pipeline.run()` success for validator header
+  10. Semanno emit/parse roundtrip for inferred `ComplexityAnnotation`
+  11. regenerated output parseability check
+  12. combined generated-source parseability check
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step403_test` target
+
+**Verification run:**
+- `step403_test` — PASS (12/12) new step coverage
+- `step402_test` — PASS (12/12) regression coverage
+- `step401_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step403_test.cpp` within test-file size guidance (`236` lines)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
