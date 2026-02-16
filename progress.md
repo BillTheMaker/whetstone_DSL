@@ -2879,6 +2879,46 @@ assembly for re-attempts.
 - `editor/src/ContextAssembler.h` within header-size limit (`192` <= `600`)
 - `editor/tests/step380_test.cpp` within test-file size guidance (`281` lines)
 
+### Step 381: Progress Tracking + ETA
+**Status:** PASS (12/12 tests)
+
+Implemented a standalone workflow-progress tracker that consumes orchestrator
+events and produces progress snapshots with completion %, throughput, ETA,
+worker metrics, blockers, and timeline entries.
+
+**Files created:**
+- `editor/src/WorkflowProgress.h` — progress aggregation API:
+  - `WorkflowProgress::recordEvent(...)`
+  - `WorkflowProgress::getSnapshot()`
+  - `WorkflowProgress::getTimeline()`
+  - `WorkflowProgress::getWorkerStats()`
+  - `ProgressSnapshot`, `WorkerStats`, `TimelineEntry` with JSON serialization
+- `editor/tests/step381_test.cpp` — 12 tests covering:
+  1. completion-percent accuracy
+  2. throughput (`itemsPerMinute`) calculation
+  3. ETA bound sanity for uniform completion cadence
+  4. per-worker metric aggregation
+  5. rejection-rate tracking
+  6. timeline event recording
+  7. empty-workflow snapshot behavior
+  8. blocker propagation into snapshots
+  9. snapshot JSON field coverage
+  10. completion monotonicity across rejection events
+  11. `startedAt`/`lastActivityAt` tracking
+  12. total-item fallback via observed item IDs
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step381_test` target
+
+**Verification run:**
+- `step381_test` — PASS (12/12) new step coverage
+- `step380_test` — PASS (12/12) regression coverage
+- `step379_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowProgress.h` within header-size limit (`303` <= `600`)
+- `editor/tests/step381_test.cpp` within test-file size guidance (`196` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
