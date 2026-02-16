@@ -58,7 +58,7 @@ void test_getter_deterministic() {
     TEST(getter_deterministic);
     auto wi = makeItem("getName", "", "local");
     auto d = engine.route(wi);
-    CHECK(d.workerType == "deterministic", "getter → deterministic");
+    CHECK(d.workerType == "template", "getter → template");
     CHECK(d.agentRole == "refactor", "agent role = refactor");
     PASS();
 }
@@ -68,7 +68,7 @@ void test_setter_deterministic() {
     TEST(setter_deterministic);
     auto wi = makeItem("setValue", "", "local");
     auto d = engine.route(wi);
-    CHECK(d.workerType == "deterministic", "setter → deterministic");
+    CHECK(d.workerType == "template", "setter → template");
     PASS();
 }
 
@@ -113,7 +113,7 @@ void test_batch_routing() {
     };
     auto decisions = engine.routeBatch(items);
     CHECK(decisions.size() == 3, "3 decisions");
-    CHECK(decisions[0].workerType == "deterministic", "first=deterministic");
+    CHECK(decisions[0].workerType == "template", "first=template");
     CHECK(decisions[1].workerType == "llm", "second=llm");
     CHECK(decisions[2].workerType == "human", "third=human");
     PASS();

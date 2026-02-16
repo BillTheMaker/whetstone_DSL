@@ -1393,6 +1393,34 @@ siblings > buffer content > project summaries under truncation.
 **Files modified:**
 - `editor/CMakeLists.txt` — step328_test target
 
+### Step 329: Routing RPC + MCP Tools
+**Status:** PASS (12/12 tests)
+
+Exposes routing and worker dispatch through 4 RPC methods and 4 MCP tools.
+routeTask/routeAllReady apply routing decisions, executeTask runs workers
+(deterministic/template produce code, agent/human prepare context bundles),
+getRoutingExplanation shows reasoning.
+
+**Files created:**
+- `editor/tests/step329_test.cpp` — 12 tests: routeTask, routeAllReady batch,
+  execute deterministic, agent prepared, human marked, routing explanation,
+  Linter restrictions, MCP registration (4 new, 54+ total), route updates item,
+  no-worker error, itemIds in batch, auto-approved for template
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — added RoutingEngine, WorkerRegistry,
+  ContextAssembler members
+- `editor/src/HeadlessAgentRPCHandler.h` — 4 new RPC methods: routeTask,
+  routeAllReady, executeTask, getRoutingExplanation
+- `editor/src/AgentPermissionPolicy.h` — read-only: getRoutingExplanation;
+  mutation: routeTask, routeAllReady, executeTask
+- `editor/src/MCPServer.h` — registerRoutingTools() with 4 tools
+- `editor/src/RoutingEngine.h` — getter/setter routes to "template" (not
+  "deterministic") for correct auto-approve with TemplateWorker
+- `editor/CMakeLists.txt` — step329_test target
+
+**Tool count:** 54+ (50 existing + 4 routing tools)
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

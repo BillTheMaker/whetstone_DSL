@@ -39,6 +39,9 @@
 #include "SkeletonAST.h"
 #include "WorkflowState.h"
 #include "WorkflowPersistence.h"
+#include "RoutingEngine.h"
+#include "WorkerRegistry.h"
+#include "ContextAssembler.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -137,6 +140,9 @@ struct HeadlessEditorState {
     std::string          defaultLanguage = "python";
     bool                 verbose = false;
     std::optional<WorkflowState> workflow;
+    RoutingEngine        routingEngine;
+    WorkerRegistry       workerRegistry = WorkerRegistry::getDefaultRegistry();
+    ContextAssembler     contextAssembler;
 
     // --- Buffer access ---
 

@@ -1971,4 +1971,14 @@ add_executable(step328_test tests/step328_test.cpp)
 target_include_directories(step328_test PRIVATE src)
 target_link_libraries(step328_test PRIVATE nlohmann_json::nlohmann_json)
 
+# Step 329: Routing RPC + MCP Tools
+add_executable(step329_test tests/step329_test.cpp)
+target_include_directories(step329_test PRIVATE src)
+target_link_libraries(step329_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

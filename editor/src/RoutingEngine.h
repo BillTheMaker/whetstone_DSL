@@ -134,10 +134,10 @@ public:
         // Rule 6: Pattern defaults (no complexity annotations available
         //          through WorkItem, so use heuristics)
 
-        // Getter/setter/accessor → deterministic
+        // Getter/setter/accessor → template
         if (isGetterSetterPattern(item.nodeName)) {
-            decision.workerType = "deterministic";
-            decision.reasoning = "Getter/setter pattern → deterministic";
+            decision.workerType = "template";
+            decision.reasoning = "Getter/setter pattern → template";
             decision.confidence = 0.9f;
             decision.agentRole = "refactor";
             return decision;

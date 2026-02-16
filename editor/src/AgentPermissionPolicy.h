@@ -68,7 +68,8 @@ struct AgentPermissionPolicy {
             method == "inferAnnotations" ||
             method == "getWorkflowState" ||
             method == "getReadyTasks" ||
-            method == "getWorkItem") {
+            method == "getWorkItem" ||
+            method == "getRoutingExplanation") {
             return true;
         }
 
@@ -97,7 +98,10 @@ struct AgentPermissionPolicy {
             method == "assignTask" ||
             method == "completeTask" ||
             method == "rejectTask" ||
-            method == "saveWorkflow") {
+            method == "saveWorkflow" ||
+            method == "routeTask" ||
+            method == "routeAllReady" ||
+            method == "executeTask") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 
