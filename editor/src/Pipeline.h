@@ -166,6 +166,9 @@ public:
         } else if (language == "c") {
             CGenerator gen;
             return gen.generate(ast);
+        } else if (language == "wat" || language == "wasm") {
+            WatGenerator gen;
+            return gen.generate(ast);
         }
         return "";
     }

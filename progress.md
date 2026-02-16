@@ -2244,6 +2244,48 @@ into the shared parsing pipeline.
 **Architecture gate check:**
 - `editor/src/ast/WatParser.h` is within header size limit (`231` lines)
 
+### Step 366: WAT Generator
+**Status:** PASS (12/12 tests)
+
+Added a dedicated WAT generator and integrated `wat/wasm` generation routing in
+the shared pipeline.
+
+**Files created:**
+- `editor/src/ast/WatGenerator.h` — WAT generation support:
+  - module emission in s-expression format
+  - function emission with `(param ...)` / `(result ...)`
+  - primitive type mapping to WAT types (`i32`, `i64`, `f32`, `f64`)
+  - instruction emission for arithmetic, calls, if/else, and block constructs
+  - import emission and pragma-driven memory/table/export output
+  - annotation comment output using WAT prefix (`;; `)
+- `editor/tests/step366_test.cpp` — 12 tests covering:
+  1. function generation
+  2. module s-expression formatting
+  3. type mapping
+  4. arithmetic lowering to stack ops
+  5. if/else output
+  6. function call output
+  7. export output
+  8. import output
+  9. annotation comment prefix
+  10. Python -> WAT pipeline route
+  11. parse->generate->parse roundtrip
+  12. balanced parentheses invariant
+
+**Files modified:**
+- `editor/src/ast/Generator.h` — include `WatGenerator.h`
+- `editor/src/Pipeline.h` — add generate routing for `\"wat\"` and `\"wasm\"`
+- `editor/CMakeLists.txt` — `step366_test` target
+
+**Verification run:**
+- `step366_test` — PASS (12/12) new step coverage
+- `step365_test` — PASS (12/12) regression coverage
+- `step364_test` — PASS (8/8) regression coverage
+- `step363_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/WatGenerator.h` is within header size limit (`219` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

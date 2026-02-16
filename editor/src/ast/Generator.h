@@ -12,3 +12,4 @@
 #include "KotlinGenerator.h"
 #include "CSharpGenerator.h"
 #include "CGenerator.h"
+#include "WatGenerator.h"
