@@ -2362,6 +2362,40 @@ preservation checks.
 - `editor/tests/step368_test.cpp` remains within project file-size guidance
   for test artifacts (`162` lines)
 
+### Step 369: Phase 14b Integration
+**Status:** PASS (8/8 tests)
+
+Added phase-level integration validation for WAT as both source and target,
+including compact AST coverage, malformed-source diagnostics, sidecar
+persistence, and MCP contract checks.
+
+**Files created:**
+- `editor/tests/step369_test.cpp` — 8 integration tests covering:
+  1. parse WAT -> generate WAT validity
+  2. C -> WAT -> C roundtrip path
+  3. broad multi-language -> WAT pipeline targeting coverage
+  4. WAT annotation completeness checks
+  5. compact AST node coverage on WAT module
+  6. malformed WAT diagnostic detection
+  7. Semanno sidecar save/load on `.wat` path
+  8. MCP `whetstone_run_pipeline` language-parameter compatibility
+
+**Files modified:**
+- `editor/src/ast/WatParser.h` — `parseWatWithDiagnostics(...)` now reports:
+  - unmatched/unbalanced parenthesis errors
+  - missing module-form warning
+- `editor/CMakeLists.txt` — `step369_test` target
+
+**Verification run:**
+- `step369_test` — PASS (8/8) new step coverage
+- `step368_test` — PASS (12/12) regression coverage
+- `step367_test` — PASS (12/12) regression coverage
+- `step366_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/WatParser.h` remains within header-size limit after diagnostic
+  additions (`248` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

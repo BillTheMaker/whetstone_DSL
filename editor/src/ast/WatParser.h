@@ -50,6 +50,25 @@ public:
     static ParseResult parseWatWithDiagnostics(const std::string& source) {
         ParseResult result;
         result.module = parseWat(source);
+        int depth = 0;
+        for (char c : source) {
+            if (c == '(') ++depth;
+            if (c == ')') --depth;
+            if (depth < 0) {
+                result.diagnostics.push_back(
+                    {1, 1, "Unmatched closing parenthesis in WAT source", "error"});
+                depth = 0;
+                break;
+            }
+        }
+        if (depth != 0) {
+            result.diagnostics.push_back(
+                {1, 1, "Unbalanced parentheses in WAT source", "error"});
+        }
+        if (source.find("(module") == std::string::npos) {
+            result.diagnostics.push_back(
+                {1, 1, "WAT source should contain a module form", "warning"});
+        }
         return result;
     }
 
