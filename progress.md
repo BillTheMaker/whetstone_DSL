@@ -3773,6 +3773,53 @@ core block forms and declarations. Covers `Sub`/`Function`, `Class`,
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 408: VB.NET Generator
+**Status:** PASS (12/12 tests)
+
+Added a dedicated VB.NET generator and pipeline generation routing aliases.
+Outputs VB-style `Sub`/`Function` blocks, `Dim` declarations, `If...Then...End If`,
+`For Each...Next`, and .NET type-name mappings.
+
+**Files created:**
+- `editor/src/ast/VBNetGenerator.h` — VB.NET generation support:
+  - module/function/class/interface/module-namespace generation
+  - `Sub` vs `Function ... As Type` emission
+  - `Dim name As Type = value` variable emission
+  - `If ... Then ... End If` and `For Each ... In ... Next`
+  - .NET type mapping (`Integer`, `Double`, `String`, `Boolean`, `Object`)
+  - Semanno output with VB comment prefix (`' `)
+- `editor/tests/step408_test.cpp` — 12 tests covering:
+  1. Sub generation
+  2. Function generation with return type
+  3. class generation
+  4. interface generation
+  5. module/namespace generation
+  6. Dim variable generation
+  7. If generation
+  8. For Each generation
+  9. type mapping
+  10. comment prefix
+  11. Semanno annotation output
+  12. pipeline generate routing for `vbnet` / `vb` / `vb.net`
+
+**Files modified:**
+- `editor/src/ast/Generator.h` — include `VBNetGenerator.h`
+- `editor/src/Pipeline.h` — generate routing for `vbnet`, `vb`, `vb.net`
+- `editor/CMakeLists.txt` — `step408_test` target
+
+**Verification run:**
+- `step408_test` — PASS (12/12) new step coverage
+- `step407_test` — PASS (12/12) regression coverage
+- `step406_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/VBNetGenerator.h` within header-size limit (`261` <= `600`)
+- `editor/tests/step408_test.cpp` within test-file size guidance (`186` lines)
+- `editor/src/Pipeline.h` within header-size limit (`247` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

@@ -183,6 +183,9 @@ public:
         } else if (language == "fsharp" || language == "f#" || language == "fs") {
             FSharpGenerator gen;
             return gen.generate(ast);
+        } else if (language == "vbnet" || language == "vb" || language == "vb.net") {
+            VBNetGenerator gen;
+            return gen.generate(ast);
         } else if (language == "c") {
             CGenerator gen;
             return gen.generate(ast);

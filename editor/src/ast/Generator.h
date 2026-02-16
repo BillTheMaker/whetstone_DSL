@@ -12,6 +12,7 @@
 #include "KotlinGenerator.h"
 #include "CSharpGenerator.h"
 #include "FSharpGenerator.h"
+#include "VBNetGenerator.h"
 #include "CGenerator.h"
 #include "WatGenerator.h"
 #include "CommonLispGenerator.h"
