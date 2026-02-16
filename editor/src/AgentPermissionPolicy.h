@@ -65,7 +65,10 @@ struct AgentPermissionPolicy {
             method == "validateEnvironment" ||
             method == "getLoweringHints" ||
             method == "getProjectModel" ||
-            method == "inferAnnotations") {
+            method == "inferAnnotations" ||
+            method == "getWorkflowState" ||
+            method == "getReadyTasks" ||
+            method == "getWorkItem") {
             return true;
         }
 
@@ -89,7 +92,12 @@ struct AgentPermissionPolicy {
             method == "removeSemanticAnnotation" ||
             method == "setEnvironment" ||
             method == "createSkeleton" ||
-            method == "addSkeletonNode") {
+            method == "addSkeletonNode" ||
+            method == "createWorkflow" ||
+            method == "assignTask" ||
+            method == "completeTask" ||
+            method == "rejectTask" ||
+            method == "saveWorkflow") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

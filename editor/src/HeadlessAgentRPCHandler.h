@@ -2246,5 +2246,201 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- createWorkflow ---
+    if (method == "createWorkflow") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string projectName = params.value("projectName", "");
+        if (projectName.empty())
+            return headlessRpcError(id, -32602, "Missing projectName");
+        if (!state.activeBuffer || !state.activeAST())
+            return headlessRpcError(id, -32000, "No active buffer with AST");
+
+        state.workflow = WorkflowState(projectName);
+        std::string bufferId = state.activeBuffer->path;
+        int count = state.workflow->populateFromSkeleton(state.activeAST(), bufferId);
+
+        auto stats = state.workflow->getStats();
+        return headlessRpcResult(id, {
+            {"itemCount", count},
+            {"phase", workflowPhaseToString(state.workflow->getPhase())},
+            {"stats", stats.toJson()}
+        });
+    }
+
+    // --- getWorkflowState ---
+    if (method == "getWorkflowState") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+
+        auto stats = state.workflow->getStats();
+        return headlessRpcResult(id, {
+            {"phase", workflowPhaseToString(state.workflow->getPhase())},
+            {"stats", stats.toJson()},
+            {"readyCount", state.workflow->queue.readyCount()},
+            {"blockedCount", state.workflow->queue.blockedCount()}
+        });
+    }
+
+    // --- getReadyTasks ---
+    if (method == "getReadyTasks") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+
+        auto ready = state.workflow->queue.getReady();
+        json items = json::array();
+        for (const auto& wi : ready) {
+            items.push_back(workItemToJson(wi));
+        }
+        return headlessRpcResult(id, {{"items", items}, {"count", (int)items.size()}});
+    }
+
+    // --- getWorkItem ---
+    if (method == "getWorkItem") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string itemId = params.value("itemId", "");
+        if (itemId.empty())
+            return headlessRpcError(id, -32602, "Missing itemId");
+
+        auto item = state.workflow->queue.getItem(itemId);
+        if (!item)
+            return headlessRpcError(id, -32602, "Work item not found");
+
+        return headlessRpcResult(id, workItemToJson(*item));
+    }
+
+    // --- assignTask ---
+    if (method == "assignTask") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string itemId = params.value("itemId", "");
+        std::string assignee = params.value("assignee", "");
+        if (itemId.empty())
+            return headlessRpcError(id, -32602, "Missing itemId");
+
+        auto item = state.workflow->queue.getItem(itemId);
+        if (!item)
+            return headlessRpcError(id, -32602, "Work item not found");
+
+        WorkItem updated = *item;
+        bool ok = transitionWorkItem(updated, WI_ASSIGNED);
+        if (!ok)
+            return headlessRpcError(id, -32000, "Cannot assign item in status: " + updated.status);
+        updated.assignee = assignee;
+        state.workflow->queue.updateItem(itemId, updated);
+        state.workflow->recordChange(itemId, item->status, WI_ASSIGNED,
+                                     "agent:" + sessionId);
+
+        return headlessRpcResult(id, {{"success", true}, {"item", workItemToJson(updated)}});
+    }
+
+    // --- completeTask ---
+    if (method == "completeTask") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string itemId = params.value("itemId", "");
+        if (itemId.empty())
+            return headlessRpcError(id, -32602, "Missing itemId");
+
+        auto item = state.workflow->queue.getItem(itemId);
+        if (!item)
+            return headlessRpcError(id, -32602, "Work item not found");
+
+        // Attach result
+        WorkItem updated = *item;
+        if (params.contains("result")) {
+            auto r = params["result"];
+            updated.result.generatedCode = r.value("generatedCode", "");
+            updated.result.confidence = r.value("confidence", 0.0f);
+            updated.result.reasoning = r.value("reasoning", "");
+        }
+
+        // Transition: must be in-progress (or review) to complete
+        if (updated.status == WI_IN_PROGRESS || updated.status == WI_REVIEW) {
+            transitionWorkItem(updated, WI_COMPLETE);
+        } else {
+            return headlessRpcError(id, -32000,
+                "Cannot complete item in status: " + updated.status);
+        }
+        state.workflow->queue.updateItem(itemId, updated);
+        state.workflow->recordChange(itemId, item->status, WI_COMPLETE,
+                                     "agent:" + sessionId);
+
+        // Re-evaluate dependencies via complete()
+        // (already handled internally since we set status to complete)
+        // Check for newly ready items
+        auto ready = state.workflow->queue.getReady();
+        json newlyReady = json::array();
+        for (const auto& wi : ready) {
+            newlyReady.push_back(workItemToJson(wi));
+        }
+
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"newlyReady", newlyReady}
+        });
+    }
+
+    // --- rejectTask ---
+    if (method == "rejectTask") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string itemId = params.value("itemId", "");
+        std::string reason = params.value("reason", "");
+        if (itemId.empty())
+            return headlessRpcError(id, -32602, "Missing itemId");
+
+        auto item = state.workflow->queue.getItem(itemId);
+        if (!item)
+            return headlessRpcError(id, -32602, "Work item not found");
+
+        if (item->status != WI_REVIEW)
+            return headlessRpcError(id, -32000,
+                "Cannot reject item in status: " + item->status);
+
+        bool ok = state.workflow->queue.reject(itemId, reason);
+        if (!ok)
+            return headlessRpcError(id, -32000, "Reject failed");
+
+        state.workflow->recordChange(itemId, "review", WI_READY,
+                                     "human:" + sessionId, reason);
+
+        return headlessRpcResult(id, {{"success", true}});
+    }
+
+    // --- saveWorkflow ---
+    if (method == "saveWorkflow") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        if (!state.workflow)
+            return headlessRpcError(id, -32000, "No active workflow");
+
+        std::string root = state.workspaceRoot.empty() ? "." : state.workspaceRoot;
+        auto sr = ::saveWorkflow(root, *state.workflow);
+        return headlessRpcResult(id, {
+            {"success", sr.success},
+            {"path", sr.path},
+            {"bytesWritten", sr.bytesWritten}
+        });
+    }
+
     return headlessRpcError(id, -32601, "Method not found");
 }

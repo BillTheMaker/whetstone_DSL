@@ -37,6 +37,8 @@
 #include "SidecarPersistence.h"
 #include "AnnotationInference.h"
 #include "SkeletonAST.h"
+#include "WorkflowState.h"
+#include "WorkflowPersistence.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -134,6 +136,7 @@ struct HeadlessEditorState {
     std::string          workspaceRoot;
     std::string          defaultLanguage = "python";
     bool                 verbose = false;
+    std::optional<WorkflowState> workflow;
 
     // --- Buffer access ---
 

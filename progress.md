@@ -1284,6 +1284,34 @@ delete, and multiple workflows in the same workspace.
 **Files modified:**
 - `editor/CMakeLists.txt` — step323_test target
 
+### Step 324: Workflow RPC + MCP Tools
+**Status:** PASS (12/12 tests)
+
+Exposes workflow management through 8 RPC methods and 8 MCP tools so agents
+can create, inspect, and advance workflows. Linter role restricted to read-only
+access; Refactor/Generator can mutate.
+
+**Files created:**
+- `editor/tests/step324_test.cpp` — 12 tests: createWorkflow, getReadyTasks
+  ordering, assignTask transitions, completeTask with result + cascade,
+  rejectTask re-enqueue, getWorkItem details, Linter restrictions, MCP
+  registration (8 new tools, 50+ total), saveWorkflow RPC, getWorkflowState,
+  no-workflow error, nonexistent item error
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — added WorkflowState/WorkflowPersistence
+  includes, optional<WorkflowState> workflow member
+- `editor/src/HeadlessAgentRPCHandler.h` — 8 new RPC methods: createWorkflow,
+  getWorkflowState, getReadyTasks, getWorkItem, assignTask, completeTask,
+  rejectTask, saveWorkflow
+- `editor/src/AgentPermissionPolicy.h` — read-only: getWorkflowState,
+  getReadyTasks, getWorkItem; mutation: createWorkflow, assignTask,
+  completeTask, rejectTask, saveWorkflow
+- `editor/src/MCPServer.h` — registerWorkflowExecutionTools() with 8 tools
+- `editor/CMakeLists.txt` — step324_test target
+
+**Tool count:** 50+ (42 existing + 8 workflow execution tools)
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
