@@ -3915,6 +3915,55 @@ pipeline tooling.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 411: PostgreSQL Parser
+**Status:** PASS (12/12 tests)
+
+Added a standalone PostgreSQL parser with SQL-statement extraction and mapping
+to the new SQL AST nodes. Covers DDL/DML basics plus PostgreSQL-specific type
+and procedural patterns.
+
+**Files created:**
+- `editor/src/ast/PostgreSQLParser.h` — PostgreSQL parse support:
+  - `parsePostgreSQL(...)` and `parsePostgreSQLWithDiagnostics(...)`
+  - statement splitting with `$$ ... $$` block awareness
+  - `CREATE TABLE` -> `TableDeclaration` + `ColumnDefinition`
+  - `SELECT` -> `SelectQuery` with `from`/`joins`/`where` and `distinct`
+  - `INSERT`/`UPDATE`/`DELETE` mappings
+  - `CREATE INDEX`/`CREATE UNIQUE INDEX` -> `IndexDefinition`
+  - `DO $$` and `CREATE FUNCTION` markers -> `Function` nodes
+- `editor/tests/step411_test.cpp` — 12 tests covering:
+  1. CREATE TABLE parse
+  2. SELECT parse
+  3. INSERT parse
+  4. UPDATE parse
+  5. DELETE parse
+  6. JOIN + WHERE parse
+  7. PostgreSQL types (`SERIAL`, `JSONB`, `TEXT[]`)
+  8. schema-qualified table names
+  9. CREATE UNIQUE INDEX parse
+  10. DO block + PL/pgSQL function marker parse
+  11. diagnostics entry point
+  12. pipeline parse routing aliases (`postgresql`, `postgres`)
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/PostgreSQLParser.h`
+- `editor/src/Pipeline.h` — parse routing for `postgresql`, `postgres`
+- `editor/CMakeLists.txt` — `step411_test` target
+
+**Verification run:**
+- `step411_test` — PASS (12/12) new step coverage
+- `step410_test` — PASS (12/12) regression coverage
+- `step409_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/PostgreSQLParser.h` within header-size limit (`288` <= `600`)
+- `editor/tests/step411_test.cpp` within test-file size guidance (`185` lines)
+- `editor/src/Pipeline.h` within header-size limit (`251` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

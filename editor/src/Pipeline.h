@@ -126,6 +126,10 @@ public:
             auto pr = VBNetParser::parseVBNetWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "postgresql" || language == "postgres") {
+            auto pr = PostgreSQLParser::parsePostgreSQLWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         } else if (language == "c") {
             auto pr = CParser::parseCWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
