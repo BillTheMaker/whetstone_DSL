@@ -1971,6 +1971,42 @@ and go-to-definition lookup with current-file preference and cross-file fallback
 - `step357_test` — PASS (12/12) regression coverage
 - `step358_test` — PASS (12/12) new step coverage
 
+### Step 359: Find and Replace Improvements
+**Status:** PASS (12/12 tests)
+
+Implemented a find/replace bar model with in-file match tracking, current-match
+navigation, replace-current/replace-all flows, and project-wide search results.
+Model behavior includes open/close modes, highlight state, and match counter text.
+
+**Files created:**
+- `editor/src/panels/FindReplaceBar.h` — find/replace model:
+  - find/replace visibility + mode toggles
+  - query + match indexing + counter text
+  - next/previous match navigation
+  - replace-current and replace-all operations
+  - project-wide search result generation
+- `editor/tests/step359_test.cpp` — 12 tests covering:
+  1. open find
+  2. query-to-match filtering
+  3. highlight visibility
+  4. match counter formatting
+  5. next-match cycling
+  6. replace mode open
+  7. replace-current operation
+  8. project search results
+  9. close behavior
+  10. empty-query clears highlights
+  11. previous-match cycling
+  12. replace-all behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step359_test` target
+
+**Verification run:**
+- `step357_test` — PASS (12/12) regression coverage
+- `step358_test` — PASS (12/12) regression coverage
+- `step359_test` — PASS (12/12) new step coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
