@@ -1605,6 +1605,27 @@ vs typedef). Full JSON serialization roundtrip and CompactAST names for all 4 ty
   NamespaceDeclaration, TypeAlias
 - `editor/CMakeLists.txt` — step338_test target
 
+### Step 339: C++ Parser — Preprocessor, Enum, Namespace
+**Status:** PASS (12/12 tests)
+
+Extended CppParser to parse preprocessor directives (#include, #pragma, #define),
+enums (scoped/unscoped with values), namespaces (with recursive body parsing), and
+type aliases (using/typedef) from tree-sitter CST. Handles preproc_include,
+preproc_def, preproc_function_def, preproc_call, enum_specifier, namespace_definition,
+alias_declaration, and type_definition node types.
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — Added PreprocessorNodes.h, EnumNamespaceNodes.h includes
+- `editor/src/ast/CppParser.h` — Extended convertCppTranslationUnit dispatch, added
+  convertCppInclude, convertCppMacroDef, convertCppPragma, convertCppEnum,
+  convertCppNamespace, convertCppTypeAlias converter functions
+- `editor/CMakeLists.txt` — step339_test target with tree-sitter libraries
+
+**Files created:**
+- `editor/tests/step339_test.cpp` — 12 tests: system/local include, pragma once,
+  object-like/function-like macros, scoped/plain enums, namespace with body, using alias,
+  typedef, mixed file, backward compat
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

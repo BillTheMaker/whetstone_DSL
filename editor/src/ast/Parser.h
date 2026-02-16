@@ -12,6 +12,8 @@
 #include "ClassDeclaration.h"
 #include "GenericType.h"
 #include "AsyncNodes.h"
+#include "PreprocessorNodes.h"
+#include "EnumNamespaceNodes.h"
 #include <string>
 #include <memory>
 #include <vector>

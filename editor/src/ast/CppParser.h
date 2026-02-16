@@ -59,6 +59,42 @@ private:
                 convertCppClassOrStruct(child, source, module, type == "struct_specifier");
             } else if (type == "template_declaration") {
                 convertCppTemplateDecl(child, source, module);
+            } else if (type == "preproc_include") {
+                auto* node = convertCppInclude(child, source);
+                if (node) module->addChild("statements", node);
+            } else if (type == "preproc_def") {
+                auto* node = convertCppMacroDef(child, source, false);
+                if (node) module->addChild("statements", node);
+            } else if (type == "preproc_function_def") {
+                auto* node = convertCppMacroDef(child, source, true);
+                if (node) module->addChild("statements", node);
+            } else if (type == "preproc_call") {
+                auto* node = convertCppPragma(child, source);
+                if (node) module->addChild("statements", node);
+            } else if (type == "enum_specifier") {
+                auto* node = convertCppEnum(child, source);
+                if (node) module->addChild("statements", node);
+            } else if (type == "namespace_definition") {
+                auto* node = convertCppNamespace(child, source);
+                if (node) module->addChild("statements", node);
+            } else if (type == "alias_declaration") {
+                auto* node = convertCppTypeAlias(child, source, true);
+                if (node) module->addChild("statements", node);
+            } else if (type == "type_definition") {
+                auto* node = convertCppTypeAlias(child, source, false);
+                if (node) module->addChild("statements", node);
+            } else if (type == "declaration") {
+                // Could be a using declaration or other top-level decl
+                // Check for alias_declaration child
+                uint32_t nc = ts_node_named_child_count(child);
+                for (uint32_t j = 0; j < nc; ++j) {
+                    TSNode sub = ts_node_named_child(child, j);
+                    std::string subType = nodeType(sub);
+                    if (subType == "alias_declaration") {
+                        auto* node = convertCppTypeAlias(sub, source, true);
+                        if (node) module->addChild("statements", node);
+                    }
+                }
             }
         }
     }
@@ -566,6 +602,176 @@ private:
         if (hasNew && hasDelete) {
             auto* anno = new DeallocateAnnotation(IdGenerator::next("anno"), "Explicit");
             fn->addChild("annotations", anno);
+        }
+    }
+
+    // --- Preprocessor, Enum, Namespace converters (Step 339) ---
+
+    static IncludeDirective* convertCppInclude(TSNode node, const std::string& source) {
+        TSNode pathNode = childByFieldName(node, "path");
+        if (ts_node_is_null(pathNode)) return nullptr;
+        std::string pathText = nodeText(pathNode, source);
+        bool isSystem = false;
+        if (!pathText.empty() && pathText[0] == '<') {
+            isSystem = true;
+            pathText = pathText.substr(1, pathText.size() - 2);
+        } else if (!pathText.empty() && pathText[0] == '"') {
+            pathText = pathText.substr(1, pathText.size() - 2);
+        }
+        auto* inc = new IncludeDirective(IdGenerator::next("inc"), pathText, isSystem);
+        applySpan(inc, node);
+        return inc;
+    }
+
+    static MacroDefinition* convertCppMacroDef(TSNode node, const std::string& source, bool isFunctionLike) {
+        TSNode nameNode = childByFieldName(node, "name");
+        if (ts_node_is_null(nameNode)) return nullptr;
+        std::string name = nodeText(nameNode, source);
+        auto* mac = new MacroDefinition(IdGenerator::next("mac"), name);
+        mac->isFunctionLike = isFunctionLike;
+        applySpan(mac, node);
+
+        TSNode valueNode = childByFieldName(node, "value");
+        if (!ts_node_is_null(valueNode)) {
+            mac->body = nodeText(valueNode, source);
+        }
+
+        if (isFunctionLike) {
+            TSNode paramsNode = childByFieldName(node, "parameters");
+            if (!ts_node_is_null(paramsNode)) {
+                uint32_t pc = ts_node_named_child_count(paramsNode);
+                for (uint32_t i = 0; i < pc; ++i) {
+                    TSNode p = ts_node_named_child(paramsNode, i);
+                    mac->parameters.push_back(nodeText(p, source));
+                }
+            }
+        }
+        return mac;
+    }
+
+    static PragmaDirective* convertCppPragma(TSNode node, const std::string& source) {
+        TSNode dirNode = childByFieldName(node, "directive");
+        if (ts_node_is_null(dirNode)) return nullptr;
+        std::string dirText = nodeText(dirNode, source);
+        if (dirText != "#pragma") return nullptr;
+        TSNode argNode = childByFieldName(node, "argument");
+        std::string argText;
+        if (!ts_node_is_null(argNode)) {
+            argText = nodeText(argNode, source);
+        }
+        auto* prag = new PragmaDirective(IdGenerator::next("prag"), argText);
+        applySpan(prag, node);
+        return prag;
+    }
+
+    static EnumDeclaration* convertCppEnum(TSNode node, const std::string& source) {
+        TSNode nameNode = childByFieldName(node, "name");
+        std::string name;
+        if (!ts_node_is_null(nameNode)) name = nodeText(nameNode, source);
+        if (name.empty()) return nullptr;
+
+        std::string fullText = nodeText(node, source);
+        bool isScoped = (fullText.find("enum class") != std::string::npos ||
+                         fullText.find("enum struct") != std::string::npos);
+
+        auto* enumDecl = new EnumDeclaration(IdGenerator::next("enum"), name, isScoped);
+        applySpan(enumDecl, node);
+
+        // Check for underlying type
+        TSNode underlyingNode = childByFieldName(node, "underlying_type");
+        if (!ts_node_is_null(underlyingNode)) {
+            enumDecl->underlyingType = nodeText(underlyingNode, source);
+        } else {
+            // Parse from text: "enum class Name : uint8_t {"
+            auto colonPos = fullText.find(':');
+            auto bracePos = fullText.find('{');
+            if (colonPos != std::string::npos && bracePos != std::string::npos && colonPos < bracePos) {
+                std::string afterColon = fullText.substr(colonPos + 1, bracePos - colonPos - 1);
+                while (!afterColon.empty() && afterColon[0] == ' ') afterColon.erase(0, 1);
+                while (!afterColon.empty() && afterColon.back() == ' ') afterColon.pop_back();
+                if (!afterColon.empty()) enumDecl->underlyingType = afterColon;
+            }
+        }
+
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            uint32_t bc = ts_node_named_child_count(bodyNode);
+            for (uint32_t i = 0; i < bc; ++i) {
+                TSNode member = ts_node_named_child(bodyNode, i);
+                std::string mtype = nodeType(member);
+                if (mtype == "enumerator") {
+                    TSNode mNameNode = childByFieldName(member, "name");
+                    std::string mName;
+                    if (!ts_node_is_null(mNameNode)) mName = nodeText(mNameNode, source);
+                    std::string mValue;
+                    TSNode mValueNode = childByFieldName(member, "value");
+                    if (!ts_node_is_null(mValueNode)) mValue = nodeText(mValueNode, source);
+                    if (!mName.empty()) {
+                        auto* em = new EnumMember(IdGenerator::next("em"), mName, mValue);
+                        applySpan(em, member);
+                        enumDecl->addChild("members", em);
+                    }
+                }
+            }
+        }
+        return enumDecl;
+    }
+
+    static NamespaceDeclaration* convertCppNamespace(TSNode node, const std::string& source) {
+        TSNode nameNode = childByFieldName(node, "name");
+        std::string name;
+        if (!ts_node_is_null(nameNode)) name = nodeText(nameNode, source);
+
+        auto* ns = new NamespaceDeclaration(IdGenerator::next("ns"), name);
+        applySpan(ns, node);
+
+        TSNode bodyNode = childByFieldName(node, "body");
+        if (!ts_node_is_null(bodyNode)) {
+            uint32_t bc = ts_node_named_child_count(bodyNode);
+            for (uint32_t i = 0; i < bc; ++i) {
+                TSNode child = ts_node_named_child(bodyNode, i);
+                std::string ctype = nodeType(child);
+                if (ctype == "function_definition") {
+                    auto* fn = convertCppFunction(child, source);
+                    if (fn) ns->addChild("body", fn);
+                } else if (ctype == "class_specifier" || ctype == "struct_specifier") {
+                    auto tmpMod = std::make_unique<Module>();
+                    convertCppClassOrStruct(child, source, tmpMod.get(), ctype == "struct_specifier");
+                    for (auto* cls : tmpMod->getChildren("classes"))
+                        ns->addChild("body", cls);
+                } else if (ctype == "enum_specifier") {
+                    auto* e = convertCppEnum(child, source);
+                    if (e) ns->addChild("body", e);
+                } else if (ctype == "namespace_definition") {
+                    auto* inner = convertCppNamespace(child, source);
+                    if (inner) ns->addChild("body", inner);
+                }
+            }
+        }
+        return ns;
+    }
+
+    static TypeAlias* convertCppTypeAlias(TSNode node, const std::string& source, bool isUsing) {
+        if (isUsing) {
+            TSNode nameNode = childByFieldName(node, "name");
+            TSNode typeNode = childByFieldName(node, "type");
+            std::string name, target;
+            if (!ts_node_is_null(nameNode)) name = nodeText(nameNode, source);
+            if (!ts_node_is_null(typeNode)) target = nodeText(typeNode, source);
+            if (name.empty()) return nullptr;
+            auto* ta = new TypeAlias(IdGenerator::next("ta"), name, target, true);
+            applySpan(ta, node);
+            return ta;
+        } else {
+            TSNode typeNode = childByFieldName(node, "type");
+            TSNode declNode = childByFieldName(node, "declarator");
+            std::string target, name;
+            if (!ts_node_is_null(typeNode)) target = nodeText(typeNode, source);
+            if (!ts_node_is_null(declNode)) name = nodeText(declNode, source);
+            if (name.empty()) return nullptr;
+            auto* ta = new TypeAlias(IdGenerator::next("ta"), name, target, false);
+            applySpan(ta, node);
+            return ta;
         }
     }
 
