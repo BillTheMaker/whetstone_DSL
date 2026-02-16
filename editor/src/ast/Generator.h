@@ -13,6 +13,7 @@
 #include "CSharpGenerator.h"
 #include "FSharpGenerator.h"
 #include "VBNetGenerator.h"
+#include "PostgreSQLGenerator.h"
 #include "CGenerator.h"
 #include "WatGenerator.h"
 #include "CommonLispGenerator.h"

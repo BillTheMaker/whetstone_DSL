@@ -190,6 +190,9 @@ public:
         } else if (language == "vbnet" || language == "vb" || language == "vb.net") {
             VBNetGenerator gen;
             return gen.generate(ast);
+        } else if (language == "postgresql" || language == "postgres") {
+            PostgreSQLGenerator gen;
+            return gen.generate(ast);
         } else if (language == "c") {
             CGenerator gen;
             return gen.generate(ast);

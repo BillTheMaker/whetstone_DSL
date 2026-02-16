@@ -16,6 +16,7 @@
 #include "HostBoundary.h"
 #include "PreprocessorNodes.h"
 #include "EnumNamespaceNodes.h"
+#include "SqlNodes.h"
 
 class ProjectionGenerator : public virtual AnnotationVisitorExtended {
 public:
@@ -84,6 +85,16 @@ public:
     virtual std::string visitEnumDeclaration(const ASTNode* node) { return ""; }
     virtual std::string visitNamespaceDeclaration(const ASTNode* node) { return ""; }
     virtual std::string visitTypeAlias(const ASTNode* node) { return ""; }
+    // SQL visitors (Step 412)
+    virtual std::string visitTableDeclaration(const ASTNode* node) { return ""; }
+    virtual std::string visitColumnDefinition(const ASTNode* node) { return ""; }
+    virtual std::string visitSelectQuery(const ASTNode* node) { return ""; }
+    virtual std::string visitInsertStatement(const ASTNode* node) { return ""; }
+    virtual std::string visitUpdateStatement(const ASTNode* node) { return ""; }
+    virtual std::string visitDeleteStatement(const ASTNode* node) { return ""; }
+    virtual std::string visitJoinClause(const ASTNode* node) { return ""; }
+    virtual std::string visitWhereClause(const ASTNode* node) { return ""; }
+    virtual std::string visitIndexDefinition(const ASTNode* node) { return ""; }
 
     // Host boundary visitors
     virtual std::string visitHostCall(const HostCall* node) { return ""; }
@@ -373,6 +384,24 @@ std::string dispatchGenerate(Gen* gen, const ASTNode* node, const std::string& u
         return gen->visitNamespaceDeclaration(node);
     } else if (node->conceptType == "TypeAlias") {
         return gen->visitTypeAlias(node);
+    } else if (node->conceptType == "TableDeclaration") {
+        return gen->visitTableDeclaration(node);
+    } else if (node->conceptType == "ColumnDefinition") {
+        return gen->visitColumnDefinition(node);
+    } else if (node->conceptType == "SelectQuery") {
+        return gen->visitSelectQuery(node);
+    } else if (node->conceptType == "InsertStatement") {
+        return gen->visitInsertStatement(node);
+    } else if (node->conceptType == "UpdateStatement") {
+        return gen->visitUpdateStatement(node);
+    } else if (node->conceptType == "DeleteStatement") {
+        return gen->visitDeleteStatement(node);
+    } else if (node->conceptType == "JoinClause") {
+        return gen->visitJoinClause(node);
+    } else if (node->conceptType == "WhereClause") {
+        return gen->visitWhereClause(node);
+    } else if (node->conceptType == "IndexDefinition") {
+        return gen->visitIndexDefinition(node);
     }
 
     return unknownPrefix + node->conceptType;

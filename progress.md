@@ -3964,6 +3964,61 @@ and procedural patterns.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 412: PostgreSQL Generator
+**Status:** PASS (12/12 tests)
+
+Added a dedicated PostgreSQL generator and end-to-end generation coverage over
+the SQL AST nodes introduced in Step 410 and parsed in Step 411.
+
+**Files created:**
+- `editor/src/ast/PostgreSQLGenerator.h` — PostgreSQL code generation support:
+  - SQL DDL/DML emitters for:
+    - `TableDeclaration`
+    - `ColumnDefinition`
+    - `SelectQuery`
+    - `InsertStatement`
+    - `UpdateStatement`
+    - `DeleteStatement`
+    - `JoinClause`
+    - `WhereClause`
+    - `IndexDefinition`
+  - module/function support for SQL-oriented output
+  - annotation output via Semanno mixin with PostgreSQL comment prefix (`-- `)
+- `editor/tests/step412_test.cpp` — 12 tests covering:
+  1. CREATE TABLE generation with columns
+  2. SELECT DISTINCT + JOIN + WHERE generation
+  3. INSERT generation with columns and values
+  4. UPDATE generation with SET and WHERE
+  5. DELETE generation
+  6. UNIQUE INDEX generation
+  7. module-level SQL statement emission
+  8. WHERE clause passthrough behavior
+  9. PostgreSQL comment prefix + semanno annotation output
+  10. pipeline generate routing aliases (`postgresql`, `postgres`)
+  11. parser-to-generator flow for CREATE TABLE
+  12. edge case: empty SELECT defaults to `SELECT *;`
+
+**Files modified:**
+- `editor/src/ast/ProjectionGenerator.h` — SQL visitor hooks and dispatch branches
+- `editor/src/ast/Generator.h` — include `PostgreSQLGenerator.h`
+- `editor/src/Pipeline.h` — generate routing for `postgresql`, `postgres`
+- `editor/CMakeLists.txt` — `step412_test` target
+
+**Verification run:**
+- `step412_test` — PASS (12/12) new step coverage
+- `step411_test` — PASS (12/12) regression coverage
+- `step410_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/PostgreSQLGenerator.h` within header-size limit (`412` <= `600`)
+- `editor/tests/step412_test.cpp` within test-file size guidance (`203` lines)
+- `editor/src/Pipeline.h` within header-size limit (`254` <= `600`)
+- `editor/src/ast/ProjectionGenerator.h` within header-size limit (`408` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
