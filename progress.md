@@ -4130,6 +4130,52 @@ dialect-specific features (`AUTO_INCREMENT`, backtick identifiers,
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+### Step 415: SQL Annotation Mapping
+**Status:** PASS (12/12 tests)
+
+Added SQL-specific semantic annotation mapping focused on risk, complexity,
+bounds checks, index contracts, and cross-stack ORM<->schema consistency.
+
+**Files created:**
+- `editor/src/SqlAnnotationMapper.h` — SQL annotation inference/mapping support:
+  - module-level AST inference for:
+    - `RiskAnnotation` on destructive SQL patterns (DELETE without WHERE, UPDATE without WHERE)
+    - `ComplexityAnnotation` from JOIN depth + subquery hints
+    - `BoundsCheckAnnotation` from `LIMIT`/`TOP` clauses
+    - `ContractAnnotation` precondition for index-dependent queries
+  - text-level SQL inference for `DROP TABLE` and bounds clause patterns
+  - cross-stack mapping for Python ORM class fields vs SQL table columns
+  - inferred-annotation application helper to attach generated annotations to AST nodes
+- `editor/tests/step415_test.cpp` — 12 tests covering:
+  1. high risk on DELETE without WHERE
+  2. no high-risk false positive on DELETE with WHERE
+  3. high risk on DROP TABLE text
+  4. complexity from multi-join depth
+  5. complexity from subquery nesting hint
+  6. bounds check inference from LIMIT
+  7. bounds check inference from TOP
+  8. no bounds-check false positive without LIMIT/TOP
+  9. index precondition contract inference
+  10. cross-stack ORM<->SQL contract mapping
+  11. cross-stack schema mismatch risk mapping
+  12. inferred-annotation application to AST nodes
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step415_test` target
+
+**Verification run:**
+- `step415_test` — PASS (12/12) new step coverage
+- `step414_test` — PASS (12/12) regression coverage
+- `step413_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SqlAnnotationMapper.h` within header-size limit (`246` <= `600`)
+- `editor/tests/step415_test.cpp` within test-file size guidance (`230` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
