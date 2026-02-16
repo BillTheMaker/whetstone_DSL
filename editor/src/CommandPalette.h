@@ -2,14 +2,20 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <optional>
 #include <algorithm>
+#include "KeybindingRegistry.h"
+#include "PanelManager.h"
+#include "Icons.h"
 
 struct CommandEntry {
     std::string id;
     std::string label;
     std::string shortcut;
+    std::string icon;
     std::string category;
     std::string inputHint;
+    std::vector<std::string> aliases;
     int contextMask = 0;
     bool inlineInput = false;
     int lastUsed = 0;
@@ -32,13 +38,33 @@ enum CommandContext : int {
 
 class CommandPalette {
 public:
+    void open() {
+        isOpen_ = true;
+        selectedIndex_ = 0;
+    }
+
+    void close() {
+        isOpen_ = false;
+    }
+
+    bool isOpen() const { return isOpen_; }
+
+    void setQuery(const std::string& q) {
+        query_ = q;
+        selectedIndex_ = 0;
+    }
+
+    const std::string& query() const { return query_; }
+
     void registerCommand(const std::string& id,
                          const std::string& label,
                          const std::string& shortcut,
                          const std::string& category = "",
                          int contextMask = CommandContext_Any,
                          const std::string& inputHint = "",
-                         bool inlineInput = false) {
+                         bool inlineInput = false,
+                         const std::vector<std::string>& aliases = {},
+                         const std::string& icon = "") {
         auto& entry = commands_[id];
         entry.id = id;
         entry.label = label;
@@ -47,6 +73,43 @@ public:
         entry.contextMask = contextMask;
         entry.inputHint = inputHint;
         entry.inlineInput = inlineInput;
+        entry.aliases = aliases;
+        entry.icon = icon;
+    }
+
+    void registerFromKeybindings(const KeybindingRegistry& registry) {
+        for (const auto& action : registry.getActions()) {
+            const auto binding = registry.getBinding(action.id);
+            registerCommand(
+                action.id,
+                action.label,
+                binding.toString(),
+                action.category,
+                CommandContext_Any,
+                "",
+                false,
+                {action.id},
+                WhetstoneIcons::Search
+            );
+        }
+    }
+
+    void registerPanelToggles(const PanelManager& panels) {
+        for (const auto& panel : panels.getPanelList()) {
+            std::string id = "toggle-" + panel.id;
+            std::string label = "Toggle " + panel.title;
+            registerCommand(
+                id,
+                label,
+                "",
+                "View",
+                CommandContext_Any,
+                "",
+                false,
+                {panel.id, panel.title},
+                panel.icon.empty() ? WhetstoneIcons::Search : panel.icon
+            );
+        }
     }
 
     void markUsed(const std::string& id) {
@@ -67,9 +130,44 @@ public:
             if (query.empty()) {
                 match.score = cmd.lastUsed > 0 ? 50 + cmd.lastUsed : 1;
             } else {
+                int bestScore = 0;
+                std::vector<int> bestIndices;
+                bool found = false;
+
                 int score = 0;
-                if (!fuzzyMatch(cmd.label, query, score, match.matchIndices)) continue;
-                match.score = score;
+                std::vector<int> indices;
+                if (fuzzyMatch(cmd.label, query, score, indices)) {
+                    found = true;
+                    bestScore = score + 20; // label match bias
+                    bestIndices = indices;
+                }
+                if (fuzzyMatch(cmd.id, query, score, indices)) {
+                    found = true;
+                    if (score + 10 > bestScore) {
+                        bestScore = score + 10;
+                        bestIndices = indices;
+                    }
+                }
+                if (fuzzyMatch(cmd.category, query, score, indices)) {
+                    found = true;
+                    if (score + 5 > bestScore) {
+                        bestScore = score + 5;
+                        bestIndices = indices;
+                    }
+                }
+                for (const auto& alias : cmd.aliases) {
+                    if (fuzzyMatch(alias, query, score, indices)) {
+                        found = true;
+                        if (score + 15 > bestScore) {
+                            bestScore = score + 15;
+                            bestIndices = indices;
+                        }
+                    }
+                }
+
+                if (!found) continue;
+                match.score = bestScore;
+                match.matchIndices = bestIndices;
                 if (contextOk) match.score += 25;
                 else match.score -= 10;
             }
@@ -103,6 +201,27 @@ public:
         std::vector<CommandEntry> result;
         for (const auto& [_, cmd] : commands_) result.push_back(cmd);
         return result;
+    }
+
+    void moveSelection(int delta, int resultCount) {
+        if (resultCount <= 0) {
+            selectedIndex_ = 0;
+            return;
+        }
+        selectedIndex_ += delta;
+        if (selectedIndex_ < 0) selectedIndex_ = resultCount - 1;
+        if (selectedIndex_ >= resultCount) selectedIndex_ = 0;
+    }
+
+    int selectedIndex() const { return selectedIndex_; }
+
+    std::optional<std::string> executeSelected(const std::vector<CommandMatch>& matches) {
+        if (matches.empty() || selectedIndex_ < 0 || selectedIndex_ >= (int)matches.size()) {
+            return std::nullopt;
+        }
+        const std::string id = matches[selectedIndex_].entry.id;
+        markUsed(id);
+        return id;
     }
 
     static bool fuzzyMatch(const std::string& text,
@@ -150,4 +269,7 @@ private:
 
     std::unordered_map<std::string, CommandEntry> commands_;
     int useCounter_ = 0;
+    bool isOpen_ = false;
+    std::string query_;
+    int selectedIndex_ = 0;
 };

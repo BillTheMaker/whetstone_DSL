@@ -1752,6 +1752,44 @@ with shortcut columns, and multi-key chord strings in both text and symbol forms
 - `step351_test` — PASS (12/12) regression coverage
 - `step352_test` — PASS (12/12) new step coverage
 
+### Step 353: Command Palette
+**Status:** PASS (12/12 tests)
+
+Extended the command palette into a richer step-353 foundation: stateful open/close,
+selection movement, execute-selected behavior, and broadened fuzzy search over labels,
+ids, categories, and aliases. Added population helpers that pull actions from
+`KeybindingRegistry` and panel toggles from `PanelManager`.
+
+**Files modified:**
+- `editor/src/CommandPalette.h` — added:
+  - palette state APIs: `open()`, `close()`, `isOpen()`, `setQuery()`, `selectedIndex()`
+  - command metadata: `icon`, `aliases`
+  - registration helpers: `registerFromKeybindings(...)`, `registerPanelToggles(...)`
+  - expanded fuzzy search scoring across label/id/category/aliases
+  - selection navigation: `moveSelection(...)`
+  - execution helper: `executeSelected(...)` with recent-use tracking
+- `editor/CMakeLists.txt` — `step353_test` target
+
+**Files created:**
+- `editor/tests/step353_test.cpp` — 12 tests covering:
+  1. open/close state
+  2. fuzzy search by label
+  3. fuzzy search by alias
+  4. keybinding registry population
+  5. panel toggle population
+  6. execute selected action
+  7. selection wrap behavior
+  8. query reset behavior
+  9. recent action ranking
+  10. strict context filtering
+  11. category-based matching
+  12. no-match behavior
+
+**Verification run:**
+- `step344_test` — PASS (12/12) command palette integration regression
+- `step346_test` — PASS (8/8) layout + palette integration regression
+- `step353_test` — PASS (12/12) new step coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
