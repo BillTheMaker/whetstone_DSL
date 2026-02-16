@@ -80,11 +80,18 @@ private:
 
         if (lang == "python" || lang == "elisp" || lang == "ruby" ||
             lang == "javascript" || lang == "java" || lang == "csharp" ||
-            lang == "kotlin") {
+            lang == "kotlin" || lang == "common-lisp" || lang == "commonlisp" ||
+            lang == "lisp" || lang == "cl") {
             // GC languages → @Reclaim(Tracing) on the module
             out.push_back({mod->id, "ReclaimAnnotation", "Tracing",
                            lang + " uses tracing garbage collection",
                            0.95});
+            if (lang == "common-lisp" || lang == "commonlisp" ||
+                lang == "lisp" || lang == "cl") {
+                out.push_back({mod->id, "OwnerAnnotation", "Shared_GC",
+                               "Common Lisp values are GC-managed shared objects",
+                               0.92});
+            }
         }
         else if (lang == "go") {
             out.push_back({mod->id, "ReclaimAnnotation", "Escape",

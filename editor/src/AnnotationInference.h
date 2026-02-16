@@ -14,7 +14,6 @@
 #include <set>
 #include <algorithm>
 #include <cctype>
-
 class AnnotationInference {
 public:
     struct InferredAnnotation {
@@ -57,6 +56,15 @@ private:
         if (node->conceptType == "Function" || node->conceptType == "AsyncFunction" ||
             node->conceptType == "MethodDeclaration") {
             inferFunction(node, out);
+        } else if (node->conceptType == "Variable") {
+            inferVariable(node, out);
+        } else if (node->conceptType == "MacroDefinition") {
+            inferMacro(node, out);
+        } else if (node->conceptType == "ClassDeclaration") {
+            if (!hasInferred(out, node->id, "VisibilityAnnotation", "public")) {
+                out.push_back({node->id, "VisibilityAnnotation", "level", "public",
+                              "Class declarations default to public surface", 0.70});
+            }
         }
         else if (node->conceptType == "ForLoop" || node->conceptType == "WhileLoop") {
             inferLoop(node, out);
@@ -72,8 +80,6 @@ private:
         auto annos = fn->getChildren("annotations");
         std::set<std::string> existing;
         for (const auto* a : annos) existing.insert(a->conceptType);
-
-        auto body = fn->getChildren("body");
 
         // Async detection
         if (fn->conceptType == "AsyncFunction" && !existing.count("ExecAnnotation")) {
@@ -100,31 +106,27 @@ private:
                               "Tail-recursive call detected", 0.80});
             }
         }
-
+        inferLispFunctionPatterns(fn, existing, fnName, out);
         // Visibility inference for methods
         if (fn->conceptType == "MethodDeclaration" && !existing.count("VisibilityAnnotation")) {
             out.push_back({fn->id, "VisibilityAnnotation", "level", "public",
                           "Default method visibility", 0.60});
         }
-
         // Exception handling detection
         if (!existing.count("ExceptionAnnotation") && hasExceptionHandling(fn)) {
             out.push_back({fn->id, "ExceptionAnnotation", "style", "unchecked",
                           "try/catch pattern detected", 0.75});
         }
-
         // Blocking detection
         if (!existing.count("BlockingAnnotation") && hasBlockingCalls(fn)) {
             out.push_back({fn->id, "BlockingAnnotation", "kind", "io",
                           "IO operations detected", 0.65});
         }
-
         // Parallel detection (goroutine-like patterns)
         if (!existing.count("ParallelAnnotation") && hasParallelPatterns(fn)) {
             out.push_back({fn->id, "ParallelAnnotation", "kind", "task",
                           "Parallel dispatch pattern detected", 0.70});
         }
-
         // Complexity inference
         if (!existing.count("ComplexityAnnotation")) {
             int depth = nestingDepth(fn);
@@ -135,7 +137,6 @@ private:
                           "Nesting depth analysis", 0.55});
         }
     }
-
     void inferLoop(const ASTNode* loop, std::vector<InferredAnnotation>& out) const {
         auto annos = loop->getChildren("annotations");
         std::set<std::string> existing;
@@ -182,8 +183,17 @@ private:
                 return fc->functionName == name;
             }
         }
+        if (last->conceptType == "ExpressionStatement") {
+            auto* expr = last->getChild("expression");
+            if (expr && expr->conceptType == "FunctionCall") {
+                auto* fc = static_cast<const FunctionCall*>(expr);
+                return fc->functionName == name;
+            }
+        }
         return false;
     }
+
+#include "AnnotationInferenceLisp.h"
 
     bool hasExceptionHandling(const ASTNode* node) const {
         if (!node) return false;

@@ -2487,6 +2487,52 @@ for Common Lisp aliases in the pipeline.
 - `editor/src/ast/CommonLispGenerator.h` remains within header-size limit
   (`267` lines <= `600`)
 
+### Step 372: Lisp Annotation Mapping
+**Status:** PASS (12/12 tests)
+
+Added Lisp-focused annotation inference coverage for macros, dynamic bindings,
+multi-value contracts, method dispatch signals, and optimize/declaration forms,
+plus Common Lisp memory-strategy defaults.
+
+**Files created:**
+- `editor/src/AnnotationInferenceLisp.h` — extracted Lisp-specific inference helpers:
+  - macro inference (`Meta(quoted)` + `Synthetic(macro)`)
+  - dynamic vs lexical binding inference (`Binding(dynamic|static)`)
+  - CL form pattern checks for `values`, `declare(type ...)`, and `optimize`
+  - CLOS method synthetic hint inference
+- `editor/tests/step372_test.cpp` — 12 tests covering:
+  1. macro -> `Meta(quoted)`
+  2. dynamic variable -> `Binding(dynamic)`
+  3. `values` -> multi-value `Contract`
+  4. tail-recursive function -> `TailCall`
+  5. CLOS class -> `Visibility(public)`
+  6. optimize declaration -> `Policy(perf=critical, style=literal)`
+  7. Common Lisp GC defaults (`Reclaim(Tracing)`, `Owner(Shared_GC)`)
+  8. confidence bounds and strong signals
+  9. `Binding(dynamic)` preservation through CL -> Python projection
+  10. `Binding(dynamic)` preservation through CL -> C++ projection
+  11. `declare(type ...)` -> `Complexity(declared-type)`
+  12. method synthetic hint for CLOS dispatch
+
+**Files modified:**
+- `editor/src/AnnotationInference.h` — integrate Lisp inference hooks while
+  preserving architecture line limits
+- `editor/src/MemoryStrategyInference.h` — add Common Lisp module defaults for GC
+- `editor/CMakeLists.txt` — `step372_test` target
+
+**Verification run:**
+- `step372_test` — PASS (12/12) new step coverage
+- `step371_test` — PASS (12/12) regression coverage
+- `step370_test` — PASS (12/12) regression coverage
+- `step369_test` — PASS (8/8) regression coverage
+- `step367_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AnnotationInference.h` remains within header-size limit
+  (`599` lines <= `600`)
+- `editor/src/MemoryStrategyInference.h` remains within header-size limit
+  (`384` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
