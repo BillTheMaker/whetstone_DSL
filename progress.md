@@ -3572,6 +3572,54 @@ complexity metadata.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 404: Self-Hosting Progress Report + Phase Integration
+**Status:** PASS (8/8 tests)
+
+Completed Phase 16b integration reporting with aggregate self-host coverage,
+pipeline execution checks over both target headers, Semanno roundtrip checks
+from inferred complexity metadata, and explicit gap-reporting behavior.
+
+**Files created:**
+- `editor/tests/step404_test.cpp` — 8 integration tests covering:
+  1. per-file self-host coverage metrics
+  2. baseline per-file coverage ratios
+  3. aggregate phase coverage accounting
+  4. `Pipeline.run()` success for both target headers
+  5. gap-reporting path for opaque construct deficits
+  6. Semanno emit/parse check for inferred complexity
+  7. report formatting (file identity + parse status)
+  8. phase artifact sanity (step400-404 test files present)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step404_test` target
+
+**Verification run:**
+- `step404_test` — PASS (8/8) new integration coverage
+- `step403_test` — PASS (12/12) regression coverage
+- `step402_test` — PASS (12/12) regression coverage
+
+**Phase 16b completion snapshot (Steps 400-404):**
+- Step 400: Self-hosting harness + coverage tracking (12 tests)
+- Step 401: Parse `AnnotationConflictExtended.h` (12 tests)
+- Step 402: Parse `AnnotationValidatorExtended.h` (12 tests)
+- Step 403: Inference + generation on self-hosted ASTs (12 tests)
+- Step 404: Coverage report + phase integration (8 tests)
+
+**Sprint 16 completion snapshot (Steps 394-404):**
+- Phase 16a complete (Steps 394-399, 68 tests)
+- Phase 16b complete (Steps 400-404, 56 tests)
+- Sprint 16 total: 11 steps, 124 tests
+
+**Architecture gate check (end of Sprint 16):**
+- `editor/tests/step404_test.cpp` within test-file size guidance (`219` lines)
+- `editor/tests/step403_test.cpp` within test-file size guidance (`236` lines)
+- `editor/tests/step402_test.cpp` within test-file size guidance (`239` lines)
+- `editor/src/SelfHostHarness.h` within header-size limit (`308` <= `600`)
+- `editor/src/AnnotationValidatorExtended.h` within header-size limit (`349` <= `600`)
+- Legacy oversized headers persist and remain queued for split work:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
