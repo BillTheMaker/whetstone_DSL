@@ -3200,6 +3200,50 @@ APIs through RPC + MCP for client-side visualization and progress UIs.
 - Legacy oversized header persists:
   - `editor/src/MCPServer.h` (`1679` > `600`)
 
+### Step 388: Phase 15b Integration — Full Protocol Test
+**Status:** PASS (8/8 tests)
+
+Added end-to-end protocol integration coverage connecting session protocol,
+orchestrator/event-stream RPC, context bundles, acceptance pipeline, and
+progress tracking into one executable workflow path.
+
+**Files created:**
+- `editor/tests/step388_test.cpp` — 8 integration tests covering:
+  1. full protocol walkthrough to completion
+  2. event stream transition capture
+  3. context bundle core-field integrity
+  4. acceptance behavior by worker type (deterministic vs llm)
+  5. rejection -> reroute -> improved submission -> acceptance
+  6. progress snapshot monotonic advancement
+  7. `getNextAction` protocol guidance
+  8. workflow-session persistence/resume
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step388_test` target
+
+**Verification run:**
+- `step388_test` — PASS (8/8) new integration coverage
+- `step387_test` — PASS (12/12) regression coverage
+- `step386_test` — PASS (12/12) regression coverage
+- `step385_test` — PASS (12/12) regression coverage
+
+**Phase 15b completion snapshot (Steps 384-388):**
+- Step 384: workflow session protocol
+- Step 385: context bundle format
+- Step 386: result acceptance protocol
+- Step 387: orchestrator event stream + RPC/MCP exposure
+- Step 388: full protocol integration
+
+**Architecture gate check (end of Phase 15b):**
+- `editor/tests/step388_test.cpp` within test-file size guidance (`224` lines)
+- `editor/src/WorkflowProtocol.h` within header-size limit (`185` <= `600`)
+- `editor/src/ContextBundle.h` within header-size limit (`168` <= `600`)
+- `editor/src/ResultAcceptance.h` within header-size limit (`125` <= `600`)
+- `editor/src/EventStream.h` within header-size limit (`68` <= `600`)
+- `editor/src/HeadlessOrchestratorRPC.h` within header-size limit (`374` <= `600`)
+- Legacy oversized header persists:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
