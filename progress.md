@@ -1374,6 +1374,25 @@ invocation), HumanWorker (marks for human review). Registry with lookup.
 **Files modified:**
 - `editor/CMakeLists.txt` — step327_test target
 
+### Step 328: ContextAssembler — Context Window Assembly + Budget
+**Status:** PASS (12/12 tests)
+
+Builds context windows per @ContextWidth (local/file/project/cross-project)
+with token budget enforcement. Prioritizes: target node > annotations >
+siblings > buffer content > project summaries under truncation.
+
+**Files created:**
+- `editor/src/ContextAssembler.h` — BufferInfo struct, estimateTokens helpers,
+  ContextAssembler class with assembleContext (local/file/project/cross-project
+  strategies), budget truncation, sibling/import graph inclusion
+- `editor/tests/step328_test.cpp` — 12 tests: local/file/project/cross-project
+  context, budget truncation, priority under truncation, import graph,
+  empty project fallback, token estimation, unlimited budget, siblings,
+  rejection feedback preservation
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step328_test target
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

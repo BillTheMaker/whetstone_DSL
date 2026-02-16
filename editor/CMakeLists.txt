@@ -1966,4 +1966,9 @@ add_executable(step327_test tests/step327_test.cpp)
 target_include_directories(step327_test PRIVATE src)
 target_link_libraries(step327_test PRIVATE nlohmann_json::nlohmann_json)
 
+# Step 328: Context Assembly + Budget
+add_executable(step328_test tests/step328_test.cpp)
+target_include_directories(step328_test PRIVATE src)
+target_link_libraries(step328_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
