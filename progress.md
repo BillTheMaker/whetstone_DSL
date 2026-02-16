@@ -4322,6 +4322,57 @@ flows (`architect_project`, `modernize_module`, `port_to_language`,
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+### Step 419: Agent Workflow Loop
+**Status:** PASS (12/12 tests)
+
+Added a concrete MCP-driven agent loop wrapper that executes the Phase 18a
+sequence across real MCP tool calls and handles external-result submission for
+blocker items.
+
+**Files created:**
+- `editor/src/MCPAgentWorkflowLoop.h` — workflow-loop support:
+  - required-tool gate for:
+    - `whetstone_infer_annotations`
+    - `whetstone_create_skeleton`
+    - `whetstone_create_workflow`
+    - `whetstone_orchestrate_run_deterministic`
+    - `whetstone_get_blockers`
+    - `whetstone_submit_result`
+    - `whetstone_get_progress`
+  - MCP `tools/call` execution wrapper with JSON result parsing
+  - blocker parsing support (`itemId` and `id` aliases)
+  - orchestrated run sequence with configurable project/skeleton metadata
+  - loop report with call trace, blocker count, and final progress snapshot
+- `editor/tests/step419_test.cpp` — 12 tests covering:
+  1. baseline loop order without blockers
+  2. single-blocker submit flow
+  3. multi-blocker submit flow
+  4. config propagation to skeleton/workflow creation calls
+  5. blocker parsing (`itemId`)
+  6. blocker parsing (`id` alias)
+  7. invalid blocker filtering
+  8. report call-order tracking
+  9. agent handler payload delivery
+  10. submit payload shape (code + confidence)
+  11. final progress propagation into report
+  12. required MCP tool presence check
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step419_test` target
+
+**Verification run:**
+- `step419_test` — PASS (12/12) new step coverage
+- `step418_test` — PASS (12/12) regression coverage
+- `step417_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MCPAgentWorkflowLoop.h` within header-size limit (`137` <= `600`)
+- `editor/tests/step419_test.cpp` within test-file size guidance (`299` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
