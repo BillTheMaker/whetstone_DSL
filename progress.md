@@ -3437,6 +3437,65 @@ End-to-end Phase 16a validation combining all new C++ constructs.
 - Legacy oversized header persists:
   - `editor/src/MCPServer.h` (`1679` > `600`)
 
+## Phase 16b: Self-Hosting Phase 1
+
+### Step 400: Self-Hosting Test Harness
+**Status:** PASS (12/12 tests)
+
+Added a reusable self-hosting harness for parsing real project headers,
+checking expected structure, and reporting construct coverage with opaque
+tracking for graceful degradation.
+
+**Files created:**
+- `editor/src/SelfHostHarness.h` — parseFile/parseSource helpers, expected
+  structure checks, coverage tracking, coverage report output
+- `editor/tests/step400_test.cpp` — 12 tests for parsing, coverage accounting,
+  graceful degradation, and report formatting
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step400_test` target
+
+**Architecture gate check:**
+- `editor/src/SelfHostHarness.h` within header-size limit (`308` <= `600`)
+- `editor/tests/step400_test.cpp` within test-file size guidance (`256` lines)
+
+### Step 401: Parse AnnotationConflictExtended.h
+**Status:** PASS (12/12 tests)
+
+Validated self-hosting against a real project header (`AnnotationConflictExtended.h`):
+struct and free-function capture, parameter/body extraction, field-name fidelity,
+coverage reporting, and graceful degradation on missing expected constructs.
+
+**Files created:**
+- `editor/tests/step401_test.cpp` — 12 tests covering:
+  1. parse real header file from disk
+  2. `CrossTypeConflict` struct capture
+  3. `collectCrossTypeConflicts` signature capture
+  4. expected-structure 100% coverage
+  5. struct field count
+  6. struct field-name preservation
+  7. function parameter extraction
+  8. function body presence
+  9. coverage report content checks
+  10. lambda-heavy header pattern parse stability
+  11. STL-heavy type pattern parse stability
+  12. graceful degradation via opaque coverage accounting
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step401_test` target
+
+**Verification run:**
+- `step401_test` — PASS (12/12) new step coverage
+- `step400_test` — PASS (12/12) regression coverage
+- `step399_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step401_test.cpp` within test-file size guidance (`231` lines)
+- `editor/src/SelfHostHarness.h` remains within header-size limit (`308` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
