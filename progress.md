@@ -1899,6 +1899,42 @@ theme-derived colors for consistent visual integration.
 - `step355_test` — PASS (8/8) regression coverage
 - `step356_test` — PASS (12/12) new step coverage
 
+### Step 357: Status Bar
+**Status:** PASS (12/12 tests)
+
+Added a status-bar data model that provides left/center/right sections for
+language/file, cursor+encoding+line-ending, and diagnostics/workflow/MCP state.
+The model includes theme-driven colors, overflow signaling, and a diagnostics
+focus target for click handling.
+
+**Files created:**
+- `editor/src/panels/StatusBar.h` — headless status model:
+  - `StatusBarInput` + `StatusBarModel`
+  - `buildStatusBar(...)` section construction and overflow check
+  - language badge color mapping
+  - diagnostics click target helper
+- `editor/tests/step357_test.cpp` — 12 tests covering:
+  1. language badge
+  2. cursor position updates
+  3. diagnostic summary counts
+  4. workflow badge visibility/content
+  5. diagnostics click target
+  6. theme color usage
+  7. language switch behavior
+  8. encoding display
+  9. normal-fit no-overflow case
+  10. overflow flag on extreme content
+  11. line-ending display
+  12. MCP connected/offline indicator
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step357_test` target
+
+**Verification run:**
+- `step355_test` — PASS (8/8) regression coverage
+- `step356_test` — PASS (12/12) regression coverage
+- `step357_test` — PASS (12/12) new step coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
