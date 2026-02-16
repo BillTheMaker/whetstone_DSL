@@ -3820,6 +3820,47 @@ Outputs VB-style `Sub`/`Function` blocks, `Dim` declarations, `If...Then...End I
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 409: .NET Integration
+**Status:** PASS (8/8 tests)
+
+Added phase-level .NET integration validation across C#, F#, and VB.NET parse
+and generation routes, including cross-language projection checks and shared
+Semanno annotation behavior across all 3 .NET-targeted outputs.
+
+**Files created:**
+- `editor/tests/step409_test.cpp` — 8 integration tests covering:
+  1. C# -> F# generation path
+  2. F# -> C# generation path
+  3. C# -> VB.NET generation path
+  4. VB.NET -> F# generation path
+  5. Python -> F# generation path
+  6. parse alias routing (`f#`, `fs`, `vb`, `vb.net`)
+  7. shared type-annotation Semanno emission across C#/F#/VB targets
+  8. `Pipeline.run()` success for both new languages as source/target
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step409_test` target
+
+**Verification run:**
+- `step409_test` — PASS (8/8) new integration coverage
+- `step408_test` — PASS (12/12) regression coverage
+- `step407_test` — PASS (12/12) regression coverage
+
+**Phase 17a completion snapshot (Steps 405-409):**
+- Step 405: F# parser (12 tests)
+- Step 406: F# generator (12 tests)
+- Step 407: VB.NET parser (12 tests)
+- Step 408: VB.NET generator (12 tests)
+- Step 409: .NET integration (8 tests)
+
+**Architecture gate check (end of Phase 17a):**
+- `editor/tests/step409_test.cpp` within test-file size guidance (`153` lines)
+- `editor/src/ast/VBNetGenerator.h` within header-size limit (`261` <= `600`)
+- `editor/src/ast/VBNetParser.h` within header-size limit (`184` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
