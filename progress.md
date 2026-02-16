@@ -3674,6 +3674,57 @@ and pipe-operator chains.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
 
+### Step 406: F# Generator
+**Status:** PASS (12/12 tests)
+
+Added a dedicated F# generator with Semanno annotation emission support and
+pipeline generate-route aliases (`fsharp`, `f#`, `fs`). Outputs functional
+`let` forms, async computation expressions, discriminated-union style enum
+output, record-style class output, and F#-style type mappings.
+
+**Files created:**
+- `editor/src/ast/FSharpGenerator.h` — F# generation support:
+  - module/function/variable generation using `let`
+  - mutable variable output from `MutAnnotation`
+  - async output: `let name = async { ... }`
+  - namespace/module output (`module Name`)
+  - union output (`type Name = | Case...`)
+  - record output (`type Name = { field: obj; ... }`)
+  - pipeline marker generation (`|> pipeline`)
+  - type mapping for `int`, `float`, `string`, `bool`, `unit`, `option`, `result`
+  - Semanno output for subject 1 and extended annotation families
+- `editor/tests/step406_test.cpp` — 12 tests covering:
+  1. `let` function generation
+  2. mutable variable generation
+  3. discriminated union generation
+  4. record/class generation
+  5. async function generation
+  6. module namespace generation
+  7. if-statement generation
+  8. pipeline marker generation
+  9. type mapping behavior
+  10. comment prefix (`// `)
+  11. Semanno annotation output
+  12. pipeline generate routing for `fsharp` / `f#` / `fs`
+
+**Files modified:**
+- `editor/src/ast/Generator.h` — include `FSharpGenerator.h`
+- `editor/src/Pipeline.h` — generate routing for `fsharp`, `f#`, `fs`
+- `editor/CMakeLists.txt` — `step406_test` target
+
+**Verification run:**
+- `step406_test` — PASS (12/12) new step coverage
+- `step405_test` — PASS (12/12) regression coverage
+- `step404_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/FSharpGenerator.h` within header-size limit (`348` <= `600`)
+- `editor/tests/step406_test.cpp` within test-file size guidance (`205` lines)
+- `editor/src/Pipeline.h` within header-size limit (`240` <= `600`)
+- Legacy oversized headers persist:
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

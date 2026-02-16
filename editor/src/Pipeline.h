@@ -176,6 +176,9 @@ public:
         } else if (language == "csharp") {
             CSharpGenerator gen;
             return gen.generate(ast);
+        } else if (language == "fsharp" || language == "f#" || language == "fs") {
+            FSharpGenerator gen;
+            return gen.generate(ast);
         } else if (language == "c") {
             CGenerator gen;
             return gen.generate(ast);
