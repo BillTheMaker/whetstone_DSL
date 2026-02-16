@@ -1522,6 +1522,35 @@ private:
             };
     }
 
+    void registerReviewTools() {
+        // whetstone_set_review_policy
+        tools_.push_back({"whetstone_set_review_policy",
+            "Configure auto-approve rules for the review gate. Rules specify "
+            "worker type, minimum confidence, and risk level thresholds.",
+            {{"type", "object"}, {"properties", {
+                {"policy", {{"type", "object"}, {"properties", {
+                    {"defaultAction", {{"type", "string"},
+                        {"enum", {"require-review", "auto-approve"}}}},
+                    {"autoApproveRules", {{"type", "array"}, {"items", {{"type", "object"}}}}}
+                }}}}
+            }}}
+        });
+        toolHandlers_["whetstone_set_review_policy"] =
+            [this](const json& args) {
+                return callWhetstone("setReviewPolicy", args);
+            };
+
+        // whetstone_get_review_policy
+        tools_.push_back({"whetstone_get_review_policy",
+            "Get the current review policy including auto-approve rules.",
+            {{"type", "object"}, {"properties", json::object()}}
+        });
+        toolHandlers_["whetstone_get_review_policy"] =
+            [this](const json& args) {
+                return callWhetstone("getReviewPolicy", args);
+            };
+    }
+
     void registerWhetstoneTools() {
         registerASTTools();
         registerAnnotationTools();
@@ -1537,5 +1566,6 @@ private:
         registerWorkflowTools();
         registerWorkflowExecutionTools();
         registerRoutingTools();
+        registerReviewTools();
     }
 };

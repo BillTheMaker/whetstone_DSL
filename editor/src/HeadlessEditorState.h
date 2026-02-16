@@ -42,6 +42,7 @@
 #include "RoutingEngine.h"
 #include "WorkerRegistry.h"
 #include "ContextAssembler.h"
+#include "ReviewGate.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -143,6 +144,8 @@ struct HeadlessEditorState {
     RoutingEngine        routingEngine;
     WorkerRegistry       workerRegistry = WorkerRegistry::getDefaultRegistry();
     ContextAssembler     contextAssembler;
+    ReviewGate           reviewGate;
+    ReviewPolicy         reviewPolicy = ReviewPolicy::getDefault();
 
     // --- Buffer access ---
 

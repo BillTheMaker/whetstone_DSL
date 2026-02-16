@@ -69,7 +69,8 @@ struct AgentPermissionPolicy {
             method == "getWorkflowState" ||
             method == "getReadyTasks" ||
             method == "getWorkItem" ||
-            method == "getRoutingExplanation") {
+            method == "getRoutingExplanation" ||
+            method == "getReviewPolicy") {
             return true;
         }
 
@@ -101,7 +102,8 @@ struct AgentPermissionPolicy {
             method == "saveWorkflow" ||
             method == "routeTask" ||
             method == "routeAllReady" ||
-            method == "executeTask") {
+            method == "executeTask" ||
+            method == "setReviewPolicy") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

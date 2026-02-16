@@ -1421,6 +1421,31 @@ getRoutingExplanation shows reasoning.
 
 **Tool count:** 54+ (50 existing + 4 routing tools)
 
+### Step 330: Review Gates
+**Status:** PASS (12/12 tests)
+
+Configurable auto-approve rules and review queue. Default policy auto-approves
+deterministic/template workers with >=0.9 confidence; everything else requires
+review. Explicit @Review(required) always overrides auto-approve.
+
+**Files created:**
+- `editor/src/ReviewGate.h` — AutoApproveRule, ReviewPolicy (with default),
+  ReviewDecision, ReviewGate with shouldAutoApprove, risk level helpers
+- `editor/tests/step330_test.cpp` — 12 tests: deterministic/template auto-approve,
+  LLM requires review, low confidence rejected, custom policy, default policy,
+  @Review override, wildcard rule, policy roundtrip, empty policy, default
+  require-review, human requires review
+
+**Files modified:**
+- `editor/src/HeadlessEditorState.h` — ReviewGate + ReviewPolicy members
+- `editor/src/HeadlessAgentRPCHandler.h` — setReviewPolicy, getReviewPolicy RPCs
+- `editor/src/AgentPermissionPolicy.h` — getReviewPolicy read-only,
+  setReviewPolicy mutation
+- `editor/src/MCPServer.h` — registerReviewTools() with 2 tools
+- `editor/CMakeLists.txt` — step330_test target
+
+**Tool count:** 56+ (54 existing + 2 review tools)
+
 ---
 
 # Roadmap Planning — Sprints 12-25+

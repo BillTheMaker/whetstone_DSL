@@ -1981,4 +1981,9 @@ target_link_libraries(step329_test PRIVATE
     tree_sitter_javascript tree_sitter_typescript
     tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+# Step 330: Review Gates
+add_executable(step330_test tests/step330_test.cpp)
+target_include_directories(step330_test PRIVATE src)
+target_link_libraries(step330_test PRIVATE nlohmann_json::nlohmann_json)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

@@ -2594,5 +2594,23 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         });
     }
 
+    // --- setReviewPolicy ---
+    if (method == "setReviewPolicy") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        if (params.contains("policy")) {
+            state.reviewPolicy = ReviewPolicy::fromJson(params["policy"]);
+        }
+        return headlessRpcResult(id, {{"success", true}, {"policy", state.reviewPolicy.toJson()}});
+    }
+
+    // --- getReviewPolicy ---
+    if (method == "getReviewPolicy") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        return headlessRpcResult(id, state.reviewPolicy.toJson());
+    }
+
     return headlessRpcError(id, -32601, "Method not found");
 }
