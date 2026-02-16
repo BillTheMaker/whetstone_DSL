@@ -4278,6 +4278,50 @@ inspection without adding a custom plugin binary.
   - `editor/src/MCPServer.h` (`1679` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
 
+### Step 418: Workflow Prompt Templates
+**Status:** PASS (12/12 tests)
+
+Added workflow-specific MCP prompt templates aligned to Sprint 18a's named
+flows (`architect_project`, `modernize_module`, `port_to_language`,
+`add_feature`, `review_pending`) with explicit tool references and rendering.
+
+**Files created:**
+- `editor/src/MCPWorkflowPrompts.h` — workflow prompt-template support:
+  - canonical template catalog (5 templates)
+  - parameterized prompt rendering (`{{...}}` substitution)
+  - template validation (protocol section + required tool mentions)
+  - JSON manifest export for client/tooling discovery
+  - prompt-file writer for emitting portable `.prompt` files
+- `editor/tests/step418_test.cpp` — 12 tests covering:
+  1. required template-name presence
+  2. `architect_project` tool references
+  3. `modernize_module` tool references
+  4. `port_to_language` source/target substitution
+  5. `add_feature` progress workflow references
+  6. `review_pending` review queue/context/approve/reject references
+  7. parameter substitution behavior
+  8. unresolved placeholder behavior when param omitted
+  9. validation failure on empty tool list
+  10. manifest structure and template count
+  11. template-file write-out
+  12. validation success for all shipped templates
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step418_test` target
+
+**Verification run:**
+- `step418_test` — PASS (12/12) new step coverage
+- `step417_test` — PASS (12/12) regression coverage
+- `step416_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MCPWorkflowPrompts.h` within header-size limit (`159` <= `600`)
+- `editor/tests/step418_test.cpp` within test-file size guidance (`146` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1679` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2629` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
