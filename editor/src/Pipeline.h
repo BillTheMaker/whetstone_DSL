@@ -126,6 +126,11 @@ public:
             auto pr = WatParser::parseWatWithDiagnostics(source);
             diags = std::move(pr.diagnostics);
             return std::move(pr.module);
+        } else if (language == "common-lisp" || language == "commonlisp" ||
+                   language == "lisp" || language == "cl") {
+            auto pr = CommonLispParser::parseCommonLispWithDiagnostics(source);
+            diags = std::move(pr.diagnostics);
+            return std::move(pr.module);
         }
         return nullptr;
     }

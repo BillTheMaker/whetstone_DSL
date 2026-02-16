@@ -2396,6 +2396,52 @@ persistence, and MCP contract checks.
 - `editor/src/ast/WatParser.h` remains within header-size limit after diagnostic
   additions (`248` lines <= `600`)
 
+### Step 370: Common Lisp Parser
+**Status:** PASS (12/12 tests)
+
+Added a dedicated Common Lisp parser with S-expression parsing and direct
+mapping for core CL forms into the Whetstone AST, including CLOS and macro
+surface forms.
+
+**Files created:**
+- `editor/src/ast/CommonLispParser.h` — Common Lisp parse support:
+  - recursive S-expression reader with comment/string handling
+  - top-level form conversion for `defun`, `defmethod`, `defclass`,
+    `defvar`/`defparameter`, and `defmacro`
+  - expression conversion for `if`, `cond`, `let`, `lambda`, loop forms,
+    `funcall`/`apply`, `quote`, and `values`
+  - convention handling for package-qualified symbols and `*earmuff*`
+    dynamic-variable detection
+  - `(declare (type ...))` mapping to parameter type nodes
+- `editor/tests/step370_test.cpp` — 12 tests covering:
+  1. `defun` parsing
+  2. `defclass` parsing
+  3. `lambda` parsing
+  4. `let` binding/scope mapping
+  5. `if`/`cond` mapping
+  6. `loop`/`do`/`dotimes` mapping
+  7. `defmacro` mapping
+  8. quote shorthand and `@Meta(quoted)` annotation mapping
+  9. dynamic `*earmuff*` variable annotation
+  10. deep nested S-expression parsing
+  11. mixed top-level definitions in one source
+  12. CLOS method parsing + pipeline language alias routing
+
+**Files modified:**
+- `editor/src/ast/Parser.h` — include `ast/CommonLispParser.h`
+- `editor/src/Pipeline.h` — add parse routing for `\"common-lisp\"`,
+  `\"commonlisp\"`, `\"lisp\"`, and `\"cl\"`
+- `editor/CMakeLists.txt` — `step370_test` target
+
+**Verification run:**
+- `step370_test` — PASS (12/12) new step coverage
+- `step369_test` — PASS (8/8) regression coverage
+- `step365_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/CommonLispParser.h` is within header size limit
+  (`598` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
