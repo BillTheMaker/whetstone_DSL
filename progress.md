@@ -2007,6 +2007,39 @@ Model behavior includes open/close modes, highlight state, and match counter tex
 - `step358_test` — PASS (12/12) regression coverage
 - `step359_test` — PASS (12/12) new step coverage
 
+### Step 360: Phase 13d Integration + Sprint 13 Summary
+**Status:** PASS (8/8 tests)
+
+Completed Phase 13d integration with end-to-end checks across keyboard navigation,
+go-to-definition, breadcrumb navigation, command palette search flows, status bar
+state transitions, key symbol visibility, and panel layout persistence.
+
+**Files created:**
+- `editor/tests/step360_test.cpp` — 8 integration tests:
+  1. keyboard workflow + definition jump + breadcrumb back-navigation
+  2. command palette find flow + project result navigation
+  3. status bar response to buffer/language/cursor/diagnostic changes
+  4. docked-panel invariant (no floating model state)
+  5. theme consistency across navigation components
+  6. key symbols in menu + palette + shortcuts panel
+  7. layout snapshot/restore roundtrip
+  8. sprint-level operational gates (docking/theme/keys/navigation)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step360_test` target
+
+**Verification run:**
+- `step358_test` — PASS (12/12) regression coverage
+- `step359_test` — PASS (12/12) regression coverage
+- `step360_test` — PASS (8/8) phase integration coverage
+
+**Key results:**
+- Phase 13d complete: all 5 steps pass (56/56 tests across steps 356–360)
+- Sprint 13 complete: all phases pass (212/212 tests across steps 342–360)
+- Navigation foundation in place: breadcrumbs, status model, symbol navigation,
+  find/replace model, and full keyboard-centric integration path
+- Key symbol consistency validated across all primary interaction surfaces
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
