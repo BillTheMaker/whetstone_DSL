@@ -170,6 +170,32 @@ public:
         return out;
     }
 
+    bool rejectAndRequeue(const std::string& itemId,
+                          const std::string& feedback,
+                          const std::string& rejectedBy = "reviewer") {
+        auto maybeItem = state_->queue.getItem(itemId);
+        if (!maybeItem.has_value()) return false;
+        WorkItem item = maybeItem.value();
+        if (item.status != WI_REVIEW && item.status != WI_IN_PROGRESS) return false;
+
+        RejectionAttempt attempt;
+        attempt.workerType = item.workerType;
+        attempt.result = item.result;
+        attempt.feedback = feedback;
+        attempt.rejectedAt = workItemTimestamp();
+        attempt.rejectedBy = rejectedBy;
+        item.rejectionHistory.push_back(attempt);
+        item.rejectionFeedback = feedback;
+        item.result.reasoning = "feedback: " + feedback;
+
+        applyFeedbackHints(item, feedback);
+
+        item.status = WI_REJECTED;
+        transitionWorkItem(item, WI_READY);
+        item.reviewRequired = true;
+        return state_->queue.updateItem(itemId, item);
+    }
+
 private:
     WorkflowState* state_ = nullptr;
     RoutingEngine* routing_ = nullptr;
@@ -217,7 +243,8 @@ private:
         if (!maybeItem.has_value()) return events;
         WorkItem item = maybeItem.value();
 
-        RoutingDecision decision = routing_->route(item);
+        RoutingDecision decision = routing_->routeWithHistory(
+            item, static_cast<int>(item.rejectionHistory.size()));
         item.workerType = decision.workerType;
         item.contextWidth = decision.contextWidth;
         item.reviewRequired = decision.reviewRequired;
@@ -280,5 +307,18 @@ private:
         }
 
         return events;
+    }
+
+    static void applyFeedbackHints(WorkItem& item, const std::string& feedback) {
+        auto contains = [&](const std::string& token) {
+            return feedback.find(token) != std::string::npos;
+        };
+        if (contains("context=local")) item.contextWidth = "local";
+        if (contains("context=file")) item.contextWidth = "file";
+        if (contains("context=project")) item.contextWidth = "project";
+        if (contains("context=cross-project")) item.contextWidth = "cross-project";
+        if (contains("worker=human")) item.workerType = "human";
+        if (contains("worker=llm")) item.workerType = "llm";
+        if (contains("worker=slm")) item.workerType = "slm";
     }
 };

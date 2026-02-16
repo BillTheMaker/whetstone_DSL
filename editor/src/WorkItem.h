@@ -52,6 +52,34 @@ struct WorkItemResult {
     }
 };
 
+struct RejectionAttempt {
+    std::string workerType;
+    WorkItemResult result;
+    std::string feedback;
+    std::string rejectedAt;
+    std::string rejectedBy;
+
+    json toJson() const {
+        return json{
+            {"workerType", workerType},
+            {"result", result.toJson()},
+            {"feedback", feedback},
+            {"rejectedAt", rejectedAt},
+            {"rejectedBy", rejectedBy}
+        };
+    }
+
+    static RejectionAttempt fromJson(const json& j) {
+        RejectionAttempt a;
+        if (j.contains("workerType")) a.workerType = j["workerType"].get<std::string>();
+        if (j.contains("result")) a.result = WorkItemResult::fromJson(j["result"]);
+        if (j.contains("feedback")) a.feedback = j["feedback"].get<std::string>();
+        if (j.contains("rejectedAt")) a.rejectedAt = j["rejectedAt"].get<std::string>();
+        if (j.contains("rejectedBy")) a.rejectedBy = j["rejectedBy"].get<std::string>();
+        return a;
+    }
+};
+
 // --- WorkItem status values ---
 
 inline const std::string WI_PENDING     = "pending";
@@ -89,6 +117,8 @@ struct WorkItem {
 
     // Result
     WorkItemResult result;
+    std::string rejectionFeedback;
+    std::vector<RejectionAttempt> rejectionHistory;
 };
 
 // --- Helper: ISO timestamp ---
@@ -195,6 +225,10 @@ inline json workItemToJson(const WorkItem& wi) {
     j["assignedAt"] = wi.assignedAt;
     j["completedAt"] = wi.completedAt;
     j["result"] = wi.result.toJson();
+    j["rejectionFeedback"] = wi.rejectionFeedback;
+    json attempts = json::array();
+    for (const auto& a : wi.rejectionHistory) attempts.push_back(a.toJson());
+    j["rejectionHistory"] = attempts;
     return j;
 }
 
@@ -216,5 +250,11 @@ inline WorkItem workItemFromJson(const json& j) {
     if (j.contains("assignedAt")) wi.assignedAt = j["assignedAt"].get<std::string>();
     if (j.contains("completedAt")) wi.completedAt = j["completedAt"].get<std::string>();
     if (j.contains("result")) wi.result = WorkItemResult::fromJson(j["result"]);
+    if (j.contains("rejectionFeedback")) wi.rejectionFeedback = j["rejectionFeedback"].get<std::string>();
+    if (j.contains("rejectionHistory")) {
+        for (const auto& a : j["rejectionHistory"]) {
+            wi.rejectionHistory.push_back(RejectionAttempt::fromJson(a));
+        }
+    }
     return wi;
 }

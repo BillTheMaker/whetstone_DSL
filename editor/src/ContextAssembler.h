@@ -59,9 +59,12 @@ public:
         // Always include annotations (high priority)
         // Annotations are embedded in nodeAst for now
 
-        // Skeleton intent from result reasoning (if re-routed)
-        if (!item.result.reasoning.empty() &&
-            item.result.reasoning.find("feedback") != std::string::npos) {
+        // Rejection feedback is first-class context for re-routed attempts.
+        if (!item.rejectionFeedback.empty()) {
+            ctx.feedbackFromRejection = item.rejectionFeedback;
+        } else if (!item.result.reasoning.empty() &&
+                   item.result.reasoning.find("feedback") != std::string::npos) {
+            // Backward-compatible fallback for older serialized items.
             ctx.feedbackFromRejection = item.result.reasoning;
         }
 

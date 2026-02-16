@@ -2831,6 +2831,54 @@ project-context reuse, and batch-level progress accounting.
 - `editor/src/WorkflowOrchestrator.h` remains within header-size limit
   (`284` lines <= `600`)
 
+### Step 380: Feedback Loop — Rejection Re-Routing
+**Status:** PASS (12/12 tests)
+
+Implemented rejection-aware rerouting in the orchestration loop with
+attempt-history preservation, stepwise escalation, and feedback-aware context
+assembly for re-attempts.
+
+**Files created:**
+- `editor/tests/step380_test.cpp` — 12 tests covering:
+  1. review rejection re-enters ready queue
+  2. rejection feedback appears in next worker context bundle
+  3. first escalation template/deterministic -> slm
+  4. second escalation slm -> llm
+  5. third escalation llm -> human
+  6. rejection history metadata preservation
+  7. multi-rejection accumulation
+  8. reviewer feedback-hints (`context=...`, `worker=...`) applied
+  9. context widening after rejection
+  10. no escalation-level skipping across repeated rejections
+  11. human rejection remains human-routed
+  12. rejection count tracking + reject-state guard
+
+**Files modified:**
+- `editor/src/WorkItem.h` — add `RejectionAttempt` history on `WorkItem`,
+  add first-class `rejectionFeedback` field, and JSON serialization/deserialization
+  support for both
+- `editor/src/RoutingEngine.h` — add `routeWithHistory(...)` and
+  stepwise `escalateWorker(...)` policy that advances one level per rejection
+  (template/deterministic -> slm -> llm -> human) without skipping
+- `editor/src/WorkflowOrchestrator.h` — add `rejectAndRequeue(...)`,
+  preserve attempt metadata, apply reviewer feedback hints, and route
+  with rejection history
+- `editor/src/ContextAssembler.h` — include first-class rejection feedback
+  in `WorkerContext.feedbackFromRejection` (with backward-compatible fallback)
+- `editor/CMakeLists.txt` — `step380_test` target
+
+**Verification run:**
+- `step380_test` — PASS (12/12) new step coverage
+- `step379_test` — PASS (12/12) regression coverage
+- `step378_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowOrchestrator.h` within header-size limit (`324` <= `600`)
+- `editor/src/RoutingEngine.h` within header-size limit (`242` <= `600`)
+- `editor/src/WorkItem.h` within header-size limit (`260` <= `600`)
+- `editor/src/ContextAssembler.h` within header-size limit (`192` <= `600`)
+- `editor/tests/step380_test.cpp` within test-file size guidance (`281` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

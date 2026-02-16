@@ -182,11 +182,61 @@ public:
         return decisions;
     }
 
+    RoutingDecision routeWithHistory(const WorkItem& item, int rejectionCount) const {
+        RoutingDecision base = route(item);
+        if (rejectionCount <= 0) return base;
+
+        // Escalate one level per rejection attempt, based on the last rejected
+        // worker. This prevents skipping stages (e.g. slm -> human).
+        std::string priorWorker = base.workerType;
+        if (!item.rejectionHistory.empty() &&
+            !item.rejectionHistory.back().workerType.empty()) {
+            priorWorker = item.rejectionHistory.back().workerType;
+        }
+
+        if (priorWorker == "human") {
+            base.workerType = "human";
+            base.reviewRequired = true;
+            base.reasoning += " | remains human after rejection";
+            base.agentRole = agentRoleForWorker(base.workerType);
+            return base;
+        }
+
+        base.workerType = escalateWorker(priorWorker);
+        base.contextWidth = widenedContext(base.contextWidth, 1);
+        base.contextBudgetTokens = estimateContextBudget(base.contextWidth);
+        base.reviewRequired = true;
+        base.confidence = std::max(0.4f, base.confidence - 0.10f);
+        base.reasoning += " | escalated after rejection history";
+        base.agentRole = agentRoleForWorker(base.workerType);
+        return base;
+    }
+
     // Route and apply: updates the WorkItem's workerType + reviewRequired
     void routeAndApply(WorkItem& item) const {
         auto decision = route(item);
         item.workerType = decision.workerType;
         item.reviewRequired = decision.reviewRequired;
         item.contextWidth = decision.contextWidth;
+    }
+
+private:
+    static std::string escalateWorker(const std::string& workerType) {
+        if (workerType == "deterministic" || workerType == "template") return "slm";
+        if (workerType == "slm") return "llm";
+        return "human";
+    }
+
+    static std::string widenedContext(const std::string& ctx, int rejectionCount) {
+        std::vector<std::string> order = {"local", "file", "project", "cross-project"};
+        int idx = 0;
+        for (size_t i = 0; i < order.size(); ++i) {
+            if (order[i] == ctx) {
+                idx = static_cast<int>(i);
+                break;
+            }
+        }
+        idx = std::min(3, idx + rejectionCount);
+        return order[idx];
     }
 };
