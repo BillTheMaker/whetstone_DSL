@@ -2286,6 +2286,48 @@ the shared pipeline.
 **Architecture gate check:**
 - `editor/src/ast/WatGenerator.h` is within header size limit (`219` lines)
 
+### Step 367: WAT Annotation Mapping
+**Status:** PASS (12/12 tests)
+
+Implemented WAT-specific annotation inference for execution model, linkage, and
+memory-layout signals, plus WAT memory-strategy defaults.
+
+**Files created:**
+- `editor/tests/step367_test.cpp` — 12 tests covering:
+  1. function -> `Exec(stack)`
+  2. memory operations -> `Owner(Manual)`
+  3. export -> `Visibility(public)`
+  4. import -> `Link(import)`
+  5. WAT defaults (`Owner(Manual)`, `Reclaim(Explicit)`)
+  6. table dispatch -> `Shim(vtable)`
+  7. memory declaration -> `Align` + `Layout(linear)`
+  8. confidence bounds
+  9. annotation preservation through projection to C
+  10. Semanno emit/parse roundtrip
+  11. pipeline parse + inference integration
+  12. WAT -> C -> WAT annotation roundtrip preservation
+
+**Files modified:**
+- `editor/src/MemoryStrategyInference.h` — WAT defaults and memory-op rule:
+  - module defaults for `wat/wasm`
+  - function memory-op detection (`memory.*`, `*.load`, `*.store`)
+- `editor/src/AnnotationInference.h` — WAT-specific pattern inference:
+  - function-level `Exec(stack)`
+  - import/export mapping to `Link`/`Visibility`
+  - table mapping to `Shim(vtable)`
+  - memory mapping to `Align` + `Layout(linear)`
+- `editor/CMakeLists.txt` — `step367_test` target
+
+**Verification run:**
+- `step367_test` — PASS (12/12) new step coverage
+- `step366_test` — PASS (12/12) regression coverage
+- `step365_test` — PASS (12/12) regression coverage
+- `step364_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AnnotationInference.h` remains within header size limit
+  (`589` lines <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

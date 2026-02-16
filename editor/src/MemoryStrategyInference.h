@@ -100,6 +100,9 @@ private:
             out.push_back({mod->id, "OwnerAnnotation", "Single",
                            "Rust uses single-owner lifetime tracking", 0.95});
         }
+        else if (lang == "wat" || lang == "wasm") {
+            inferWatModule(mod, out);
+        }
         else if (lang == "swift" || lang == "objc") {
             out.push_back({mod->id, "OwnerAnnotation", "Shared_ARC",
                            lang + " uses automatic reference counting", 0.90});
@@ -130,6 +133,14 @@ private:
                        "C uses explicit reclamation (free)", 0.95});
     }
 
+    void inferWatModule(const Module* mod,
+                        std::vector<Suggestion>& out) const {
+        out.push_back({mod->id, "OwnerAnnotation", "Manual",
+                       "WAT linear memory is manually managed", 0.92});
+        out.push_back({mod->id, "ReclaimAnnotation", "Explicit",
+                       "WAT has explicit memory lifetime operations", 0.88});
+    }
+
     void inferFunction(const Function* fn, const std::string& lang,
                        std::vector<Suggestion>& out) const {
         // Skip if function already has a memory annotation
@@ -137,6 +148,10 @@ private:
 
         if (lang == "c") {
             inferCFunction(fn, out);
+            return;
+        }
+        if (lang == "wat" || lang == "wasm") {
+            inferWatFunction(fn, out);
             return;
         }
 
@@ -213,6 +228,19 @@ private:
         }
     }
 
+    void inferWatFunction(const Function* fn,
+                          std::vector<Suggestion>& out) const {
+        bool hasMemoryOps = false;
+        for (auto* stmt : fn->getChildren("body")) {
+            hasMemoryOps = hasMemoryOps || containsWatMemoryOp(stmt);
+        }
+        if (hasMemoryOps) {
+            out.push_back({fn->id, "OwnerAnnotation", "Manual",
+                           "WAT memory/load/store operations require manual ownership",
+                           0.90});
+        }
+    }
+
     static bool hasMemoryAnnotation(const ASTNode* node) {
         for (auto* anno : node->getChildren("annotations")) {
             const auto& ct = anno->conceptType;
@@ -251,6 +279,23 @@ private:
         }
         for (auto* child : node->allChildren()) {
             if (containsAllocCall(child)) return true;
+        }
+        return false;
+    }
+
+    static bool containsWatMemoryOp(const ASTNode* node) {
+        if (!node) return false;
+        if (node->conceptType == "FunctionCall") {
+            auto* fc = static_cast<const FunctionCall*>(node);
+            std::string fn = lowerAscii(fc->functionName);
+            if (fn.find("memory.") != std::string::npos ||
+                fn.find(".load") != std::string::npos ||
+                fn.find(".store") != std::string::npos ||
+                fn == "memory.grow")
+                return true;
+        }
+        for (auto* child : node->allChildren()) {
+            if (containsWatMemoryOp(child)) return true;
         }
         return false;
     }

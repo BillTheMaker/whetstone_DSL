@@ -40,6 +40,8 @@ public:
             }
             if (mod->targetLanguage == "c") {
                 inferCModule(mod, out);
+            } else if (mod->targetLanguage == "wat" || mod->targetLanguage == "wasm") {
+                inferWatModule(mod, out);
             }
         }
 
@@ -392,6 +394,53 @@ private:
         for (auto* fnNode : mod->getChildren("functions")) {
             if (fnNode->conceptType != "Function") continue;
             inferCFunction(fnNode, out);
+        }
+    }
+
+    void inferWatModule(const Module* mod, std::vector<InferredAnnotation>& out) const {
+        if (!mod) return;
+
+        for (auto* fnNode : mod->getChildren("functions")) {
+            if (fnNode->conceptType != "Function") continue;
+            if (!hasInferred(out, fnNode->id, "ExecAnnotation", "stack")) {
+                out.push_back({fnNode->id, "ExecAnnotation", "mode", "stack",
+                              "WAT executes in a stack-based VM", 0.95});
+            }
+        }
+
+        if (!mod->getChildren("imports").empty() &&
+            !hasInferred(out, mod->id, "LinkAnnotation", "import")) {
+            out.push_back({mod->id, "LinkAnnotation", "kind", "import",
+                          "WAT module imports host/runtime functions", 0.90});
+        }
+
+        bool hasExport = false;
+        bool hasTable = false;
+        bool hasMemory = false;
+        for (auto* stmt : mod->getChildren("statements")) {
+            if (stmt->conceptType != "PragmaDirective") continue;
+            auto* p = static_cast<const PragmaDirective*>(stmt);
+            std::string d = lowerAscii(p->directive);
+            hasExport = hasExport || d == "export";
+            hasTable = hasTable || d == "table";
+            hasMemory = hasMemory || d == "memory";
+        }
+
+        if (hasExport && !hasInferred(out, mod->id, "VisibilityAnnotation", "public")) {
+            out.push_back({mod->id, "VisibilityAnnotation", "level", "public",
+                          "Exported WAT symbols are public API", 0.90});
+        }
+        if (hasTable && !hasInferred(out, mod->id, "ShimAnnotation", "vtable")) {
+            out.push_back({mod->id, "ShimAnnotation", "kind", "vtable",
+                          "WAT table dispatch resembles virtual table shims", 0.82});
+        }
+        if (hasMemory && !hasInferred(out, mod->id, "AlignAnnotation", "4")) {
+            out.push_back({mod->id, "AlignAnnotation", "bytes", "4",
+                          "Linear memory defaults to aligned word operations", 0.70});
+        }
+        if (hasMemory && !hasInferred(out, mod->id, "LayoutAnnotation", "linear")) {
+            out.push_back({mod->id, "LayoutAnnotation", "mode", "linear",
+                          "WAT memory is a linear buffer layout", 0.86});
         }
     }
 
