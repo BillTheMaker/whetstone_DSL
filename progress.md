@@ -1716,6 +1716,42 @@ runtime and persistence primitives for the upcoming command palette/menu work.
 - `step350_test` — PASS (8/8) latest completed sprint checkpoint
 - `step351_test` — PASS (12/12) new step coverage
 
+### Step 352: Key Symbol Rendering
+**Status:** PASS (12/12 tests)
+
+Implemented a headless key symbol rendering layer for menus/tooltips/command
+palette UI data. The renderer now builds styled key badge data, action rows
+with shortcut columns, and multi-key chord strings in both text and symbol forms.
+
+**Files modified:**
+- `editor/src/KeySymbolRenderer.h` — added/expanded:
+  - `renderKeySymbol(...)` (text badge) + backward-compatible `renderKeyBadge(...)`
+  - `renderKeyBadgeSymbols(..., macOS)` for symbol mode
+  - `renderActionWithKey(..., theme, category)` with layout metadata
+  - overload preserving previous call shape
+  - `renderKeyChord(...)` + `renderKeyChordSymbols(..., macOS)`
+  - badge styling fields (padding/radius) and menu overlap heuristic
+- `editor/CMakeLists.txt` — `step352_test` target
+
+**Files created:**
+- `editor/tests/step352_test.cpp` — 12 tests covering:
+  1. single key badge rendering
+  2. modifier+key rendering
+  3. platform symbol output
+  4. menu item label/shortcut layout data
+  5. key chord text rendering
+  6. badge background/border assignment
+  7. theme color/font propagation
+  8. empty binding behavior
+  9. special key symbol mapping (Enter/Escape/Tab)
+  10. long-label overlap check
+  11. chord symbols rendering
+  12. `shouldRender` behavior
+
+**Verification run:**
+- `step351_test` — PASS (12/12) regression coverage
+- `step352_test` — PASS (12/12) new step coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
