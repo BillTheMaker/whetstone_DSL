@@ -71,17 +71,39 @@ struct WhetstoneTheme {
     nlohmann::json toJson() const {
         nlohmann::json j;
         j["name"] = name;
+        // Backgrounds
         j["bg"] = bg.toHex(); j["bgAlt"] = bgAlt.toHex();
         j["bgPanel"] = bgPanel.toHex(); j["bgPopup"] = bgPopup.toHex();
+        // Text
         j["text"] = text.toHex(); j["textDim"] = textDim.toHex();
-        j["accent"] = accent.toHex();
+        j["textAccent"] = textAccent.toHex();
+        j["textError"] = textError.toHex(); j["textWarning"] = textWarning.toHex();
+        j["textSuccess"] = textSuccess.toHex();
+        // Borders
+        j["border"] = border.toHex(); j["borderFocused"] = borderFocused.toHex();
+        // Accent
+        j["accent"] = accent.toHex(); j["accentHover"] = accentHover.toHex();
+        j["accentActive"] = accentActive.toHex();
+        // Selection
+        j["selectionBg"] = selectionBg.toHex(); j["selectionText"] = selectionText.toHex();
+        // Scrollbar
+        j["scrollbar"] = scrollbar.toHex(); j["scrollbarHover"] = scrollbarHover.toHex();
+        // Diagnostics
         j["diagError"] = diagError.toHex(); j["diagWarning"] = diagWarning.toHex();
+        j["diagInfo"] = diagInfo.toHex(); j["diagHint"] = diagHint.toHex();
+        // Syntax
         j["syntaxKeyword"] = syntaxKeyword.toHex(); j["syntaxString"] = syntaxString.toHex();
         j["syntaxNumber"] = syntaxNumber.toHex(); j["syntaxComment"] = syntaxComment.toHex();
+        j["syntaxFunction"] = syntaxFunction.toHex(); j["syntaxType"] = syntaxType.toHex();
+        j["syntaxOperator"] = syntaxOperator.toHex(); j["syntaxAnnotation"] = syntaxAnnotation.toHex();
+        // Fonts
         j["fontSizePrimary"] = fontSizePrimary;
         j["fontSizeUI"] = fontSizeUI;
+        j["fontSizeSmall"] = fontSizeSmall;
         return j;
     }
+
+    static WhetstoneTheme fromJson(const nlohmann::json& j);
 };
 
 inline WhetstoneTheme getDefaultDarkTheme() {
@@ -181,5 +203,40 @@ inline WhetstoneTheme getDefaultLightTheme() {
     t.syntaxOperator   = Color4::fromHex("#374151");
     t.syntaxAnnotation = Color4::fromHex("#7c3aed");
 
+    return t;
+}
+
+inline WhetstoneTheme WhetstoneTheme::fromJson(const nlohmann::json& j) {
+    WhetstoneTheme t;
+    auto hex = [&](const std::string& key, Color4 fallback) -> Color4 {
+        if (j.contains(key) && j[key].is_string()) return Color4::fromHex(j[key].get<std::string>());
+        return fallback;
+    };
+    auto num = [&](const std::string& key, float fallback) -> float {
+        if (j.contains(key) && j[key].is_number()) return j[key].get<float>();
+        return fallback;
+    };
+    t.name = j.value("name", "Custom");
+    auto def = getDefaultDarkTheme();
+    t.bg = hex("bg", def.bg); t.bgAlt = hex("bgAlt", def.bgAlt);
+    t.bgPanel = hex("bgPanel", def.bgPanel); t.bgPopup = hex("bgPopup", def.bgPopup);
+    t.text = hex("text", def.text); t.textDim = hex("textDim", def.textDim);
+    t.textAccent = hex("textAccent", def.textAccent);
+    t.textError = hex("textError", def.textError); t.textWarning = hex("textWarning", def.textWarning);
+    t.textSuccess = hex("textSuccess", def.textSuccess);
+    t.border = hex("border", def.border); t.borderFocused = hex("borderFocused", def.borderFocused);
+    t.accent = hex("accent", def.accent); t.accentHover = hex("accentHover", def.accentHover);
+    t.accentActive = hex("accentActive", def.accentActive);
+    t.selectionBg = hex("selectionBg", def.selectionBg); t.selectionText = hex("selectionText", def.selectionText);
+    t.scrollbar = hex("scrollbar", def.scrollbar); t.scrollbarHover = hex("scrollbarHover", def.scrollbarHover);
+    t.diagError = hex("diagError", def.diagError); t.diagWarning = hex("diagWarning", def.diagWarning);
+    t.diagInfo = hex("diagInfo", def.diagInfo); t.diagHint = hex("diagHint", def.diagHint);
+    t.syntaxKeyword = hex("syntaxKeyword", def.syntaxKeyword); t.syntaxString = hex("syntaxString", def.syntaxString);
+    t.syntaxNumber = hex("syntaxNumber", def.syntaxNumber); t.syntaxComment = hex("syntaxComment", def.syntaxComment);
+    t.syntaxFunction = hex("syntaxFunction", def.syntaxFunction); t.syntaxType = hex("syntaxType", def.syntaxType);
+    t.syntaxOperator = hex("syntaxOperator", def.syntaxOperator); t.syntaxAnnotation = hex("syntaxAnnotation", def.syntaxAnnotation);
+    t.fontSizePrimary = num("fontSizePrimary", def.fontSizePrimary);
+    t.fontSizeUI = num("fontSizeUI", def.fontSizeUI);
+    t.fontSizeSmall = num("fontSizeSmall", def.fontSizeSmall);
     return t;
 }
