@@ -89,16 +89,31 @@ private:
             }
         }
         if (!ts_node_is_null(baseClause)) {
-            uint32_t bc = ts_node_named_child_count(baseClause);
-            for (uint32_t i = 0; i < bc; ++i) {
-                TSNode base = ts_node_named_child(baseClause, i);
-                std::string baseText = nodeText(base, source);
-                // Strip access specifier prefix
-                if (baseText.find("public ") == 0) baseText = baseText.substr(7);
-                else if (baseText.find("private ") == 0) baseText = baseText.substr(8);
-                else if (baseText.find("protected ") == 0) baseText = baseText.substr(10);
-                if (!baseText.empty() && cls->superClass.empty()) {
-                    cls->superClass = baseText;
+            // tree-sitter-cpp base_class_clause children (ALL, not just named):
+            //   ":" [access_specifier] ("virtual")? [type_identifier|template_type] ","
+            //   ... repeating for each base
+            // "virtual" is an unnamed node, so we must iterate ALL children.
+            uint32_t totalChildren = ts_node_child_count(baseClause);
+            std::string pendingAccess = isStruct ? "public" : "private";
+            bool pendingVirtual = false;
+            for (uint32_t i = 0; i < totalChildren; ++i) {
+                TSNode child = ts_node_child(baseClause, i);
+                std::string ctype = ts_node_type(child);
+                if (ctype == "access_specifier") {
+                    std::string accessText = nodeText(child, source);
+                    if (accessText.find("public") != std::string::npos) pendingAccess = "public";
+                    else if (accessText.find("protected") != std::string::npos) pendingAccess = "protected";
+                    else if (accessText.find("private") != std::string::npos) pendingAccess = "private";
+                } else if (ctype == "virtual") {
+                    pendingVirtual = true;
+                } else if (ctype == "type_identifier" || ctype == "template_type" ||
+                           ctype == "qualified_identifier" || ctype == "dependent_type") {
+                    std::string baseName = nodeText(child, source);
+                    if (!baseName.empty()) {
+                        cls->addBase(baseName, pendingAccess, pendingVirtual);
+                    }
+                    pendingAccess = isStruct ? "public" : "private";
+                    pendingVirtual = false;
                 }
             }
         }
