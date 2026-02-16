@@ -110,8 +110,36 @@
         std::ostringstream oss;
         auto annotations = cls->getChildren("annotations");
         for (const auto* a : annotations) oss << generate(a) << "\n";
+        // Template prefix if has GenericType children with isClassTemplate
+        auto tpChildren = cls->getChildren("typeParameters");
+        for (const auto* tpc : tpChildren) {
+            if (tpc->conceptType == "GenericType") {
+                auto* gt = static_cast<const GenericType*>(tpc);
+                if (gt->isClassTemplate) {
+                    oss << "template<";
+                    auto params = gt->getChildren("typeParameters");
+                    for (size_t i = 0; i < params.size(); ++i) {
+                        if (i > 0) oss << ", ";
+                        auto* tp = static_cast<const TypeParameter*>(params[i]);
+                        if (tp->isVariadic) oss << "typename... " << tp->name;
+                        else oss << "typename " << tp->name;
+                    }
+                    oss << ">\n";
+                    break;
+                }
+            }
+        }
         oss << "class " << cls->name;
-        if (!cls->superClass.empty()) oss << " : public " << cls->superClass;
+        auto bases = cls->getBases();
+        if (!bases.empty()) {
+            oss << " : ";
+            for (size_t i = 0; i < bases.size(); ++i) {
+                if (i > 0) oss << ", ";
+                oss << bases[i].accessSpecifier;
+                if (bases[i].isVirtual) oss << " virtual";
+                oss << " " << bases[i].name;
+            }
+        }
         oss << " {\npublic:\n";
         auto fields = cls->getChildren("fields");
         for (const auto* f : fields)

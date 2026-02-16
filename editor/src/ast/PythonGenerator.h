@@ -538,7 +538,15 @@ public:
         auto annotations = cls->getChildren("annotations");
         for (const auto* a : annotations) oss << generate(a) << "\n";
         oss << "class " << cls->name;
-        if (!cls->superClass.empty()) oss << "(" << cls->superClass << ")";
+        auto bases = cls->getBases();
+        if (!bases.empty()) {
+            oss << "(";
+            for (size_t i = 0; i < bases.size(); ++i) {
+                if (i > 0) oss << ", ";
+                oss << bases[i].name;
+            }
+            oss << ")";
+        }
         oss << ":\n";
         auto fields = cls->getChildren("fields");
         auto methods = cls->getChildren("methods");

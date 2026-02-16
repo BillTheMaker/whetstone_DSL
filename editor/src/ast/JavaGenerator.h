@@ -451,10 +451,21 @@ public:
         for (const auto* a : annotations) oss << generate(a) << "\n";
         if (cls->isAbstract) oss << "abstract ";
         oss << "class " << cls->name;
-        if (!cls->superClass.empty()) oss << " extends " << cls->superClass;
+        auto bases = cls->getBases();
+        if (!bases.empty()) {
+            // First base → extends, rest → implements (Java adaptation)
+            oss << " extends " << bases[0].name;
+            if (bases.size() > 1) {
+                oss << " implements ";
+                for (size_t i = 1; i < bases.size(); ++i) {
+                    if (i > 1) oss << ", ";
+                    oss << bases[i].name;
+                }
+            }
+        }
         auto interfaces = cls->getChildren("interfaces");
         if (!interfaces.empty()) {
-            oss << " implements ";
+            oss << (bases.size() > 1 ? ", " : " implements ");
             for (size_t i = 0; i < interfaces.size(); ++i) {
                 if (i > 0) oss << ", ";
                 oss << generate(interfaces[i]);

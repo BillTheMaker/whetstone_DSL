@@ -1491,6 +1491,61 @@ diamond inheritance detection via static hasDiamondInheritance() with BFS traver
   access specifiers, virtual inheritance, JSON roundtrip, diamond detection, legacy
   migration, addBase helper, full serialization roundtrip
 
+### Step 333: Template Class Declarations
+**Status:** PASS (12/12 tests)
+
+Extended GenericType with isClassTemplate flag and TypeParameter with isVariadic for
+variadic template packs. Added isCRTPClass() helper for CRTP pattern detection. Full
+serialization round-trip for both flags.
+
+**Files modified:**
+- `editor/src/ast/GenericType.h` — isCRTPClass() helper, isClassTemplate/isVariadic
+  already had fields, replaced stub isCRTP()
+- `editor/src/ast/Serialization.h` — isClassTemplate for GenericType, isVariadic for
+  TypeParameter in propertiesToJson/createNode/setPropertiesFromJson
+- `editor/src/CompactAST.h` — getNodeName for GenericType ("template:name"), TypeParameter
+- `editor/CMakeLists.txt` — step333_test target
+
+**Files created:**
+- `editor/tests/step333_test.cpp` — 12 tests: isClassTemplate flag, isVariadic,
+  CRTP detection, JSON roundtrip, CompactAST output
+
+### Step 334: C++ Parser — Inheritance + Templates
+**Status:** PASS (12/12 tests)
+
+Extended CppParser to extract multiple base classes from tree-sitter CST, including
+access specifiers and virtual keyword. Iterates ALL children (named + unnamed) of
+base_class_clause to detect virtual (unnamed node), access_specifier, and type identifiers.
+
+**Files modified:**
+- `editor/src/ast/CppParser.h` — Rewrote base_class_clause parsing to iterate all
+  children with pending access/virtual state machine
+- `editor/CMakeLists.txt` — step334_test target with tree-sitter libraries
+
+**Files created:**
+- `editor/tests/step334_test.cpp` — 12 tests: single/multiple inheritance, access
+  specifiers, virtual, template classes, CRTP detection, struct default public
+
+### Step 335: C++ Generator — Inheritance + Templates
+**Status:** PASS (12/12 tests)
+
+Updated CppGenerator, PythonGenerator, and JavaGenerator to emit correct inheritance
+syntax using getBases(). C++ outputs access specifiers + virtual keyword + template
+prefix. Python outputs direct multiple inheritance. Java uses first base as extends,
+rest as implements.
+
+**Files modified:**
+- `editor/src/ast/CppGeneratorTypes.h` — visitClassDeclaration: template prefix from
+  GenericType.isClassTemplate, multiple inheritance with access specifiers + virtual
+- `editor/src/ast/PythonGenerator.h` — visitClassDeclaration: getBases() for multi-base
+- `editor/src/ast/JavaGenerator.h` — visitClassDeclaration: extends + implements adaptation
+- `editor/CMakeLists.txt` — step335_test target
+
+**Files created:**
+- `editor/tests/step335_test.cpp` — 12 tests: C++ multi-inheritance, access specifiers,
+  virtual, template class, CRTP, cross-language (Python/Java/Rust), variadic templates,
+  combined template + inheritance, method visibility, full roundtrip
+
 ---
 
 # Roadmap Planning — Sprints 12-25+
