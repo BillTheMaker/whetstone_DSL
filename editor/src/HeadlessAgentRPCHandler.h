@@ -14,6 +14,7 @@
 // Deliberately omits GUI-only methods. Stays under 600 lines.
 
 struct HeadlessEditorState;
+#include "HeadlessOrchestratorRPC.h"
 
 // Re-use the response helpers (same signature as AgentRPCHandler.h)
 static inline json headlessRpcError(const json& id, int code,
@@ -2260,6 +2261,7 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         state.workflow = WorkflowState(projectName);
         std::string bufferId = state.activeBuffer->path;
         int count = state.workflow->populateFromSkeleton(state.activeAST(), bufferId);
+        state.workflowProgress = WorkflowProgress(count);
 
         auto stats = state.workflow->getStats();
         return headlessRpcResult(id, {
@@ -2610,6 +2612,11 @@ inline json handleHeadlessAgentRequest(HeadlessEditorState& state,
         if (!AgentPermissionPolicy::canInvoke(role, method))
             return headlessRpcError(id, -32031, "Role not permitted");
         return headlessRpcResult(id, state.reviewPolicy.toJson());
+    }
+
+    if (auto routed = tryHandleHeadlessOrchestratorRPC(
+            state, request, id, method, role); routed.has_value()) {
+        return routed.value();
     }
 
     return headlessRpcError(id, -32601, "Method not found");

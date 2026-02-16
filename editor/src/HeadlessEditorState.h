@@ -43,6 +43,7 @@
 #include "WorkerRegistry.h"
 #include "ContextAssembler.h"
 #include "ReviewGate.h"
+#include "WorkflowProgress.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -141,6 +142,7 @@ struct HeadlessEditorState {
     std::string          defaultLanguage = "python";
     bool                 verbose = false;
     std::optional<WorkflowState> workflow;
+    std::optional<WorkflowProgress> workflowProgress;
     RoutingEngine        routingEngine;
     WorkerRegistry       workerRegistry = WorkerRegistry::getDefaultRegistry();
     ContextAssembler     contextAssembler;

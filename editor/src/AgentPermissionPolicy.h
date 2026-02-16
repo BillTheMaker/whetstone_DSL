@@ -70,7 +70,9 @@ struct AgentPermissionPolicy {
             method == "getReadyTasks" ||
             method == "getWorkItem" ||
             method == "getRoutingExplanation" ||
-            method == "getReviewPolicy") {
+            method == "getReviewPolicy" ||
+            method == "getBlockers" ||
+            method == "getProgress") {
             return true;
         }
 
@@ -103,7 +105,11 @@ struct AgentPermissionPolicy {
             method == "routeTask" ||
             method == "routeAllReady" ||
             method == "executeTask" ||
-            method == "setReviewPolicy") {
+            method == "setReviewPolicy" ||
+            method == "orchestrateStep" ||
+            method == "orchestrateAdvance" ||
+            method == "orchestrateRunDeterministic" ||
+            method == "submitExternalResult") {
             return role == AgentRole::Refactor || role == AgentRole::Generator;
         }
 

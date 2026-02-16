@@ -2919,6 +2919,65 @@ worker metrics, blockers, and timeline entries.
 - `editor/src/WorkflowProgress.h` within header-size limit (`303` <= `600`)
 - `editor/tests/step381_test.cpp` within test-file size guidance (`196` lines)
 
+### Step 382: Orchestrator RPC + MCP
+**Status:** PASS (12/12 tests)
+
+Added orchestrator control RPC methods and MCP tool bindings so a client can
+step/advance workflows, run deterministic items, inspect blockers/progress, and
+submit external model output back into the workflow loop.
+
+**Files created:**
+- `editor/src/HeadlessOrchestratorRPC.h` — extracted orchestrator RPC handling:
+  - `orchestrateStep`
+  - `orchestrateAdvance`
+  - `orchestrateRunDeterministic`
+  - `getBlockers`
+  - `getProgress`
+  - `submitExternalResult`
+  - event/blocker JSON serialization helpers and buffer-context collection
+- `editor/tests/step382_test.cpp` — 12 tests covering:
+  1. `orchestrateStep` advances one task
+  2. `orchestrateAdvance` processes batch
+  3. `orchestrateRunDeterministic` stops at blockers
+  4. `getBlockers` reports human blockers
+  5. `getProgress` snapshot shape
+  6. `submitExternalResult` accepts LLM output and advances lifecycle
+  7. Linter role can read progress but cannot orchestrate
+  8. MCP tool registration for all 6 orchestrator tools
+  9. MCP `whetstone_orchestrate_run_deterministic` callback wiring
+  10. combined deterministic + external-submit + progress flow
+  11. submit-result worker-type guard
+  12. no-workflow guard behavior
+
+**Files modified:**
+- `editor/src/HeadlessAgentRPCHandler.h` — delegated orchestrator-method
+  handling to `tryHandleHeadlessOrchestratorRPC(...)`
+- `editor/src/HeadlessEditorState.h` — add `workflowProgress` state
+- `editor/src/AgentPermissionPolicy.h` — permissions for new orchestrator methods
+  (`getProgress/getBlockers` read-only, orchestration/submit methods write)
+- `editor/src/MCPServer.h` — register orchestrator MCP tools:
+  - `whetstone_orchestrate_step`
+  - `whetstone_orchestrate_advance`
+  - `whetstone_orchestrate_run_deterministic`
+  - `whetstone_get_blockers`
+  - `whetstone_get_progress`
+  - `whetstone_submit_result`
+- `editor/CMakeLists.txt` — `step382_test` target
+
+**Verification run:**
+- `step382_test` — PASS (12/12) new step coverage
+- `step381_test` — PASS (12/12) regression coverage
+- `step380_test` — PASS (12/12) regression coverage
+- `step379_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/HeadlessOrchestratorRPC.h` within header-size limit (`287` <= `600`)
+- `editor/src/WorkflowProgress.h` within header-size limit (`303` <= `600`)
+- `editor/tests/step382_test.cpp` within test-file size guidance (`250` lines)
+- Legacy oversized headers remain and should be split in follow-up:
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2623` > `600`)
+  - `editor/src/MCPServer.h` (`1652` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
