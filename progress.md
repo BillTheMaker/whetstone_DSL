@@ -1790,6 +1790,43 @@ ids, categories, and aliases. Added population helpers that pull actions from
 - `step346_test` — PASS (8/8) layout + palette integration regression
 - `step353_test` — PASS (12/12) new step coverage
 
+### Step 354: Menu Bar with Key Symbols
+**Status:** PASS (12/12 tests)
+
+Added a structured menu bar model with File/Edit/View/Tools/Workflow/Help menus,
+key-symbol metadata on actions, separator grouping, action selection handling,
+and submenu support for help/documentation. Menu action labels/shortcuts are
+derived from `KeybindingRegistry` and rendered via `KeySymbolRenderer` so the
+symbol display path is consistent with step 352.
+
+**Files created:**
+- `editor/src/MenuBar.h` — headless menu model:
+  - `MenuItem` / `Menu` / `MenuBar`
+  - `buildDefaults(...)` for the full menu set
+  - selection API (`openMenu`, `selectItem`) with close-on-select behavior
+  - submenu metadata support and separator counting helpers
+- `editor/tests/step354_test.cpp` — 12 tests covering:
+  1. core menus present
+  2. File Save shortcut
+  3. Edit Undo shortcut
+  4. View panel toggle actions
+  5. Tools pipeline action
+  6. correct action execution id
+  7. key symbol visibility
+  8. menu close after selection
+  9. separator grouping
+  10. workflow action presence
+  11. submenu metadata
+  12. invalid selection handling
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step354_test` target
+
+**Verification run:**
+- `step352_test` — PASS (12/12) regression coverage
+- `step353_test` — PASS (12/12) regression coverage
+- `step354_test` — PASS (12/12) new step coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
