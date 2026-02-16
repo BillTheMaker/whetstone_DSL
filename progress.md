@@ -2328,6 +2328,40 @@ memory-layout signals, plus WAT memory-strategy defaults.
 - `editor/src/AnnotationInference.h` remains within header size limit
   (`589` lines <= `600`)
 
+### Step 368: WAT Cross-Language Projection
+**Status:** PASS (12/12 tests)
+
+Added cross-language WAT projection coverage across pipeline and direct
+projection paths (Python/C/Rust/Java), including annotation and metadata
+preservation checks.
+
+**Files created:**
+- `editor/tests/step368_test.cpp` — 12 tests covering:
+  1. Python -> WAT
+  2. C -> WAT
+  3. WAT -> Python
+  4. WAT -> C
+  5. WAT -> Rust
+  6. Java -> WAT
+  7. Python -> WAT -> Python identity check
+  8. WAT <-> C annotation preservation
+  9. import metadata preservation through projection
+  10. multi-function WAT -> C output generation
+  11. Semanno roundtrip on projected annotation data
+  12. WAT-source pipeline run success
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step368_test` target
+
+**Verification run:**
+- `step368_test` — PASS (12/12) new step coverage
+- `step367_test` — PASS (12/12) regression coverage
+- `step366_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step368_test.cpp` remains within project file-size guidance
+  for test artifacts (`162` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
