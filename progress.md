@@ -10155,3 +10155,38 @@ header-only design and deterministic behavior.
 - `editor/src/BreakpointSystem.h` within header-size limit (`120` <= `600`)
 - `editor/src/ExceptionStackTraceCapture.h` within header-size limit (`73` <= `600`)
 - Shared validation centralization reduces duplicated guard logic and keeps module boundaries aligned with `ARCHITECTURE.md`
+
+### Step 564: Memory Snapshot Model
+**Status:** PASS (12/12 tests)
+
+Implements a structured memory snapshot schema with region/reference capture,
+validation, and query helpers for stack/heap/global memory reflection.
+
+**Files added:**
+- `editor/src/MemorySnapshotModel.h` - memory snapshot module:
+  - snapshot/session/thread identity schema
+  - typed memory region records (stack/heap/global)
+  - pointer/reference record schema
+  - region insertion validation + deterministic ordering
+  - address-to-region and outgoing-reference query helpers
+- `editor/tests/step564_test.cpp` - 12 tests covering:
+  - snapshot identity validation behavior
+  - region add/duplicate/bounds guard behavior
+  - deterministic region ordering behavior
+  - inclusive/exclusive address lookup behavior
+  - reference add/validation behavior
+  - outgoing reference filtering behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step564_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step564_test step563_test` - PASS
+- `./editor/build-native/step564_test` - PASS (12/12)
+- `./editor/build-native/step563_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MemorySnapshotModel.h` within header-size limit (`149` <= `600`)
+- `editor/tests/step564_test.cpp` within test-file size guidance (`179` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
