@@ -11126,3 +11126,37 @@ readiness gate for onboarding value visibility.
 **Phase 33a totals (584-588):**
 - **Steps completed:** 5
 - **New tests in this phase plan:** 56/56 passing
+
+### Step 589: Release Readiness Gate Pack
+**Status:** PASS (12/12 tests)
+
+Implements consolidated release go/no-go gate evaluation for UX, runtime,
+regression, telemetry, and documentation readiness.
+
+**Files added:**
+- `editor/src/ReleaseReadinessGatePack.h` - readiness gate module:
+  - gate signal aggregation and release ready/no-go decision
+  - blocked gate note emission
+  - hotfix-shipping policy helper
+  - weighted readiness scoring helper
+- `editor/tests/step589_test.cpp` - 12 tests covering:
+  - all-green pass behavior
+  - per-gate failure behavior
+  - multi-gate blocking behavior
+  - note emission behavior
+  - hotfix policy behavior
+  - weighted score behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step589_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step589_test step588_test` - PASS
+- `./editor/build-native/step589_test` - PASS (12/12)
+- `./editor/build-native/step588_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ReleaseReadinessGatePack.h` within header-size limit (`55` <= `600`)
+- `editor/tests/step589_test.cpp` within test-file size guidance (`154` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
