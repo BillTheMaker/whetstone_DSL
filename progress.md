@@ -9360,3 +9360,39 @@ re-validate architecture constraints without behavior changes.
 - `./editor/build-native/step541_test` - PASS (12/12)
 - `./editor/build-native/step542_test` - PASS (12/12)
 - `./editor/build-native/step543_test` - PASS (8/8)
+
+### Step 544: Constrained Routing Ruleset Extension
+**Status:** PASS (12/12 tests)
+
+Implements constrained-mode routing policy extensions with deterministic
+template promotion at high legal-choice confidence and explicit precedence for
+post-apply failure escalation.
+
+**Files added:**
+- `editor/src/ConstrainedRoutingRulesetExtension.h` - constrained routing module:
+  - constrained/non-constrained mode branching
+  - failure-first escalation for unstable recent outcomes
+  - deterministic template promotion for high-confidence legal-choice paths
+  - constrained-worker routing for moderate confidence
+  - low-confidence fallback to general worker
+- `editor/tests/step544_test.cpp` - 12 tests covering:
+  - constrained-mode and non-constrained routing behavior
+  - escalation precedence behavior
+  - template promotion thresholds
+  - constrained-worker thresholds
+  - confidence propagation behavior
+  - rationale-tag emission behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step544_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step544_test step543_test` - PASS
+- `./editor/build-native/step544_test` - PASS (12/12)
+- `./editor/build-native/step543_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ConstrainedRoutingRulesetExtension.h` within header-size limit (`60` <= `600`)
+- `editor/tests/step544_test.cpp` within test-file size guidance (`126` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
