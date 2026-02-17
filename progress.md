@@ -10801,3 +10801,38 @@ routing/escalation behavior in constrained execution pipelines.
 - `editor/src/TaskitemConfidenceAmbiguity.h` within header-size limit (`85` <= `600`)
 - `editor/tests/step580_test.cpp` within test-file size guidance (`189` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 581: Acceptance-Criteria Binding
+**Status:** PASS (12/12 tests)
+
+Implements acceptance-criteria binding for annotated taskitems with explicit
+check identities and generated test-skeleton handles.
+
+**Files added:**
+- `editor/src/AcceptanceCriteriaBinding.h` - acceptance binding module:
+  - binds acceptance requirements onto each annotated taskitem
+  - emits stable check ids (`task::requirement`)
+  - generates sanitized test-skeleton identifiers
+  - marks per-task acceptance coverage state
+  - validates presence of tasks and acceptance requirements
+- `editor/tests/step581_test.cpp` - 12 tests covering:
+  - binding success/failure behavior
+  - check fan-out behavior across tasks/requirements
+  - check id/text correctness behavior
+  - test-skeleton generation/sanitization behavior
+  - coverage flag behavior
+  - annotation field preservation behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step581_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step581_test step580_test` - PASS
+- `./editor/build-native/step581_test` - PASS (12/12)
+- `./editor/build-native/step580_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AcceptanceCriteriaBinding.h` within header-size limit (`83` <= `600`)
+- `editor/tests/step581_test.cpp` within test-file size guidance (`185` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
