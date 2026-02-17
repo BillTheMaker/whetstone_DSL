@@ -70,7 +70,7 @@ experienced engineers think about projects before implementation begins.
 
 - **Header-only C++** — all implementation in .h files, no .cpp (except mcp_main.cpp and test files)
 - **600-line file limit** — split when approaching, use Extended/Impl pattern
-- **12 tests per step, 8 for integration** — consistent test density
+- **Test plans generated per-step from complexity analysis** — test count and type emerge from what's being built (unit, negative, integration, contract, boundary, property, smoke, performance, regression), not from a fixed template. Architect approves the plan before workers execute. Prior sprints used a fixed "12 tests per step" scaffold; Sprint 23c replaces this with the test plan generator.
 - **MCP-first** — every capability exposed as an MCP tool
 - **Headless-first** — all functionality works without GUI
 - **No external dependencies beyond tree-sitter** — regex parsers for languages without tree-sitter grammars
