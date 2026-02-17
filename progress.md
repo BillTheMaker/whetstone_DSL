@@ -9976,3 +9976,37 @@ mapping for runtime inspection surfaces.
 - `editor/src/CallStackFrameInspector.h` within header-size limit (`58` <= `600`)
 - `editor/tests/step559_test.cpp` within test-file size guidance (`146` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 560: Locals + Watches Panel Data Model
+**Status:** PASS (12/12 tests)
+
+Implements runtime locals and watch-expression state modeling with type-aware
+locals display fields and watch lifecycle management.
+
+**Files added:**
+- `editor/src/LocalsWatchesPanelModel.h` - locals/watches data model:
+  - type-aware local variable entries
+  - watch add/remove/enable-disable lifecycle
+  - watch evaluation value/status tracking
+  - active-watch filtering and index-rebuild safety
+- `editor/tests/step560_test.cpp` - 12 tests covering:
+  - locals persistence/type behavior
+  - watch lifecycle behavior and input validation
+  - watch enable/disable behavior
+  - evaluation update behavior
+  - active-watch filtering behavior
+  - index rebuild behavior after watch removal
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step560_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step560_test step559_test` - PASS
+- `./editor/build-native/step560_test` - PASS (12/12)
+- `./editor/build-native/step559_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/LocalsWatchesPanelModel.h` within header-size limit (`90` <= `600`)
+- `editor/tests/step560_test.cpp` within test-file size guidance (`138` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
