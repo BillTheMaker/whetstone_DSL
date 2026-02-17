@@ -7030,3 +7030,45 @@ budget, and escalate unresolved submissions to architect review.
 - `editor/src/WorkerDispatchValidator.h` within header-size limit (`145` <= `600`)
 - `editor/tests/step485_test.cpp` within test-file size guidance (`165` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 486: Test Plan Generator
+**Status:** PASS (10/10 tests)
+
+Implements the test-plan intelligence layer for Phase 23c: proposes typed,
+named tests from step semantics and complexity budgets instead of fixed
+test counts.
+
+**Files added:**
+- `editor/src/TestPlanGenerator.h` — adaptive test-plan engine:
+  - `TestPlanInput`, `GeneratedTestPlan`, `TestPatternSample`
+  - typed test proposal across taxonomy:
+    - unit / negative / integration / contract / regression / boundary /
+      property / smoke / performance
+  - keyword heuristics aligned to sprint plan:
+    - validate/detect -> negative
+    - pipeline/workflow -> integration
+    - RPC/MCP -> smoke
+    - score/boundary/max/min -> boundary
+    - modify-existing -> regression
+  - prior-test pattern influence for regression continuity
+  - complexity-aware budget enforcement:
+    - trivial: 1-4
+    - standard: 5-10
+    - complex: 10-15
+    - pipeline: 6-10
+- `editor/tests/step486_test.cpp` — 10 tests (unit/boundary/negative focus):
+  - heuristic inclusion checks by keyword class
+  - regression inference from prior test patterns
+  - budget range checks under explicit complexity hint
+  - generated test name convention checks
+- `editor/CMakeLists.txt` — `step486_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step486_test step485_test` — PASS
+- `./editor/build-native/step486_test` — PASS (10/10)
+- `./editor/build-native/step485_test` — PASS (10/10) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TestPlanGenerator.h` within header-size limit (`191` <= `600`)
+- `editor/tests/step486_test.cpp` within test-file size guidance (`118` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
