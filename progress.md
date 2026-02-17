@@ -5793,3 +5793,32 @@ for async/thread/channel/mutex constructs across language runtime models.
 **Architecture gate check:**
 - `editor/src/ConcurrencyTranslator.h` within header-size limit (`249` <= `600`)
 - `editor/tests/step452_test.cpp` within test-file size guidance (`146` lines)
+
+### Step 453: Memory Model Translation
+**Status:** PASS (12/12 tests)
+
+Completes ownership/lifetime translation across manual, RAII, GC, ARC, and
+borrow-checked models with explicit safety-delta tracking.
+
+**Files added:**
+- `editor/src/MemoryModelTranslator.h` — memory model translation engine:
+  - ownership model detection (`Manual`, `RAII`, `GC`, `BorrowChecked`, `ARC`)
+  - translation patterns for `@Owner(Unique)`, `@Owner(Shared_ARC)`,
+    `@Owner(Manual)`, `@Lifetime(Scope)`
+  - per-translation safety delta (`Gained`, `Lost`, `Neutral`)
+  - migration annotations (e.g., `@Risk(high)`, `@Risk(lowered)`)
+- `editor/tests/step453_test.cpp` — 12 tests covering:
+  - manual-memory safety gains in Rust/GC targets
+  - unique/shared ownership degradation when targeting C
+  - scope-lifetime mapping (`defer`, try-with-resources, manual fallback)
+  - source/target model inference and mixed-pattern safety counters
+- `editor/CMakeLists.txt` — `step453_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step453_test` — PASS
+- `./editor/build-native/step453_test` — PASS (12/12)
+- `./editor/build-native/step452_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MemoryModelTranslator.h` within header-size limit (`249` <= `600`)
+- `editor/tests/step453_test.cpp` within test-file size guidance (`142` lines)
