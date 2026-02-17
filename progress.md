@@ -7223,3 +7223,42 @@ post-hoc hardening.
 - `editor/src/SecureByDefaultGenerator.h` within header-size limit (`202` <= `600`)
 - `editor/tests/step489_test.cpp` within test-file size guidance (`164` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 490: Threat Model Integration
+**Status:** PASS (12/12 tests)
+
+Adds threat-model integration primitives that encode trust boundaries and
+boundary-crossing data-flow validation requirements, emitting structured
+E1300-range diagnostics and overlay-ready graph data.
+
+**Files added:**
+- `editor/src/ThreatModelIntegration.h` — threat model analyzer:
+  - `TrustBoundary`, `ThreatDataFlow`, `ThreatModelInput`
+  - `ThreatDiagnostic`, `ThreatModelOutput`
+  - `analyze(...)` capabilities:
+    - module-level `@ThreatModel(...)` annotation requirement
+    - boundary-level `@TrustBoundary(...)` requirements
+    - cross-boundary `@DataFlow(...)` requirement emission
+    - missing-validation detection at high-risk crossings (`E1300`)
+    - raw-validation detection (`E1301`)
+    - missing-boundary model diagnostic (`E1302`)
+    - unknown validation kind diagnostic (`E1303`)
+    - overlay node output for trust-boundary visualization
+- `editor/tests/step490_test.cpp` — 12 tests covering:
+  - annotation emission for module/boundary/flow modeling
+  - E1300/E1301/E1302/E1303 diagnostic behavior
+  - sanitized-flow non-error path
+  - validation-required annotation on missing checks
+  - non-crossing internal-flow false-positive guard
+  - overlay and empty-flow note behavior
+- `editor/CMakeLists.txt` — `step490_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step490_test step489_test` — PASS
+- `./editor/build-native/step490_test` — PASS (12/12)
+- `./editor/build-native/step489_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ThreatModelIntegration.h` within header-size limit (`126` <= `600`)
+- `editor/tests/step490_test.cpp` within test-file size guidance (`167` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
