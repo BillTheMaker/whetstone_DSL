@@ -5129,6 +5129,51 @@ state into editor views, with status icon/color mapping and task-detail routes.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 436: Review Comparison View
+**Status:** PASS (12/12 tests)
+
+Added a review-comparison model that produces side-by-side diff rows and
+integrates approve/reject actions with keyboard shortcut metadata.
+
+**Files created:**
+- `editor/src/ReviewComparisonView.h` — review diff model support:
+  - workflow item -> comparison model projection
+  - skeleton/generated side labels
+  - line-oriented diff rows (added/removed/modified/unchanged)
+  - contextual change notes (routing, feedback, annotations)
+  - action availability flags keyed to review status
+  - approve/reject wrappers delegated to workflow detail logic
+  - keyboard shortcut constants (`Ctrl+Shift+A`, `Ctrl+Shift+R`)
+- `editor/tests/step436_test.cpp` — 12 tests covering:
+  1. model generation for existing item
+  2. missing-item null handling
+  3. modified-line diff detection
+  4. review-state action enablement
+  5. shortcut constant mapping
+  6. shortcut propagation into model
+  7. routing note inclusion
+  8. rejection-feedback note inclusion
+  9. approve transition to complete
+  10. reject transition to ready
+  11. reject-feedback requirement
+  12. non-review action disablement
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step436_test` target
+
+**Verification run:**
+- `step436_test` — PASS (12/12) new step coverage
+- `step435_test` — PASS (12/12) regression coverage
+- `step434_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ReviewComparisonView.h` within header-size limit (`118` <= `600`)
+- `editor/tests/step436_test.cpp` within test-file size guidance (`173` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
