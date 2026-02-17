@@ -9871,3 +9871,37 @@ state transitions.
 - `editor/src/StepEngine.h` within header-size limit (`135` <= `600`)
 - `editor/tests/step556_test.cpp` within test-file size guidance (`154` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 557: Exception + Stack Trace Capture
+**Status:** PASS (12/12 tests)
+
+Implements structured exception event capture with validated stack traces and
+editor navigation anchors for each stack frame.
+
+**Files added:**
+- `editor/src/ExceptionStackTraceCapture.h` - exception capture module:
+  - structured exception event model (`type/message/thread/frames`)
+  - frame validation and normalization
+  - navigation anchor generation (`file:line`) for editor linking
+  - explicit error reporting for invalid/missing payload fields
+- `editor/tests/step557_test.cpp` - 12 tests covering:
+  - valid capture behavior
+  - missing required field behavior
+  - invalid frame validation behavior
+  - navigation anchor generation
+  - mixed valid/invalid frame behavior
+  - event field persistence behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step557_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step557_test step556_test` - PASS
+- `./editor/build-native/step557_test` - PASS (12/12)
+- `./editor/build-native/step556_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ExceptionStackTraceCapture.h` within header-size limit (`71` <= `600`)
+- `editor/tests/step557_test.cpp` within test-file size guidance (`149` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
