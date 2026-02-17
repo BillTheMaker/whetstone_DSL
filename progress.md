@@ -8247,3 +8247,39 @@ scales, derivation support, and AA contrast validation.
 - `editor/src/ThemeTokenSystemV2.h` within header-size limit (`107` <= `600`)
 - `editor/tests/step515_test.cpp` within test-file size guidance (`121` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 516: Signature Visual Identity Pack
+**Status:** PASS (12/12 tests)
+
+Implements Sprint 26’s signature visual identity primitives: black-surface
+gradient depth treatment, blade-edge accent semantics for active surfaces, and
+electric-blue logic-link styling with distance-aware fading and motion-aware
+reveal timing.
+
+**Files added:**
+- `editor/src/SignatureVisualIdentity.h` - visual identity module:
+  - elevated/base black-surface gradient presets
+  - blade-edge accent model (edge, thickness, intensity, active state)
+  - electric-blue logic-link style with highlight and distance fade behavior
+  - reduced-motion aware reveal and stagger timing helpers
+- `editor/tests/step516_test.cpp` - 12 tests covering:
+  - gradient stop structure/order and elevated-depth brightness
+  - active blade-edge thickness/intensity behavior
+  - highlighted link width/glow behavior
+  - distance-based logic-link alpha fade
+  - electric-blue profile detection
+  - reduced-motion reveal/stagger behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step516_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step516_test` - PASS
+- `./editor/build-native/step516_test` - PASS (12/12)
+- `./editor/build-native/step515_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SignatureVisualIdentity.h` within header-size limit (`81` <= `600`)
+- `editor/tests/step516_test.cpp` within test-file size guidance (`123` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
