@@ -11160,3 +11160,36 @@ regression, telemetry, and documentation readiness.
 - `editor/src/ReleaseReadinessGatePack.h` within header-size limit (`55` <= `600`)
 - `editor/tests/step589_test.cpp` within test-file size guidance (`154` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 590: Crash + Recovery Reliability Sweep
+**Status:** PASS (12/12 tests)
+
+Implements crash/recovery reliability modeling for session snapshots and
+continuity checks across workflow, queue, and open-buffer state.
+
+**Files added:**
+- `editor/src/CrashRecoveryReliabilitySweep.h` - crash recovery module:
+  - recovery snapshot capture with validation guards
+  - session restore evaluation with continuity dimensions
+  - partial-recovery diagnostic notes
+  - known session inventory helper
+- `editor/tests/step590_test.cpp` - 12 tests covering:
+  - snapshot capture success/failure behavior
+  - full recovery behavior
+  - partial recovery dimensions and notes behavior
+  - missing-session behavior
+  - snapshot overwrite and session inventory behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step590_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step590_test step589_test` - PASS
+- `./editor/build-native/step590_test` - PASS (12/12)
+- `./editor/build-native/step589_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CrashRecoveryReliabilitySweep.h` within header-size limit (`73` <= `600`)
+- `editor/tests/step590_test.cpp` within test-file size guidance (`186` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
