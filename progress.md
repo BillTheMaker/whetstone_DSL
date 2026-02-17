@@ -8776,3 +8776,40 @@ snapshot before any mutation is allowed.
 - `editor/src/PreApplyValidationGate.h` within header-size limit (`130` <= `600`)
 - `editor/tests/step529_test.cpp` within test-file size guidance (`202` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 530: Post-Apply Structural Gate
+**Status:** PASS (12/12 tests)
+
+Adds a deterministic post-apply structural validation gate that requires
+successful reparse of touched regions and rejects unexpected symbol-graph drift
+after candidate edits are applied.
+
+**Files added:**
+- `editor/src/PostApplyStructuralGate.h` - post-apply gate module:
+  - validates region reparse completion
+  - validates AST integrity via parse error count check
+  - computes symbol additions/removals from before/after snapshots
+  - enforces allowed symbol-drift policy
+  - emits structured diagnostics for unexpected drift and integrity failures
+- `editor/tests/step530_test.cpp` - 12 tests covering:
+  - clean reparse/no-drift pass path
+  - AST integrity and missing-reparse failure paths
+  - unexpected add/remove symbol drift rejection
+  - allowed drift pass behavior (add/remove)
+  - duplicate-symbol dedup behavior
+  - aggregated multi-failure reporting
+  - empty graph edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step530_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step530_test step529_test` - PASS
+- `./editor/build-native/step530_test` - PASS (12/12)
+- `./editor/build-native/step529_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PostApplyStructuralGate.h` within header-size limit (`123` <= `600`)
+- `editor/tests/step530_test.cpp` within test-file size guidance (`155` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
