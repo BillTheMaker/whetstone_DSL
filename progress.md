@@ -7712,3 +7712,36 @@ pipeline to Rust with confidence and review gating.
 - `editor/src/CrossLanguagePortScenarioRunner.h` within header-size limit (`127` <= `600`)
 - `editor/tests/step501_test.cpp` within test-file size guidance (`165` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 502: Scenario - Multi-Model Orchestration
+**Status:** PASS (12/12 tests)
+
+Implements the fourth Phase 25b end-to-end scenario for a 20-function project
+that exercises all worker classes and review gates.
+
+**Files added:**
+- `editor/src/MultiModelOrchestrationScenarioRunner.h` - scenario orchestration across:
+  - 20-task synthetic project generation
+  - routing through deterministic/template/slm/llm/human workers
+  - deterministic/template auto-completion behavior
+  - per-task token estimate vs actual token tracking
+  - progress snapshots across full completion lifecycle
+  - review gate tracking for LLM + human paths
+- `editor/tests/step502_test.cpp` - 12 scenario tests covering:
+  - exact routing distribution and task-group counts
+  - narrow vs wide context routing semantics
+  - auto-completion expectations
+  - review gate exercise and cost/progress accounting
+  - completion and summary notes
+- `editor/CMakeLists.txt` - `step502_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step502_test step501_test` - PASS
+- `./editor/build-native/step502_test` - PASS (12/12)
+- `./editor/build-native/step501_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MultiModelOrchestrationScenarioRunner.h` within header-size limit (`177` <= `600`)
+- `editor/tests/step502_test.cpp` within test-file size guidance (`152` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
