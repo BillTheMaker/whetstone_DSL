@@ -7890,3 +7890,35 @@ dependency validation, language fallback, and MCP request validation.
 - `editor/src/EdgeCaseCleanup.h` within header-size limit (`139` <= `600`)
 - `editor/tests/step506_test.cpp` within test-file size guidance (`150` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 507: Full Test Suite Regression Gate
+**Status:** PASS (12/12 tests)
+
+Implements regression quality gating for multi-run suite execution summaries,
+including strict checks for all-pass behavior, flaky-test detection, duration budget,
+and leak budget.
+
+**Files added:**
+- `editor/src/FullRegressionGate.h` - regression gate evaluator:
+  - aggregates run outcomes across suite partitions
+  - detects flaky suites from mixed pass/fail run states
+  - enforces duration target (`<60s`) and memory-leak budget (`0`)
+  - emits gate summary notes and failure/flaky suite lists
+  - includes synthetic phase dataset helper representing full 245-506 coverage scale
+- `editor/tests/step507_test.cpp` - 12 tests covering:
+  - full-gate happy path across 3-run stability
+  - >5000-test dataset semantics
+  - flaky/failure/perf/leak failure-path detection
+  - gate-conjunction logic and summary note generation
+- `editor/CMakeLists.txt` - `step507_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step507_test step506_test` - PASS
+- `./editor/build-native/step507_test` - PASS (12/12)
+- `./editor/build-native/step506_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/FullRegressionGate.h` within header-size limit (`98` <= `600`)
+- `editor/tests/step507_test.cpp` within test-file size guidance (`142` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
