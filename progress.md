@@ -5706,3 +5706,33 @@ is absent/ambiguous.
 **Architecture gate check:**
 - `editor/src/IntentTranslator.h` within header-size limit (`254` <= `600`)
 - `editor/tests/step449_test.cpp` within test-file size guidance (`166` lines)
+
+### Step 450: Algorithm-Level Equivalence
+**Status:** PASS (12/12 tests)
+
+Adds algorithm-pattern recognition over source snippets and target-language
+idiomatic equivalent selection, enabling standard-library mappings beyond
+literal/syntactic rewrites.
+
+**Files added:**
+- `editor/src/AlgorithmEquivalence.h` — recognizer + mapping model:
+  - `AlgorithmPattern`, `AlgorithmEquivalent`, `AlgorithmAnalysisResult`
+  - pattern detection for sort/search/map/filter/reduce/builder/iteration
+  - cross-language target mapping (Rust/Python/Java/C++/Go)
+  - standard-library usage accounting (`countStdLib`)
+  - pattern catalog (`supportedPatterns`, 15 entries)
+- `editor/tests/step450_test.cpp` — 12 tests covering:
+  - bubble/binary/linear search recognition
+  - map/filter/reduce loop recognition and idiomatic target mapping
+  - builder-pattern detection
+  - cross-language sort target projection validation
+- `editor/CMakeLists.txt` — `step450_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step450_test` — PASS
+- `./editor/build-native/step450_test` — PASS (12/12)
+- `./editor/build-native/step449_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AlgorithmEquivalence.h` within header-size limit (`228` <= `600`)
+- `editor/tests/step450_test.cpp` within test-file size guidance (`143` lines)
