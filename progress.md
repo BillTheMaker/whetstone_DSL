@@ -11193,3 +11193,36 @@ continuity checks across workflow, queue, and open-buffer state.
 - `editor/src/CrashRecoveryReliabilitySweep.h` within header-size limit (`73` <= `600`)
 - `editor/tests/step590_test.cpp` within test-file size guidance (`186` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 591: Benchmark and Comparison Harness
+**Status:** PASS (12/12 tests)
+
+Implements internal benchmark harness support for throughput/reliability/token-
+efficiency tracking, aggregation, and baseline-vs-candidate comparison.
+
+**Files added:**
+- `editor/src/BenchmarkComparisonHarness.h` - benchmark harness module:
+  - benchmark sample ingestion with validation/duplicate guards
+  - per-scenario metric aggregation
+  - baseline/candidate delta comparison
+  - throughput-ranked run extraction
+- `editor/tests/step591_test.cpp` - 12 tests covering:
+  - sample ingestion success/failure behavior
+  - aggregate computation behavior
+  - comparison delta behavior and mismatch handling
+  - top-throughput ordering behavior
+  - zero-limit behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step591_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step591_test step590_test` - PASS
+- `./editor/build-native/step591_test` - PASS (12/12)
+- `./editor/build-native/step590_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/BenchmarkComparisonHarness.h` within header-size limit (`109` <= `600`)
+- `editor/tests/step591_test.cpp` within test-file size guidance (`165` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
