@@ -10405,3 +10405,38 @@ numeric/identifier evaluation.
 - `editor/src/WatchExpressionEvaluatorHardening.h` within header-size limit (`210` <= `600`)
 - `editor/tests/step570_test.cpp` within test-file size guidance (`142` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 571: Time-Travel Debug Event Buffer
+**Status:** PASS (12/12 tests)
+
+Implements a bounded debug event history buffer for short-horizon time-travel
+replay with deterministic eviction and session/window query helpers.
+
+**Files added:**
+- `editor/src/TimeTravelDebugEventBuffer.h` - replay buffer module:
+  - bounded append lifecycle with overflow eviction tracking
+  - event validation (ids, type, timestamp, instruction pointer)
+  - latest-event and replay-window extraction helpers
+  - per-session event filtering
+  - duplicate event-id rejection behavior
+- `editor/tests/step571_test.cpp` - 12 tests covering:
+  - append success and validation failures
+  - duplicate-id rejection behavior
+  - bounded eviction and dropped-count behavior
+  - latest/replay window query behavior
+  - per-session filtering behavior
+  - zero-capacity normalization behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step571_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step571_test step570_test` - PASS
+- `./editor/build-native/step571_test` - PASS (12/12)
+- `./editor/build-native/step570_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TimeTravelDebugEventBuffer.h` within header-size limit (`86` <= `600`)
+- `editor/tests/step571_test.cpp` within test-file size guidance (`174` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
