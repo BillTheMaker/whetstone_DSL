@@ -7922,3 +7922,52 @@ and leak budget.
 - `editor/src/FullRegressionGate.h` within header-size limit (`98` <= `600`)
 - `editor/tests/step507_test.cpp` within test-file size guidance (`142` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 508: Sprint 25 Summary + Post-25 Readiness
+**Status:** PASS (8/8 tests)
+
+Implements Sprint 25 closure summary and Sprint 26 readiness signaling with
+threshold-checked project metrics and post-25 training-data prerequisites.
+
+**Files added:**
+- `editor/src/Sprint25SummaryReadiness.h` - summary/readiness generator:
+  - Sprint 25 headline metrics (languages, tools, annotation scale, steps/tests)
+  - self-hosting coverage threshold signal
+  - validated scenario count from Phase 25b integration
+  - post-25 readiness signals:
+    - event-stream data accumulated
+    - workflow decisions logged
+    - transpilation pairs logged
+  - final Sprint 26 readiness gate synthesis
+- `editor/tests/step508_test.cpp` - 8 tests covering:
+  - all headline metric thresholds
+  - self-hosting coverage threshold
+  - 4-scenario validation signal
+  - post-25 readiness signal states
+  - final Sprint 26 readiness gate + notes
+- `editor/CMakeLists.txt` - `step508_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step508_test step507_test` - PASS
+- `./editor/build-native/step508_test` - PASS (8/8)
+- `./editor/build-native/step507_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint25SummaryReadiness.h` within header-size limit (`68` <= `600`)
+- `editor/tests/step508_test.cpp` within test-file size guidance (`94` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 25c totals (504-508):**
+- **Steps:** 5
+- **Tests:** 56/56 passing
+- **Headers added:** 5
+  - `PerformanceOptimizationSuite.h`
+  - `MCPToolDocumentation.h`
+  - `EdgeCaseCleanup.h`
+  - `FullRegressionGate.h`
+  - `Sprint25SummaryReadiness.h`
+
+**Sprint 25 totals (493-508):**
+- **Steps completed:** 16
+- **New tests in this sprint plan:** 180/180 passing
