@@ -6951,3 +6951,40 @@ worker output conformance.
 - `editor/src/ProjectConventionAnalyzer.h` within header-size limit (`223` <= `600`)
 - `editor/tests/step483_test.cpp` within test-file size guidance (`146` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 484: Prior-Step Context Injector
+**Status:** PASS (8/8 tests)
+
+Adds prior-step API/context injection so worker-facing briefs can include
+condensed type/method summaries and include dependencies instead of full
+headers.
+
+**Files added:**
+- `editor/src/PriorStepContextInjector.h` — context extraction layer:
+  - `ApiTypeSummary`, `ApiMethodSummary`, `StepContext`
+  - `build(headerPaths)`:
+    - parses class/struct names from prior headers
+    - extracts declaration/definition-level method signatures
+    - records include dependency graph from `#include "..."` lines
+    - infers naming patterns from type suffixes (`Spec`, `State`, `Report`)
+    - emits warnings for missing/unreadable headers
+  - `condensedBrief()` for prompt-sized worker context summaries
+- `editor/tests/step484_test.cpp` — 8 tests (unit/integration) covering:
+  - type extraction from real prior-step headers
+  - method signature extraction and declaration-only shape checks
+  - include graph construction
+  - naming pattern detection
+  - condensed brief content
+  - missing-header warning behavior
+  - multi-header integration behavior
+- `editor/CMakeLists.txt` — `step484_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step484_test step483_test` — PASS
+- `./editor/build-native/step484_test` — PASS (8/8)
+- `./editor/build-native/step483_test` — PASS (9/9) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PriorStepContextInjector.h` within header-size limit (`125` <= `600`)
+- `editor/tests/step484_test.cpp` within test-file size guidance (`120` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
