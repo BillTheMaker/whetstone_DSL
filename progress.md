@@ -5910,3 +5910,34 @@ translated functions, including aggregated report statistics.
 **Architecture gate check:**
 - `editor/src/TranspilationConfidence.h` within header-size limit (`153` <= `600`)
 - `editor/tests/step456_test.cpp` within test-file size guidance (`155` lines)
+
+### Step 457: Translation Report
+**Status:** PASS (12/12 tests)
+
+Adds per-function and project-level transpilation reporting, including mapping
+shape, confidence, annotation deltas, safety delta, idiomatic/literal split,
+and review-flag rollups.
+
+**Files added:**
+- `editor/src/TranslationReport.h` — report generator:
+  - function-level report model with construct mapping, confidence, rationale,
+    safety delta, and annotation-change tracking
+  - project summary metrics: total, idiomatic/literal counts, review flags,
+    and percentage rollups
+  - integration with intent translation + confidence scorer
+- `editor/tests/step457_test.cpp` — 12 tests covering:
+  - per-function presence and retrieval behavior
+  - summary counts and percentage calculations
+  - annotation/rationale generation
+  - safety delta behavior for `c→rust` and `rust→c`
+  - intent override impact on confidence path
+- `editor/CMakeLists.txt` — `step457_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step457_test` — PASS
+- `./editor/build-native/step457_test` — PASS (12/12)
+- `./editor/build-native/step456_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TranslationReport.h` within header-size limit (`174` <= `600`)
+- `editor/tests/step457_test.cpp` within test-file size guidance (`168` lines)
