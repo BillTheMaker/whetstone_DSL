@@ -7614,3 +7614,34 @@ and workflow viability.
   - self-modernization workflow routing + deterministic output validation
   - consolidated self-host metrics/gap analysis
   - phase-level self-hosting thesis gate evaluation
+
+### Step 499: Scenario - Greenfield Project
+**Status:** PASS (12/12 tests)
+
+Implements the first Phase 25b end-to-end scenario for:
+"Build a URL shortener with user accounts".
+
+**Files added:**
+- `editor/src/GreenfieldScenarioRunner.h` - scenario orchestration across:
+  - problem parsing and layered decomposition
+  - stack selection with explicit preferences (`python`, `postgresql`, `typescript`)
+  - annotated skeleton generation + scaffold planning/materialization
+  - task routing (`deterministic` / `llm` / `human`) with context bundles
+  - security auditing over generated code surfaces
+- `editor/tests/step499_test.cpp` - 12 scenario tests covering:
+  - decomposition + stack expectations
+  - annotation presence in generated skeleton functions
+  - deterministic auto-complete, llm context preparation, and human-review surfacing
+  - scaffold sidecars/workflow-state materialization on disk
+  - security-findings/report shape and execution notes
+- `editor/CMakeLists.txt` - `step499_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step499_test step498_test` - PASS
+- `./editor/build-native/step499_test` - PASS (12/12)
+- `./editor/build-native/step498_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/GreenfieldScenarioRunner.h` within header-size limit (`153` <= `600`)
+- `editor/tests/step499_test.cpp` within test-file size guidance (`191` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
