@@ -11508,3 +11508,37 @@ guardrail evaluation, escalation planning, audit capture, and drift detection.
 **Phase 34a totals (594-598):**
 - **Steps completed:** 5
 - **New tests in this phase plan:** 56/56 passing
+
+### Step 599: Incident Response Runbook Engine
+**Status:** PASS (12/12 tests)
+
+Implements incident response runbook execution with required-step gating,
+completion tracking, and close-readiness validation.
+
+**Files added:**
+- `editor/src/IncidentResponseRunbookEngine.h` - runbook engine module:
+  - runbook registration with validation/duplicate guards
+  - runbook execution start state
+  - step completion lifecycle with dedupe checks
+  - required-step close gate
+  - completion-percent helper
+- `editor/tests/step599_test.cpp` - 12 tests covering:
+  - runbook registration success/failure behavior
+  - execution start behavior
+  - step completion success/failure behavior
+  - close readiness behavior
+  - completion percentage behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step599_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step599_test step598_test` - PASS
+- `./editor/build-native/step599_test` - PASS (12/12)
+- `./editor/build-native/step598_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/IncidentResponseRunbookEngine.h` within header-size limit (`106` <= `600`)
+- `editor/tests/step599_test.cpp` within test-file size guidance (`179` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
