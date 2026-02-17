@@ -6138,3 +6138,35 @@ addressing modes, directives, and label/function shaping.
 **Architecture gate check:**
 - `editor/src/ast/ArmAssemblyParser.h` within header-size limit (`245` <= `600`)
 - `editor/tests/step462_test.cpp` within test-file size guidance (`173` lines)
+
+### Step 463: Assembly Generator — x86 + ARM
+**Status:** PASS (12/12 tests)
+
+Adds assembly code generation for x86 and ARM from AST, plus a simple
+cross-architecture instruction mapper for straightforward x86→ARM projection.
+
+**Files added:**
+- `editor/src/ast/AssemblyGenerator.h` — generator and mapper:
+  - `generateX86` with Intel/AT&T syntax mode support
+  - `generateArm` output path
+  - `translateX86ToArmSimple` mapping for core opcodes (`mov/add/sub/cmp/jmp/call/ret`)
+  - architecture comment prefixes (`x86 -> "; "`, `arm -> "@ "`)
+  - directive/section emission from module and namespace-like section nodes
+- `editor/tests/step463_test.cpp` — 12 tests covering:
+  - x86 Intel/AT&T generation behavior
+  - ARM generation behavior
+  - directive/section emission
+  - x86→ARM opcode mapping including control flow
+  - unknown-opcode passthrough
+  - comment prefix semantics
+  - parse→generate→parse roundtrip sanity check for x86
+- `editor/CMakeLists.txt` — `step463_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step463_test` — PASS
+- `./editor/build-native/step463_test` — PASS (12/12)
+- `./editor/build-native/step462_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/AssemblyGenerator.h` within header-size limit (`167` <= `600`)
+- `editor/tests/step463_test.cpp` within test-file size guidance (`147` lines)
