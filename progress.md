@@ -8489,3 +8489,42 @@ histograms and normalization helpers for rapid alignment.
 - `editor/src/CrossPanelConsistencySweep.h` within header-size limit (`81` <= `600`)
 - `editor/tests/step522_test.cpp` within test-file size guidance (`152` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 523: Sprint 26 Integration + Summary
+**Status:** PASS (8/8 tests)
+
+Implements the Sprint 26 closure gate by integrating Phase 26a reliability,
+visual token + identity systems, control/typography harmonization,
+modifier-edge shortcuts, overlay hardening, notification semantics, and
+cross-panel consistency into a single summary signal.
+
+**Files added:**
+- `editor/src/Sprint26IntegrationSummary.h` - sprint integration summary module:
+  - aggregates Step 514-522 validation signals
+  - computes final Sprint 26 pass flag
+  - emits Sprint completion summary notes
+- `editor/tests/step523_test.cpp` - 8 tests covering:
+  - phase and domain gate pass signals
+  - final sprint pass synthesis
+  - completion-note emission
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step523_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step523_test` - PASS
+- `./editor/build-native/step523_test` - PASS (8/8)
+- `./editor/build-native/step522_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint26IntegrationSummary.h` within header-size limit (`90` <= `600`)
+- `editor/tests/step523_test.cpp` within test-file size guidance (`92` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Sprint 26 totals (509-523):**
+- **Steps completed:** 15
+- **New tests in this sprint plan:** 172/172 passing
+- **Phase 26a (509-514):** 68/68 passing
+- **Phase 26b (515-519):** 60/60 passing
+- **Phase 26c (520-523):** 44/44 passing
