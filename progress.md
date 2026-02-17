@@ -10294,3 +10294,45 @@ session-scoped diagnostics and pane routing for memory debug surfaces.
 - `editor/src/LeakCorruptionSignalBridge.h` within header-size limit (`154` <= `600`)
 - `editor/tests/step567_test.cpp` within test-file size guidance (`176` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 568: Phase 31a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates Steps 564-567 into one memory-reflection control flow that validates
+snapshot capture, UI inspection, allocation tracing, signal diagnostics, and
+stack/debug correlation gating.
+
+**Files added:**
+- `editor/src/Phase31aIntegration.h` - Phase 31a integration module:
+  - end-to-end memory reflection cycle orchestration
+  - debug session + snapshot bootstrap and region/reference population
+  - inspector node/row build and pointer-region resolution
+  - allocation/ownership trace lifecycle validation
+  - leak/corruption signal bridge ingestion and severity capture
+  - stack frame correlation checks against active debug context
+- `editor/tests/step568_test.cpp` - 8 tests covering:
+  - full happy-path cycle behavior
+  - debug start/snapshot failure handling
+  - pointer resolution failure handling
+  - allocation transfer failure handling
+  - signal bridge failure handling
+  - stack correlation failure handling
+  - corruption severity escalation behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step568_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step568_test step567_test` - PASS
+- `./editor/build-native/step568_test` - PASS (8/8)
+- `./editor/build-native/step567_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase31aIntegration.h` within header-size limit (`156` <= `600`)
+- `editor/tests/step568_test.cpp` within test-file size guidance (`116` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 31a totals (564-568):**
+- **Steps completed:** 5
+- **New tests in this phase plan:** 56/56 passing
