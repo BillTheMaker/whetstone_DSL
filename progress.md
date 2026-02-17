@@ -8966,3 +8966,39 @@ re-validate architecture constraints without changing runtime behavior.
 - `./editor/build-native/step531_test` - PASS (12/12)
 - `./editor/build-native/step532_test` - PASS (12/12)
 - `./editor/build-native/step533_test` - PASS (8/8)
+
+### Step 534: Operation Selector API
+**Status:** PASS (12/12 tests)
+
+Implements legal-operation selection for constrained editing by exposing only
+operations legal for the active language/node context and taskitem contract,
+ranked by predicted constraint-success signals.
+
+**Files added:**
+- `editor/src/OperationSelectorAPI.h` - operation selection module:
+  - intersects legal-op graph results with taskitem allowed ops
+  - ranks candidates using risk/context/preference heuristics
+  - emits candidate reasons for selector explainability
+  - deterministic score + tie-break ordering
+- `editor/tests/step534_test.cpp` - 12 tests covering:
+  - supported/unsupported context behavior
+  - contract op filtering behavior
+  - score sorting and tie-break behavior
+  - preferred-op boost behavior
+  - scope-context weighting behavior
+  - low-risk/high-risk scoring behavior
+  - empty allowed-op and unknown-language edge cases
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step534_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step534_test step533_test` - PASS
+- `./editor/build-native/step534_test` - PASS (12/12)
+- `./editor/build-native/step533_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/OperationSelectorAPI.h` within header-size limit (`88` <= `600`)
+- `editor/tests/step534_test.cpp` within test-file size guidance (`208` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
