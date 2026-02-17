@@ -9769,3 +9769,36 @@ duplication and re-validate architecture constraints without behavior changes.
 - `./editor/build-native/step551_test` - PASS (12/12)
 - `./editor/build-native/step552_test` - PASS (12/12)
 - `./editor/build-native/step553_test` - PASS (8/8)
+
+### Step 554: Debug Session Model
+**Status:** PASS (12/12 tests)
+
+Implements the core debug session lifecycle model with start/attach/pause/
+resume/stop transitions and multi-target per-buffer context support.
+
+**Files added:**
+- `editor/src/DebugSessionModel.h` - debug session control-plane model:
+  - session lifecycle transitions (`start/attach/pause/resume/stop`)
+  - multi-target session state with per-target buffer/executable context
+  - current-target switching
+  - per-buffer target lookup for editor mapping
+- `editor/tests/step554_test.cpp` - 12 tests covering:
+  - lifecycle transition behavior and invalid transition guards
+  - attach semantics for inactive/active sessions
+  - multi-target session behavior
+  - target switching behavior
+  - per-buffer target mapping behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step554_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step554_test step553_test` - PASS
+- `./editor/build-native/step554_test` - PASS (12/12)
+- `./editor/build-native/step553_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/DebugSessionModel.h` within header-size limit (`106` <= `600`)
+- `editor/tests/step554_test.cpp` within test-file size guidance (`140` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
