@@ -5379,6 +5379,55 @@ Ran a real stdio MCP session against `whetstone_mcp` using framed
 **Architecture gate check:**
 - `editor/src/LegacyIdiomDetector.h` within header-size limit (`8` <= `600`)
 
+### Step 438: Code Age + Idiom Detection
+**Status:** PASS (12/12 tests)
+
+Implemented legacy idiom/code-age detection with per-file and per-function
+reporting, plus language-version heuristics and bounded 0-10 legacy scoring.
+
+**Files created:**
+- `editor/tests/step438_test.cpp` — 12 tests covering:
+  1. K&R declaration detection
+  2. goto-heavy flow detection
+  3. deprecated `gets` detection
+  4. deprecated `sprintf` detection
+  5. deprecated `strcpy` detection
+  6. pointer arithmetic detection
+  7. manual memory management detection
+  8. C89 detection heuristic
+  9. C99 detection heuristic
+  10. C++11 detection heuristic
+  11. score range clamp (0-10)
+  12. per-function findings include function name
+
+**Files modified:**
+- `editor/src/LegacyIdiomDetector.h` — full detector model implementation:
+  - idiom finding/report structs
+  - file analysis entrypoint
+  - per-function findings summary
+  - language version inference (C/C++/Python heuristics)
+  - legacy score normalization/clamping
+- `editor/CMakeLists.txt` — `step438_test` target
+
+**MCP queue trial for this step (human-in-the-loop simulation):**
+- Created workflow tasks via MCP:
+  - `write_detector_tests` (deterministic, critical)
+  - `implement_legacy_detector` (template, high)
+- Pulled queue items via `whetstone_get_ready_tasks` and confirmed task metadata/IDs.
+- Routed queue with `whetstone_route_all_ready`.
+- Note: workflow state in `whetstone_mcp` is session-scoped; execute/get_work_item
+  must run in the same long-lived MCP session.
+
+**Verification run:**
+- `step438_test` — PASS (12/12) new step coverage
+- `step437_test` — PASS (8/8) regression coverage
+- `step54_test` — PASS (10/10) regression coverage
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+
+**Architecture gate check:**
+- `editor/src/LegacyIdiomDetector.h` within header-size limit (`193` <= `600`)
+- `editor/tests/step438_test.cpp` within test-file size guidance (`129` lines)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
