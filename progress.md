@@ -9587,3 +9587,37 @@ with priority and savings estimates.
 - `editor/src/CostReductionSuggestionEngine.h` within header-size limit (`68` <= `600`)
 - `editor/tests/step549_test.cpp` within test-file size guidance (`146` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 550: Worker Efficiency Dashboard Data Model
+**Status:** PASS (12/12 tests)
+
+Implements a worker-efficiency dashboard aggregation model covering completion,
+cost, rejection, and latency metrics by worker and task class.
+
+**Files added:**
+- `editor/src/WorkerEfficiencyDashboardModel.h` - dashboard model module:
+  - records per-run worker/task telemetry
+  - aggregates metrics by worker and by task class
+  - computes success/failure counts and rates
+  - computes total/average tokens, latency, and rejection counts
+- `editor/tests/step550_test.cpp` - 12 tests covering:
+  - empty snapshot behavior
+  - worker/task grouping behavior
+  - success/failure and success-rate computations
+  - average tokens/latency/rejections computations
+  - aggregate totals behavior
+  - cross-worker task-class aggregation behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step550_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step550_test step549_test` - PASS
+- `./editor/build-native/step550_test` - PASS (12/12)
+- `./editor/build-native/step549_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkerEfficiencyDashboardModel.h` within header-size limit (`71` <= `600`)
+- `editor/tests/step550_test.cpp` within test-file size guidance (`170` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
