@@ -4757,6 +4757,54 @@ coherent dispatch pipeline.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+# Sprint 19 Progress — GUI Phase 2: Workflow Visualization
+
+## Phase 19a: Task Board Panel
+
+### Step 428: Kanban-Style Task Board
+**Status:** PASS (12/12 tests)
+
+Added a task-board model layer for workflow visualization with canonical Kanban
+columns, card metadata, filtering, and manual column reassignment semantics.
+
+**Files created:**
+- `editor/src/WorkflowTaskBoard.h` — task-board support:
+  - 5 canonical columns: `pending`, `ready`, `in-progress`, `review`, `complete`
+  - status normalization (`assigned`/`in-progress` collapse, rejected->pending view)
+  - card projection with worker icon, priority, language/file metadata, tags
+  - board filters: worker type, priority, language, file substring
+  - deterministic card sorting (priority then item ID)
+  - manual move API (`moveItem`) for board-driven reassignment
+- `editor/tests/step428_test.cpp` — 12 tests covering:
+  1. board column presence
+  2. status-to-column mapping
+  3. assigned->in-progress normalization
+  4. worker filter
+  5. priority filter
+  6. language filter
+  7. file filter
+  8. worker icon + tag payloads
+  9. move item across columns
+  10. invalid-column move rejection
+  11. missing-item move rejection
+  12. deterministic ready-column sort
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step428_test` target
+
+**Verification run:**
+- `step428_test` — PASS (12/12) new step coverage
+- `step427_test` — PASS (8/8) regression coverage
+- `step426_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowTaskBoard.h` within header-size limit (`154` <= `600`)
+- `editor/tests/step428_test.cpp` within test-file size guidance (`186` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
