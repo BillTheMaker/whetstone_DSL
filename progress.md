@@ -7432,3 +7432,44 @@ measure inferred annotation signals (`@Complexity`, `@Risk`, `@Owner`,
 - `editor/src/SelfHostAnnotationAudit.h` within header-size limit (`180` <= `600`)
 - `editor/tests/step494_test.cpp` within test-file size guidance (`142` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 495: Transpile Whetstone Modules
+**Status:** PASS (12/12 tests)
+
+Adds a self-host transpilation audit for three concrete Whetstone headers:
+`AnnotationConflictExtended.h` -> Python, `ResponseBudget.h` -> Rust,
+`Icons.h` -> Java, with structure/annotation preservation and confidence
+metrics.
+
+**Files added:**
+- `editor/src/SelfHostTranspileAudit.h` — self-host transpilation audit layer:
+  - `SelfTranspileSpec`, `SelfTranspileFileReport`, `SelfTranspileAuditReport`
+  - default spec set for the three sprint-target headers
+  - source parse (`cpp`) -> projection (`CrossLanguageProjector`) -> target generation
+  - checks:
+    - source parse success
+    - projection success
+    - annotation preservation (`annotationsPreserved`)
+    - generated output non-empty
+    - target-language parse viability
+  - confidence scoring via `TranspilationScorer`
+  - idiomatic vs literal classification derived from confidence category
+  - deterministic fallback generation scaffold when primary generator returns empty
+- `editor/tests/step495_test.cpp` — 12 tests covering:
+  - expected header/target mapping set
+  - per-file audit shape and success metrics
+  - non-empty generation guarantees
+  - annotation-preservation checks
+  - confidence and aggregate metric bounds
+  - idiomatic/literal accounting and summary notes
+- `editor/CMakeLists.txt` — `step495_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step495_test step494_test` — PASS
+- `./editor/build-native/step495_test` — PASS (12/12)
+- `./editor/build-native/step494_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfHostTranspileAudit.h` within header-size limit (`178` <= `600`)
+- `editor/tests/step495_test.cpp` within test-file size guidance (`139` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
