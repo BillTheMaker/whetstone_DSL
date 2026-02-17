@@ -8038,3 +8038,37 @@ startup/session-restore normalization.
 - `editor/tests/step509_test.cpp` within test-file size guidance (`180` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
 
+### Step 510: Panel Boundaries, Resizers, and Hit-Target Corrections
+**Status:** PASS (12/12 tests)
+
+Implements deterministic split-bar hit testing and geometry normalization to
+reduce ambiguous click zones where content selection steals resize intent, and
+to enforce reliable keyboard/mouse resize behavior.
+
+**Files added:**
+- `editor/src/PanelBoundaryReliability.h` - panel boundary reliability module:
+  - resize-priority click resolution over overlapping content
+  - panel minimum-size enforcement and split-bar thickness clamping
+  - bounded keyboard-driven split-bar resizing with fine-step mode
+  - proximity-based navigation ordering for panel-focus traversal
+- `editor/tests/step510_test.cpp` - 12 tests covering:
+  - resize-vs-content hit-target priority
+  - miss-path behavior
+  - panel width/height minimum clamping
+  - split-bar thickness lower/upper clamp behavior
+  - keyboard resize movement, bounds, and fine-step mode
+  - proximity navigation order and normalization note emission
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step510_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step510_test` - PASS
+- `./editor/build-native/step510_test` - PASS (12/12)
+- `./editor/build-native/step509_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PanelBoundaryReliability.h` within header-size limit (`140` <= `600`)
+- `editor/tests/step510_test.cpp` within test-file size guidance (`146` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
