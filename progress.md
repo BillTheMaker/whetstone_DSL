@@ -6208,3 +6208,47 @@ projection helpers.
 **Architecture gate check:**
 - `editor/src/ast/AssemblyAnnotationMapper.h` within header-size limit (`128` <= `600`)
 - `editor/tests/step464_test.cpp` within test-file size guidance (`177` lines)
+
+### Step 465: Phase 22a Integration
+**Status:** PASS (8/8 tests)
+
+Adds Phase 22a integration coverage across x86/ARM parsing, simple
+cross-architecture translation, annotation mapping, lift/lower helpers, and
+assembly node round-trip serialization.
+
+**Files added:**
+- `editor/tests/step465_test.cpp` — 8 integration tests covering:
+  - realistic x86 parse to valid AST
+  - realistic ARM parse to valid AST
+  - x86→ARM simple instruction mapping
+  - assembly→C lifting stub generation
+  - C→assembly lowering shape checks (x86 + ARM)
+  - annotation usefulness checks on assembly functions
+  - parse→annotate→generate end-to-end ARM flow
+  - assembly node JSON round-trip
+- `editor/CMakeLists.txt` — `step465_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step465_test` — PASS
+- `./editor/build-native/step465_test` — PASS (8/8)
+- `./editor/build-native/step464_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step465_test.cpp` within test-file size guidance (`150` lines)
+- No new production header introduced in this integration step
+
+**Phase 22a totals (460-465):**
+- **Steps:** 6
+- **Tests:** 68/68 passing
+- **Headers added:** 5
+  - `ast/AssemblyNodes.h`
+  - `ast/X86AssemblyParser.h`
+  - `ast/ArmAssemblyParser.h`
+  - `ast/AssemblyGenerator.h`
+  - `ast/AssemblyAnnotationMapper.h`
+- **Capabilities delivered:**
+  - assembly AST node model with JSON round-trip helpers
+  - x86 parser (Intel + AT&T) with label/directive/addressing support
+  - ARM/AArch64 parser with addressing mode support
+  - x86/ARM code generation + simple x86→ARM opcode mapping
+  - assembly semantic annotation mapping (`@Exec`, `@Target`, `@Risk`, `@Complexity`, `@Align`)
