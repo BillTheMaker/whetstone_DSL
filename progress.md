@@ -10370,3 +10370,38 @@ debug views with deterministic instruction ordering and register state access.
 - `editor/src/DisassemblyRegisterViewModel.h` within header-size limit (`125` <= `600`)
 - `editor/tests/step569_test.cpp` within test-file size guidance (`156` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 570: Watch Expression Evaluator Hardening
+**Status:** PASS (12/12 tests)
+
+Implements a hardened watch expression evaluator with explicit unsafe-pattern
+rejection, token/operation guardrails, deterministic timeout behavior, and
+numeric/identifier evaluation.
+
+**Files added:**
+- `editor/src/WatchExpressionEvaluatorHardening.h` - evaluator hardening module:
+  - expression/token safety validation
+  - unsafe pattern detection (`system`, `exec`, braces, etc.)
+  - token count, operation count, and timeout-budget enforcement
+  - deterministic numeric/identifier expression evaluation with precedence
+  - explicit error taxonomy for parser/runtime failures
+- `editor/tests/step570_test.cpp` - 12 tests covering:
+  - literal and scoped identifier evaluation behavior
+  - unsafe/unknown/invalid token rejection behavior
+  - token/operation/timeout guard behavior
+  - divide-by-zero and operand mismatch handling
+  - deterministic repeated evaluation behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step570_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step570_test step569_test` - PASS
+- `./editor/build-native/step570_test` - PASS (12/12)
+- `./editor/build-native/step569_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WatchExpressionEvaluatorHardening.h` within header-size limit (`210` <= `600`)
+- `editor/tests/step570_test.cpp` within test-file size guidance (`142` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
