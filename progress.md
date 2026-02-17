@@ -8455,3 +8455,37 @@ and stack management rules including persistent critical signaling.
 - `editor/src/NotificationStatusRefresh.h` within header-size limit (`72` <= `600`)
 - `editor/tests/step521_test.cpp` within test-file size guidance (`133` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 522: Cross-Panel Consistency Sweep
+**Status:** PASS (12/12 tests)
+
+Implements a cross-panel consistency sweep enforcing shared spacing/elevation/
+border conventions plus state-model and token-version uniformity, with drift
+histograms and normalization helpers for rapid alignment.
+
+**Files added:**
+- `editor/src/CrossPanelConsistencySweep.h` - consistency sweep module:
+  - baseline-vs-panel drift detection with tolerances
+  - drift categorization and histogram reporting
+  - normalization pass to align panel contracts to baseline
+  - checked-panel accounting for sweep coverage
+- `editor/tests/step522_test.cpp` - 12 tests covering:
+  - aligned pass case
+  - drift detection for spacing/elevation/border/version mismatches
+  - normalization behavior for metrics and versions
+  - histogram grouping behavior
+  - tolerance boundary behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step522_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step522_test` - PASS
+- `./editor/build-native/step522_test` - PASS (12/12)
+- `./editor/build-native/step521_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CrossPanelConsistencySweep.h` within header-size limit (`81` <= `600`)
+- `editor/tests/step522_test.cpp` within test-file size guidance (`152` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
