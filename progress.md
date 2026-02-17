@@ -10869,3 +10869,47 @@ queue-ready taskitems with confidence, escalation, and acceptance coverage.
 - `editor/src/IntakeToQueueSimulationHarness.h` within header-size limit (`96` <= `600`)
 - `editor/tests/step582_test.cpp` within test-file size guidance (`193` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 583: Sprint 32 Integration + Summary
+**Status:** PASS (8/8 tests)
+
+Completes Sprint 32 integration by aggregating Phase 32a and 32b readiness
+signals into phase/sprint outcomes with closure diagnostics.
+
+**Files added:**
+- `editor/src/Sprint32IntegrationSummary.h` - sprint integration module:
+  - aggregates Phase 32a and 32b gate signals
+  - computes phase pass flags and Sprint 32 pass flag
+  - emits per-step failure notes and blocked phase notes
+  - emits sprint readiness notes on full pass
+- `editor/tests/step583_test.cpp` - 8 tests covering:
+  - full sprint pass path
+  - phase-specific failure blocking behavior
+  - success/failure note emission behavior
+  - multi-failure aggregation behavior
+  - all-false boundary behavior
+  - phase isolation behavior on single 32b failure
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step583_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step583_test step582_test` - PASS
+- `./editor/build-native/step583_test` - PASS (8/8)
+- `./editor/build-native/step582_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint32IntegrationSummary.h` within header-size limit (`70` <= `600`)
+- `editor/tests/step583_test.cpp` within test-file size guidance (`128` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 32b totals (579-583):**
+- **Steps completed:** 5
+- **New tests in this phase plan:** 56/56 passing
+
+**Sprint 32 totals (574-583):**
+- **Steps completed:** 10
+- **New tests in this sprint plan:** 112/112 passing
+- **Phase 32a (574-578):** 56/56 passing
+- **Phase 32b (579-583):** 56/56 passing
