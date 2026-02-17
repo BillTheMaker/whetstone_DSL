@@ -10696,3 +10696,40 @@ enabling approve/modify/reject decisions before task generation.
 - `editor/src/ArchitectReviewSurface.h` within header-size limit (`126` <= `600`)
 - `editor/tests/step577_test.cpp` within test-file size guidance (`178` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 578: Phase 32a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates the Phase 32a markdown intake pipeline across parser,
+normalization/conflict detection, decomposition, and architect review workflow.
+
+**Files added:**
+- `editor/src/Phase32aIntegration.h` - Phase 32a integration module:
+  - markdown parse + normalization orchestration
+  - conflict and uncertainty signal propagation
+  - decomposition and review-load gating
+  - review decision automation modes (approve/modify/reject-first)
+  - phase readiness and failure-note synthesis
+- `editor/tests/step578_test.cpp` - 8 tests covering:
+  - full-cycle happy path behavior
+  - parse/normalize/review-load failure behavior
+  - modify/reject review decision behavior
+  - conflict count and parsed section count exposure behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step578_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step578_test step577_test` - PASS
+- `./editor/build-native/step578_test` - PASS (8/8)
+- `./editor/build-native/step577_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase32aIntegration.h` within header-size limit (`104` <= `600`)
+- `editor/tests/step578_test.cpp` within test-file size guidance (`139` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 32a totals (574-578):**
+- **Steps completed:** 5
+- **New tests in this phase plan:** 56/56 passing
