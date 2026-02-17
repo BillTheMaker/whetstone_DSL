@@ -6988,3 +6988,45 @@ headers.
 - `editor/src/PriorStepContextInjector.h` within header-size limit (`125` <= `600`)
 - `editor/tests/step484_test.cpp` within test-file size guidance (`120` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 485: Worker Dispatch + Result Validation
+**Status:** PASS (10/10 tests)
+
+Implements the architect->worker dispatch protocol model for Phase 23c:
+prepare spec/context/conventions, validate worker output, enforce retry
+budget, and escalate unresolved submissions to architect review.
+
+**Files added:**
+- `editor/src/WorkerDispatchValidator.h` — dispatch orchestration model:
+  - `WorkerDispatchInput`, `WorkerSubmission`, `DispatchAttemptReport`, `WorkerDispatchResult`
+  - `run(...)`:
+    - builds `StepSpec` via `StepSpecExpander`
+    - builds `StepContext` via `PriorStepContextInjector`
+    - extracts `ProjectConventions` via `ProjectConventionAnalyzer`
+    - validates each worker submission (build/tests/conventions)
+    - retries up to configurable budget (default `3`)
+    - marks completion only when build+tests pass and no convention warnings
+    - escalates on exhausted retries or missing submissions
+  - `buildWorkerBrief(...)` condensed handoff text for worker prompts
+- `editor/tests/step485_test.cpp` — 10 tests (unit/integration/negative):
+  - pre-dispatch artifact generation (spec/context/conventions)
+  - successful first-attempt acceptance
+  - retry-after-failure success path
+  - retry-budget exhaustion escalation
+  - convention-violation reporting path
+  - build-failure status propagation
+  - empty-submission negative case
+  - default retry-budget behavior
+  - worker brief content checks
+  - acceptance gate requiring both build and tests
+- `editor/CMakeLists.txt` — `step485_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step485_test step484_test` — PASS
+- `./editor/build-native/step485_test` — PASS (10/10)
+- `./editor/build-native/step484_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkerDispatchValidator.h` within header-size limit (`145` <= `600`)
+- `editor/tests/step485_test.cpp` within test-file size guidance (`165` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
