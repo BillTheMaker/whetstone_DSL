@@ -8659,3 +8659,41 @@ unresolved symbol requests before apply.
 - `editor/src/SymbolScopeExtractor.h` within header-size limit (`102` <= `600`)
 - `editor/tests/step526_test.cpp` within test-file size guidance (`158` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 527: Constraint Violation Diagnostics
+**Status:** PASS (12/12 tests)
+
+Adds structured constraint diagnostics for constrained execution failures,
+including out-of-scope symbol usage, illegal operations, and contract-policy
+violations with machine-readable retry/escalation payloads.
+
+**Files added:**
+- `editor/src/ConstraintViolationDiagnostics.h` - diagnostics module:
+  - evaluates operation legality against legal-op graph + taskitem contract
+  - evaluates symbol usage against extracted scope snapshot + contract policy
+  - emits structured violation records with retryability metadata
+  - computes deterministic recommended action (`proceed`/`retry`/`escalate`)
+  - serializes diagnostics packet to JSON for retry/escalation routing
+- `editor/tests/step527_test.cpp` - 12 tests covering:
+  - clean-path packet behavior with no violations
+  - contract-forbidden and graph-illegal operation violations
+  - unsupported context violations
+  - out-of-scope and forbidden/disallowed symbol violations
+  - retry-only vs escalate action selection
+  - violation deduplication and multi-violation aggregation
+  - machine-readable JSON payload shape
+  - empty symbol request edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step527_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step527_test step526_test` - PASS
+- `./editor/build-native/step527_test` - PASS (12/12)
+- `./editor/build-native/step526_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ConstraintViolationDiagnostics.h` within header-size limit (`169` <= `600`)
+- `editor/tests/step527_test.cpp` within test-file size guidance (`223` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
