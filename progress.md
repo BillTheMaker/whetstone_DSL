@@ -10190,3 +10190,37 @@ validation, and query helpers for stack/heap/global memory reflection.
 - `editor/src/MemorySnapshotModel.h` within header-size limit (`149` <= `600`)
 - `editor/tests/step564_test.cpp` within test-file size guidance (`179` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 565: Memory Inspector UI Model
+**Status:** PASS (12/12 tests)
+
+Implements a memory inspector UI data model with typed primitive/composite nodes,
+visible-row flattening, and pointer-to-region correlation against memory snapshots.
+
+**Files added:**
+- `editor/src/MemoryInspectorUiModel.h` - memory inspector UI model:
+  - typed value-node schema (primitive + container/struct)
+  - primitive/composite creation guards
+  - composite child-attachment behavior
+  - visible row flattening with expansion + row limit handling
+  - pointer text parsing and region-resolution against `MemorySnapshot`
+- `editor/tests/step565_test.cpp` - 12 tests covering:
+  - primitive/composite creation success/failure behavior
+  - child attachment behavior and parent-kind guards
+  - visible-row expansion/limit/depth behavior
+  - type renderer naming behavior
+  - pointer-region resolve success and failure behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step565_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step565_test step564_test` - PASS
+- `./editor/build-native/step565_test` - PASS (12/12)
+- `./editor/build-native/step564_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MemoryInspectorUiModel.h` within header-size limit (`194` <= `600`)
+- `editor/tests/step565_test.cpp` within test-file size guidance (`188` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
