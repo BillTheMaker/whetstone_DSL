@@ -9507,3 +9507,46 @@ controls for overage execution.
 - `editor/src/CostPolicyGuard.h` within header-size limit (`60` <= `600`)
 - `editor/tests/step547_test.cpp` within test-file size guidance (`132` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 548: Phase 29a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates Phase 29a routing intelligence, context minimization, confidence
+calibration, and cost policy enforcement into a unified constrained orchestration
+decision flow.
+
+**Files added:**
+- `editor/src/Phase29aIntegration.h` - Phase 29a integration gate:
+  - composes Step 544 routing policy, Step 545 context minimizer,
+    Step 546 confidence calibration, and Step 547 cost guard
+  - emits integrated pass/fail signal with structured error reasons
+  - guards template routing when calibrated confidence is too low
+  - enforces cost-policy and escalation outcomes in final decision
+- `editor/tests/step548_test.cpp` - 8 tests covering:
+  - pass-path with reduced context and cost compliance
+  - cost-policy block behavior
+  - routing-escalation block behavior
+  - narrow-context minimization behavior
+  - low-calibrated-confidence template block behavior
+  - calibration route-shift behavior
+  - approved overage path behavior
+  - non-narrow context tolerance behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step548_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step548_test step547_test` - PASS
+- `./editor/build-native/step548_test` - PASS (8/8)
+- `./editor/build-native/step547_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase29aIntegration.h` within header-size limit (`69` <= `600`)
+- `editor/tests/step548_test.cpp` within test-file size guidance (`132` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 29a totals (544-548):**
+- **Steps completed:** 5
+- **New tests in phase plan:** 56/56 passing
+- **Routing/context/cost optimization integration:** PASS
