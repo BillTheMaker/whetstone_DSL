@@ -8211,3 +8211,39 @@ accessibility baseline compliance with an explicit editor-flow-safe signal.
 - `editor/src/Phase26aIntegration.h` within header-size limit (`100` <= `600`)
 - `editor/tests/step514_test.cpp` within test-file size guidance (`91` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 515: Theme Token System v2
+**Status:** PASS (12/12 tests)
+
+Implements a semantic token system for Sprint 26 visual language with
+black/stone layered surfaces, accent channels, spacing/radius/border/elevation
+scales, derivation support, and AA contrast validation.
+
+**Files added:**
+- `editor/src/ThemeTokenSystemV2.h` - token system module:
+  - semantic color token set (base/layers/text/accent/error)
+  - contrast-variant derivation for adaptive readability
+  - spacing scale generation (`xs`..`xl`)
+  - contrast ratio + AA validation helpers
+  - explicit purple-bias detection guard for default accent policy
+- `editor/tests/step515_test.cpp` - 12 tests covering:
+  - layered black/stone baseline semantics
+  - spacing monotonicity and required keys
+  - variant derivation effects on text/layer brightness
+  - AA contrast checks for baseline tokens
+  - purple-bias detection behavior
+  - radius/border/elevation scale ordering
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step515_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step515_test` - PASS
+- `./editor/build-native/step515_test` - PASS (12/12)
+- `./editor/build-native/step514_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ThemeTokenSystemV2.h` within header-size limit (`107` <= `600`)
+- `editor/tests/step515_test.cpp` within test-file size guidance (`121` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
