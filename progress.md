@@ -7556,3 +7556,61 @@ single report with gap analysis.
 - `editor/src/SelfHostingMetricsReport.h` within header-size limit (`96` <= `600`)
 - `editor/tests/step497_test.cpp` within test-file size guidance (`165` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 498: Phase 25a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates the full Phase 25a self-hosting pipeline:
+parse -> annotate -> transpile -> modernization workflow -> metrics,
+with thesis-level gate checks for parse coverage, transpilation breadth,
+and workflow viability.
+
+**Files added:**
+- `editor/src/SelfHostingPhase25aIntegration.h` — phase integration composer:
+  - `Phase25aIntegrationResult`
+  - `runCurrentState()` executes:
+    - `SelfHostCodebaseAudit`
+    - `SelfHostAnnotationAudit`
+    - `SelfHostTranspileAudit`
+    - `SelfModernizationWorkflow`
+    - `SelfHostingMetricsReport`
+  - gate evaluation:
+    - parse coverage gate (`>=95%`)
+    - transpilation gate (`>=3` modules)
+    - workflow gate (all deterministic outputs valid)
+  - phase pass/fail synthesis + summary notes
+- `editor/tests/step498_test.cpp` — 8 integration tests covering:
+  - full pipeline execution
+  - gate threshold semantics
+  - phase pass conjunction logic
+  - cross-report metric consistency
+  - integration note/status behavior
+- `editor/CMakeLists.txt` — `step498_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step498_test step497_test` — PASS
+- `./editor/build-native/step498_test` — PASS (8/8)
+- `./editor/build-native/step497_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfHostingPhase25aIntegration.h` within header-size limit (`49` <= `600`)
+- `editor/tests/step498_test.cpp` within test-file size guidance (`105` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 25a totals (493-498):**
+- **Steps:** 6
+- **Tests:** 68/68 passing
+- **Headers added:** 6
+  - `SelfHostCodebaseAudit.h`
+  - `SelfHostAnnotationAudit.h`
+  - `SelfHostTranspileAudit.h`
+  - `SelfModernizationWorkflow.h`
+  - `SelfHostingMetricsReport.h`
+  - `SelfHostingPhase25aIntegration.h`
+- **Capabilities delivered:**
+  - full-header parser coverage auditing across Whetstone source
+  - self-code annotation signal auditing
+  - targeted self-module transpilation auditing (Python/Rust/Java)
+  - self-modernization workflow routing + deterministic output validation
+  - consolidated self-host metrics/gap analysis
+  - phase-level self-hosting thesis gate evaluation
