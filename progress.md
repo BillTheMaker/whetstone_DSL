@@ -8351,3 +8351,38 @@ to reduce visual drift between dense and sparse UI regions.
 - `editor/src/IconTypographyHarmonizer.h` within header-size limit (`60` <= `600`)
 - `editor/tests/step518_test.cpp` within test-file size guidance (`125` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 519: Modifier-Edge Shortcut Notation
+**Status:** PASS (12/12 tests)
+
+Implements compact modifier-edge shortcut notation with deterministic edge
+mapping (`Ctrl`=left, `Shift`=right, `Super`=top, `Alt`=bottom), combined
+modifier support, and stable text fallback labels for non-glyph environments.
+
+**Files added:**
+- `editor/src/ModifierEdgeNotation.h` - notation module:
+  - modifier-to-edge mapping model
+  - glyph construction with key normalization
+  - edge-activity counting and compactness checks
+  - fallback label generation with stable modifier ordering
+- `editor/tests/step519_test.cpp` - 12 tests covering:
+  - per-modifier edge mapping
+  - combined-edge behavior
+  - key normalization and invalid-key handling
+  - fallback-label correctness and ordering
+  - glyph-disabled fallback behavior
+  - compactness and edge-count sanity cases
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step519_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step519_test` - PASS
+- `./editor/build-native/step519_test` - PASS (12/12)
+- `./editor/build-native/step518_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ModifierEdgeNotation.h` within header-size limit (`76` <= `600`)
+- `editor/tests/step519_test.cpp` within test-file size guidance (`116` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
