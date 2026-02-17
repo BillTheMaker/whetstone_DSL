@@ -7179,3 +7179,47 @@ representations and never silently dropped during transpilation.
 - `editor/src/SecurityPreservingTranslation.h` within header-size limit (`166` <= `600`)
 - `editor/tests/step488_test.cpp` within test-file size guidance (`147` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 489: Secure-by-Default Code Generation
+**Status:** PASS (12/12 tests)
+
+Implements secure-by-default snippet generation for high-risk operation
+classes so generated code starts from safe patterns instead of relying on
+post-hoc hardening.
+
+**Files added:**
+- `editor/src/SecureByDefaultGenerator.h` — secure generation engine:
+  - `SecureGenerationRequest`, `SecureGenerationOutput`, `SecureSnippetKind`
+  - snippet generators for:
+    - SQL queries (parameterized placeholders / bind APIs)
+    - input handling (`@InputValidation(raw)` baseline)
+    - file operations (path traversal guards)
+    - network calls (timeouts + TLS verification)
+    - crypto operations (modern defaults + mandatory human review)
+  - baseline annotation emission:
+    - `@Risk(security)`
+    - `@Review(required, human)`
+    - optional `@SecurityRequirement(...)`
+    - `@Automatability(human)` for crypto
+  - weak-crypto guard (`md5`/`sha1`) escalation path
+- `editor/tests/step489_test.cpp` — 12 tests covering:
+  - parameterized SQL enforcement
+  - raw-input annotation semantics
+  - path traversal checks
+  - timeout/TLS requirements
+  - crypto hardening defaults and human-review gating
+  - base security annotation coverage across snippet kinds
+  - language-specific secure path checks (Rust SQL/network)
+  - secure fallback behavior for unknown languages
+  - operation-name propagation and security requirement annotation
+- `editor/CMakeLists.txt` — `step489_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step489_test step488_test` — PASS
+- `./editor/build-native/step489_test` — PASS (12/12)
+- `./editor/build-native/step488_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SecureByDefaultGenerator.h` within header-size limit (`202` <= `600`)
+- `editor/tests/step489_test.cpp` within test-file size guidance (`164` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
