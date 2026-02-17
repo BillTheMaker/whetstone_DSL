@@ -11770,3 +11770,33 @@ blocked-environment reporting.
 - `editor/src/DeploymentPromotionGate.h` within header-size limit (`76` <= `600`)
 - `editor/tests/step605_test.cpp` within test-file size guidance (`149` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 606: Rollback Drill Tracker
+**Status:** PASS (12/12 tests)
+
+Implements rollback drill lifecycle tracking with completion outcomes and
+recovery-time metrics.
+
+**Files added:**
+- `editor/src/RollbackDrillTracker.h` - rollback drill module:
+  - drill scheduling with validation/duplicate guards
+  - completion lifecycle with pass/fail outcomes and recovery time
+  - pass/fail counters, average recovery-time, and environment filtering
+- `editor/tests/step606_test.cpp` - 12 tests covering:
+  - schedule success/failure behavior
+  - completion success/failure behavior and invalid transitions
+  - aggregate counters and average/filter behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step606_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step606_test step605_test` - PASS
+- `./editor/build-native/step606_test` - PASS (12/12)
+- `./editor/build-native/step605_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/RollbackDrillTracker.h` within header-size limit (`93` <= `600`)
+- `editor/tests/step606_test.cpp` within test-file size guidance (`153` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
