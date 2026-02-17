@@ -1,6 +1,8 @@
 #pragma once
 // Step 586: Capability Discovery Panels
 
+#include "ProductizationValidationUtil.h"
+
 #include <algorithm>
 #include <map>
 #include <string>
@@ -20,8 +22,10 @@ public:
                           std::string* error) {
         if (!error) return false;
         error->clear();
-        if (categoryId.empty()) return fail(error, "category_id_missing");
-        if (title.empty()) return fail(error, "category_title_missing");
+        if (!hasRequiredProductIds(categoryId, title)) {
+            if (categoryId.empty()) return fail(error, "category_id_missing");
+            return fail(error, "category_title_missing");
+        }
         if (categories_.count(categoryId) != 0) return fail(error, "category_duplicate");
         CapabilityCategory c;
         c.categoryId = categoryId;

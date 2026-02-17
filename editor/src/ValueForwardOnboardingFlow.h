@@ -1,6 +1,8 @@
 #pragma once
 // Step 584: Value-Forward Onboarding Flow
 
+#include "ProductizationValidationUtil.h"
+
 #include <string>
 #include <vector>
 
@@ -33,7 +35,7 @@ public:
                       std::string* error) {
         if (!state || !error) return false;
         error->clear();
-        if (profileId.empty()) {
+        if (!hasRequiredProductIds(profileId, "profile")) {
             *error = "profile_id_missing";
             return false;
         }

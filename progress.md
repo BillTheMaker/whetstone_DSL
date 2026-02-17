@@ -11304,3 +11304,39 @@ operational-hardening readiness into final program-level outcome signals.
 - **New tests in this sprint plan:** 112/112 passing
 - **Phase 33a (584-588):** 56/56 passing
 - **Phase 33b (589-593):** 56/56 passing
+
+### Sprint 33 End Refactor Pass (Architecture Compliance)
+**Status:** PASS (112/112 tests revalidated)
+
+Performed a focused post-sprint refactor to centralize repeated productization
+validation logic across onboarding/workflow/capability modules.
+
+**Files added:**
+- `editor/src/ProductizationValidationUtil.h` - shared productization validation helpers:
+  - shared non-empty dual-id/title guard
+  - shared `#RRGGBB` hex-color validation helper
+
+**Files modified:**
+- `editor/src/ValueForwardOnboardingFlow.h` - switched onboarding profile validation to shared product-id helper
+- `editor/src/WorkflowVisualizationV2.h` - switched node id/label + color validation to shared productization helpers
+- `editor/src/CapabilityDiscoveryPanels.h` - switched category id/title validation to shared product-id helper
+
+**Verification run:**
+- `cmake --build editor/build-native --target step584_test step585_test step586_test step587_test step588_test step589_test step590_test step591_test step592_test step593_test` - PASS
+- `./editor/build-native/step584_test` - PASS (12/12)
+- `./editor/build-native/step585_test` - PASS (12/12)
+- `./editor/build-native/step586_test` - PASS (12/12)
+- `./editor/build-native/step587_test` - PASS (12/12)
+- `./editor/build-native/step588_test` - PASS (8/8)
+- `./editor/build-native/step589_test` - PASS (12/12)
+- `./editor/build-native/step590_test` - PASS (12/12)
+- `./editor/build-native/step591_test` - PASS (12/12)
+- `./editor/build-native/step592_test` - PASS (12/12)
+- `./editor/build-native/step593_test` - PASS (8/8)
+
+**Architecture gate check:**
+- `editor/src/ProductizationValidationUtil.h` within header-size limit (`18` <= `600`)
+- `editor/src/ValueForwardOnboardingFlow.h` within header-size limit (`107` <= `600`)
+- `editor/src/WorkflowVisualizationV2.h` within header-size limit (`112` <= `600`)
+- `editor/src/CapabilityDiscoveryPanels.h` within header-size limit (`90` <= `600`)
+- Shared validation centralization reduces duplicated product-surface guard logic and remains aligned with `ARCHITECTURE.md`

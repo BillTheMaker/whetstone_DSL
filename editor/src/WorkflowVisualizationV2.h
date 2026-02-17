@@ -1,6 +1,8 @@
 #pragma once
 // Step 585: Workflow Visualization 2.0
 
+#include "ProductizationValidationUtil.h"
+
 #include <algorithm>
 #include <map>
 #include <string>
@@ -40,9 +42,11 @@ public:
                         std::string* error) {
         if (!graph || !error) return false;
         error->clear();
-        if (node.nodeId.empty()) return fail(error, "node_id_missing");
-        if (node.label.empty()) return fail(error, "node_label_missing");
-        if (!isValidColor(node.accentColorHex)) return fail(error, "node_color_invalid");
+        if (!hasRequiredProductIds(node.nodeId, node.label)) {
+            if (node.nodeId.empty()) return fail(error, "node_id_missing");
+            return fail(error, "node_label_missing");
+        }
+        if (!isValidHexColor7(node.accentColorHex)) return fail(error, "node_color_invalid");
         if (findNode(*graph, node.nodeId) != nullptr) return fail(error, "node_duplicate");
         graph->nodes.push_back(node);
         return true;
@@ -92,16 +96,6 @@ private:
     static bool fail(std::string* error, const char* code) {
         *error = code;
         return false;
-    }
-
-    static bool isValidColor(const std::string& c) {
-        if (c.size() != 7 || c[0] != '#') return false;
-        for (size_t i = 1; i < c.size(); ++i) {
-            const char x = c[i];
-            const bool hex = (x >= '0' && x <= '9') || (x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F');
-            if (!hex) return false;
-        }
-        return true;
     }
 
     static const WorkflowNodeVisual* findNode(const WorkflowVisualizationGraph& graph,
