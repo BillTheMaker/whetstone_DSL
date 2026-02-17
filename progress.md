@@ -4852,6 +4852,54 @@ rejection operations in one consistent view model.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 430: Dependency Graph Visualization
+**Status:** PASS (12/12 tests)
+
+Added a dependency-graph visualization adapter that projects workflow
+dependencies into render-ready node/edge view data, including status-based color
+coding, critical-path highlighting, hover details, and click navigation IDs.
+
+**Files created:**
+- `editor/src/WorkflowDependencyView.h` — dependency-view support:
+  - node/edge view structs for DAG rendering
+  - status->color mapping:
+    - complete: green
+    - in-progress/assigned: blue
+    - pending/ready: gray
+    - review/rejected: red
+  - critical path integration from `DependencyGraph.h`
+  - critical-edge tagging
+  - hover payload synthesis and task-navigation mapping
+- `editor/tests/step430_test.cpp` — 12 tests covering:
+  1. graph node/edge projection counts
+  2. complete color mapping
+  3. in-progress color mapping
+  4. pending/ready color mapping
+  5. review color mapping
+  6. critical-path detection on chain
+  7. critical-path node tagging
+  8. critical-path edge tagging
+  9. hover payload content
+  10. node->task navigation ID mapping
+  11. missing-node navigation edge case
+  12. re-render update after status change
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step430_test` target
+
+**Verification run:**
+- `step430_test` — PASS (12/12) new step coverage
+- `step429_test` — PASS (12/12) regression coverage
+- `step428_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowDependencyView.h` within header-size limit (`94` <= `600`)
+- `editor/tests/step430_test.cpp` within test-file size guidance (`155` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
