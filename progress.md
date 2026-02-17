@@ -11574,3 +11574,34 @@ operations requiring explicit reviewer adjudication.
 - `editor/src/SecurityExceptionReviewBoard.h` within header-size limit (`86` <= `600`)
 - `editor/tests/step600_test.cpp` within test-file size guidance (`146` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 601: Compliance Evidence Bundle
+**Status:** PASS (12/12 tests)
+
+Implements a compliance evidence bundle for control-linked artifacts and
+coverage accounting.
+
+**Files added:**
+- `editor/src/ComplianceEvidenceBundle.h` - compliance evidence module:
+  - evidence item registration with validation/duplicate guards
+  - control-filtered evidence retrieval
+  - control-coverage and artifact-count metrics
+- `editor/tests/step601_test.cpp` - 12 tests covering:
+  - evidence add success/failure behavior
+  - duplicate/field validation behavior
+  - control filter behavior
+  - coverage/count metric behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step601_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step601_test step600_test` - PASS
+- `./editor/build-native/step601_test` - PASS (12/12)
+- `./editor/build-native/step600_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ComplianceEvidenceBundle.h` within header-size limit (`57` <= `600`)
+- `editor/tests/step601_test.cpp` within test-file size guidance (`155` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
