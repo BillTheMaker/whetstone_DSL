@@ -11020,3 +11020,37 @@ plain-language routing/review explanations, with electric-blue visual defaults.
 - `editor/src/WorkflowVisualizationV2.h` within header-size limit (`118` <= `600`)
 - `editor/tests/step585_test.cpp` within test-file size guidance (`177` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 586: Capability Discovery Panels
+**Status:** PASS (12/12 tests)
+
+Implements capability discovery panel state for surfacing tool categories,
+operation counts, and contextual recommendations.
+
+**Files added:**
+- `editor/src/CapabilityDiscoveryPanels.h` - capability panel module:
+  - category registration with validation/duplicate guards
+  - operation count tracking per category
+  - recommendation registration with dedupe guards
+  - category ranking by operation activity
+  - category-level recommendation/count query helpers
+- `editor/tests/step586_test.cpp` - 12 tests covering:
+  - registration success/failure behavior
+  - operation count tracking behavior
+  - recommendation add/dedupe behavior
+  - ranked sorting behavior
+  - unknown-category query fallback behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step586_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step586_test step585_test` - PASS
+- `./editor/build-native/step586_test` - PASS (12/12)
+- `./editor/build-native/step585_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CapabilityDiscoveryPanels.h` within header-size limit (`86` <= `600`)
+- `editor/tests/step586_test.cpp` within test-file size guidance (`150` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
