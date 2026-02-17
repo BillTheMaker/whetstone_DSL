@@ -9733,3 +9733,39 @@ into phase-level and sprint-level outcomes with closure diagnostics.
 - **New tests in this sprint plan:** 112/112 passing
 - **Phase 29a (544-548):** 56/56 passing
 - **Phase 29b (549-553):** 56/56 passing
+
+## Sprint 29 End Refactor Pass (Architecture Compliance)
+
+Performed a dedicated post-sprint refactor pass to reduce policy-guard
+duplication and re-validate architecture constraints without behavior changes.
+
+**Refactors applied:**
+- `editor/src/PolicyDecisionUtil.h`
+  - added shared helpers for policy decision transitions
+  - centralized common escalation/action state assignment logic
+- `editor/src/ReviewGatePolicyRefinement.h`
+  - switched repeated escalation decision branches to shared helper usage
+  - removed duplicated inline escalation state mutation
+- `editor/src/CostPolicyGuard.h`
+  - switched repeated action/allow/escalation transitions to shared helper usage
+  - removed duplicated inline action-state assignments
+
+**Architecture compliance audit:**
+- Header size gate (`<=600` lines): PASS across Sprint 29 modules
+  - largest audited header: `editor/src/ConstrainedConfidenceCalibrator.h` (`97` lines)
+- `goto` usage in Sprint 29 runtime path: PASS (none)
+- Stale TODO markers in Sprint 29 modules: PASS (none)
+- Header-only pattern for Sprint 29 additions: PASS
+
+**Refactor verification run:**
+- `cmake --build editor/build-native --target step544_test step545_test step546_test step547_test step548_test step549_test step550_test step551_test step552_test step553_test` - PASS
+- `./editor/build-native/step544_test` - PASS (12/12)
+- `./editor/build-native/step545_test` - PASS (12/12)
+- `./editor/build-native/step546_test` - PASS (12/12)
+- `./editor/build-native/step547_test` - PASS (12/12)
+- `./editor/build-native/step548_test` - PASS (8/8)
+- `./editor/build-native/step549_test` - PASS (12/12)
+- `./editor/build-native/step550_test` - PASS (12/12)
+- `./editor/build-native/step551_test` - PASS (12/12)
+- `./editor/build-native/step552_test` - PASS (12/12)
+- `./editor/build-native/step553_test` - PASS (8/8)

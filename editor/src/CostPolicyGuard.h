@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "PolicyDecisionUtil.h"
+
 struct CostPolicyInput {
     int stepTokens = 0;
     int workflowTokens = 0;
@@ -30,8 +32,7 @@ public:
                                   input.workflowTokens > input.workflowTokenCeiling;
 
         if (!stepOver && !workflowOver) {
-            out.allowed = true;
-            out.action = "allow";
+            setPolicyAction(out.allowed, out.requiresEscalation, out.action, "allow");
             return out;
         }
 
@@ -39,22 +40,18 @@ public:
         if (workflowOver) out.violations.push_back("workflow_token_ceiling_exceeded");
 
         if (!input.hasRationale) {
-            out.allowed = false;
-            out.action = "request_rationale";
+            setPolicyAction(out.allowed, out.requiresEscalation, out.action, "request_rationale");
             return out;
         }
 
         // With rationale, require explicit escalation approval for overage execution.
         if (!input.hasEscalationApproval) {
-            out.allowed = false;
-            out.requiresEscalation = true;
-            out.action = "escalate";
+            setPolicyAction(out.allowed, out.requiresEscalation, out.action, "escalate");
             return out;
         }
 
-        out.allowed = true;
+        setPolicyAction(out.allowed, out.requiresEscalation, out.action, "allow");
         out.requiresEscalation = true;
-        out.action = "allow";
         return out;
     }
 };

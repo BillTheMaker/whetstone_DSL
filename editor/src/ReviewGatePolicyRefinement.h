@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "PolicyDecisionUtil.h"
+
 struct ReviewGateInput {
     bool safetyCritical = false;
     bool securitySensitive = false;
@@ -33,17 +35,15 @@ public:
         }
 
         if (input.safetyCritical || input.securitySensitive) {
-            out.requiresHumanReview = true;
-            out.decision = "escalate_review";
+            setEscalateDecision(out.requiresHumanReview, out.decision, out.reasons, "");
             if (input.safetyCritical) out.reasons.push_back("safety_critical_change");
             if (input.securitySensitive) out.reasons.push_back("security_sensitive_change");
             return out;
         }
 
         if (input.postApplyFailureStreak >= 3) {
-            out.requiresHumanReview = true;
-            out.decision = "escalate_review";
-            out.reasons.push_back("repeated_post_apply_failures");
+            setEscalateDecision(out.requiresHumanReview, out.decision, out.reasons,
+                                "repeated_post_apply_failures");
             return out;
         }
 
@@ -61,8 +61,7 @@ public:
             return out;
         }
 
-        out.requiresHumanReview = true;
-        out.decision = "escalate_review";
+        setEscalateDecision(out.requiresHumanReview, out.decision, out.reasons, "");
         if (input.highCostOverage) out.reasons.push_back("high_cost_overage");
         if (input.confidenceScore < 70) out.reasons.push_back("low_confidence");
         return out;
