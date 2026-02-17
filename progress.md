@@ -11800,3 +11800,33 @@ recovery-time metrics.
 - `editor/src/RollbackDrillTracker.h` within header-size limit (`93` <= `600`)
 - `editor/tests/step606_test.cpp` within test-file size guidance (`153` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 607: Operational SLO Watch
+**Status:** PASS (12/12 tests)
+
+Implements operational SLO indicator tracking with breach detection and
+service-level breach aggregation.
+
+**Files added:**
+- `editor/src/OperationalSLOWatch.h` - SLO watch module:
+  - indicator upsert with identifier/range validation
+  - breach detection for target miss or budget over-burn
+  - service breach counts and service filtering helpers
+- `editor/tests/step607_test.cpp` - 12 tests covering:
+  - upsert success/failure validation behavior
+  - breach decision behavior and missing indicator handling
+  - service breach aggregation and filter behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step607_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step607_test step606_test` - PASS
+- `./editor/build-native/step607_test` - PASS (12/12)
+- `./editor/build-native/step606_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/OperationalSLOWatch.h` within header-size limit (`64` <= `600`)
+- `editor/tests/step607_test.cpp` within test-file size guidance (`150` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
