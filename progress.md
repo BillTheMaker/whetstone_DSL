@@ -6440,3 +6440,32 @@ and self-hosting signal checks against `TransformEngineExtended.h`.
     - try/catch/throw/noexcept patterns
     - operator overloading + friend operators
     - initializer lists + STL/iterator pattern detection
+
+### Step 471: Problem Description Parser
+**Status:** PASS (12/12 tests)
+
+Starts Sprint 23 architect mode by extracting structured requirements from
+natural-language problem descriptions with per-item confidence scores.
+
+**Files added:**
+- `editor/src/ArchitectProblemParser.h` — structured requirement parser:
+  - output model: functional, non-functional, platform, integration buckets
+  - heuristic keyword extraction with confidence scoring
+  - deduplication behavior for repeated terms
+  - fallback functional requirement when extraction is sparse
+- `editor/tests/step471_test.cpp` — 12 tests covering:
+  - functional/non-functional/platform/integration extraction
+  - confidence range behavior
+  - case-insensitive matching and dedupe
+  - fallback behavior
+  - mixed multi-category prompt extraction
+- `editor/CMakeLists.txt` — `step471_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step471_test` — PASS
+- `./editor/build-native/step471_test` — PASS (12/12)
+- `./editor/build-native/step470_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectProblemParser.h` within header-size limit (`114` <= `600`)
+- `editor/tests/step471_test.cpp` within test-file size guidance (`157` lines)
