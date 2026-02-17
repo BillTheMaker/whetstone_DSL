@@ -6741,3 +6741,38 @@ files, with operation plans compatible with `fileCreate`/`fileWrite`.
 - `editor/src/ArchitectScaffoldGenerator.h` within header-size limit (`358` <= `600`)
 - `editor/tests/step478_test.cpp` within test-file size guidance (`224` lines)
 - Header-only architecture preserved; naming conventions remain `PascalCase` types and `camelCase` methods
+
+### Step 479: Dependency + Build System Awareness
+**Status:** PASS (12/12 tests)
+
+Adds annotation-level dependency/build awareness derived from module graph
+dependencies so scaffolded modules carry structured hints for packaging,
+imports/includes, and SQL migration order.
+
+**Files added:**
+- `editor/src/ArchitectBuildAwareness.h` — dependency/build annotation engine:
+  - `BuildDependencyAnnotation`, `BuildAwarenessReport`
+  - `annotate(...)` for per-module build/dependency hints by language:
+    - Python import hints + pip-style dependency snippet
+    - Rust `Cargo.toml` `[dependencies]` snippet + local crate path links
+    - Node/TypeScript package.json-style dependency snippet + import hints
+    - C/C++ include hints + CMake target/link snippet
+    - SQL migration ordering annotations with dependency-derived order
+  - deterministic SQL cycle fallback behavior for stable ordering
+- `editor/tests/step479_test.cpp` — 12 tests covering:
+  - language-specific manifest/import annotation generation
+  - dependency preservation and mixed-language report coverage
+  - SQL migration ordering and cycle fallback
+  - no-dependency and unknown-language edge cases
+  - global note/disclaimer presence for annotation scope
+- `editor/CMakeLists.txt` — `step479_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step479_test step478_test` — PASS
+- `./editor/build-native/step479_test` — PASS (12/12)
+- `./editor/build-native/step478_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectBuildAwareness.h` within header-size limit (`208` <= `600`)
+- `editor/tests/step479_test.cpp` within test-file size guidance (`186` lines)
+- Conventions aligned with `ARCHITECTURE.md` (`PascalCase` structs, `camelCase` methods, header-only)
