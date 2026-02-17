@@ -11740,3 +11740,33 @@ category filtering.
 - `editor/src/ReleaseCertificationPacket.h` within header-size limit (`68` <= `600`)
 - `editor/tests/step604_test.cpp` within test-file size guidance (`154` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 605: Deployment Promotion Gate
+**Status:** PASS (12/12 tests)
+
+Implements environment promotion gating with validation, readiness scoring, and
+blocked-environment reporting.
+
+**Files added:**
+- `editor/src/DeploymentPromotionGate.h` - promotion gate module:
+  - environment gate state upsert with constraint validation
+  - promotable decision logic over checks/approvals/blockers
+  - promotion scoring with clamp and blocked-environment listing
+- `editor/tests/step605_test.cpp` - 12 tests covering:
+  - upsert success/failure behavior
+  - promotable decision behavior and missing-environment handling
+  - score behavior and blocked environment aggregation
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step605_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step605_test step604_test` - PASS
+- `./editor/build-native/step605_test` - PASS (12/12)
+- `./editor/build-native/step604_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/DeploymentPromotionGate.h` within header-size limit (`76` <= `600`)
+- `editor/tests/step605_test.cpp` within test-file size guidance (`149` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
