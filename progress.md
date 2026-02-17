@@ -7302,3 +7302,54 @@ coverage is scaffolded alongside code and routed by complexity/risk.
 - `editor/src/SecurityTestSkeletonGenerator.h` within header-size limit (`140` <= `600`)
 - `editor/tests/step491_test.cpp` within test-file size guidance (`164` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 492: Phase 24b Integration + Sprint Summary
+**Status:** PASS (8/8 tests)
+
+Integrates Phase 24b security components into one pipeline:
+security-preserving translation, secure-by-default generation, threat-model
+analysis, and security test skeleton generation.
+
+**Files added:**
+- `editor/src/SecurityPipelineIntegration.h` — composed security pipeline:
+  - `SecurityPipelineInput`, `SecurityPipelineResult`
+  - `run(...)` flow:
+    - `SecurityPreservingTranslation::translate(...)`
+    - `SecureByDefaultGenerator::generate(...)` for SQL + input handling snippets
+    - `ThreatModelIntegration::analyze(...)`
+    - `SecurityTestSkeletonGenerator::generate(...)`
+  - pipeline notes include execution trace and blocking-review propagation
+- `editor/tests/step492_test.cpp` — 8 integration tests covering:
+  - Python->Rust security annotation preservation
+  - secure-default SQL/input generation checks
+  - threat-model diagnostics on missing validation
+  - security test skeleton quality/routing checks
+  - blocking-review propagation from translation stage
+  - phase regression expectations against Step 491 behavior
+- `editor/CMakeLists.txt` — `step492_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step492_test step491_test` — PASS
+- `./editor/build-native/step492_test` — PASS (8/8)
+- `./editor/build-native/step491_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SecurityPipelineIntegration.h` within header-size limit (`61` <= `600`)
+- `editor/tests/step492_test.cpp` within test-file size guidance (`137` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 24b totals (488-492):**
+- **Steps:** 5
+- **Tests:** 56/56 passing
+- **Headers added:** 5
+  - `SecurityPreservingTranslation.h`
+  - `SecureByDefaultGenerator.h`
+  - `ThreatModelIntegration.h`
+  - `SecurityTestSkeletonGenerator.h`
+  - `SecurityPipelineIntegration.h`
+- **Capabilities delivered:**
+  - security annotation preservation across transpilation boundaries
+  - secure-by-default generation for SQL/input/file/network/crypto patterns
+  - trust boundary + data-flow threat diagnostics (`E1300` range)
+  - routed security test skeleton generation
+  - end-to-end security pipeline integration
