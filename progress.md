@@ -7995,3 +7995,46 @@ following the same structure pattern as previous sprint plans:
 
 These plans intentionally distribute work across multiple sprints (rather than a
 single sprint) to preserve implementation quality and maintainability.
+
+### Step 509: Docking Reliability Audit + Deterministic Layout Rules
+**Status:** PASS (12/12 tests)
+
+Implements a headless docking reliability guard that audits panel/layout state,
+repairs drift and hidden-critical-panel failures, and provides deterministic
+startup/session-restore normalization.
+
+**Files added:**
+- `editor/src/DockingReliability.h` - docking reliability module:
+  - invariant audit + repair pipeline (`auditAndRepair`)
+  - deterministic reset behavior for startup/recovery paths
+  - deterministic preset materialization (`deterministicStateFromPreset`)
+  - session restore reconciliation (`reconcileFromSession`)
+  - canonical layout fingerprinting for stability checks
+  - explicit issue code taxonomy (`D001`-`D008`)
+- `editor/tests/step509_test.cpp` - 12 tests covering:
+  - stable baseline (no false positives)
+  - ratio clamping and center-width safety floor
+  - hidden editor recovery
+  - editor dock drift recovery
+  - empty-session panel restoration
+  - deterministic reset behavior and fingerprint stability
+  - invalid focus recovery
+  - missing editor insertion
+  - center visibility enforcement
+  - session reconciliation semantics
+  - recovery issue-code emission
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step509_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step509_test` - PASS
+- `./editor/build-native/step509_test` - PASS (12/12)
+- `./editor/build-native/step508_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/DockingReliability.h` within header-size limit (`283` <= `600`)
+- `editor/tests/step509_test.cpp` within test-file size guidance (`180` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
