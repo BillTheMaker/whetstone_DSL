@@ -4994,6 +4994,52 @@ changes and review lifecycle transitions.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+## Phase 19b: Code Annotation Overlay
+
+### Step 433: Inline Annotation Badges
+**Status:** PASS (12/12 tests)
+
+Added an inline-annotation badge model for editor gutter overlays, including
+type-specific icon/color mapping, stacked line badges, and expandable detail text.
+
+**Files created:**
+- `editor/src/CodeAnnotationBadges.h` — inline badge support:
+  - annotation input -> badge projection
+  - type->icon mapping (intent/complexity/risk/contract/review/priority)
+  - type->color mapping for visual encoding
+  - deterministic line/type sorting
+  - line-based stacking for multiple annotations on one line
+  - expandable detail formatter
+- `editor/tests/step433_test.cpp` — 12 tests covering:
+  1. input->badge count preservation
+  2. sort stability by line/type
+  3. known icon mapping
+  4. known color mapping
+  5. unknown-type fallback icon/color
+  6. multi-badge same-line stacking
+  7. stack ordering by line
+  8. expanded detail payload content
+  9. line/node identity preservation
+  10. empty input edge case
+  11. empty stack edge case
+  12. review-annotation icon mapping
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step433_test` target
+
+**Verification run:**
+- `step433_test` — PASS (12/12) new step coverage
+- `step432_test` — PASS (8/8) regression coverage
+- `step431_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CodeAnnotationBadges.h` within header-size limit (`88` <= `600`)
+- `editor/tests/step433_test.cpp` within test-file size guidance (`141` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
