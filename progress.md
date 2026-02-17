@@ -7353,3 +7353,42 @@ analysis, and security test skeleton generation.
   - trust boundary + data-flow threat diagnostics (`E1300` range)
   - routed security test skeleton generation
   - end-to-end security pipeline integration
+
+### Step 493: Parse Full Whetstone Codebase
+**Status:** PASS (12/12 tests)
+
+Starts Sprint 25 self-hosting by auditing parser coverage across the
+Whetstone header corpus (`editor/src/` + `editor/src/ast/`), including
+parse-rate metrics, construct counts, and skipped-construct logging.
+
+**Files added:**
+- `editor/src/SelfHostCodebaseAudit.h` — codebase parse audit layer:
+  - `FileParseAudit`, `CodebaseParseAudit`
+  - header discovery over target directories (`.h` recursive)
+  - per-file parse via existing `SelfHostHarness::parseFile(...)`
+  - per-file metrics:
+    - class count
+    - function count
+    - annotation-node count (`conceptType` contains `Annotation`)
+  - heuristic skipped-construct detection from textual hints vs parsed counts
+  - aggregate parse-rate computation + target check (`meetsTarget(0.95)`)
+  - unparseable/skipped construct audit log for follow-up coverage work
+- `editor/tests/step493_test.cpp` — 12 tests covering:
+  - real directory header discovery
+  - aggregate metric sanity and parse-rate bounds
+  - per-file audit shape guarantees
+  - skipped/unparseable logging paths
+  - threshold semantics
+  - direct-file-list audit mode
+  - real-corpus scale signal checks
+- `editor/CMakeLists.txt` — `step493_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step493_test step492_test` — PASS
+- `./editor/build-native/step493_test` — PASS (12/12)
+- `./editor/build-native/step492_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfHostCodebaseAudit.h` within header-size limit (`139` <= `600`)
+- `editor/tests/step493_test.cpp` within test-file size guidance (`172` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
