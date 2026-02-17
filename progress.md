@@ -7139,3 +7139,43 @@ output validation on known-good and deliberately-broken step artifacts.
   review -> templates/scaffolding -> build/dependency awareness ->
   multi-language orchestration -> step spec/context/convention/test-plan
   synthesis -> dispatch/validation -> phase-level integration validation.
+
+### Step 488: Security-Preserving Translation
+**Status:** PASS (12/12 tests)
+
+Starts Sprint 24 Phase 24b by adding a security-preserving annotation
+translation layer so security metadata is carried into target-language
+representations and never silently dropped during transpilation.
+
+**Files added:**
+- `editor/src/SecurityPreservingTranslation.h` — security annotation mapper:
+  - `SecurityTranslationInput`, `SecuritySourceAnnotation`
+  - `SecurityMappedAnnotation`, `SecurityTranslationOutput`
+  - `translate(...)` mapping behavior:
+    - `@InputValidation` mapped to target-language validation forms
+    - `@TrustBoundary` preserved across boundaries
+    - `@Auth` mapped to target auth patterns
+    - `@Encryption` mapped to target crypto library forms
+    - `@CORS` mapped for supported targets
+    - `@Secrets` preserved but always `reviewRequired`
+  - strict guardrails:
+    - security annotations are always preserved
+    - unknown/unmappable security annotations trigger human review
+    - insecure crypto values (`md5`, `sha1`) force review
+- `editor/tests/step488_test.cpp` — 12 tests covering:
+  - per-annotation mapping behavior
+  - unsupported-language review escalation
+  - no-annotation edge case
+  - preservation-count invariants
+  - blocking-review flag semantics
+- `editor/CMakeLists.txt` — `step488_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step488_test step487_test` — PASS
+- `./editor/build-native/step488_test` — PASS (12/12)
+- `./editor/build-native/step487_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SecurityPreservingTranslation.h` within header-size limit (`166` <= `600`)
+- `editor/tests/step488_test.cpp` within test-file size guidance (`147` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
