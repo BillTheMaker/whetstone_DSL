@@ -11471,3 +11471,40 @@ observed runtime outcomes, with remediation hint generation.
 - `editor/src/GuardrailDriftMonitor.h` within header-size limit (`58` <= `600`)
 - `editor/tests/step597_test.cpp` within test-file size guidance (`156` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 598: Phase 34a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates Phase 34a governance components into one policy lifecycle:
+guardrail evaluation, escalation planning, audit capture, and drift detection.
+
+**Files added:**
+- `editor/src/Phase34aIntegration.h` - Phase 34a integration module:
+  - guardrail catalog bootstrap and evaluation
+  - escalation plan validation path
+  - audit ledger recording and risk aggregation path
+  - drift detection/scoring/remediation path
+  - phase pass synthesis with readiness notes
+- `editor/tests/step598_test.cpp` - 8 tests covering:
+  - full phase pass path
+  - component readiness signal behavior
+  - note emission behavior
+  - phase flag conjunction behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step598_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step598_test step597_test` - PASS
+- `./editor/build-native/step598_test` - PASS (8/8)
+- `./editor/build-native/step597_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase34aIntegration.h` within header-size limit (`90` <= `600`)
+- `editor/tests/step598_test.cpp` within test-file size guidance (`102` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 34a totals (594-598):**
+- **Steps completed:** 5
+- **New tests in this phase plan:** 56/56 passing
