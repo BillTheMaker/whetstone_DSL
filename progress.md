@@ -5677,3 +5677,32 @@ inference-to-routing bridge replace training data export (deferred to post-25).
 3. **Orchestrator prepares context but never calls LLMs** — model-agnostic, cost-controlled
 4. **Plugin is MCP protocol** — not a proprietary binary, any MCP client can drive workflows
 5. **Training data deferred to post-25** — real workflow decisions are better training signal than synthetic pairs
+
+### Step 449: Intent-Driven Translation
+**Status:** PASS (12/12 tests)
+
+Recovered and validated in-progress Sprint 21 work left uncommitted:
+intent-aware translation that prefers target-language idioms when intent is
+clear, and falls back to structural translation with review flags when intent
+is absent/ambiguous.
+
+**Files added:**
+- `editor/src/IntentTranslator.h` — intent mapping model + translation engine:
+  - `FunctionIntent`, `IntentMapping`, `FunctionTranslation`, `IntentTranslationResult`
+  - idiomatic mapping by intent phrase and target language (Rust/Python/Java/SQL/C++)
+  - ambiguity/review gating (`needsReview`, `reviewReason`)
+  - confidence scoring by mapping strength and fallback mode
+- `editor/tests/step449_test.cpp` — 12 tests covering:
+  - intent-to-idiom mappings (sort/find/filter/map/reduce/read-file)
+  - SQL-specific intent projection (`ORDER BY`, `WHERE`)
+  - ambiguous/no-intent fallback and review behavior
+  - mixed multi-function translation accounting
+- `editor/CMakeLists.txt` — `step449_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step449_test` — PASS
+- `./editor/build-native/step449_test` — PASS (12/12)
+
+**Architecture gate check:**
+- `editor/src/IntentTranslator.h` within header-size limit (`254` <= `600`)
+- `editor/tests/step449_test.cpp` within test-file size guidance (`166` lines)
