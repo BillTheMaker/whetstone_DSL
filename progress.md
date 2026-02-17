@@ -7262,3 +7262,43 @@ E1300-range diagnostics and overlay-ready graph data.
 - `editor/src/ThreatModelIntegration.h` within header-size limit (`126` <= `600`)
 - `editor/tests/step490_test.cpp` within test-file size guidance (`167` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 491: Security Testing Skeleton Generation
+**Status:** PASS (12/12 tests)
+
+Adds security-focused test skeleton generation so threat-relevant test
+coverage is scaffolded alongside code and routed by complexity/risk.
+
+**Files added:**
+- `editor/src/SecurityTestSkeletonGenerator.h` — security test skeleton engine:
+  - `SecurityTestKind`, `SecurityTestCaseSpec`
+  - `SecuritySkeletonRequest`, `SecuritySkeletonOutput`
+  - generated test classes:
+    - input validation fuzz
+    - auth bypass
+    - SQL injection probe
+    - XSS payload probe
+    - access control matrix
+  - per-test `@Intent(...)` annotation generation
+  - routing hints:
+    - simple validation/access matrix -> `slm`
+    - penetration-style tests -> `human` + `humanReviewRequired`
+  - optional force-human behavior for complex pen-test categories
+- `editor/tests/step491_test.cpp` — 12 tests covering:
+  - presence of each security test kind
+  - intent annotation completeness
+  - routing policy behavior by test complexity
+  - force-human mode behavior and notes
+  - module/entity propagation into test names/intent text
+  - summary note emission
+- `editor/CMakeLists.txt` — `step491_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step491_test step490_test` — PASS
+- `./editor/build-native/step491_test` — PASS (12/12)
+- `./editor/build-native/step490_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SecurityTestSkeletonGenerator.h` within header-size limit (`140` <= `600`)
+- `editor/tests/step491_test.cpp` within test-file size guidance (`164` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
