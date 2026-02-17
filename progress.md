@@ -9037,3 +9037,39 @@ category-based filtering.
 - `editor/src/SymbolSelectorAPI.h` within header-size limit (`81` <= `600`)
 - `editor/tests/step535_test.cpp` within test-file size guidance (`163` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 536: Argument Shape Validator
+**Status:** PASS (12/12 tests)
+
+Implements argument-shape validation for constrained operations, enforcing
+operation-specific required fields, enum constraints, forbidden keys, and
+contract legality for operation/symbol pairs.
+
+**Files added:**
+- `editor/src/ArgumentShapeValidator.h` - argument shape validation module:
+  - operation/symbol contract allow checks
+  - per-operation required argument schemas (`rename/update/insert/extract/delete`)
+  - enum validation for constrained argument fields
+  - semantic no-op guard for rename operations
+  - malformed-argument object checks and forbidden-key enforcement
+- `editor/tests/step536_test.cpp` - 12 tests covering:
+  - valid rename path
+  - required field failures per operation
+  - enum validation failures
+  - delete confirm-type requirement
+  - disallowed op/symbol failure paths
+  - malformed args (non-object) edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step536_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step536_test step535_test` - PASS
+- `./editor/build-native/step536_test` - PASS (12/12)
+- `./editor/build-native/step535_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArgumentShapeValidator.h` within header-size limit (`113` <= `600`)
+- `editor/tests/step536_test.cpp` within test-file size guidance (`144` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
