@@ -10591,3 +10591,38 @@ extraction, categorized requirement bullets, and source-anchor traceability.
 - `editor/src/MarkdownSpecParser.h` within header-size limit (`142` <= `600`)
 - `editor/tests/step574_test.cpp` within test-file size guidance (`178` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 575: Requirement Normalization and Conflict Detection
+**Status:** PASS (12/12 tests)
+
+Implements requirement normalization and contradiction detection across parsed
+intake requirements, including ambiguity flags and source traceability.
+
+**Files added:**
+- `editor/src/RequirementNormalizationConflictDetector.h` - normalization module:
+  - category-to-record normalization (goal/constraint/dependency/acceptance)
+  - normalized text canonicalization for consistent downstream processing
+  - requirement id generation and trace field preservation
+  - ambiguity token detection for architect review signaling
+  - constraint contradiction detection via overlap + negation analysis
+- `editor/tests/step575_test.cpp` - 12 tests covering:
+  - normalization across all categories
+  - canonical text behavior and id stability behavior
+  - traceability field preservation behavior
+  - ambiguity flag behavior
+  - conflict/no-conflict scenarios and conflict metadata behavior
+  - empty input failure behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step575_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step575_test step574_test` - PASS
+- `./editor/build-native/step575_test` - PASS (12/12)
+- `./editor/build-native/step574_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/RequirementNormalizationConflictDetector.h` within header-size limit (`166` <= `600`)
+- `editor/tests/step575_test.cpp` within test-file size guidance (`200` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
