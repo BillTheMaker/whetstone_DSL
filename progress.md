@@ -10010,3 +10010,37 @@ locals display fields and watch lifecycle management.
 - `editor/src/LocalsWatchesPanelModel.h` within header-size limit (`90` <= `600`)
 - `editor/tests/step560_test.cpp` within test-file size guidance (`138` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 561: Trace Timeline Model
+**Status:** PASS (12/12 tests)
+
+Implements a runtime trace timeline data model for ordered pause/step/exception
+state transitions with session/type/window query support.
+
+**Files added:**
+- `editor/src/TraceTimelineModel.h` - trace timeline module:
+  - event append with payload validation
+  - deterministic timeline ordering
+  - query helpers by event type, session, and time window
+  - support for mixed runtime event categories
+- `editor/tests/step561_test.cpp` - 12 tests covering:
+  - event validation behavior
+  - ordering behavior
+  - type/session/window query behavior
+  - timestamp tie-break behavior
+  - detail payload preservation
+  - mixed-event support behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step561_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step561_test step560_test` - PASS
+- `./editor/build-native/step561_test` - PASS (12/12)
+- `./editor/build-native/step560_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TraceTimelineModel.h` within header-size limit (`58` <= `600`)
+- `editor/tests/step561_test.cpp` within test-file size guidance (`144` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
