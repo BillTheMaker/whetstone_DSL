@@ -6390,3 +6390,53 @@ iterator-loop pattern recognition with lightweight annotation outputs.
 **Architecture gate check:**
 - `editor/src/ast/CppInitializerStl.h` within header-size limit (`135` <= `600`)
 - `editor/tests/step469_test.cpp` within test-file size guidance (`138` lines)
+
+### Step 470: Phase 22b Integration + Sprint 22 Summary
+**Status:** PASS (8/8 tests)
+
+Adds Phase 22b integration coverage across remaining C++ feature-gap modules
+and self-hosting signal checks against `TransformEngineExtended.h`.
+
+**Files added:**
+- `editor/tests/step470_test.cpp` — 8 integration tests covering:
+  - self-host file signal checks (inheritance + protected section presence)
+  - combined parse path across range-for/structured-binding/operator/initializer modules
+  - exception + operator projection availability
+  - STL iterator detection and annotation path
+  - JSON round-trip checks across new Step 466-469 nodes
+  - invalid-input regression checks
+  - cross-language projection output shape checks
+- `editor/CMakeLists.txt` — `step470_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step470_test` — PASS
+- `./editor/build-native/step470_test` — PASS (8/8)
+- `./editor/build-native/step469_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step470_test.cpp` within test-file size guidance (`157` lines)
+- No new production header introduced in this integration step
+
+**Sprint 22 totals:**
+- **Steps:** 460-470 (11 steps)
+- **Tests:** 124/124 passing
+- **Headers added:** 9
+  - `ast/AssemblyNodes.h`
+  - `ast/X86AssemblyParser.h`
+  - `ast/ArmAssemblyParser.h`
+  - `ast/AssemblyGenerator.h`
+  - `ast/AssemblyAnnotationMapper.h`
+  - `ast/CppRangeStructured.h`
+  - `ast/CppExceptions.h`
+  - `ast/CppOperators.h`
+  - `ast/CppInitializerStl.h`
+- **Capabilities delivered:**
+  - assembly AST support (x86 + ARM/AArch64) with parse/generate paths
+  - cross-architecture x86→ARM simple instruction mapping
+  - assembly annotation model (`@Exec`, `@Target`, `@Risk`, `@Complexity`, `@Align`)
+  - C++ gap coverage for:
+    - range-based for loops
+    - structured bindings
+    - try/catch/throw/noexcept patterns
+    - operator overloading + friend operators
+    - initializer lists + STL/iterator pattern detection
