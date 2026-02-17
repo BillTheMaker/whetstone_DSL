@@ -10768,3 +10768,36 @@ queue-readiness metadata, prerequisite operations, and dependency hints.
 - `editor/src/TaskitemGeneratorV2.h` within header-size limit (`65` <= `600`)
 - `editor/tests/step579_test.cpp` within test-file size guidance (`225` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 580: Taskitem Confidence + Ambiguity Annotation
+**Status:** PASS (12/12 tests)
+
+Implements confidence and ambiguity annotation for generated taskitems to drive
+routing/escalation behavior in constrained execution pipelines.
+
+**Files added:**
+- `editor/src/TaskitemConfidenceAmbiguity.h` - annotation module:
+  - per-task confidence scoring from queue-readiness, ambiguity, conflicts, dependencies
+  - ambiguity/conflict reason synthesis for operator visibility
+  - escalation flag computation for low-confidence or ambiguous tasks
+  - stable bounded confidence outputs (`0..100`)
+- `editor/tests/step580_test.cpp` - 12 tests covering:
+  - annotation success/failure behavior
+  - confidence reductions from queue/ambiguity/conflict signals
+  - reason generation behavior
+  - escalation/no-escalation behavior
+  - multi-task annotation behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step580_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step580_test step579_test` - PASS
+- `./editor/build-native/step580_test` - PASS (12/12)
+- `./editor/build-native/step579_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TaskitemConfidenceAmbiguity.h` within header-size limit (`85` <= `600`)
+- `editor/tests/step580_test.cpp` within test-file size guidance (`189` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
