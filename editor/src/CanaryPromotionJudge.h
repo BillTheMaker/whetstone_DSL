@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "ScoreClampUtil.h"
 #include "ValidationErrorUtil.h"
 
 struct CanaryAssessment {
@@ -55,8 +56,7 @@ public:
         if (a.latencyP95Ms > 300) score += (a.latencyP95Ms - 300) / 5;
         if (a.errorBudgetBurn > 100) score += (a.errorBudgetBurn - 100) / 2;
         if (a.manualOverride) score = 0;
-        if (score > 100) return 100;
-        return score;
+        return clampToPercent(score);
     }
 
     int promotableCount() const {

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "ScoreClampUtil.h"
 #include "ValidationErrorUtil.h"
 
 struct EnvironmentGateState {
@@ -56,9 +57,7 @@ public:
         int score = (state.passedChecks * 100) / state.requiredChecks;
         score += state.manualApprovals * 5;
         score -= state.blockingIssues * 20;
-        if (score < 0) return 0;
-        if (score > 100) return 100;
-        return score;
+        return clampToPercent(score);
     }
 
     std::vector<std::string> blockedEnvironments() const {

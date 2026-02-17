@@ -1,10 +1,10 @@
 #pragma once
 // Step 603: Compliance Operational Readiness
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
+#include "ScoreClampUtil.h"
 #include "ValidationErrorUtil.h"
 
 struct ComplianceReadinessSnapshot {
@@ -37,7 +37,7 @@ public:
                     s.approvedExceptions * 2 -
                     s.expiringSoon * 3 -
                     s.openRunbooks * 4;
-        return std::max(0, std::min(100, score));
+        return clampToPercent(score);
     }
 
     static std::vector<std::string> blockingFindings(const ComplianceReadinessSnapshot& s) {

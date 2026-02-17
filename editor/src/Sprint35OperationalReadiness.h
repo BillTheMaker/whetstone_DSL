@@ -1,10 +1,10 @@
 #pragma once
 // Step 613: Sprint 35 Operational Readiness
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
+#include "ScoreClampUtil.h"
 #include "ValidationErrorUtil.h"
 
 struct Sprint35ReadinessInput {
@@ -35,7 +35,7 @@ public:
         score -= in.onCallCoverageGaps;
         score -= in.blockedCanaries * 15;
         score -= in.incompletePostmortems * 10;
-        return std::max(0, std::min(100, score));
+        return clampToPercent(score);
     }
 
     static std::vector<std::string> blockers(const Sprint35ReadinessInput& in) {

@@ -12010,3 +12010,48 @@ freeze, dependency, coverage, canary, and postmortem signals.
 - `editor/src/Sprint35OperationalReadiness.h` within header-size limit (`54` <= `600`)
 - `editor/tests/step613_test.cpp` within test-file size guidance (`134` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+## Sprint 35 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Completed the end-of-sprint refactor and architecture audit for Steps 604-613.
+The refactor extracted duplicated score-clamp logic into one shared utility
+while preserving behavior.
+
+**Files added:**
+- `editor/src/ScoreClampUtil.h` - shared `clampToPercent()` helper for all
+  sprint scoring modules.
+
+**Files modified:**
+- `editor/src/DeploymentPromotionGate.h`
+- `editor/src/ComplianceOperationalReadiness.h`
+- `editor/src/CanaryPromotionJudge.h`
+- `editor/src/Sprint35OperationalReadiness.h`
+
+**Refactor result:**
+- Removed repeated manual score clamp branches in sprint modules.
+- Kept modules header-only and maintained existing public APIs.
+- Preserved runtime behavior; all step tests remained green.
+
+**Verification run (full sprint matrix):**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step604_test step605_test step606_test step607_test step608_test step609_test step610_test step611_test step612_test step613_test` - PASS
+- `./editor/build-native/step604_test` - PASS (12/12)
+- `./editor/build-native/step605_test` - PASS (12/12)
+- `./editor/build-native/step606_test` - PASS (12/12)
+- `./editor/build-native/step607_test` - PASS (12/12)
+- `./editor/build-native/step608_test` - PASS (12/12)
+- `./editor/build-native/step609_test` - PASS (12/12)
+- `./editor/build-native/step610_test` - PASS (12/12)
+- `./editor/build-native/step611_test` - PASS (12/12)
+- `./editor/build-native/step612_test` - PASS (12/12)
+- `./editor/build-native/step613_test` - PASS (12/12)
+- Sprint 35 matrix total: **120/120 passing**
+
+**Architecture gate check:**
+- `editor/src/ScoreClampUtil.h` (`7` <= `600`)
+- `editor/src/DeploymentPromotionGate.h` (`75` <= `600`)
+- `editor/src/ComplianceOperationalReadiness.h` (`58` <= `600`)
+- `editor/src/CanaryPromotionJudge.h` (`72` <= `600`)
+- `editor/src/Sprint35OperationalReadiness.h` (`54` <= `600`)
+- Naming conventions and header-only module constraints remain aligned with `ARCHITECTURE.md`.
