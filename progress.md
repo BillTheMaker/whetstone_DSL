@@ -8624,3 +8624,38 @@ before execution.
 - `editor/src/LegalOperationGraph.h` within header-size limit (`79` <= `600`)
 - `editor/tests/step525_test.cpp` within test-file size guidance (`131` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 526: Symbol Scope Extractor
+**Status:** PASS (12/12 tests)
+
+Implements symbol-scope extraction for constrained taskitems by building a
+language/node-aware in-scope candidate snapshot and explicitly rejecting
+unresolved symbol requests before apply.
+
+**Files added:**
+- `editor/src/SymbolScopeExtractor.h` - scope extraction module:
+  - default per-language/per-node symbol-kind rules
+  - nearest-scope candidate selection for duplicate names
+  - forbidden-symbol filtering
+  - unresolved symbol detection and apply-eligibility check
+- `editor/tests/step526_test.cpp` - 12 tests covering:
+  - default filtering and nearest-scope selection behavior
+  - unsupported language/node handling
+  - unresolved symbol reporting and apply blocking
+  - forbidden symbol exclusion behavior
+  - dynamic rule registration/override behavior
+  - empty symbol-table edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step526_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step526_test step525_test` - PASS
+- `./editor/build-native/step526_test` - PASS (12/12)
+- `./editor/build-native/step525_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SymbolScopeExtractor.h` within header-size limit (`102` <= `600`)
+- `editor/tests/step526_test.cpp` within test-file size guidance (`158` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
