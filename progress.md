@@ -6252,3 +6252,38 @@ assembly node round-trip serialization.
   - ARM/AArch64 parser with addressing mode support
   - x86/ARM code generation + simple x86→ARM opcode mapping
   - assembly semantic annotation mapping (`@Exec`, `@Target`, `@Risk`, `@Complexity`, `@Align`)
+
+### Step 466: Range-Based For + Structured Bindings
+**Status:** PASS (12/12 tests)
+
+Adds focused support for C++ range-based `for` and structured binding forms,
+including parse helpers, JSON round-trip, code generation, and cross-language
+projection of range loops.
+
+**Files added:**
+- `editor/src/ast/CppRangeStructured.h` — feature-gap helpers:
+  - `RangeForStatement` node model
+  - `StructuredBinding` node model
+  - parse helpers:
+    - `parseRangeFor(...)`
+    - `parseStructuredBinding(...)`
+  - JSON round-trip helpers for both constructs
+  - C++ generation helpers for both constructs
+  - range-for projection helpers to Python, Rust, Java
+- `editor/tests/step466_test.cpp` — 12 tests covering:
+  - parsing of const-ref and simple range-for forms
+  - parsing of structured bindings (2 and 3 names)
+  - JSON round-trip behavior
+  - C++ generation for both constructs
+  - Python/Rust/Java projection checks
+  - graceful parse failure on invalid inputs
+- `editor/CMakeLists.txt` — `step466_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step466_test` — PASS
+- `./editor/build-native/step466_test` — PASS (12/12)
+- `./editor/build-native/step465_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/CppRangeStructured.h` within header-size limit (`150` <= `600`)
+- `editor/tests/step466_test.cpp` within test-file size guidance (`163` lines)
