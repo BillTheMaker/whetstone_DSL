@@ -9470,3 +9470,40 @@ penalties for repeated post-apply failures.
 - `editor/src/ConstrainedConfidenceCalibrator.h` within header-size limit (`97` <= `600`)
 - `editor/tests/step546_test.cpp` within test-file size guidance (`143` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 547: Cost Policy Guard
+**Status:** PASS (12/12 tests)
+
+Implements cost policy enforcement for constrained orchestration with per-step
+and per-workflow token ceilings, rationale requirements, and escalation approval
+controls for overage execution.
+
+**Files added:**
+- `editor/src/CostPolicyGuard.h` - cost policy enforcement module:
+  - step/workflow ceiling checks
+  - violation capture for exceeded ceilings
+  - rationale-required flow for policy overages
+  - escalation-approval gate for over-budget execution
+  - deterministic action outputs (`allow`/`request_rationale`/`escalate`)
+- `editor/tests/step547_test.cpp` - 12 tests covering:
+  - within-limit allow behavior
+  - step/workflow/both overage violation behavior
+  - rationale and escalation approval behavior
+  - equal-to-ceiling boundary behavior
+  - zero-ceiling disabled-check behavior
+  - negative-token edge behavior
+  - no-escalation behavior when within limits
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step547_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step547_test step546_test` - PASS
+- `./editor/build-native/step547_test` - PASS (12/12)
+- `./editor/build-native/step546_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CostPolicyGuard.h` within header-size limit (`60` <= `600`)
+- `editor/tests/step547_test.cpp` within test-file size guidance (`132` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
