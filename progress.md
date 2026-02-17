@@ -8557,3 +8557,37 @@ architecture-rule alignment without behavior changes.
 - `./editor/build-native/step521_test` - PASS (12/12)
 - `./editor/build-native/step522_test` - PASS (12/12)
 - `./editor/build-native/step523_test` - PASS (8/8)
+
+### Step 524: Typed Taskitem Contract Schema
+**Status:** PASS (12/12 tests)
+
+Implements a strict typed taskitem contract schema for constrained execution
+with required fields for allowed targets/ops/symbols, forbidden symbols, and
+expected diagnostics deltas, rejecting under-specified taskitems.
+
+**Files added:**
+- `editor/src/TypedTaskitemContractSchema.h` - schema module:
+  - JSON parse + required-field validation
+  - semantic consistency rules (duplicate op detection, symbol conflict detection)
+  - under-specification guards for constrained execution path
+  - helper checks for operation/symbol legality
+- `editor/tests/step524_test.cpp` - 12 tests covering:
+  - valid contract acceptance
+  - required-field rejection paths
+  - duplicate-op and symbol-conflict rejection
+  - diagnostics-delta under-specification rejection
+  - operation/symbol allow/deny helper behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step524_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step524_test` - PASS
+- `./editor/build-native/step524_test` - PASS (12/12)
+- `./editor/build-native/step523_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TypedTaskitemContractSchema.h` within header-size limit (`114` <= `600`)
+- `editor/tests/step524_test.cpp` within test-file size guidance (`148` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
