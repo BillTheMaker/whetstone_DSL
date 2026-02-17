@@ -11542,3 +11542,35 @@ completion tracking, and close-readiness validation.
 - `editor/src/IncidentResponseRunbookEngine.h` within header-size limit (`106` <= `600`)
 - `editor/tests/step599_test.cpp` within test-file size guidance (`179` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 600: Security Exception Review Board
+**Status:** PASS (12/12 tests)
+
+Implements security exception case intake and decision flow for guarded
+operations requiring explicit reviewer adjudication.
+
+**Files added:**
+- `editor/src/SecurityExceptionReviewBoard.h` - exception review module:
+  - case submission with validation and duplicate guards
+  - approve/reject decision lifecycle with reviewer attribution
+  - pending-case filtering
+  - approved/rejected count helpers
+- `editor/tests/step600_test.cpp` - 12 tests covering:
+  - submission success/failure behavior
+  - decision success/failure behavior
+  - reviewer/decision validation behavior
+  - pending/approved/rejected state behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step600_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step600_test step599_test` - PASS
+- `./editor/build-native/step600_test` - PASS (12/12)
+- `./editor/build-native/step599_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SecurityExceptionReviewBoard.h` within header-size limit (`86` <= `600`)
+- `editor/tests/step600_test.cpp` within test-file size guidance (`146` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
