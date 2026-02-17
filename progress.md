@@ -9073,3 +9073,40 @@ contract legality for operation/symbol pairs.
 - `editor/src/ArgumentShapeValidator.h` within header-size limit (`113` <= `600`)
 - `editor/tests/step536_test.cpp` within test-file size guidance (`144` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 537: Constrained Execution Telemetry
+**Status:** PASS (12/12 tests)
+
+Implements constrained execution telemetry to track candidate breadth,
+selection paths, rejection reasons, and token-usage deltas versus unconstrained
+baselines.
+
+**Files added:**
+- `editor/src/ConstrainedExecutionTelemetry.h` - telemetry module:
+  - records per-taskitem constrained execution events
+  - aggregates success/failure counts and candidate breadth averages
+  - builds rejection-reason and selected-operation histograms
+  - computes constrained vs baseline token totals/savings/ratio
+- `editor/tests/step537_test.cpp` - 12 tests covering:
+  - empty-summary behavior
+  - event recording/counting behavior
+  - success/failure aggregate behavior
+  - average candidate breadth computation
+  - token savings and ratio computation
+  - rejection and operation histogram behavior
+  - baseline-zero and negative-savings edge cases
+  - mixed-event aggregate behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step537_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step537_test step536_test` - PASS
+- `./editor/build-native/step537_test` - PASS (12/12)
+- `./editor/build-native/step536_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ConstrainedExecutionTelemetry.h` within header-size limit (`75` <= `600`)
+- `editor/tests/step537_test.cpp` within test-file size guidance (`175` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
