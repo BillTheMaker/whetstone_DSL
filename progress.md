@@ -11950,3 +11950,33 @@ calculation.
 - `editor/src/OnCallCoveragePlanner.h` within header-size limit (`78` <= `600`)
 - `editor/tests/step611_test.cpp` within test-file size guidance (`147` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 612: Canary Promotion Judge
+**Status:** PASS (12/12 tests)
+
+Implements canary promotion decisions using success/latency/burn thresholds with
+risk scoring and manual override support.
+
+**Files added:**
+- `editor/src/CanaryPromotionJudge.h` - canary decision module:
+  - canary assessment upsert with validation guards
+  - promotion decision logic with manual override path
+  - risk score derivation and promotable-count summary
+- `editor/tests/step612_test.cpp` - 12 tests covering:
+  - assessment record success/failure behavior
+  - promotable decision behavior and missing-canary handling
+  - risk score behavior and promotable count aggregation
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step612_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step612_test step611_test` - PASS
+- `./editor/build-native/step612_test` - PASS (12/12)
+- `./editor/build-native/step611_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CanaryPromotionJudge.h` within header-size limit (`72` <= `600`)
+- `editor/tests/step612_test.cpp` within test-file size guidance (`149` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
