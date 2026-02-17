@@ -10336,3 +10336,37 @@ stack/debug correlation gating.
 **Phase 31a totals (564-568):**
 - **Steps completed:** 5
 - **New tests in this phase plan:** 56/56 passing
+
+### Step 569: Disassembly + Register View Baseline
+**Status:** PASS (12/12 tests)
+
+Implements a baseline disassembly/register inspection model for low-level runtime
+debug views with deterministic instruction ordering and register state access.
+
+**Files added:**
+- `editor/src/DisassemblyRegisterViewModel.h` - disassembly/register module:
+  - instruction schema with current-IP annotation state
+  - instruction-set validation and deterministic address ordering
+  - current instruction pointer selection and window slicing
+  - register set/update/query helpers with stable sorted output
+- `editor/tests/step569_test.cpp` - 12 tests covering:
+  - instruction load success and validation failures
+  - deterministic instruction ordering behavior
+  - current-IP selection behavior and unknown-address rejection
+  - centered disassembly window behavior
+  - register set/query validation behavior
+  - register ordering behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step569_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step569_test step568_test` - PASS
+- `./editor/build-native/step569_test` - PASS (12/12)
+- `./editor/build-native/step568_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/DisassemblyRegisterViewModel.h` within header-size limit (`125` <= `600`)
+- `editor/tests/step569_test.cpp` within test-file size guidance (`156` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
