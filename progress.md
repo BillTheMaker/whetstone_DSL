@@ -9002,3 +9002,38 @@ ranked by predicted constraint-success signals.
 - `editor/src/OperationSelectorAPI.h` within header-size limit (`88` <= `600`)
 - `editor/tests/step534_test.cpp` within test-file size guidance (`208` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 535: Symbol Selector API
+**Status:** PASS (12/12 tests)
+
+Implements constrained symbol selection by exposing only in-scope symbols
+allowed by contract policy, enriched with typed role/category metadata and
+category-based filtering.
+
+**Files added:**
+- `editor/src/SymbolSelectorAPI.h` - symbol selection module:
+  - filters scope snapshot symbols through contract allow/forbid policy
+  - maps symbol kinds to selector categories (`function/type/field/module/constant`)
+  - supports category filter queries
+  - deterministic sorting and dedupe behavior
+- `editor/tests/step535_test.cpp` - 12 tests covering:
+  - supported/unsupported scope handling
+  - forbidden/contract-disallowed symbol filtering
+  - each category filter behavior
+  - multi-category filtering
+  - scope-depth sort behavior
+  - duplicate symbol-name dedup behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step535_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step535_test step534_test` - PASS
+- `./editor/build-native/step535_test` - PASS (12/12)
+- `./editor/build-native/step534_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SymbolSelectorAPI.h` within header-size limit (`81` <= `600`)
+- `editor/tests/step535_test.cpp` within test-file size guidance (`163` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
