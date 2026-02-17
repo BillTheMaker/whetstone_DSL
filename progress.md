@@ -6325,3 +6325,38 @@ model projections.
 **Architecture gate check:**
 - `editor/src/ast/CppExceptions.h` within header-size limit (`178` <= `600`)
 - `editor/tests/step467_test.cpp` within test-file size guidance (`148` lines)
+
+### Step 468: Operator Overloading + Friend
+**Status:** PASS (12/12 tests)
+
+Adds focused support for C++ operator-overload declarations, including friend
+operator forms, JSON round-trip, declaration generation, and projections to
+named methods in Java/Python.
+
+**Files added:**
+- `editor/src/ast/CppOperators.h` — operator-overload helpers:
+  - `OperatorOverload` node model (`operatorSymbol`, params, return type,
+    `isFriend`, `isConst`)
+  - parser for member and friend operator declarations
+  - JSON round-trip helpers
+  - C++ declaration generation
+  - cross-language projection:
+    - `<` → Java `compareTo`, Python `__lt__`
+    - `==` → Java `equals`, Python `__eq__`
+    - `<<` → display/string projection methods
+- `editor/tests/step468_test.cpp` — 12 tests covering:
+  - parsing member/friend overload forms
+  - const/friend flag behavior
+  - invalid declaration rejection
+  - JSON round-trip and declaration generation
+  - Java/Python projection behavior for key operators
+- `editor/CMakeLists.txt` — `step468_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step468_test` — PASS
+- `./editor/build-native/step468_test` — PASS (12/12)
+- `./editor/build-native/step467_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/CppOperators.h` within header-size limit (`129` <= `600`)
+- `editor/tests/step468_test.cpp` within test-file size guidance (`152` lines)
