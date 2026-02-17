@@ -7789,3 +7789,36 @@ workflow-path diversity checks, and event-stream completeness signals.
   - `editor/src/APIBoundaryPreserver.h` (`253` <= `600`)
   - `editor/src/MigrationTestGenerator.h` (`213` <= `600`)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 504: Performance Optimization
+**Status:** PASS (12/12 tests)
+
+Implements a measurable optimization harness for key hot paths:
+AST serialization, annotation batching, context assembly caching, and compact
+representation generation, with sustained-run stability checks.
+
+**Files added:**
+- `editor/src/PerformanceOptimizationSuite.h` - benchmark and optimization harness:
+  - baseline vs optimized timing capture per hot path
+  - context assembly cache hit/miss tracking
+  - per-function timing KPI calculation
+  - sustained-run synthetic memory stability signal
+  - optimization summary notes and target gating (`<100ms/function`)
+- `editor/tests/step504_test.cpp` - 12 tests covering:
+  - baseline/optimized timing capture
+  - no-regression optimization checks
+  - cache effectiveness assertions
+  - target threshold and repeatability checks
+  - sustained-run stability + summary notes
+- `editor/CMakeLists.txt` - `step504_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step504_test step503_test` - PASS
+- `./editor/build-native/step504_test` - PASS (12/12)
+- `./editor/build-native/step503_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PerformanceOptimizationSuite.h` within header-size limit (`222` <= `600`)
+- `editor/tests/step504_test.cpp` within test-file size guidance (`136` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
