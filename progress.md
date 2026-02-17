@@ -11226,3 +11226,37 @@ efficiency tracking, aggregation, and baseline-vs-candidate comparison.
 - `editor/src/BenchmarkComparisonHarness.h` within header-size limit (`109` <= `600`)
 - `editor/tests/step591_test.cpp` within test-file size guidance (`165` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 592: Documentation + Operator Playbooks
+**Status:** PASS (12/12 tests)
+
+Implements documentation/playbook tracking for deployment and support workflows,
+including section/check coverage and readiness scoring.
+
+**Files added:**
+- `editor/src/DocumentationOperatorPlaybooks.h` - doc/playbook module:
+  - document registration and dedupe guards
+  - section and operator-check management
+  - deployment readiness evaluation
+  - coverage scoring helper
+  - sorted document inventory helper
+- `editor/tests/step592_test.cpp` - 12 tests covering:
+  - document/section/check add success/failure behavior
+  - dedupe guard behavior
+  - readiness gating behavior
+  - coverage scoring behavior
+  - sorted inventory and unknown-doc fallback behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step592_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step592_test step591_test` - PASS
+- `./editor/build-native/step592_test` - PASS (12/12)
+- `./editor/build-native/step591_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/DocumentationOperatorPlaybooks.h` within header-size limit (`99` <= `600`)
+- `editor/tests/step592_test.cpp` within test-file size guidance (`154` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
