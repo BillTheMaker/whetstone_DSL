@@ -7822,3 +7822,37 @@ representation generation, with sustained-run stability checks.
 - `editor/src/PerformanceOptimizationSuite.h` within header-size limit (`222` <= `600`)
 - `editor/tests/step504_test.cpp` within test-file size guidance (`136` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 505: MCP Tool Documentation
+**Status:** PASS (12/12 tests)
+
+Implements structured MCP tool documentation generation with category indexing,
+schema/example coverage, error-code metadata, and materialized markdown/json
+resources for MCP client consumption.
+
+**Files added:**
+- `editor/src/MCPToolDocumentation.h` - documentation resource builder:
+  - structured tool documentation model (description, input/output schema, examples, errors)
+  - category index generation (`AST`, `Diagnostics`, `Workflow`, `Routing`, `Security`)
+  - completeness validation checks
+  - markdown + JSON renderers
+  - resource materialization writer (`mcp_tool_docs.md`, `mcp_tool_docs.json`)
+- `editor/tests/step505_test.cpp` - 12 tests covering:
+  - per-tool documentation completeness
+  - required category presence
+  - schema/error metadata coverage
+  - markdown/json export validity
+  - writable/readable documentation resource output
+  - invalid-doc rejection behavior
+- `editor/CMakeLists.txt` - `step505_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step505_test step504_test` - PASS
+- `./editor/build-native/step505_test` - PASS (12/12)
+- `./editor/build-native/step504_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MCPToolDocumentation.h` within header-size limit (`192` <= `600`)
+- `editor/tests/step505_test.cpp` within test-file size guidance (`167` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
