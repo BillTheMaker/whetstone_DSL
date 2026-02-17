@@ -6505,3 +6505,36 @@ with module graph nodes/edges, cross-cutting concerns, and complexity scoring.
 **Architecture gate check:**
 - `editor/src/ArchitectModuleDecomposer.h` within header-size limit (`212` <= `600`)
 - `editor/tests/step472_test.cpp` within test-file size guidance (`156` lines)
+
+### Step 473: Technology Stack Selector
+**Status:** PASS (12/12 tests)
+
+Implements per-module technology stack selection from requirements + module
+graph, including language/framework/database choices, rationale, confidence,
+and preference overrides.
+
+**Files added:**
+- `editor/src/ArchitectTechStackSelector.h` — stack decision engine:
+  - output model: `TechChoice`, `TechStackDecision`
+  - strategy-informed module stack selection for UI/API/auth/data/integrations/etc.
+  - backend/frontend/database preference overrides
+  - language/framework/database heuristics with rationale/confidence
+  - fallback behavior for sparse graphs
+- `editor/tests/step473_test.cpp` — 12 tests covering:
+  - UI/frontend stack selection
+  - performance/security-driven backend language selection
+  - database selection from integration requirements
+  - preference override behavior (backend/db/frontend)
+  - integration module adapter stack behavior
+  - confidence range checks
+  - per-module coverage and fallback decision behavior
+- `editor/CMakeLists.txt` — `step473_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step473_test` — PASS
+- `./editor/build-native/step473_test` — PASS (12/12)
+- `./editor/build-native/step472_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectTechStackSelector.h` within header-size limit (`156` <= `600`)
+- `editor/tests/step473_test.cpp` within test-file size guidance (`168` lines)
