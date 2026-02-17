@@ -24,7 +24,7 @@ struct TypeMapping {
     std::string note;  // compatibility note
 };
 
-struct ContractAnnotation {
+struct APIMigrationContract {
     std::string functionName;
     std::string precondition;
     std::string postcondition;
@@ -43,7 +43,7 @@ struct APIBoundaryReport {
     std::string targetLanguage;
     std::vector<FunctionSignature> publicAPI;
     std::vector<TypeMapping> typeMappings;
-    std::vector<ContractAnnotation> contracts;
+    std::vector<APIMigrationContract> contracts;
     std::vector<FFIBoundary> ffiBoundaries;
     bool apiPreserved = true;
 
@@ -198,11 +198,11 @@ private:
         return mappings;
     }
 
-    static std::vector<ContractAnnotation> generateContracts(
+    static std::vector<APIMigrationContract> generateContracts(
         const std::vector<FunctionSignature>& api, const std::string& source) {
-        std::vector<ContractAnnotation> contracts;
+        std::vector<APIMigrationContract> contracts;
         for (const auto& f : api) {
-            ContractAnnotation c;
+            APIMigrationContract c;
             c.functionName = f.name;
             // Generate pre/post conditions from signature
             if (!f.paramTypes.empty()) {

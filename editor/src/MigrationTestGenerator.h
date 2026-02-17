@@ -176,7 +176,7 @@ private:
     }
 
     static std::string generateReturnEdgeCaseBody(const FunctionSignature& func,
-                                                    const ContractAnnotation& contract,
+                                                    const APIMigrationContract& contract,
                                                     const std::string& lang) {
         if (lang == "rust") {
             return "#[test]\nfn test_" + func.name + "_return_contract() {\n"

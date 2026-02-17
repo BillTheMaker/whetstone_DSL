@@ -7745,3 +7745,47 @@ that exercises all worker classes and review gates.
 - `editor/src/MultiModelOrchestrationScenarioRunner.h` within header-size limit (`177` <= `600`)
 - `editor/tests/step502_test.cpp` within test-file size guidance (`152` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 503: Phase 25b Integration
+**Status:** PASS (8/8 tests)
+
+Integrates all four Phase 25b scenario runners (steps 499-502) into a single
+integration pass with scenario-level status, cost snapshots, security aggregation,
+workflow-path diversity checks, and event-stream completeness signals.
+
+**Files added:**
+- `editor/src/Phase25bIntegration.h` - integration compositor:
+  - executes Greenfield, Legacy Modernization, Cross-Language Port, and Multi-Model scenarios
+  - emits per-scenario start/complete events
+  - computes per-scenario estimated vs actual token snapshots
+  - validates cross-scenario path diversity and cost/event gating
+  - aggregates security findings from generated code/audits
+- `editor/tests/step503_test.cpp` - 8 integration tests covering:
+  - all-scenario pass state
+  - unique workflow-path signal coverage
+  - cost tracking shape/accuracy gating
+  - security finding aggregation
+  - event stream completeness
+  - integrated review-gate behavior retention
+- `editor/CMakeLists.txt` - `step503_test` target
+
+**Compatibility fix applied during integration:**
+- `editor/src/APIBoundaryPreserver.h`
+- `editor/src/MigrationTestGenerator.h`
+  - renamed API migration contract struct to `APIMigrationContract` to resolve
+    a symbol collision with AST `ContractAnnotation` when scenario headers are composed
+    in one translation unit.
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step503_test step502_test` - PASS
+- `./editor/build-native/step503_test` - PASS (8/8)
+- `./editor/build-native/step502_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase25bIntegration.h` within header-size limit (`229` <= `600`)
+- `editor/tests/step503_test.cpp` within test-file size guidance (`97` lines)
+- Updated integration dependencies remain within header-size limits:
+  - `editor/src/APIBoundaryPreserver.h` (`253` <= `600`)
+  - `editor/src/MigrationTestGenerator.h` (`213` <= `600`)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
