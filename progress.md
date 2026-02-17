@@ -6776,3 +6776,43 @@ imports/includes, and SQL migration order.
 - `editor/src/ArchitectBuildAwareness.h` within header-size limit (`208` <= `600`)
 - `editor/tests/step479_test.cpp` within test-file size guidance (`186` lines)
 - Conventions aligned with `ARCHITECTURE.md` (`PascalCase` structs, `camelCase` methods, header-only)
+
+### Step 480: Multi-Language Project Orchestration
+**Status:** PASS (12/12 tests)
+
+Introduces a single-project orchestration planner for multi-language module
+graphs with deterministic build ordering and explicit cross-language
+interface boundaries (`@Link`, `@Shim`) flagged for human review.
+
+**Files added:**
+- `editor/src/ArchitectMultiLanguageOrchestrator.h` — orchestration planner:
+  - `CrossLanguageLink`, `OrchestrationTask`, `MultiLanguageWorkflowPlan`
+  - `createWorkflow(...)` producing:
+    - one task per module
+    - dependency-respecting build order
+    - cross-language link records with:
+      - `@Link(from->to)`
+      - `@Shim(source_to_target)`
+      - `ffiBoundary = true`, `reviewRequired = true`
+  - integration of build hints from `ArchitectBuildAwareness`
+  - cycle fallback to deterministic lexical ordering with explicit note
+- `editor/tests/step480_test.cpp` — 12 tests covering:
+  - task generation for all modules in a single workflow
+  - dependency-order correctness
+  - cross-language link/shim emission
+  - FFI review gating behavior
+  - cycle fallback completeness
+  - link direction correctness
+  - single-language no-link behavior
+  - propagation of build-awareness hints into tasks
+- `editor/CMakeLists.txt` — `step480_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step480_test step479_test` — PASS
+- `./editor/build-native/step480_test` — PASS (12/12)
+- `./editor/build-native/step479_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectMultiLanguageOrchestrator.h` within header-size limit (`175` <= `600`)
+- `editor/tests/step480_test.cpp` within test-file size guidance (`203` lines)
+- Header-only and naming conventions remain aligned with `ARCHITECTURE.md`
