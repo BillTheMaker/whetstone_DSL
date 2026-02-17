@@ -9247,3 +9247,37 @@ concurrency-sensitive guardrails for high-risk transform paths.
 - `editor/src/RustGoConstructiveEditAdapter.h` within header-size limit (`91` <= `600`)
 - `editor/tests/step541_test.cpp` within test-file size guidance (`127` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 542: Cross-Language Consistency Gate
+**Status:** PASS (12/12 tests)
+
+Implements a cross-language consistency gate that normalizes adapter outcomes,
+standardizes failure categories, and applies consistent fallback behavior across
+C/C++, Python/TypeScript, and Rust/Go adapters.
+
+**Files added:**
+- `editor/src/CrossLanguageConsistencyGate.h` - consistency gate module:
+  - routes language-specific requests to the appropriate constructive adapter
+  - normalizes adapter diagnostics into canonical failure categories
+  - assigns standardized fallback actions (`readonly`, `suggest_legal_ops`, `escalate`, `retry`)
+  - preserves raw adapter diagnostics for downstream handling
+- `editor/tests/step542_test.cpp` - 12 tests covering:
+  - allowed-path normalization across languages
+  - safety-guard failure normalization for side-effect/lifetime/concurrency blocks
+  - illegal-operation and unsupported construct/language normalization
+  - fallback action consistency by canonical failure type
+  - diagnostic preservation behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step542_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step542_test step541_test` - PASS
+- `./editor/build-native/step542_test` - PASS (12/12)
+- `./editor/build-native/step541_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CrossLanguageConsistencyGate.h` within header-size limit (`108` <= `600`)
+- `editor/tests/step542_test.cpp` within test-file size guidance (`132` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
