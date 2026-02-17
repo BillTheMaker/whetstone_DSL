@@ -10224,3 +10224,38 @@ visible-row flattening, and pointer-to-region correlation against memory snapsho
 - `editor/src/MemoryInspectorUiModel.h` within header-size limit (`194` <= `600`)
 - `editor/tests/step565_test.cpp` within test-file size guidance (`188` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 566: Allocation/Ownership Trace Hooks
+**Status:** PASS (12/12 tests)
+
+Implements allocation lifecycle and ownership transfer trace hooks with
+deterministic timeline ordering, active-allocation tracking, and session filters.
+
+**Files added:**
+- `editor/src/AllocationOwnershipTraceHooks.h` - allocation trace module:
+  - allocation/transfer/free event schema
+  - allocation guardrails (ids, address, size, owner, duplicate-active checks)
+  - ownership transfer and release lifecycle handling
+  - active-allocation owner lookup/count helpers
+  - deterministic timeline ordering and per-session filtering
+- `editor/tests/step566_test.cpp` - 12 tests covering:
+  - allocation success/failure validation behavior
+  - duplicate-active guard behavior
+  - ownership transfer success and failure behavior
+  - free lifecycle success/failure behavior
+  - timeline ordering behavior
+  - session timeline filtering behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step566_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step566_test step565_test` - PASS
+- `./editor/build-native/step566_test` - PASS (12/12)
+- `./editor/build-native/step565_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AllocationOwnershipTraceHooks.h` within header-size limit (`150` <= `600`)
+- `editor/tests/step566_test.cpp` within test-file size guidance (`160` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
