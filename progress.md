@@ -8317,3 +8317,37 @@ contrast thresholds, and DPI-stable geometry scaling.
 - `editor/src/ControlLibraryRestyle.h` within header-size limit (`83` <= `600`)
 - `editor/tests/step517_test.cpp` within test-file size guidance (`127` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 518: Icon + Typography Contrast Harmonization
+**Status:** PASS (12/12 tests)
+
+Implements icon and typography harmonization for dark surfaces with density-aware
+sizing, stroke-weight balancing, contrast thresholds, and panel rhythm scoring
+to reduce visual drift between dense and sparse UI regions.
+
+**Files added:**
+- `editor/src/IconTypographyHarmonizer.h` - harmonization module:
+  - density-aware typography profile synthesis
+  - icon stroke/contrast profile synthesis
+  - harmonization validity checks for text/icon contrast and sizing
+  - rhythm scoring for cross-panel density consistency
+- `editor/tests/step518_test.cpp` - 12 tests covering:
+  - density scaling + clamp behavior
+  - heading/body sizing hierarchy
+  - text/icon contrast thresholds
+  - harmonization pass/fail behavior
+  - rhythm score behavior for consistent vs divergent panel densities
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step518_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step518_test` - PASS
+- `./editor/build-native/step518_test` - PASS (12/12)
+- `./editor/build-native/step517_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/IconTypographyHarmonizer.h` within header-size limit (`60` <= `600`)
+- `editor/tests/step518_test.cpp` within test-file size guidance (`125` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
