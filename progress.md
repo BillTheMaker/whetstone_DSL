@@ -7072,3 +7072,70 @@ test counts.
 - `editor/src/TestPlanGenerator.h` within header-size limit (`191` <= `600`)
 - `editor/tests/step486_test.cpp` within test-file size guidance (`118` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 487: Phase 23c Integration
+**Status:** PASS (8/8 tests)
+
+Completes Phase 23c by validating the full self-hosting data flow:
+sprint step description -> conventions extraction -> prior-context
+injection -> step spec expansion -> adaptive test plan generation ->
+output validation on known-good and deliberately-broken step artifacts.
+
+**Files added:**
+- `editor/src/SelfHostingIntegration.h` — phase integration composition:
+  - `SelfHostingInput`, `SelfHostingResult`
+  - `run(...)` flow:
+    - `ProjectConventionAnalyzer::extract(...)`
+    - `PriorStepContextInjector::build(...)`
+    - `StepSpecExpander::expand(...)`
+    - `TestPlanGenerator::generate(...)`
+    - convention validation for known-good and known-broken step files
+  - worker-readiness sufficiency gate (`workerReady`) over spec/context/
+    conventions/test-plan completeness
+- `editor/tests/step487_test.cpp` — 8 integration/regression tests covering:
+  - full flow population of conventions/context/spec/test-plan
+  - worker readiness sufficiency for realistic step input
+  - pipeline heuristic propagation into generated test types
+  - zero-violation validation for known-good step output
+  - violation detection for deliberately-broken output
+  - flow-note and context-summary checks
+  - regression expectation alignment with Step 486 behavior
+- `editor/CMakeLists.txt` — `step487_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step487_test step486_test` — PASS
+- `./editor/build-native/step487_test` — PASS (8/8)
+- `./editor/build-native/step486_test` — PASS (10/10) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfHostingIntegration.h` within header-size limit (`80` <= `600`)
+- `editor/tests/step487_test.cpp` within test-file size guidance (`126` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 23c totals (482-487):**
+- **Steps:** 6
+- **Tests:** 54/54 passing
+- **Headers added:** 6
+  - `StepSpecExpander.h`
+  - `ProjectConventionAnalyzer.h`
+  - `PriorStepContextInjector.h`
+  - `WorkerDispatchValidator.h`
+  - `TestPlanGenerator.h`
+  - `SelfHostingIntegration.h`
+- **Capabilities delivered:**
+  - step-to-spec expansion with complexity-bounded test planning
+  - machine-readable convention extraction + warning validator
+  - prior-step API context briefing for worker prompts
+  - dispatch/retry/escalation protocol model for architect-worker handoff
+  - adaptive typed test-plan generation (taxonomy-aware)
+  - end-to-end self-hosting protocol validation
+
+**Final Sprint 23 totals (471-487):**
+- **Steps:** 17
+- **Tests:** 178/178 passing
+- **Headers added:** 16
+- **Outcome:** architect mode now spans full planning stack and self-hosting
+  protocol: requirements -> decomposition -> stack selection -> skeleton ->
+  review -> templates/scaffolding -> build/dependency awareness ->
+  multi-language orchestration -> step spec/context/convention/test-plan
+  synthesis -> dispatch/validation -> phase-level integration validation.
