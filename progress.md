@@ -6581,3 +6581,42 @@ annotations suitable for workflow creation.
 **Architecture gate check:**
 - `editor/src/ArchitectSkeletonGenerator.h` within header-size limit (`198` <= `600`)
 - `editor/tests/step474_test.cpp` within test-file size guidance (`187` lines)
+
+### Step 475: Architect Review Interface
+**Status:** PASS (12/12 tests)
+
+Implements a structured architect review state with snapshot/summary generation
+and concrete modification actions (language change, merge, add, routing
+adjustment, approval).
+
+**Files added:**
+- `editor/src/ArchitectReviewInterface.h` — review interface model:
+  - review state/snapshot models:
+    - `ArchitectReviewState`
+    - `ArchitectReviewSnapshot`
+    - `ModuleReviewSummary`
+  - review actions:
+    - `changeModuleLanguage(...)`
+    - `mergeModules(...)`
+    - `addModule(...)`
+    - `adjustRouting(...)`
+    - `approve(...)`
+  - change-log tracking and graph remapping after merges
+  - key-annotation extraction for review summaries
+- `editor/tests/step475_test.cpp` — 12 tests covering:
+  - summary snapshot content
+  - language change behavior
+  - module merge success/failure paths
+  - module add success/failure paths
+  - routing adjustment success/failure paths
+  - approval and change-log behavior
+- `editor/CMakeLists.txt` — `step475_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step475_test` — PASS
+- `./editor/build-native/step475_test` — PASS (12/12)
+- `./editor/build-native/step474_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectReviewInterface.h` within header-size limit (`231` <= `600`)
+- `editor/tests/step475_test.cpp` within test-file size guidance (`171` lines)
