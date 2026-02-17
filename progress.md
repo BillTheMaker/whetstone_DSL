@@ -7511,3 +7511,48 @@ validity checks.
 - `editor/src/SelfModernizationWorkflow.h` within header-size limit (`157` <= `600`)
 - `editor/tests/step496_test.cpp` within test-file size guidance (`159` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 497: Self-Hosting Metrics Report
+**Status:** PASS (12/12 tests)
+
+Adds a consolidated self-hosting metrics layer that aggregates parse coverage,
+annotation signals, transpilation quality, and workflow viability into a
+single report with gap analysis.
+
+**Files added:**
+- `editor/src/SelfHostingMetricsReport.h` — metrics aggregation/reporting:
+  - `SelfHostingMetrics` model:
+    - parse coverage metrics
+    - annotation signal metrics/density
+    - transpilation confidence + review pressure
+    - workflow task/viability metrics
+    - gap analysis + notes
+  - `generate(...)` for composed report from:
+    - `CodebaseParseAudit`
+    - `SelfAnnotationAuditReport`
+    - `SelfTranspileAuditReport`
+    - `ModernizationWorkflowReport`
+  - `generateFromCurrentState()` convenience path that runs all upstream
+    self-host phase components
+  - threshold-based gap detection:
+    - parse coverage < 95%
+    - low annotation density
+    - low transpilation confidence
+    - non-viable deterministic modernization outputs
+- `editor/tests/step497_test.cpp` — 12 tests covering:
+  - population of all metric categories
+  - deterministic gap-analysis behavior under synthetic thresholds
+  - no-blocking-gap path when all thresholds pass
+  - parse-coverage ratio math correctness
+  - workflow viability signal semantics
+- `editor/CMakeLists.txt` — `step497_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step497_test step496_test` — PASS
+- `./editor/build-native/step497_test` — PASS (12/12)
+- `./editor/build-native/step496_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfHostingMetricsReport.h` within header-size limit (`96` <= `600`)
+- `editor/tests/step497_test.cpp` within test-file size guidance (`165` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
