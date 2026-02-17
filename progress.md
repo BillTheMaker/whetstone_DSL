@@ -11054,3 +11054,38 @@ operation counts, and contextual recommendations.
 - `editor/src/CapabilityDiscoveryPanels.h` within header-size limit (`86` <= `600`)
 - `editor/tests/step586_test.cpp` within test-file size guidance (`150` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 587: Guided Architect-to-Execution Demo Mode
+**Status:** PASS (12/12 tests)
+
+Implements a guided demo state machine that walks users through intake,
+review, queue, constrained edits, and verification stages.
+
+**Files added:**
+- `editor/src/GuidedArchitectExecutionDemoMode.h` - demo mode module:
+  - simulation-backed demo initialization
+  - staged progression with gate checks
+  - queue readiness enforcement before constrained edits
+  - completion fraction reporting
+  - stage timeline capture for demo narration
+- `editor/tests/step587_test.cpp` - 12 tests covering:
+  - start success/failure behavior
+  - stage-by-stage advancement behavior
+  - queue gate failure behavior
+  - completion/deactivation behavior
+  - progress fraction behavior
+  - timeline capture behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step587_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step587_test step586_test` - PASS
+- `./editor/build-native/step587_test` - PASS (12/12)
+- `./editor/build-native/step586_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/GuidedArchitectExecutionDemoMode.h` within header-size limit (`95` <= `600`)
+- `editor/tests/step587_test.cpp` within test-file size guidance (`182` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
