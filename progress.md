@@ -7856,3 +7856,37 @@ resources for MCP client consumption.
 - `editor/src/MCPToolDocumentation.h` within header-size limit (`192` <= `600`)
 - `editor/tests/step505_test.cpp` within test-file size guidance (`167` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 506: Edge Case Cleanup
+**Status:** PASS (12/12 tests)
+
+Implements explicit guardrails for high-risk edge cases with stable error codes
+and non-crashing fallback behavior across file handling, workflow persistence,
+dependency validation, language fallback, and MCP request validation.
+
+**Files added:**
+- `editor/src/EdgeCaseCleanup.h` - edge-case guard module:
+  - empty/binary/oversized file detection
+  - malformed annotation validation
+  - circular dependency detection
+  - concurrent workflow modification conflict detection
+  - interrupted workflow save/resume helpers
+  - unknown-language fallback to `plain_text`
+  - malformed MCP request validation
+- `editor/tests/step506_test.cpp` - 12 tests covering:
+  - each edge-case error path + code/message semantics
+  - workflow save/resume success/failure behavior
+  - language fallback behavior
+  - valid-path no-crash behavior
+- `editor/CMakeLists.txt` - `step506_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step506_test step505_test` - PASS
+- `./editor/build-native/step506_test` - PASS (12/12)
+- `./editor/build-native/step505_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/EdgeCaseCleanup.h` within header-size limit (`139` <= `600`)
+- `editor/tests/step506_test.cpp` within test-file size guidance (`150` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
