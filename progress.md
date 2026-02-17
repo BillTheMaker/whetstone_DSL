@@ -8283,3 +8283,37 @@ reveal timing.
 - `editor/src/SignatureVisualIdentity.h` within header-size limit (`81` <= `600`)
 - `editor/tests/step516_test.cpp` within test-file size guidance (`123` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 517: Control Library Restyle
+**Status:** PASS (12/12 tests)
+
+Implements shared control styling semantics for core widgets (buttons, toggles,
+tabs, menus, dropdowns, checkboxes) with explicit pressed-depth signaling,
+contrast thresholds, and DPI-stable geometry scaling.
+
+**Files added:**
+- `editor/src/ControlLibraryRestyle.h` - control style module:
+  - per-control geometry/depth token synthesis
+  - pressed-state depth signal validation helper
+  - contrast validation for labels/icons
+  - DPI stability checks and scaling clamps
+- `editor/tests/step517_test.cpp` - 12 tests covering:
+  - depth and pressed-signal behavior
+  - control-specific radius/border expectations
+  - contrast compliance
+  - DPI scaling growth and clamp edges
+  - all-control contrast regression sweep
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step517_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step517_test` - PASS
+- `./editor/build-native/step517_test` - PASS (12/12)
+- `./editor/build-native/step516_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ControlLibraryRestyle.h` within header-size limit (`83` <= `600`)
+- `editor/tests/step517_test.cpp` within test-file size guidance (`127` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
