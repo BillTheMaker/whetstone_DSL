@@ -10044,3 +10044,37 @@ state transitions with session/type/window query support.
 - `editor/src/TraceTimelineModel.h` within header-size limit (`58` <= `600`)
 - `editor/tests/step561_test.cpp` within test-file size guidance (`144` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 562: Workflow-Aware Debug Hooks
+**Status:** PASS (12/12 tests)
+
+Implements workflow-aware debug hooks that bind debug sessions to active
+workflow items and diagnostic IDs for coordinated runtime/debug context.
+
+**Files added:**
+- `editor/src/WorkflowAwareDebugHooks.h` - workflow debug hook model:
+  - workflow-item to debug-session attachment lifecycle
+  - active/inactive binding state toggles
+  - diagnostic linkage management per workflow item
+  - active-binding and diagnostic query helpers
+- `editor/tests/step562_test.cpp` - 12 tests covering:
+  - attach/detach lifecycle behavior
+  - duplicate/invalid attach guards
+  - active state toggle behavior
+  - diagnostic add/duplicate/unknown behavior
+  - active-binding filtering behavior
+  - unknown diagnostic query behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step562_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step562_test step561_test` - PASS
+- `./editor/build-native/step562_test` - PASS (12/12)
+- `./editor/build-native/step561_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowAwareDebugHooks.h` within header-size limit (`77` <= `600`)
+- `editor/tests/step562_test.cpp` within test-file size guidance (`133` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
