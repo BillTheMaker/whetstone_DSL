@@ -8813,3 +8813,41 @@ after candidate edits are applied.
 - `editor/src/PostApplyStructuralGate.h` within header-size limit (`123` <= `600`)
 - `editor/tests/step530_test.cpp` within test-file size guidance (`155` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 531: Contract Delta Checker
+**Status:** PASS (12/12 tests)
+
+Implements a contract delta checker that validates expected diagnostic
+delta semantics and required post-condition symbols, blocking edits that violate
+post-apply contract expectations.
+
+**Files added:**
+- `editor/src/ContractDeltaChecker.h` - contract delta validation module:
+  - computes before/after diagnostic add/remove sets
+  - verifies expected diagnostic adds/removes occurred
+  - optionally enforces strict unexpected diagnostic drift rejection
+  - verifies required post-condition symbols are present after apply
+  - emits structured violation diagnostics and final pass/fail action
+- `editor/tests/step531_test.cpp` - 12 tests covering:
+  - expected add/remove pass path
+  - missing expected add/remove failures
+  - strict unexpected add/remove rejection behavior
+  - non-strict drift tolerance behavior
+  - required post-condition symbol presence checks
+  - duplicate diagnostics normalization behavior
+  - empty-delta edge case
+  - aggregated multi-failure reporting and escalation action
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step531_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step531_test step530_test` - PASS
+- `./editor/build-native/step531_test` - PASS (12/12)
+- `./editor/build-native/step530_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ContractDeltaChecker.h` within header-size limit (`149` <= `600`)
+- `editor/tests/step531_test.cpp` within test-file size guidance (`200` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
