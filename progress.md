@@ -10259,3 +10259,38 @@ deterministic timeline ordering, active-allocation tracking, and session filters
 - `editor/src/AllocationOwnershipTraceHooks.h` within header-size limit (`150` <= `600`)
 - `editor/tests/step566_test.cpp` within test-file size guidance (`160` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 567: Leak/Corruption Signal Bridge
+**Status:** PASS (12/12 tests)
+
+Implements a bridge that converts runtime leak/corruption signals into
+session-scoped diagnostics and pane routing for memory debug surfaces.
+
+**Files added:**
+- `editor/src/LeakCorruptionSignalBridge.h` - signal bridge module:
+  - leak/corruption signal schema and severity mapping
+  - signal ingestion validation and duplicate guard
+  - diagnostic emission with pane routing (`memory-leaks` / `memory-corruption`)
+  - session/allocation filtering helpers
+  - session-level highest-severity aggregation
+- `editor/tests/step567_test.cpp` - 12 tests covering:
+  - signal ingestion success and validation failures
+  - duplicate signal rejection behavior
+  - pane/severity mapping behavior
+  - session/allocation filtering behavior
+  - highest-severity aggregation behavior
+  - deterministic timestamp ordering behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step567_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step567_test step566_test` - PASS
+- `./editor/build-native/step567_test` - PASS (12/12)
+- `./editor/build-native/step566_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/LeakCorruptionSignalBridge.h` within header-size limit (`154` <= `600`)
+- `editor/tests/step567_test.cpp` within test-file size guidance (`176` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
