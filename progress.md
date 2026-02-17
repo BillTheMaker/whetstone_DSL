@@ -10951,3 +10951,37 @@ normalization, and acceptance test-skeleton generation.
 - `editor/src/RequirementNormalizationConflictDetector.h` within header-size limit (`153` <= `600`)
 - `editor/src/AcceptanceCriteriaBinding.h` within header-size limit (`68` <= `600`)
 - Shared normalization centralization reduces duplicated string-normalization logic and stays aligned with `ARCHITECTURE.md`
+
+### Step 584: Value-Forward Onboarding Flow
+**Status:** PASS (12/12 tests)
+
+Implements a first-run onboarding flow that explicitly surfaces MCP depth,
+constrained execution safeguards, verification, and routing transparency.
+
+**Files added:**
+- `editor/src/ValueForwardOnboardingFlow.h` - onboarding flow module:
+  - profile-based first-run flow initialization
+  - card completion and gated forward navigation
+  - completion progress reporting
+  - completed-card value highlight extraction
+  - inactive/index guard behavior
+- `editor/tests/step584_test.cpp` - 12 tests covering:
+  - flow start success/failure behavior
+  - completion/navigation guard behavior
+  - end-of-flow behavior
+  - progress computation behavior
+  - value highlight extraction behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step584_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step584_test step583_test` - PASS
+- `./editor/build-native/step584_test` - PASS (12/12)
+- `./editor/build-native/step583_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ValueForwardOnboardingFlow.h` within header-size limit (`105` <= `600`)
+- `editor/tests/step584_test.cpp` within test-file size guidance (`154` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
