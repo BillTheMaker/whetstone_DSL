@@ -6102,3 +6102,39 @@ addressing extraction.
 **Architecture gate check:**
 - `editor/src/ast/X86AssemblyParser.h` within header-size limit (`299` <= `600`)
 - `editor/tests/step461_test.cpp` within test-file size guidance (`186` lines)
+
+### Step 462: ARM Assembly Parser
+**Status:** PASS (12/12 tests)
+
+Implements ARM/AArch64 assembly parsing for core instructions, registers,
+addressing modes, directives, and label/function shaping.
+
+**Files added:**
+- `editor/src/ast/ArmAssemblyParser.h` — ARM parser:
+  - parses ARM/AArch64 instructions (`mov`, `add`, `sub`, `ldr`, `str`, `b`,
+    `bl`, `cmp`, conditional branches, `ret`)
+  - register recognition for `r0-r15`, `x0-x30`, `sp`, `lr`, `pc`
+  - ARM memory addressing extraction:
+    - `[r0]`
+    - `[r0, #4]`
+    - `[r0, r1, LSL #2]`
+  - directive handling (`.global`, `.text`, `.data`, `.word`, `.align`, `.section`)
+  - section-as-namespace shaping via `NamespaceDeclaration`
+  - warning diagnostics for unknown opcodes
+- `editor/tests/step462_test.cpp` — 12 tests covering:
+  - ARM and AArch64 instruction/register parsing
+  - special register handling
+  - all required addressing forms
+  - directive and section handling
+  - branch/call opcode coverage
+  - unknown-opcode warning behavior
+- `editor/CMakeLists.txt` — `step462_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step462_test` — PASS
+- `./editor/build-native/step462_test` — PASS (12/12)
+- `./editor/build-native/step461_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/ArmAssemblyParser.h` within header-size limit (`245` <= `600`)
+- `editor/tests/step462_test.cpp` within test-file size guidance (`173` lines)
