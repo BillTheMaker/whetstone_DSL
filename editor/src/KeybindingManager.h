@@ -19,11 +19,11 @@ enum KeyMod : int {
     WMOD_SUPER = 1 << 3  // Cmd on Mac, Win on Windows
 };
 
-struct KeyCombo {
+struct LegacyKeyCombo {
     int key;          // virtual key or character code (e.g. 'S', 'Z', 'F')
     int modifiers;    // bitmask of KeyMod
 
-    bool operator==(const KeyCombo& other) const {
+    bool operator==(const LegacyKeyCombo& other) const {
         return key == other.key && modifiers == other.modifiers;
     }
 
@@ -85,14 +85,14 @@ public:
     }
 
     // Look up the key combo for an action (returns empty combo if not bound)
-    KeyCombo getBinding(const std::string& action) const {
+    LegacyKeyCombo getBinding(const std::string& action) const {
         auto it = bindings_.find(action);
         if (it != bindings_.end()) return it->second;
         return {0, WMOD_NONE};
     }
 
     // Look up the action for a key combo (returns "" if not bound)
-    std::string getAction(const KeyCombo& combo) const {
+    std::string getAction(const LegacyKeyCombo& combo) const {
         for (const auto& [action, binding] : bindings_) {
             if (binding == combo) return action;
         }
@@ -100,7 +100,7 @@ public:
     }
 
     // Override a single binding
-    void setBinding(const std::string& action, KeyCombo combo) {
+    void setBinding(const std::string& action, LegacyKeyCombo combo) {
         bindings_[action] = combo;
     }
 
@@ -272,5 +272,5 @@ private:
     }
 
     KeybindingProfile profile_;
-    std::map<std::string, KeyCombo> bindings_;
+    std::map<std::string, LegacyKeyCombo> bindings_;
 };

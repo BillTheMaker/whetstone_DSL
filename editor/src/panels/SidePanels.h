@@ -249,11 +249,12 @@ static void renderMinibuffer(EditorState& state) {
 }
 
 static void renderMemoryStrategiesPanel(EditorState& state) {
+    if (!state.ui.showMemoryStrategies) return;
     if (state.ui.focusTarget == FocusRegion::Side) {
         ImGui::SetNextWindowFocus();
         state.ui.focusTarget = FocusRegion::None;
     }
-    ImGui::Begin("Memory Strategies");
+    ImGui::Begin("Memory Strategies", &state.ui.showMemoryStrategies);
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
         state.ui.focusedRegion = FocusRegion::Side;
     }

@@ -32,15 +32,15 @@ int main() {
     // --- Test 2: VSCode bindings are correct ---
     {
         KeybindingManager mgr;
-        KeyCombo save = mgr.getBinding("file.save");
+        LegacyKeyCombo save = mgr.getBinding("file.save");
         assert(save.key == 'S' && save.modifiers == WMOD_CTRL &&
                "VSCode: file.save should be Ctrl+S");
 
-        KeyCombo undo = mgr.getBinding("edit.undo");
+        LegacyKeyCombo undo = mgr.getBinding("edit.undo");
         assert(undo.key == 'Z' && undo.modifiers == WMOD_CTRL &&
                "VSCode: edit.undo should be Ctrl+Z");
 
-        KeyCombo redo = mgr.getBinding("edit.redo");
+        LegacyKeyCombo redo = mgr.getBinding("edit.redo");
         assert(redo.key == 'Y' && redo.modifiers == WMOD_CTRL &&
                "VSCode: edit.redo should be Ctrl+Y");
 
@@ -54,12 +54,12 @@ int main() {
         mgr.setProfile(KeybindingProfile::JetBrains);
         assert(mgr.getProfile() == KeybindingProfile::JetBrains);
 
-        KeyCombo redo = mgr.getBinding("edit.redo");
+        LegacyKeyCombo redo = mgr.getBinding("edit.redo");
         assert(redo.key == 'Z' && redo.modifiers == (WMOD_CTRL | WMOD_SHIFT) &&
                "JetBrains: edit.redo should be Ctrl+Shift+Z");
 
         // But save is still Ctrl+S
-        KeyCombo save = mgr.getBinding("file.save");
+        LegacyKeyCombo save = mgr.getBinding("file.save");
         assert(save.key == 'S' && save.modifiers == WMOD_CTRL &&
                "JetBrains: file.save should still be Ctrl+S");
 
@@ -74,7 +74,7 @@ int main() {
         assert(mgr.getProfile() == KeybindingProfile::Emacs);
 
         // Emacs uses Ctrl+Y for paste
-        KeyCombo paste = mgr.getBinding("edit.paste");
+        LegacyKeyCombo paste = mgr.getBinding("edit.paste");
         assert(paste.key == 'Y' && paste.modifiers == WMOD_CTRL &&
                "Emacs: edit.paste should be Ctrl+Y");
 
@@ -85,11 +85,11 @@ int main() {
     // --- Test 5: Reverse lookup (combo -> action) ---
     {
         KeybindingManager mgr;  // VSCode
-        KeyCombo ctrlS = {'S', WMOD_CTRL};
+        LegacyKeyCombo ctrlS = {'S', WMOD_CTRL};
         std::string action = mgr.getAction(ctrlS);
         assert(action == "file.save" && "Ctrl+S should map to file.save");
 
-        KeyCombo unknown = {'Q', WMOD_CTRL | WMOD_ALT | WMOD_SHIFT};
+        LegacyKeyCombo unknown = {'Q', WMOD_CTRL | WMOD_ALT | WMOD_SHIFT};
         std::string none = mgr.getAction(unknown);
         assert(none.empty() && "Unknown combo should return empty string");
 
@@ -102,7 +102,7 @@ int main() {
         KeybindingManager mgr;
         mgr.setBinding("file.save", {'S', WMOD_CTRL | WMOD_ALT});
 
-        KeyCombo save = mgr.getBinding("file.save");
+        LegacyKeyCombo save = mgr.getBinding("file.save");
         assert(save.key == 'S' && save.modifiers == (WMOD_CTRL | WMOD_ALT) &&
                "Custom override should change binding");
 
@@ -121,7 +121,7 @@ int main() {
             KeybindingManager mgr;
             mgr.setProfile(profile);
             for (const auto& action : coreActions) {
-                KeyCombo combo = mgr.getBinding(action);
+                LegacyKeyCombo combo = mgr.getBinding(action);
                 assert(combo.key != 0 &&
                        (std::string("Profile ") +
                         KeybindingManager::profileName(profile) +
@@ -149,15 +149,15 @@ int main() {
         ++passed;
     }
 
-    // --- Test 9: KeyCombo toString ---
+    // --- Test 9: LegacyKeyCombo toString ---
     {
-        KeyCombo ctrlS = {'S', WMOD_CTRL};
+        LegacyKeyCombo ctrlS = {'S', WMOD_CTRL};
         assert(ctrlS.toString() == "Ctrl+S" && "Ctrl+S toString");
 
-        KeyCombo ctrlShiftZ = {'Z', WMOD_CTRL | WMOD_SHIFT};
+        LegacyKeyCombo ctrlShiftZ = {'Z', WMOD_CTRL | WMOD_SHIFT};
         assert(ctrlShiftZ.toString() == "Ctrl+Shift+Z" && "Ctrl+Shift+Z toString");
 
-        std::cout << "Test 9 PASS: KeyCombo toString" << std::endl;
+        std::cout << "Test 9 PASS: LegacyKeyCombo toString" << std::endl;
         ++passed;
     }
 

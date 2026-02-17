@@ -5232,6 +5232,53 @@ visual workflow path.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+## Post-Sprint Stabilization: Build + Startup Usability
+
+### Hotfix A: Keybinding type collision blocking editor build
+**Status:** PASS (build restored)
+
+Resolved a compile-breaking global type collision between legacy keybinding code
+and the newer registry by namespacing the legacy combo type.
+
+**Files modified:**
+- `editor/src/KeybindingManager.h` — renamed legacy `KeyCombo` to `LegacyKeyCombo`
+- `editor/src/main.cpp` — updated shortcut dispatch type usage
+- `editor/src/ShortcutReference.h` — updated shortcut panel type usage
+- `editor/tests/step54_test.cpp` — updated test references
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+- `step54_test` — PASS (10/10) regression coverage
+
+### Hotfix B: startup usability (editable buffer + dismissible side panel)
+**Status:** PASS (build restored, UX defaults improved)
+
+Adjusted startup defaults so users can type immediately and hide optional side
+panels cleanly.
+
+**Files modified:**
+- `editor/src/state/UIFlags.h` — added `showMemoryStrategies` flag (default `false`)
+- `editor/src/panels/SidePanels.h` — made Memory Strategies panel conditional and closable
+- `editor/src/panels/MenuBarPanel.h` — added View menu toggle for Memory Strategies panel
+- `editor/src/main.cpp` — auto-create untitled text buffer when startup/session has no buffers; set editor focus
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+- `step54_test` — PASS (10/10) regression coverage
+- `step437_test` — PASS (8/8) regression coverage
+
+**Build health check cadence (to run after each sprint step cluster):**
+- `cmake --build editor/build-native --target whetstone_editor -j4`
+- `./editor/build-native/step54_test`
+- `./editor/build-native/step437_test`
+
+**Architecture gate check:**
+- `editor/src/main.cpp` within main-file limit (`587` <= `1500`)
+- `editor/src/KeybindingManager.h` within header-size limit (`276` <= `600`)
+- `editor/src/panels/SidePanels.h` within header-size limit (`308` <= `600`)
+- `editor/src/panels/MenuBarPanel.h` within header-size limit (`268` <= `600`)
+- `editor/src/state/UIFlags.h` within header-size limit (`33` <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

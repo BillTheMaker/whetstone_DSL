@@ -28,7 +28,7 @@ static void renderShortcutReference(EditorState& state, ShortcutReferenceState& 
         std::transform(lower.begin(), lower.end(), lower.begin(),
                        [](unsigned char c) { return (char)std::tolower(c); });
         if (!filterText.empty() && lower.find(filterText) == std::string::npos) continue;
-        KeyCombo combo = state.keys.getBinding(action);
+        LegacyKeyCombo combo = state.keys.getBinding(action);
         ImGui::Text("%s", action.c_str());
         ImGui::SameLine(260.0f);
         ImGui::TextDisabled("%s", combo.toString().c_str());

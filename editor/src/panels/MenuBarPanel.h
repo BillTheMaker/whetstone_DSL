@@ -97,6 +97,7 @@ static void renderMenuBar(EditorState& state) {
         ImGui::MenuItem("Dependencies", nullptr, &state.library.showDependencyPanel);
         ImGui::MenuItem("Libraries", nullptr, &state.library.showLibraryBrowserPanel);
         ImGui::MenuItem("Compose", nullptr, &state.library.showCompositionPanel);
+        ImGui::MenuItem("Memory Strategies", nullptr, &state.ui.showMemoryStrategies);
         ImGui::MenuItem("Emacs Packages", nullptr, &state.emacsState.showEmacsPackagesPanel);
         ImGui::MenuItem("Emacs Bridge", nullptr, &state.emacsState.showEmacsBridgePanel);
         ImGui::MenuItem("Settings", nullptr, &state.ui.showSettingsPanel);

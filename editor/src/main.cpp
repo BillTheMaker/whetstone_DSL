@@ -317,6 +317,11 @@ int main(int, char**) {
     } else {
         state.ui.showFirstRunWizard = true;
     }
+    if (state.buffers.bufferCount() == 0) {
+        state.createBuffer(state.makeUntitledName(), "", "python",
+                           BufferManager::BufferMode::Text);
+        state.ui.focusTarget = FocusRegion::Editor;
+    }
     state.lspTransport = std::make_shared<NullLSPTransport>();
     state.lsp = std::make_shared<LSPClient>(state.lspTransport);
 
@@ -399,7 +404,7 @@ int main(int, char**) {
                 }
 
                 if (key != 0 && mods != WMOD_NONE) {
-                    KeyCombo combo{key, mods};
+                    LegacyKeyCombo combo{key, mods};
                     std::string action = state.keys.getAction(combo);
                     if (action == "edit.undo")       state.doUndo();
                     else if (action == "edit.redo")   state.doRedo();

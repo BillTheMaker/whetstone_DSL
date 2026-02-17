@@ -20,6 +20,7 @@ struct UIFlags {
     bool showFirstRunWizard = false;
     bool showShortcutReference = false;
     bool showHelpPanel = false;
+    bool showMemoryStrategies = false;
     bool showAnnotateWizard = false;
     bool showProjectWizard = false;
     bool showAgentWizard = false;
