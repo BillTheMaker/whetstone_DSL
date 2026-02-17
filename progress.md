@@ -9433,3 +9433,40 @@ dependency noise for narrow operations.
 - `editor/src/ContextBundleMinimizer.h` within header-size limit (`88` <= `600`)
 - `editor/tests/step545_test.cpp` within test-file size guidance (`169` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 546: Confidence Calibration for Constrained Paths
+**Status:** PASS (12/12 tests)
+
+Implements confidence calibration for constrained routing by combining base
+legal-choice confidence with historical success/failure rates and explicit
+penalties for repeated post-apply failures.
+
+**Files added:**
+- `editor/src/ConstrainedConfidenceCalibrator.h` - confidence calibration module:
+  - route scoring for deterministic/constrained/general policy paths
+  - success-rate boosts and post-apply failure penalties
+  - extra decay for repeated post-apply failures
+  - preferred-route bias with post-bias score clamping
+  - best-route selection and adjusted-confidence emission
+- `editor/tests/step546_test.cpp` - 12 tests covering:
+  - neutral/no-history behavior
+  - success/failure rate calibration effects
+  - repeated-failure decay behavior
+  - preferred-route bias behavior
+  - clamping behavior at score bounds
+  - recommended-route and adjusted-confidence consistency
+  - route score coverage across all policy paths
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step546_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step546_test step545_test` - PASS
+- `./editor/build-native/step546_test` - PASS (12/12)
+- `./editor/build-native/step545_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ConstrainedConfidenceCalibrator.h` within header-size limit (`97` <= `600`)
+- `editor/tests/step546_test.cpp` within test-file size guidance (`143` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
