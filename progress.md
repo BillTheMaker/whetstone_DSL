@@ -9321,3 +9321,42 @@ into phase-level and sprint-level pass/fail outcomes with closure notes.
 - **New tests in this sprint plan:** 112/112 passing
 - **Phase 28a (534-538):** 56/56 passing
 - **Phase 28b (539-543):** 56/56 passing
+
+## Sprint 28 End Refactor Pass (Architecture Compliance)
+
+Performed a dedicated post-sprint refactor pass to reduce adapter duplication and
+re-validate architecture constraints without behavior changes.
+
+**Refactors applied:**
+- `editor/src/AdapterOperationUtil.h`
+  - added shared adapter operation helper `adapterHasOperation(...)`
+  - removed repeated inline membership helpers across language adapters
+- `editor/src/CppConstructiveEditAdapter.h`
+  - switched operation legality checks to shared helper
+  - removed local duplicate membership implementation
+- `editor/src/PythonTypeScriptConstructiveEditAdapter.h`
+  - switched operation legality checks to shared helper
+  - removed local duplicate membership implementation
+- `editor/src/RustGoConstructiveEditAdapter.h`
+  - switched operation legality checks to shared helper
+  - removed local duplicate membership implementation
+
+**Architecture compliance audit:**
+- Header size gate (`<=600` lines): PASS across Sprint 28 modules
+  - largest audited header: `editor/src/Phase28aIntegration.h` (`118` lines)
+- `goto` usage in Sprint 28 runtime path: PASS (none)
+- Stale TODO markers in Sprint 28 modules: PASS (none)
+- Header-only pattern for Sprint 28 additions: PASS
+
+**Refactor verification run:**
+- `cmake --build editor/build-native --target step534_test step535_test step536_test step537_test step538_test step539_test step540_test step541_test step542_test step543_test` - PASS
+- `./editor/build-native/step534_test` - PASS (12/12)
+- `./editor/build-native/step535_test` - PASS (12/12)
+- `./editor/build-native/step536_test` - PASS (12/12)
+- `./editor/build-native/step537_test` - PASS (12/12)
+- `./editor/build-native/step538_test` - PASS (8/8)
+- `./editor/build-native/step539_test` - PASS (12/12)
+- `./editor/build-native/step540_test` - PASS (12/12)
+- `./editor/build-native/step541_test` - PASS (12/12)
+- `./editor/build-native/step542_test` - PASS (12/12)
+- `./editor/build-native/step543_test` - PASS (8/8)

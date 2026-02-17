@@ -1,9 +1,10 @@
 #pragma once
 // Step 541: Rust/Go Constructive Edit Adapter
 
-#include <set>
 #include <string>
 #include <vector>
+
+#include "AdapterOperationUtil.h"
 
 struct RustGoConstructiveEditRequest {
     std::string language;      // rust/go
@@ -37,7 +38,7 @@ public:
             return result;
         }
 
-        if (!contains(result.legalOperations, request.operation)) {
+        if (!adapterHasOperation(result.legalOperations, request.operation)) {
             result.diagnostics.push_back("operation_not_legal_for_construct");
             return result;
         }
@@ -84,8 +85,4 @@ private:
         return "";
     }
 
-    static bool contains(const std::vector<std::string>& values,
-                         const std::string& value) {
-        return std::set<std::string>(values.begin(), values.end()).count(value) != 0;
-    }
 };
