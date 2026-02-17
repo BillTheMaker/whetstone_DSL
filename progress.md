@@ -6914,3 +6914,40 @@ test plan stubs, header skeleton outline, and build-system entry.
 - `editor/src/StepSpecExpander.h` within header-size limit (`267` <= `600`)
 - `editor/tests/step482_test.cpp` within test-file size guidance (`149` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 483: Convention Extractor + Validator
+**Status:** PASS (9/9 tests)
+
+Adds machine-readable project convention extraction and warning-level
+validation for generated step artifacts, enabling architect review of
+worker output conformance.
+
+**Files added:**
+- `editor/src/ProjectConventionAnalyzer.h` — extractor + validator:
+  - `ProjectConventions`, `SourceFileDraft`
+  - `ConventionViolation`, `ConventionValidationReport`
+  - `extract(repoRoot)`:
+    - parses architecture limits (`header`, `main.cpp`, `function`)
+    - detects build target pattern from `editor/CMakeLists.txt`
+    - detects test harness conventions from step test files
+  - `validate(conventions, files)` warning checks:
+    - header/main line-limit violations
+    - missing test assertions (`CHECK/assert`)
+    - class/struct naming mismatch (`PascalCase`)
+    - missing step test target in CMake snippet
+- `editor/tests/step483_test.cpp` — 9 tests (unit/negative/regression):
+  - extraction correctness from repo docs/build files
+  - negative cases for size, assertions, naming, and build entry violations
+  - valid-file acceptance path
+  - regression validation against Step 482 outputs
+- `editor/CMakeLists.txt` — `step483_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step483_test step482_test` — PASS
+- `./editor/build-native/step483_test` — PASS (9/9)
+- `./editor/build-native/step482_test` — PASS (9/9) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ProjectConventionAnalyzer.h` within header-size limit (`223` <= `600`)
+- `editor/tests/step483_test.cpp` within test-file size guidance (`146` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
