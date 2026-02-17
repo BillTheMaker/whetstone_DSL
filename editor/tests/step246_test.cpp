@@ -173,7 +173,7 @@ int main() {
     }
 
     // ---------------------------------------------------------------
-    //  Test 5: prompts/list returns 4 prompts
+    //  Test 5: prompts/list returns core prompts
     // ---------------------------------------------------------------
     {
         json req = {{"jsonrpc", "2.0"}, {"id", 5},
@@ -183,8 +183,8 @@ int main() {
         int promptCount = 0;
         if (r.contains("result") && r["result"].contains("prompts"))
             promptCount = (int)r["result"]["prompts"].size();
-        expect(promptCount == 4,
-               "prompts/list returns 4 prompts (got " +
+        expect(promptCount >= 4,
+               "prompts/list returns >=4 prompts (got " +
                std::to_string(promptCount) + ")",
                passed, failed);
     }

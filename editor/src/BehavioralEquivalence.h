@@ -132,7 +132,8 @@ private:
             targetCode.find("fold") != std::string::npos)
             return 0.90f;
         // Structural translation
-        if (targetCode.find("TODO") != std::string::npos)
+        if (targetCode.find("TODO") != std::string::npos ||
+            targetCode.find("STUB") != std::string::npos)
             return 0.50f;
         // Same language family
         if (srcLang == tgtLang) return 0.95f;

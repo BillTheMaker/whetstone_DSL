@@ -701,7 +701,7 @@ private:
                   const std::vector<ASTNode*>& body,
                   const std::string& indent) {
         if (body.empty()) {
-            oss << indent << "// TODO: implement\n";
+            oss << indent << "// STUB: empty AST body; user implementation required\n";
             return;
         }
         for (const auto* stmt : body) {

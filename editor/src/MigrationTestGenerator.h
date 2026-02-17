@@ -141,38 +141,38 @@ private:
                                                 const std::string& lang) {
         if (lang == "rust") {
             return "#[test]\nfn test_" + func.name + "_equivalence() {\n"
-                   "    // TODO: call " + func.name + " with known inputs\n"
+                   "    // STUB: call " + func.name + " with known inputs\n"
                    "    // assert_eq!(result, expected_from_c_implementation);\n"
                    "}\n";
         }
         if (lang == "java") {
             return "@Test\npublic void test" + capitalize(func.name) + "Equivalence() {\n"
-                   "    // TODO: call " + func.name + " with known inputs\n"
+                   "    // STUB: call " + func.name + " with known inputs\n"
                    "    // assertEquals(expected, result);\n"
                    "}\n";
         }
         if (lang == "python") {
             return "def test_" + func.name + "_equivalence():\n"
-                   "    # TODO: call " + func.name + " with known inputs\n"
+                   "    # STUB: call " + func.name + " with known inputs\n"
                    "    # assert result == expected_from_c\n";
         }
-        return "// TODO: " + func.name + " equivalence test\n";
+        return "// STUB: " + func.name + " equivalence test\n";
     }
 
     static std::string generateNullEdgeCaseBody(const FunctionSignature& func,
                                                  const std::string& lang) {
         if (lang == "rust") {
             return "#[test]\nfn test_" + func.name + "_null_input() {\n"
-                   "    // TODO: pass None/null equivalent, verify behavior\n"
+                   "    // STUB: pass None/null equivalent, verify behavior\n"
                    "}\n";
         }
         if (lang == "java") {
             return "@Test(expected = NullPointerException.class)\n"
                    "public void test" + capitalize(func.name) + "NullInput() {\n"
-                   "    // TODO: pass null, verify exception\n"
+                   "    // STUB: pass null, verify exception\n"
                    "}\n";
         }
-        return "// TODO: " + func.name + " null edge case\n";
+        return "// STUB: " + func.name + " null edge case\n";
     }
 
     static std::string generateReturnEdgeCaseBody(const FunctionSignature& func,
@@ -181,27 +181,27 @@ private:
         if (lang == "rust") {
             return "#[test]\nfn test_" + func.name + "_return_contract() {\n"
                    "    // Contract: " + contract.postcondition + "\n"
-                   "    // TODO: verify return value matches contract\n"
+                   "    // STUB: verify return value matches contract\n"
                    "}\n";
         }
         return "// Contract: " + contract.postcondition + "\n"
-               "// TODO: verify " + func.name + " return contract\n";
+               "// STUB: verify " + func.name + " return contract\n";
     }
 
     static std::string generatePerformanceBody(const FunctionSignature& func,
                                                 const std::string& lang) {
         if (lang == "rust") {
             return "#[test]\nfn test_" + func.name + "_performance() {\n"
-                   "    // TODO: benchmark " + func.name + " and compare with C baseline\n"
+                   "    // STUB: benchmark " + func.name + " and compare with C baseline\n"
                    "    // assert!(elapsed < c_baseline * 1.1); // allow 10% regression\n"
                    "}\n";
         }
         if (lang == "java") {
             return "@Test\npublic void test" + capitalize(func.name) + "Performance() {\n"
-                   "    // TODO: benchmark and compare with C baseline\n"
+                   "    // STUB: benchmark and compare with C baseline\n"
                    "}\n";
         }
-        return "// TODO: " + func.name + " performance regression test\n";
+        return "// STUB: " + func.name + " performance regression test\n";
     }
 
     static std::string capitalize(const std::string& s) {

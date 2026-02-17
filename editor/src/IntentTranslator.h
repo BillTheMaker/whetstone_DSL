@@ -248,7 +248,7 @@ private:
                                             const std::string& tgtLang) {
         // Placeholder: in a real transpiler this does syntax-level translation.
         // For now, return a comment indicating structural translation needed.
-        return "// TODO: structural translation from " + srcLang + " to " + tgtLang +
+        return "// STUB: structural translation from " + srcLang + " to " + tgtLang +
                "\n// Original: " + (source.size() > 80 ? source.substr(0, 80) + "..." : source);
     }
 };

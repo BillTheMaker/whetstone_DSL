@@ -122,7 +122,8 @@ private:
         if (code.find("fold") != std::string::npos || code.find("sum") != std::string::npos ||
             code.find("accumulate") != std::string::npos) return "reduce";
         if (code.find("read") != std::string::npos || code.find("open(") != std::string::npos) return "io";
-        if (code.find("TODO") != std::string::npos) return "unknown";
+        if (code.find("TODO") != std::string::npos ||
+            code.find("STUB") != std::string::npos) return "unknown";
         return "structural";
     }
 
@@ -133,7 +134,8 @@ private:
             return "gained";
         if (srcLang == "rust" && tgtLang == "c")
             return "lost";
-        if (targetCode.find("TODO") != std::string::npos)
+        if (targetCode.find("TODO") != std::string::npos ||
+            targetCode.find("STUB") != std::string::npos)
             return "neutral";
         return "neutral";
     }

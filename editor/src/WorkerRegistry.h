@@ -72,7 +72,9 @@ public:
             result.reasoning = "Pattern-matched from @Intent annotation";
         } else {
             // Heuristic: generate a stub based on node name
-            result.generatedCode = "// TODO: implement " + item.nodeName;
+            result.generatedCode =
+                "// STUB: deterministic worker has no pattern for '" +
+                item.nodeName + "' yet";
             result.confidence = 0.5f;
             result.reasoning = "Heuristic stub — no @Intent annotation";
         }

@@ -74,7 +74,7 @@ public:
             oss << "    // Function body is empty\n";
             oss << "    return;";
             if (returnTypeStr != "void") {
-                oss << " // TODO: return appropriate value";
+                oss << " // STUB: non-void signature with empty body requires manual return value";
             }
             oss << "\n";
         } else {

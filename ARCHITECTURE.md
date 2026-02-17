@@ -30,7 +30,9 @@
 ## Architecture Patterns
 
 ### Header-Only
-All components are `.h` files. The only `.cpp` files are `main.cpp`, `orchestrator_main.cpp`, `FileDialog.cpp`, and vendored backends.
+All core components are `.h` files. Sanctioned non-vendored `.cpp` entrypoints are:
+`main.cpp`, `orchestrator_main.cpp`, `mcp_main.cpp`, `pipeline_main.cpp`,
+`eval_main.cpp`, and `FileDialog.cpp`.
 
 ### Panel Extraction
 UI panels are free functions in their own headers, included and called from `main.cpp`:
@@ -49,7 +51,10 @@ Single state struct defined in `EditorState.h`. Panels receive it by reference â
 One file per language, inheriting from `ProjectionGenerator` base in `ProjectionGenerator.h`. The shared dispatch helper `dispatchGenerate()` eliminates duplicated `generate()` bodies.
 
 ### No God Objects
-If a struct exceeds 50 fields, group related fields into sub-structs (e.g., `DiffState`, `LSPState`).
+For new state structs, if a struct exceeds 50 fields, group related fields into
+sub-structs (e.g., `DiffState`, `LSPState`). Legacy `EditorState` remains under
+incremental decomposition; new feature state should be added via extracted
+sub-structs rather than direct top-level field growth.
 
 ---
 

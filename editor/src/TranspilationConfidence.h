@@ -144,8 +144,10 @@ private:
         if (hasIntent)
             return TranslationCategory::StructuralWithIntent;
 
-        // Check if it looks like real code or just TODO
-        if (target.find("TODO") != std::string::npos || target.empty())
+        // Check if it looks like real code or just a placeholder stub
+        if (target.find("TODO") != std::string::npos ||
+            target.find("STUB") != std::string::npos ||
+            target.empty())
             return TranslationCategory::Unknown;
 
         return TranslationCategory::StructuralNoIntent;

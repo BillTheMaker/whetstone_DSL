@@ -219,6 +219,7 @@ public:
         if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             ImGui::SetKeyboardFocusHere(-1);
             const ImVec2 mouse = ImGui::GetMousePos();
+            bool finalizeSelection = true;
             if (options.showMinimap && mouse.x >= minimapBaseX) {
                 float miniHeight = lineCount * lineHeight;
                 if (miniHeight > 0.0f) {
@@ -228,13 +229,15 @@ public:
                     ImGui::SetScrollY(targetScroll);
                 }
                 selecting_ = false;
-                goto after_mouse;
+                finalizeSelection = false;
             }
             bool ctrlClick = io.KeyCtrl || io.KeySuper;
             bool altClick = io.KeyAlt;
             bool columnSelect = io.KeyAlt && io.KeyShift;
             int clickCount = ImGui::GetIO().MouseClickedCount[0];
-            if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
+            if (!finalizeSelection) {
+                // Minimap click updates viewport only; keep selection state unchanged.
+            } else if (mouse.x < origin.x + gutterWidth || clickCount >= 3) {
                 int line = lineFromMouseY(mouse.y, gutterBase.y, lineHeight, lineCount);
                 result.lineClicked = true;
                 result.clickedLine = line;
@@ -256,12 +259,12 @@ public:
                 columnAnchorCol_ = col;
                 updateColumnSelection(text, lineStarts, columnAnchorLine_, columnAnchorCol_, line, col);
                 selecting_ = true;
-                goto after_mouse;
+                finalizeSelection = false;
             } else if (altClick) {
                 int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
                 addCursorAt(pos);
                 selecting_ = false;
-                goto after_mouse;
+                finalizeSelection = false;
             } else {
                 clearExtraCursors();
                 int pos = positionFromMouse(mouse, textBase, lineStarts, text, charAdvance, lineHeight);
@@ -285,9 +288,9 @@ public:
                     selEnd_ = cursor_;
                 }
             }
-            selecting_ = true;
+            if (finalizeSelection) selecting_ = true;
         }
-    after_mouse:
+
         if (hovered && selecting_ && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             const ImVec2 mouse = ImGui::GetMousePos();
             if (mouse.x >= origin.x + gutterWidth) {
@@ -360,7 +363,7 @@ public:
                            result,
                            font);
         if (ImGui::BeginPopup(annoPopupId.c_str())) {
-            ImGui::TextUnformatted("Annotation Editor (TODO)");
+            ImGui::TextUnformatted("Annotation Editor (STUB: UI editor not wired yet)");
             ImGui::Separator();
             ImGui::TextUnformatted(annotationPopupMessage_.c_str());
             ImGui::EndPopup();

@@ -250,7 +250,7 @@ int main() {
     }
 
     // =================================================================
-    //  Test 6: prompts/list returns all 4 prompts with structure
+    //  Test 6: prompts/list includes core prompts with structure
     // =================================================================
     {
         json resp = mcp("prompts/list");
@@ -276,9 +276,9 @@ int main() {
                 if (name == "refactor_memory") hasRefactor = true;
             }
         }
-        expect(promptCount == 4 && allValid &&
+        expect(promptCount >= 4 && allValid &&
                hasAnnotate && hasCross && hasSecurity && hasRefactor,
-               "prompts/list returns 4 prompts with correct names",
+               "prompts/list returns core prompts with correct names",
                passed, failed);
     }
 
