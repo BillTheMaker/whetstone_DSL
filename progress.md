@@ -11980,3 +11980,33 @@ risk scoring and manual override support.
 - `editor/src/CanaryPromotionJudge.h` within header-size limit (`72` <= `600`)
 - `editor/tests/step612_test.cpp` within test-file size guidance (`149` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 613: Sprint 35 Operational Readiness
+**Status:** PASS (12/12 tests)
+
+Implements sprint-level operational readiness scoring and release gating over
+freeze, dependency, coverage, canary, and postmortem signals.
+
+**Files added:**
+- `editor/src/Sprint35OperationalReadiness.h` - sprint readiness module:
+  - readiness input validation for non-negative metrics
+  - weighted readiness score with clamp
+  - blocker derivation and release-allowed decision
+- `editor/tests/step613_test.cpp` - 12 tests covering:
+  - validation success/failure behavior
+  - score degradation and clamp behavior
+  - blocker derivation and release gate behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step613_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step613_test step612_test` - PASS
+- `./editor/build-native/step613_test` - PASS (12/12)
+- `./editor/build-native/step612_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint35OperationalReadiness.h` within header-size limit (`54` <= `600`)
+- `editor/tests/step613_test.cpp` within test-file size guidance (`134` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
