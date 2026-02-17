@@ -5765,3 +5765,31 @@ classification and risk annotations for lossy projections.
 **Architecture gate check:**
 - `editor/src/TypeSystemTranslator.h` within header-size limit (`140` <= `600`)
 - `editor/tests/step451_test.cpp` within test-file size guidance (`146` lines)
+
+### Step 452: Concurrency Model Translation
+**Status:** PASS (12/12 tests)
+
+Adds concurrency-pattern translation with explicit runtime/safety annotations
+for async/thread/channel/mutex constructs across language runtime models.
+
+**Files added:**
+- `editor/src/ConcurrencyTranslator.h` — concurrency translation engine:
+  - source/target model detection (`Threads`, `AsyncAwait`, `Channels`, `EventLoop`)
+  - pattern translators for `async/await`, `thread_spawn`, `channels`, `mutex`
+  - runtime-aware annotations (`@Exec`, `@ThreadModel`, `@Sync`, `@Blocking`)
+  - safety grading (`Safe`, `NeedsReview`, `Unsafe`) and review counts
+- `editor/tests/step452_test.cpp` — 12 tests covering:
+  - async mapping across Rust/Python/C targets
+  - thread/channel/mutex projection to Go/Rust/C
+  - source/target model detection behavior
+  - plain-code no-pattern behavior and multi-pattern aggregation
+- `editor/CMakeLists.txt` — `step452_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step452_test` — PASS
+- `./editor/build-native/step452_test` — PASS (12/12)
+- `./editor/build-native/step451_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ConcurrencyTranslator.h` within header-size limit (`249` <= `600`)
+- `editor/tests/step452_test.cpp` within test-file size guidance (`146` lines)
