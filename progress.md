@@ -5083,6 +5083,52 @@ visualization in workflow overlays, including category weighting and color mappi
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 435: Workflow Status Overlay
+**Status:** PASS (12/12 tests)
+
+Added a workflow status overlay model to project per-function/class lifecycle
+state into editor views, with status icon/color mapping and task-detail routes.
+
+**Files created:**
+- `editor/src/WorkflowStatusOverlay.h` — overlay marker support:
+  - work-item -> status marker projection
+  - optional buffer filter for multi-file views
+  - node-id -> line mapping with safe fallback
+  - status -> icon mapping (outline/spinner/eye/check)
+  - status -> color mapping aligned with board states
+  - status -> task-board column normalization
+  - click route helper to task-detail URI
+  - stable sorting by file/line/item for deterministic rendering
+- `editor/tests/step435_test.cpp` — 12 tests covering:
+  1. marker generation count parity with work items
+  2. file-scope buffer filtering behavior
+  3. missing node-line fallback behavior
+  4. pending icon mapping
+  5. in-progress icon mapping
+  6. review icon mapping
+  7. complete icon mapping
+  8. color mapping for review/complete
+  9. board-column mapping for assigned/in-progress
+  10. task-detail click route format
+  11. node-name display preference
+  12. deterministic sorting by file then line
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step435_test` target
+
+**Verification run:**
+- `step435_test` — PASS (12/12) new step coverage
+- `step434_test` — PASS (12/12) regression coverage
+- `step433_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowStatusOverlay.h` within header-size limit (`94` <= `600`)
+- `editor/tests/step435_test.cpp` within test-file size guidance (`155` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
