@@ -6469,3 +6469,39 @@ natural-language problem descriptions with per-item confidence scores.
 **Architecture gate check:**
 - `editor/src/ArchitectProblemParser.h` within header-size limit (`114` <= `600`)
 - `editor/tests/step471_test.cpp` within test-file size guidance (`157` lines)
+
+### Step 472: Module Decomposition Engine
+**Status:** PASS (12/12 tests)
+
+Implements strategy-aware module decomposition from structured requirements,
+with module graph nodes/edges, cross-cutting concerns, and complexity scoring.
+
+**Files added:**
+- `editor/src/ArchitectModuleDecomposer.h` — module decomposition engine:
+  - decomposition strategies:
+    - `Layered`
+    - `Monolith`
+    - `Microservice`
+  - module graph model (`ModuleNode`, `ModuleEdge`, `ModuleGraph`)
+  - inferred modules from requirements (auth/api/ui/data/search/reporting/notifications/integrations)
+  - cross-cutting module insertion (logging/config/error/security/observability)
+  - strategy-specific dependency edge shaping
+  - normalized complexity scoring with dependency influence
+  - helper APIs (`hasModule`, dependency counting)
+- `editor/tests/step472_test.cpp` — 12 tests covering:
+  - module inference from requirement categories
+  - strategy-specific edge behavior
+  - cross-cutting concern insertion
+  - complexity clamping
+  - monolith core-hub behavior
+  - sparse-input fallback behavior
+- `editor/CMakeLists.txt` — `step472_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step472_test` — PASS
+- `./editor/build-native/step472_test` — PASS (12/12)
+- `./editor/build-native/step471_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectModuleDecomposer.h` within header-size limit (`212` <= `600`)
+- `editor/tests/step472_test.cpp` within test-file size guidance (`156` lines)
