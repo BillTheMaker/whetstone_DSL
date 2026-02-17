@@ -6032,3 +6032,36 @@ generation, confidence scoring, equivalence checks, and RPC/MCP surface.
   - deterministic confidence scoring and review gating
   - per-function/project translation reporting
   - RPC + MCP interfaces for transpilation pipeline operations
+
+### Step 460: Assembly AST Nodes
+**Status:** PASS (12/12 tests)
+
+Introduces core assembly AST node model and per-node JSON serialization
+round-trip helpers for instructions, labels, directives, registers, and
+memory operands.
+
+**Files added:**
+- `editor/src/ast/AssemblyNodes.h` — new assembly node definitions:
+  - `AssemblyInstruction` (opcode, operands, structured register/memory operands)
+  - `AssemblyLabel` (name, `isGlobal`)
+  - `AssemblyDirective` (`.data`, `.text`, `.global`, `.section`, `.byte`, `.word`, `.align`)
+  - `AssemblyRegister` (name + bit width)
+  - `AssemblyMemoryOperand` (base/index/scale/offset addressing components)
+  - directive enum/string conversion helpers
+  - JSON serialization/deserialization helpers for all node types
+- `editor/tests/step460_test.cpp` — 12 tests covering:
+  - node construction and field integrity for all assembly node types
+  - directive enum/string mapping
+  - JSON round-trip for each node type
+  - structured operand round-trip in instructions
+  - unknown directive fallback behavior
+- `editor/CMakeLists.txt` — `step460_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step460_test` — PASS
+- `./editor/build-native/step460_test` — PASS (12/12)
+- `./editor/build-native/step459_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/AssemblyNodes.h` within header-size limit (`200` <= `600`)
+- `editor/tests/step460_test.cpp` within test-file size guidance (`160` lines)
