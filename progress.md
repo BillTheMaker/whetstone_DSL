@@ -5881,3 +5881,32 @@ grading from confidence scores (verified/likely/unverified+review).
 **Architecture gate check:**
 - `editor/src/BehavioralEquivalence.h` within header-size limit (`141` <= `600`)
 - `editor/tests/step455_test.cpp` within test-file size guidance (`194` lines)
+
+### Step 456: Transpilation Confidence Scoring
+**Status:** PASS (12/12 tests)
+
+Implements deterministic confidence scoring categories and review gating for
+translated functions, including aggregated report statistics.
+
+**Files added:**
+- `editor/src/TranspilationConfidence.h` — confidence scorer:
+  - category model (`DirectStdLib`, `AlgorithmPattern`,
+    `StructuralWithIntent`, `StructuralNoIntent`, `Unknown`)
+  - deterministic score mapping (0.95 / 0.85 / 0.70 / 0.50 / 0.30)
+  - low-confidence review gating (`@Review(required,human)` when `< 0.60`)
+  - per-function score output + batch report aggregation APIs
+- `editor/tests/step456_test.cpp` — 12 tests covering:
+  - category classification and score assignment
+  - annotation/review behavior for high vs low confidence
+  - `scoreAll` aggregation, category/review counters, average score
+  - function-score lookup and default no-intent behavior
+- `editor/CMakeLists.txt` — `step456_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step456_test` — PASS
+- `./editor/build-native/step456_test` — PASS (12/12)
+- `./editor/build-native/step455_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TranspilationConfidence.h` within header-size limit (`153` <= `600`)
+- `editor/tests/step456_test.cpp` within test-file size guidance (`155` lines)
