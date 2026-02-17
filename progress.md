@@ -5040,6 +5040,49 @@ type-specific icon/color mapping, stacked line badges, and expandable detail tex
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 434: Annotation Heatmap
+**Status:** PASS (12/12 tests)
+
+Added a heatmap projection for code annotations to support line-level intensity
+visualization in workflow overlays, including category weighting and color mapping.
+
+**Files created:**
+- `editor/src/CodeAnnotationHeatmap.h` — heatmap support:
+  - annotation input -> per-line heat cells
+  - category weighting (complexity/risk/review/priority/intent/contract)
+  - deterministic score accumulation per line
+  - score-to-color mapping (cool blue -> green -> orange -> red)
+  - range filtering for out-of-bounds annotations
+- `editor/tests/step434_test.cpp` — 12 tests covering:
+  1. one cell per line generation behavior
+  2. disabled heatmap returns empty output
+  3. invalid max-line boundary handling
+  4. complexity weight mapping
+  5. risk weight mapping
+  6. review weight mapping
+  7. low-score cool-blue color mapping
+  8. low-mid cool-green color mapping
+  9. mid-high orange color mapping
+  10. high-score red color mapping
+  11. multi-annotation score accumulation
+  12. out-of-range annotation filtering
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step434_test` target
+
+**Verification run:**
+- `step434_test` — PASS (12/12) new step coverage
+- `step433_test` — PASS (12/12) regression coverage
+- `step432_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CodeAnnotationHeatmap.h` within header-size limit (`50` <= `600`)
+- `editor/tests/step434_test.cpp` within test-file size guidance (`126` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
