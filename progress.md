@@ -8179,3 +8179,35 @@ and iconography.
 - `editor/src/AccessibilityBaseline.h` within header-size limit (`99` <= `600`)
 - `editor/tests/step513_test.cpp` within test-file size guidance (`138` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 514: Phase 26a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates Steps 509-513 into a single phase gate verifying docking stability,
+hit-target reliability, interaction-state correctness, hierarchy validity, and
+accessibility baseline compliance with an explicit editor-flow-safe signal.
+
+**Files added:**
+- `editor/src/Phase26aIntegration.h` - phase integration gate:
+  - consolidated execution of Step 509-513 reliability checks
+  - per-domain pass/fail signals plus final phase pass synthesis
+  - integration notes including explicit phase-pass marker
+- `editor/tests/step514_test.cpp` - 8 integration tests covering:
+  - each domain gate (docking, hit-targets, interaction, hierarchy, accessibility)
+  - combined editor-flow-safe signal
+  - final phase pass signal
+  - pass-marker note emission
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step514_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step514_test` - PASS
+- `./editor/build-native/step514_test` - PASS (8/8)
+- `./editor/build-native/step513_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase26aIntegration.h` within header-size limit (`100` <= `600`)
+- `editor/tests/step514_test.cpp` within test-file size guidance (`91` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
