@@ -9110,3 +9110,42 @@ baselines.
 - `editor/src/ConstrainedExecutionTelemetry.h` within header-size limit (`75` <= `600`)
 - `editor/tests/step537_test.cpp` within test-file size guidance (`175` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 538: Phase 28a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates legal-choice operation/symbol menus, argument-shape validation, and
+telemetry into a single constrained execution surface for agent-facing editing.
+
+**Files added:**
+- `editor/src/Phase28aIntegration.h` - Phase 28a integration gate:
+  - builds operation and symbol legal-choice menus
+  - enforces selection membership (operation + symbol must come from legal menus)
+  - validates selected argument shape before execution
+  - records per-attempt telemetry for success and rejection paths
+  - returns integrated execution result + aggregate telemetry summary
+- `editor/tests/step538_test.cpp` - 8 tests covering:
+  - valid legal-choice execution path
+  - illegal operation/symbol menu rejection paths
+  - argument-shape rejection path
+  - menu unavailability failure path
+  - telemetry candidate-breadth, token-savings, and rejection histogram behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step538_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step538_test step537_test` - PASS
+- `./editor/build-native/step538_test` - PASS (8/8)
+- `./editor/build-native/step537_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase28aIntegration.h` within header-size limit (`118` <= `600`)
+- `editor/tests/step538_test.cpp` within test-file size guidance (`154` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 28a totals (534-538):**
+- **Steps completed:** 5
+- **New tests in phase plan:** 56/56 passing
+- **Legal-choice API + validation + telemetry integration:** PASS
