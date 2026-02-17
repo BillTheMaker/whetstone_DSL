@@ -4614,6 +4614,50 @@ with deterministic truncation behavior.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 425: Batch Submission for Agent Tasks
+**Status:** PASS (12/12 tests)
+
+Added batching utilities for external agent tasks to reduce duplicated context
+tokens by grouping requests with shared worker/language/file context.
+
+**Files created:**
+- `editor/src/BatchTaskSubmitter.h` — task batching support:
+  - `AgentTaskRequest` / `AgentTaskBatch` / `BatchPlan` types
+  - deterministic grouping key (`workerType|language|bufferId`)
+  - stable item ordering within batches
+  - max batch size splitting
+  - token-cost estimation for individual vs batched plans
+  - estimated savings percentage reporting
+- `editor/tests/step425_test.cpp` — 12 tests covering:
+  1. grouping by worker/language/buffer
+  2. worker-type separation
+  3. language separation
+  4. max batch size enforcement
+  5. shared-context carryover in batch payload
+  6. batch JSON task payload shape
+  7. deterministic in-batch ordering
+  8. empty-input edge case
+  9. max-size floor behavior
+  10. batched token estimate <= individual
+  11. positive savings for shared-context groups
+  12. multi-group savings computation stability
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step425_test` target
+
+**Verification run:**
+- `step425_test` — PASS (12/12) new step coverage
+- `step424_test` — PASS (12/12) regression coverage
+- `step423_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/BatchTaskSubmitter.h` within header-size limit (`123` <= `600`)
+- `editor/tests/step425_test.cpp` within test-file size guidance (`194` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
