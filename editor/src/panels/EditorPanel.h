@@ -443,7 +443,12 @@ static void renderEditorPanel(EditorState& state) {
                             primitives.insert(primitives.end(), types.begin(), types.end());
                             primitives.insert(primitives.end(), consts.begin(), consts.end());
 
-                            auto built = buildLibraryAwareCompletions(items, primitives, prefix);
+                            CompletionContext completionContext =
+                                detectCompletionContext(state.active()->editBuf,
+                                                        cursor,
+                                                        state.active()->language);
+                            auto built = buildLibraryAwareCompletions(items, primitives, prefix,
+                                                                      completionContext);
                             std::vector<LSPClient::CompletionItem> filtered;
                             filtered.reserve(built.items.size());
                             for (const auto& item : built.items) {

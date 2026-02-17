@@ -5337,6 +5337,25 @@ enabled by the user.
 - `step54_test` — PASS (10/10) regression coverage
 - `step437_test` — PASS (8/8) regression coverage
 
+### Hotfix F: context-aware include completion filtering
+**Status:** PASS (relevance improved for `#include` workflows)
+
+Improved completion relevance in C/C++ preprocessor include contexts to avoid
+noisy unrelated suggestions (for example `std::*` symbols when typing `#inc`).
+
+**Files modified:**
+- `editor/src/CompletionUtils.h`:
+  - added completion context detection (`General`, `CppInclude`)
+  - added include-context filtering for LSP items
+  - added include-focused snippet suggestions (`include`, `<string>`, `<vector>`, `<iostream>`, `<memory>`)
+- `editor/src/panels/EditorPanel.h`:
+  - passed runtime completion context into completion builder
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+- `step54_test` — PASS (10/10) regression coverage
+- `step437_test` — PASS (8/8) regression coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
