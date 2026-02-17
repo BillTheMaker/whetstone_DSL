@@ -8145,3 +8145,37 @@ validation of layering invariants and interaction blocking behavior.
 - `editor/src/WindowHierarchyModel.h` within header-size limit (`142` <= `600`)
 - `editor/tests/step512_test.cpp` within test-file size guidance (`153` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 513: Accessibility Baseline Pass
+**Status:** PASS (12/12 tests)
+
+Implements a baseline accessibility validation model covering keyboard-only
+traversal, focus-ring visibility constraints, and contrast thresholds for text
+and iconography.
+
+**Files added:**
+- `editor/src/AccessibilityBaseline.h` - accessibility baseline module:
+  - keyboard traversal order generation from tab-order metadata
+  - focus-ring style resolution with high-contrast mode support
+  - focus-ring visibility checks (thickness/alpha/contrast)
+  - aggregate accessibility validation (focusability, ring, text/icon contrast)
+- `editor/tests/step513_test.cpp` - 12 tests covering:
+  - traversal ordering and disabled/invisible-node filtering
+  - focus-ring enabled/disabled and visibility semantics
+  - positive baseline pass condition
+  - failure-path detection for no focus targets, low text contrast,
+    low icon contrast, and non-visible focus ring
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step513_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step513_test` - PASS
+- `./editor/build-native/step513_test` - PASS (12/12)
+- `./editor/build-native/step512_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AccessibilityBaseline.h` within header-size limit (`99` <= `600`)
+- `editor/tests/step513_test.cpp` within test-file size guidance (`138` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
