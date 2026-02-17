@@ -6700,3 +6700,44 @@ shapes (REST API, CLI, library, microservice, full stack).
 - `editor/src/ArchitectTemplates.h` within header-size limit (`182` <= `600`)
 - `editor/tests/step477_test.cpp` within test-file size guidance (`166` lines)
 - Naming/style aligned with `ARCHITECTURE.md` conventions (`PascalCase` types, `camelCase` functions)
+
+### Step 478: Scaffold File Generation
+**Status:** PASS (12/12 tests)
+
+Adds concrete scaffold generation from approved skeletons, including source
+files, stack-specific project config, `.gitignore`, and `.whetstone` state
+files, with operation plans compatible with `fileCreate`/`fileWrite`.
+
+**Files added:**
+- `editor/src/ArchitectScaffoldGenerator.h` — scaffold planner/applier:
+  - `ScaffoldInput`, `ScaffoldFileSpec`, `ScaffoldOperation`, `ScaffoldPlan`
+  - `buildPlan(...)` to derive file tree + operation queue from skeleton modules
+  - source rendering with Semanno annotation comments and per-language stubs
+  - config generation:
+    - `package.json` (JS/TS)
+    - `pyproject.toml` (Python)
+    - `Cargo.toml` (Rust)
+    - `CMakeLists.txt` (C/C++)
+  - `.gitignore` composition based on selected languages
+  - `.whetstone/workflow_state.json` + sidecar module files
+  - `applyPlan(...)` executing `fileCreate`/`fileWrite`-style operations via existing file ops
+- `editor/tests/step478_test.cpp` — 12 tests covering:
+  - Semanno annotations in generated source files
+  - stack-specific config file generation
+  - language convention path mapping (TS/Go/SQL)
+  - `.gitignore` entries by stack
+  - `.whetstone` workflow + sidecar generation
+  - operation queue shape (`fileCreate` + `fileWrite` pairs)
+  - on-disk apply behavior and idempotency
+  - empty-skeleton baseline generation
+- `editor/CMakeLists.txt` — `step478_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step478_test step477_test` — PASS
+- `./editor/build-native/step478_test` — PASS (12/12)
+- `./editor/build-native/step477_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectScaffoldGenerator.h` within header-size limit (`358` <= `600`)
+- `editor/tests/step478_test.cpp` within test-file size guidance (`224` lines)
+- Header-only architecture preserved; naming conventions remain `PascalCase` types and `camelCase` methods
