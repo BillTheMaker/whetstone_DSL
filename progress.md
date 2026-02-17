@@ -5822,3 +5822,29 @@ borrow-checked models with explicit safety-delta tracking.
 **Architecture gate check:**
 - `editor/src/MemoryModelTranslator.h` within header-size limit (`249` <= `600`)
 - `editor/tests/step453_test.cpp` within test-file size guidance (`142` lines)
+
+### Step 454: Phase 21a Integration
+**Status:** PASS (8/8 tests)
+
+Adds Phase 21a end-to-end integration coverage across intent, algorithm,
+types, concurrency, and memory translation components.
+
+**Files added:**
+- `editor/tests/step454_test.cpp` — 8 integration tests covering:
+  - intent-driven idiomatic translation (Python→Rust sort intent)
+  - algorithm recognizer stdlib mapping validation
+  - type-system preservation vs lossy-risk behavior
+  - async runtime review requirements in concurrency translation
+  - manual-memory safety gains during C→Rust migration
+  - no-intent structural fallback/review behavior
+  - combined pipeline signal checks across all phase components
+- `editor/CMakeLists.txt` — `step454_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step454_test` — PASS
+- `./editor/build-native/step454_test` — PASS (8/8)
+- `./editor/build-native/step453_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step454_test.cpp` within test-file size guidance (`119` lines)
+- No new production header introduced in this integration step
