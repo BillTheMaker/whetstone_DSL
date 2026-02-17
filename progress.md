@@ -8591,3 +8591,36 @@ expected diagnostics deltas, rejecting under-specified taskitems.
 - `editor/src/TypedTaskitemContractSchema.h` within header-size limit (`114` <= `600`)
 - `editor/tests/step524_test.cpp` within test-file size guidance (`148` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 525: Legal Operation Graph
+**Status:** PASS (12/12 tests)
+
+Implements a legal-operation graph for language/node-kind pairs so constrained
+editor tasks can validate whether requested refactors are structurally allowed
+before execution.
+
+**Files added:**
+- `editor/src/LegalOperationGraph.h` - operation-eligibility graph module:
+  - default per-language/per-node operation rules
+  - rule registration and override support
+  - deduplication of operation sets
+  - query helpers for supported nodes and allowed operations
+- `editor/tests/step525_test.cpp` - 12 tests covering:
+  - default rule coverage across cpp/c/python/typescript/rust/go
+  - unsupported language/node behavior
+  - rule registration and override semantics
+  - operation deduplication behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step525_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step525_test step524_test` - PASS
+- `./editor/build-native/step525_test` - PASS (12/12)
+- `./editor/build-native/step524_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/LegalOperationGraph.h` within header-size limit (`79` <= `600`)
+- `editor/tests/step525_test.cpp` within test-file size guidance (`131` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
