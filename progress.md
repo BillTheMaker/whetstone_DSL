@@ -11890,3 +11890,33 @@ and active-window listing.
 - `editor/src/ChangeFreezeCalendar.h` within header-size limit (`67` <= `600`)
 - `editor/tests/step609_test.cpp` within test-file size guidance (`149` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 610: Service Dependency Risk Map
+**Status:** PASS (12/12 tests)
+
+Implements service dependency edge tracking with risk updates and high-risk
+inbound/outbound rollups.
+
+**Files added:**
+- `editor/src/ServiceDependencyRiskMap.h` - dependency risk module:
+  - dependency edge registration with validation/duplicate guards
+  - per-edge risk updates and missing-edge guards
+  - high-risk inbound/outbound counts and service filtering
+- `editor/tests/step610_test.cpp` - 12 tests covering:
+  - edge add success/failure behavior
+  - risk update success/failure behavior
+  - high-risk rollup and service filter behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step610_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step610_test step609_test` - PASS
+- `./editor/build-native/step610_test` - PASS (12/12)
+- `./editor/build-native/step609_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ServiceDependencyRiskMap.h` within header-size limit (`78` <= `600`)
+- `editor/tests/step610_test.cpp` within test-file size guidance (`154` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
