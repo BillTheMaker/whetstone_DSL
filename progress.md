@@ -9836,3 +9836,38 @@ file edits.
 - `editor/src/BreakpointSystem.h` within header-size limit (`118` <= `600`)
 - `editor/tests/step555_test.cpp` within test-file size guidance (`150` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 556: Step Engine
+**Status:** PASS (12/12 tests)
+
+Implements deterministic stepping semantics for debug control with `step_into`,
+`step_over`, `step_out`, and `continue` command mapping and explicit runtime
+state transitions.
+
+**Files added:**
+- `editor/src/StepEngine.h` - stepping control-plane module:
+  - deterministic command execution mapping
+  - state transitions across paused/running/completed states
+  - stack depth and instruction pointer progression semantics
+  - command validity guards for unknown/invalid lifecycle states
+- `editor/tests/step556_test.cpp` - 12 tests covering:
+  - per-command transition behavior
+  - root/ nested `step_out` behavior
+  - deterministic continue behavior
+  - unknown command behavior
+  - completion-state command guard behavior
+  - command tracking and progression monotonicity
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step556_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step556_test step555_test` - PASS
+- `./editor/build-native/step556_test` - PASS (12/12)
+- `./editor/build-native/step555_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/StepEngine.h` within header-size limit (`135` <= `600`)
+- `editor/tests/step556_test.cpp` within test-file size guidance (`154` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
