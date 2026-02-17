@@ -4658,6 +4658,50 @@ tokens by grouping requests with shared worker/language/file context.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 426: Cost Tracking + Reporting
+**Status:** PASS (12/12 tests)
+
+Added workflow cost-accounting primitives to track estimated vs actual token
+usage and compute cost rollups by worker/profile for model-dispatch reporting.
+
+**Files created:**
+- `editor/src/WorkflowCostTracker.h` — cost tracking support:
+  - per-item `CostRecord` (estimated + actual token usage)
+  - model-profile resolution through `ModelProfileRegistry`
+  - estimate/actual recording API
+  - aggregated `CostSummary` (token totals, cost totals, variance)
+  - cost bucket rollups by worker and profile
+  - JSON report export
+- `editor/tests/step426_test.cpp` — 12 tests covering:
+  1. estimate record creation
+  2. actual record update path
+  3. actual-only record creation
+  4. worker-to-profile resolution
+  5. explicit profile override
+  6. summary token totals
+  7. non-negative cost totals
+  8. cost-by-worker buckets
+  9. cost-by-profile buckets
+  10. positive variance when actual > estimate
+  11. report JSON core fields
+  12. no-registry zero-cost edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step426_test` target
+
+**Verification run:**
+- `step426_test` — PASS (12/12) new step coverage
+- `step425_test` — PASS (12/12) regression coverage
+- `step424_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowCostTracker.h` within header-size limit (`150` <= `600`)
+- `editor/tests/step426_test.cpp` within test-file size guidance (`174` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
