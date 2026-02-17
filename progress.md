@@ -8072,3 +8072,39 @@ to enforce reliable keyboard/mouse resize behavior.
 - `editor/src/PanelBoundaryReliability.h` within header-size limit (`140` <= `600`)
 - `editor/tests/step510_test.cpp` within test-file size guidance (`146` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 511: Interaction State Model
+**Status:** PASS (12/12 tests)
+
+Implements a shared interaction-state model for hover/focus/active/pressed/
+disabled with deterministic token-driven style resolution and WCAG AA contrast
+checks for state transitions.
+
+**Files added:**
+- `editor/src/InteractionStateModel.h` - state model module:
+  - precedence-based state resolver (`disabled > pressed > active > focus > hover > idle`)
+  - token-driven style resolution for surface/text/border/focus ring
+  - contrast-ratio computation with AA pass/fail signal per state
+  - whole-state map resolver and failure extraction for audits
+- `editor/tests/step511_test.cpp` - 12 tests covering:
+  - state-precedence ordering correctness
+  - focus-ring semantics
+  - disabled/idle token application
+  - all-state resolution completeness
+  - AA contrast pass for default dark tokens
+  - low-contrast failure detection
+  - pressed-vs-active visual differentiation
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step511_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step511_test` - PASS
+- `./editor/build-native/step511_test` - PASS (12/12)
+- `./editor/build-native/step510_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/InteractionStateModel.h` within header-size limit (`166` <= `600`)
+- `editor/tests/step511_test.cpp` within test-file size guidance (`142` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
