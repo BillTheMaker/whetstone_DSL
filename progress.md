@@ -7971,3 +7971,27 @@ threshold-checked project metrics and post-25 training-data prerequisites.
 **Sprint 25 totals (493-508):**
 - **Steps completed:** 16
 - **New tests in this sprint plan:** 180/180 passing
+
+## Post-Sprint 25 Planning Update
+
+Added the next multi-sprint roadmap as standalone plan documents in repo root,
+following the same structure pattern as previous sprint plans:
+
+- `sprint26_plan.md` — GUI/UI/UX foundations, docking reliability, visual identity,
+  interaction-state clarity, and modifier-edge shortcut notation
+- `sprint27_plan.md` — constrained constructive editing I (taskitem contracts,
+  legal operation graph, symbol scope enforcement)
+- `sprint28_plan.md` — constrained constructive editing II (legal-choice APIs,
+  multi-language adapters)
+- `sprint29_plan.md` — routing/context/cost discipline for constrained execution
+- `sprint30_plan.md` — debugger/runtime observability I (breakpoints, stepping,
+  stack traces, call stack, locals/watches)
+- `sprint31_plan.md` — debugger/runtime observability II (memory reflection,
+  advanced debug views)
+- `sprint32_plan.md` — markdown intake and architect-side taskitem generation
+  with confidence/ambiguity labeling
+- `sprint33_plan.md` — productization, onboarding/value communication,
+  release hardening and benchmark readiness
+
+These plans intentionally distribute work across multiple sprints (rather than a
+single sprint) to preserve implementation quality and maintainability.
