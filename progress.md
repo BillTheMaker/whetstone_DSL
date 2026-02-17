@@ -11340,3 +11340,37 @@ validation logic across onboarding/workflow/capability modules.
 - `editor/src/WorkflowVisualizationV2.h` within header-size limit (`112` <= `600`)
 - `editor/src/CapabilityDiscoveryPanels.h` within header-size limit (`90` <= `600`)
 - Shared validation centralization reduces duplicated product-surface guard logic and remains aligned with `ARCHITECTURE.md`
+
+### Step 594: Policy Guardrail Catalog
+**Status:** PASS (12/12 tests)
+
+Implements the first Sprint 34 guardrail catalog for policy-driven operation
+allow/review/deny decisions with explainable rule matching.
+
+**Files added:**
+- `editor/src/PolicyGuardrailCatalog.h` - guardrail catalog module:
+  - rule registration with validation and duplicate guards
+  - ordered prefix-based decision matching
+  - default require-review fallback policy
+  - matched-rule reason propagation
+- `editor/tests/step594_test.cpp` - 12 tests covering:
+  - rule registration success/failure behavior
+  - allow/review/deny decision behavior
+  - default fallback behavior
+  - first-match ordering behavior
+  - reason propagation behavior
+  - insertion-order rule listing behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step594_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step594_test step593_test` - PASS
+- `./editor/build-native/step594_test` - PASS (12/12)
+- `./editor/build-native/step593_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PolicyGuardrailCatalog.h` within header-size limit (`75` <= `600`)
+- `editor/tests/step594_test.cpp` within test-file size guidance (`158` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
