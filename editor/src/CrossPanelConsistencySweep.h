@@ -32,24 +32,19 @@ public:
         r.checkedPanels = (int)panels.size();
         for (const auto& p : panels) {
             if (std::abs(p.spacing - baseline.spacing) > spacingTolerance) {
-                r.pass = false;
-                r.drifts.push_back("spacing:" + p.panelId);
+                recordDrift(r, "spacing:" + p.panelId);
             }
             if (std::abs(p.elevation - baseline.elevation) > elevationTolerance) {
-                r.pass = false;
-                r.drifts.push_back("elevation:" + p.panelId);
+                recordDrift(r, "elevation:" + p.panelId);
             }
             if (std::abs(p.border - baseline.border) > borderTolerance) {
-                r.pass = false;
-                r.drifts.push_back("border:" + p.panelId);
+                recordDrift(r, "border:" + p.panelId);
             }
             if (p.stateModelVersion != baseline.stateModelVersion) {
-                r.pass = false;
-                r.drifts.push_back("state-model:" + p.panelId);
+                recordDrift(r, "state-model:" + p.panelId);
             }
             if (p.tokenVersion != baseline.tokenVersion) {
-                r.pass = false;
-                r.drifts.push_back("token-version:" + p.panelId);
+                recordDrift(r, "token-version:" + p.panelId);
             }
         }
         return r;
@@ -77,5 +72,11 @@ public:
             h[key] += 1;
         }
         return h;
+    }
+
+private:
+    static void recordDrift(ConsistencyReport& r, const std::string& drift) {
+        r.pass = false;
+        r.drifts.push_back(drift);
     }
 };

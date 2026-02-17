@@ -32,12 +32,12 @@ class NotificationStatusRefresh {
 public:
     static NotificationStyle styleFor(NotifyLevel level) {
         switch (level) {
-            case NotifyLevel::Info: return {0.28f, 5.4f, 3.8f, 2400.0f, 5};
-            case NotifyLevel::Warn: return {0.34f, 5.6f, 4.0f, 3200.0f, 5};
-            case NotifyLevel::Error: return {0.42f, 6.0f, 4.5f, 4200.0f, 6};
-            case NotifyLevel::Critical: return {0.52f, 7.0f, 5.0f, 0.0f, 8};
+            case NotifyLevel::Info: return makeStyle(0.28f, 5.4f, 3.8f, 2400.0f, 5);
+            case NotifyLevel::Warn: return makeStyle(0.34f, 5.6f, 4.0f, 3200.0f, 5);
+            case NotifyLevel::Error: return makeStyle(0.42f, 6.0f, 4.5f, 4200.0f, 6);
+            case NotifyLevel::Critical: return makeStyle(0.52f, 7.0f, 5.0f, 0.0f, 8);
         }
-        return {0.3f, 5.0f, 3.5f, 2400.0f, 5};
+        return makeStyle(0.3f, 5.0f, 3.5f, 2400.0f, 5);
     }
 
     static bool shouldExpire(const NotificationMessage& m, float nowMs) {
@@ -68,5 +68,20 @@ public:
 
     static bool readable(const NotificationStyle& s) {
         return s.textContrast >= 4.5f && s.iconContrast >= 3.0f;
+    }
+
+private:
+    static NotificationStyle makeStyle(float borderAlpha,
+                                       float textContrast,
+                                       float iconContrast,
+                                       float durationMs,
+                                       int maxStack) {
+        NotificationStyle s;
+        s.borderAlpha = borderAlpha;
+        s.textContrast = textContrast;
+        s.iconContrast = iconContrast;
+        s.defaultDurationMs = durationMs;
+        s.maxStack = maxStack;
+        return s;
     }
 };

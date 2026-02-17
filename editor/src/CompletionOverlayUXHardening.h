@@ -34,9 +34,8 @@ public:
         r.x = cursorX;
         r.y = cursorY + lineHeight;
 
-        if (r.x + r.w > viewportW) r.x = std::max(0.0f, viewportW - r.w);
-        if (r.y + r.h > viewportH) r.y = std::max(0.0f, cursorY - r.h - 4.0f);
-        if (r.y < 0.0f) r.y = 0.0f;
+        if (r.x + r.w > viewportW) r.x = clampMin(viewportW - r.w, 0.0f);
+        if (r.y + r.h > viewportH) r.y = clampMin(cursorY - r.h - 4.0f, 0.0f);
         return r;
     }
 
@@ -63,7 +62,7 @@ public:
                                                   int index,
                                                   int itemCount) {
         CompletionOverlayState out = in;
-        out.selectedIndex = std::max(0, std::min(itemCount - 1, index));
+        out.selectedIndex = clampIndex(index, itemCount);
         out.visible = itemCount > 0;
         return out;
     }
@@ -77,11 +76,27 @@ public:
             out.visible = false;
             return out;
         }
-        int idx = in.selectedIndex + delta;
-        while (idx < 0) idx += itemCount;
-        while (idx >= itemCount) idx -= itemCount;
-        out.selectedIndex = idx;
+        out.selectedIndex = wrapIndex(in.selectedIndex + delta, itemCount);
         out.visible = true;
         return out;
+    }
+
+private:
+    static float clampMin(float v, float lo) {
+        return v < lo ? lo : v;
+    }
+
+    static int clampIndex(int idx, int count) {
+        if (count <= 0) return 0;
+        if (idx < 0) return 0;
+        if (idx >= count) return count - 1;
+        return idx;
+    }
+
+    static int wrapIndex(int idx, int count) {
+        if (count <= 0) return 0;
+        int m = idx % count;
+        if (m < 0) m += count;
+        return m;
     }
 };

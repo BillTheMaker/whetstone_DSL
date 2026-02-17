@@ -8528,3 +8528,32 @@ cross-panel consistency into a single summary signal.
 - **Phase 26a (509-514):** 68/68 passing
 - **Phase 26b (515-519):** 60/60 passing
 - **Phase 26c (520-523):** 44/44 passing
+
+## Sprint 26 End Refactor Pass (Architecture Compliance)
+
+Performed a dedicated post-sprint refactor pass focused on maintainability and
+architecture-rule alignment without behavior changes.
+
+**Refactors applied:**
+- `editor/src/CompletionOverlayUXHardening.h`
+  - extracted shared helpers for clamping/index wrapping
+  - removed duplicated inline clamp/wrap logic
+- `editor/src/NotificationStatusRefresh.h`
+  - factored repeated style construction into `makeStyle(...)`
+  - reduced duplicated initializer literals
+- `editor/src/CrossPanelConsistencySweep.h`
+  - centralized drift recording in `recordDrift(...)`
+  - reduced repeated pass/fail mutation logic
+
+**Architecture compliance audit:**
+- Header size gate: PASS (`<=600` across audited sprint files)
+- `goto` usage in runtime path: PASS (none in Sprint 26 modules)
+- Stale TODO markers in Sprint 26 modules: PASS
+- Header-only pattern for Sprint 26 additions: PASS
+
+**Refactor verification run:**
+- `cmake --build editor/build-native --target step520_test step521_test step522_test step523_test` - PASS
+- `./editor/build-native/step520_test` - PASS (12/12)
+- `./editor/build-native/step521_test` - PASS (12/12)
+- `./editor/build-native/step522_test` - PASS (12/12)
+- `./editor/build-native/step523_test` - PASS (8/8)
