@@ -11440,3 +11440,34 @@ risk tracking across approval flows.
 - `editor/src/EscalationAuditLedger.h` within header-size limit (`74` <= `600`)
 - `editor/tests/step596_test.cpp` within test-file size guidance (`166` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 597: Guardrail Drift Monitor
+**Status:** PASS (12/12 tests)
+
+Implements drift monitoring between expected guardrail policy decisions and
+observed runtime outcomes, with remediation hint generation.
+
+**Files added:**
+- `editor/src/GuardrailDriftMonitor.h` - drift monitor module:
+  - expected-vs-observed drift detection
+  - drift scoring based on observation coverage
+  - remediation hint generation by expected policy type
+- `editor/tests/step597_test.cpp` - 12 tests covering:
+  - no-drift and per-policy drift detection behavior
+  - default-policy drift behavior
+  - drift score behavior (including cap)
+  - remediation hint behavior for allow/review/deny mismatches
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step597_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step597_test step596_test` - PASS
+- `./editor/build-native/step597_test` - PASS (12/12)
+- `./editor/build-native/step596_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/GuardrailDriftMonitor.h` within header-size limit (`58` <= `600`)
+- `editor/tests/step597_test.cpp` within test-file size guidance (`156` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
