@@ -6170,3 +6170,41 @@ cross-architecture instruction mapper for straightforward x86→ARM projection.
 **Architecture gate check:**
 - `editor/src/ast/AssemblyGenerator.h` within header-size limit (`167` <= `600`)
 - `editor/tests/step463_test.cpp` within test-file size guidance (`147` lines)
+
+### Step 464: Assembly Annotation Mapping
+**Status:** PASS (12/12 tests)
+
+Adds assembly-aware semantic annotation mapping with complexity heuristics,
+register-pressure analysis, alignment mapping, and lightweight C↔assembly
+projection helpers.
+
+**Files added:**
+- `editor/src/ast/AssemblyAnnotationMapper.h` — annotation mapper:
+  - baseline annotations for assembly functions:
+    - `@Exec(native)`
+    - `@Risk(high)`
+    - `@Target(x86|arm)`
+    - `@Complexity(low|medium|high)`
+  - `.align` directive mapping to `@Align(...)`
+  - complexity scoring from instruction count, branch density, register pressure
+  - register-pressure estimation via unique register cardinality
+  - cross-language helpers:
+    - `lowerCToAssembly(...)`
+    - `liftAssemblyToC(...)`
+- `editor/tests/step464_test.cpp` — 12 tests covering:
+  - required annotation emission
+  - complexity tiering behavior
+  - branch/register-pressure metrics
+  - target architecture inference
+  - C→assembly lowering and assembly→C lifting stubs
+  - alignment annotation derivation
+- `editor/CMakeLists.txt` — `step464_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step464_test` — PASS
+- `./editor/build-native/step464_test` — PASS (12/12)
+- `./editor/build-native/step463_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/AssemblyAnnotationMapper.h` within header-size limit (`128` <= `600`)
+- `editor/tests/step464_test.cpp` within test-file size guidance (`177` lines)
