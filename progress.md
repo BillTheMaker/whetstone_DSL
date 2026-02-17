@@ -10985,3 +10985,38 @@ constrained execution safeguards, verification, and routing transparency.
 - `editor/src/ValueForwardOnboardingFlow.h` within header-size limit (`105` <= `600`)
 - `editor/tests/step584_test.cpp` within test-file size guidance (`154` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 585: Workflow Visualization 2.0
+**Status:** PASS (12/12 tests)
+
+Implements workflow visualization state for long-range dependency links and
+plain-language routing/review explanations, with electric-blue visual defaults.
+
+**Files added:**
+- `editor/src/WorkflowVisualizationV2.h` - workflow visualization module:
+  - visualization node/edge schemas
+  - node/edge insertion validation and duplicate guards
+  - outgoing edge queries for dependency tracing
+  - plain-language routing summary generation
+  - node filtering by workflow role
+- `editor/tests/step585_test.cpp` - 12 tests covering:
+  - node/edge creation success/failure behavior
+  - duplicate/id/color/endpoint guard behavior
+  - outgoing dependency query behavior
+  - routing summary explanation behavior
+  - review-gate filtering behavior
+  - electric-blue default preservation behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step585_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step585_test step584_test` - PASS
+- `./editor/build-native/step585_test` - PASS (12/12)
+- `./editor/build-native/step584_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowVisualizationV2.h` within header-size limit (`118` <= `600`)
+- `editor/tests/step585_test.cpp` within test-file size guidance (`177` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
