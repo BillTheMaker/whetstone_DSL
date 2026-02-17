@@ -32,8 +32,8 @@ public:
         if (!hasRequiredDebugIds(sample.sampleId, sample.sessionId)) return fail(error, "sample_or_session_missing");
         if (sample.bufferId.empty()) return fail(error, "sample_buffer_missing");
         if (!isPositiveLine(sample.line)) return fail(error, "sample_line_invalid");
-        if (sample.durationMicros == 0) return fail(error, "sample_duration_invalid");
-        if (sample.timestamp == 0) return fail(error, "sample_timestamp_invalid");
+        if (!isNonZeroU64(sample.durationMicros)) return fail(error, "sample_duration_invalid");
+        if (!isNonZeroU64(sample.timestamp)) return fail(error, "sample_timestamp_invalid");
         if (containsSample(sample.sampleId)) return fail(error, "sample_duplicate");
 
         samples_.push_back(sample);

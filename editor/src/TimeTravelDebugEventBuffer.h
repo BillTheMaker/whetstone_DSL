@@ -27,8 +27,8 @@ public:
         error->clear();
         if (!hasRequiredDebugIds(event.eventId, event.sessionId)) return fail(error, "event_or_session_missing");
         if (event.type.empty()) return fail(error, "event_type_missing");
-        if (event.timestamp == 0) return fail(error, "event_timestamp_invalid");
-        if (event.instructionPointer == 0) return fail(error, "event_ip_invalid");
+        if (!isNonZeroU64(event.timestamp)) return fail(error, "event_timestamp_invalid");
+        if (!isNonZeroU64(event.instructionPointer)) return fail(error, "event_ip_invalid");
         if (containsId(event.eventId)) return fail(error, "event_duplicate");
 
         events_.push_back(event);

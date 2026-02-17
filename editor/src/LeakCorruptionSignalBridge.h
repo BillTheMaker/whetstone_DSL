@@ -47,9 +47,9 @@ public:
         if (!error) return false;
         error->clear();
         if (!hasRequiredDebugIds(signal.signalId, signal.sessionId)) return fail(error, "signal_or_session_missing");
-        if (signal.allocationId.empty()) return fail(error, "allocation_id_missing");
+        if (!hasRequiredDebugIds(signal.signalId, signal.sessionId, signal.allocationId)) return fail(error, "allocation_id_missing");
         if (signal.message.empty()) return fail(error, "signal_message_missing");
-        if (signal.timestamp == 0) return fail(error, "signal_timestamp_invalid");
+        if (!isNonZeroU64(signal.timestamp)) return fail(error, "signal_timestamp_invalid");
         if (containsSignal(signal.signalId)) return fail(error, "signal_duplicate");
 
         signals_.push_back(signal);

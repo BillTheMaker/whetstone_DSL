@@ -39,8 +39,8 @@ public:
         if (!error) return false;
         error->clear();
         if (!hasRequiredDebugIds(allocationId, sessionId)) return fail(error, "allocation_or_session_missing");
-        if (address == 0) return fail(error, "allocation_address_invalid");
-        if (sizeBytes == 0) return fail(error, "allocation_size_invalid");
+        if (!isNonZeroU64(address)) return fail(error, "allocation_address_invalid");
+        if (!isNonZeroU64(sizeBytes)) return fail(error, "allocation_size_invalid");
         if (owner.empty()) return fail(error, "allocation_owner_missing");
         if (activeOwners_.count(allocationId) != 0) return fail(error, "allocation_id_active_duplicate");
 

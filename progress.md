@@ -10517,3 +10517,42 @@ into phase/sprint pass states with closure diagnostics.
 - **New tests in this sprint plan:** 112/112 passing
 - **Phase 31a (564-568):** 56/56 passing
 - **Phase 31b (569-573):** 56/56 passing
+
+### Sprint 31 End Refactor Pass (Architecture Compliance)
+**Status:** PASS (112/112 tests revalidated)
+
+Performed a focused post-sprint architecture pass to standardize primitive
+validation paths across Sprint 31 memory/observability modules while keeping
+all components header-only and within file-size constraints.
+
+**Files modified:**
+- `editor/src/DebugValidationUtil.h` - expanded shared validation helpers:
+  - three-id presence check overload
+  - shared non-zero `uint64` guard helper
+- `editor/src/MemorySnapshotModel.h` - switched address/size/reference guards to shared non-zero utility
+- `editor/src/AllocationOwnershipTraceHooks.h` - switched allocation address/size guards to shared non-zero utility
+- `editor/src/LeakCorruptionSignalBridge.h` - switched timestamp guard to shared non-zero utility and standardized allocation-id presence validation path
+- `editor/src/TimeTravelDebugEventBuffer.h` - switched timestamp/instruction-pointer guards to shared non-zero utility
+- `editor/src/PerformanceProbeOverlay.h` - switched duration/timestamp guards to shared non-zero utility
+
+**Verification run:**
+- `cmake --build editor/build-native --target step564_test step565_test step566_test step567_test step568_test step569_test step570_test step571_test step572_test step573_test` - PASS
+- `./editor/build-native/step564_test` - PASS (12/12)
+- `./editor/build-native/step565_test` - PASS (12/12)
+- `./editor/build-native/step566_test` - PASS (12/12)
+- `./editor/build-native/step567_test` - PASS (12/12)
+- `./editor/build-native/step568_test` - PASS (8/8)
+- `./editor/build-native/step569_test` - PASS (12/12)
+- `./editor/build-native/step570_test` - PASS (12/12)
+- `./editor/build-native/step571_test` - PASS (12/12)
+- `./editor/build-native/step572_test` - PASS (12/12)
+- `./editor/build-native/step573_test` - PASS (8/8)
+
+**Architecture gate check:**
+- `editor/src/DebugValidationUtil.h` within header-size limit (`23` <= `600`)
+- `editor/src/MemorySnapshotModel.h` within header-size limit (`149` <= `600`)
+- `editor/src/AllocationOwnershipTraceHooks.h` within header-size limit (`150` <= `600`)
+- `editor/src/LeakCorruptionSignalBridge.h` within header-size limit (`154` <= `600`)
+- `editor/src/TimeTravelDebugEventBuffer.h` within header-size limit (`86` <= `600`)
+- `editor/src/PerformanceProbeOverlay.h` within header-size limit (`110` <= `600`)
+- Shared validation centralization reduces repeated primitive guards and keeps module boundaries aligned with `ARCHITECTURE.md`

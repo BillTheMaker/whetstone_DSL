@@ -74,11 +74,11 @@ public:
             *error = "region_id_missing";
             return false;
         }
-        if (region.startAddress == 0) {
+        if (!isNonZeroU64(region.startAddress)) {
             *error = "region_start_address_invalid";
             return false;
         }
-        if (region.sizeBytes == 0) {
+        if (!isNonZeroU64(region.sizeBytes)) {
             *error = "region_size_invalid";
             return false;
         }
@@ -97,7 +97,7 @@ public:
                              std::string* error) {
         if (!snapshot || !error) return false;
         error->clear();
-        if (reference.fromAddress == 0 || reference.toAddress == 0) {
+        if (!isNonZeroU64(reference.fromAddress) || !isNonZeroU64(reference.toAddress)) {
             *error = "reference_address_invalid";
             return false;
         }
@@ -112,7 +112,7 @@ public:
 
     static const MemoryRegionRecord* findRegionByAddress(const MemorySnapshot& snapshot,
                                                          std::uint64_t address) {
-        if (address == 0) return nullptr;
+        if (!isNonZeroU64(address)) return nullptr;
         for (const auto& region : snapshot.regions) {
             const std::uint64_t regionEnd = region.startAddress + region.sizeBytes;
             if (address >= region.startAddress && address < regionEnd) return &region;
@@ -123,7 +123,7 @@ public:
     static std::vector<MemoryReferenceRecord> outgoingReferences(const MemorySnapshot& snapshot,
                                                                  std::uint64_t fromAddress) {
         std::vector<MemoryReferenceRecord> filtered;
-        if (fromAddress == 0) return filtered;
+        if (!isNonZeroU64(fromAddress)) return filtered;
         for (const auto& reference : snapshot.references) {
             if (reference.fromAddress == fromAddress) filtered.push_back(reference);
         }
