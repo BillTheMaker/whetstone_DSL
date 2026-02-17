@@ -8108,3 +8108,40 @@ checks for state transitions.
 - `editor/src/InteractionStateModel.h` within header-size limit (`166` <= `600`)
 - `editor/tests/step511_test.cpp` within test-file size guidance (`142` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 512: Window Chrome + Hierarchy Pass
+**Status:** PASS (12/12 tests)
+
+Implements deterministic surface hierarchy and chrome/elevation semantics across
+work surfaces, tool surfaces, overlays, modals, and notifications, including
+validation of layering invariants and interaction blocking behavior.
+
+**Files added:**
+- `editor/src/WindowHierarchyModel.h` - hierarchy/chrome model:
+  - role-based style + z-index synthesis
+  - deterministic ordering by elevation/layer
+  - hierarchy validation with explicit violation signals
+  - normalization pass for modal semantics
+  - modal/overlay interaction-blocking checks
+- `editor/tests/step512_test.cpp` - 12 tests covering:
+  - role z-index ordering (`work < tool < overlay < modal`)
+  - modal-flag validation and normalization
+  - deterministic z-index sorting
+  - modal/overlay interaction blocking semantics
+  - depth-sensitive z-index behavior
+  - notification layering between overlay and modal
+  - baseline valid hierarchy behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step512_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step512_test` - PASS
+- `./editor/build-native/step512_test` - PASS (12/12)
+- `./editor/build-native/step511_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WindowHierarchyModel.h` within header-size limit (`142` <= `600`)
+- `editor/tests/step512_test.cpp` within test-file size guidance (`153` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
