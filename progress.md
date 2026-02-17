@@ -9802,3 +9802,37 @@ resume/stop transitions and multi-target per-buffer context support.
 - `editor/src/DebugSessionModel.h` within header-size limit (`106` <= `600`)
 - `editor/tests/step554_test.cpp` within test-file size guidance (`140` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 555: Breakpoint System
+**Status:** PASS (12/12 tests)
+
+Implements breakpoint management for line, conditional, and hit-count
+breakpoints, including enable/disable persistence and line reconciliation across
+file edits.
+
+**Files added:**
+- `editor/src/BreakpointSystem.h` - breakpoint subsystem:
+  - line, conditional, and hit-count breakpoint creation
+  - enable/disable/remove operations
+  - runtime break-decision evaluation (condition + hit-count semantics)
+  - file-edit reconciliation with line-shift/clamp behavior
+- `editor/tests/step555_test.cpp` - 12 tests covering:
+  - breakpoint creation variants and invalid input guardrails
+  - enable/disable persistence behavior
+  - simple/conditional/hit-count break evaluation behavior
+  - file-edit reconciliation behavior
+  - removal behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step555_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step555_test step554_test` - PASS
+- `./editor/build-native/step555_test` - PASS (12/12)
+- `./editor/build-native/step554_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/BreakpointSystem.h` within header-size limit (`118` <= `600`)
+- `editor/tests/step555_test.cpp` within test-file size guidance (`150` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
