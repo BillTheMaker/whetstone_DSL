@@ -11605,3 +11605,33 @@ coverage accounting.
 - `editor/src/ComplianceEvidenceBundle.h` within header-size limit (`57` <= `600`)
 - `editor/tests/step601_test.cpp` within test-file size guidance (`155` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 602: Control Attestation Registry
+**Status:** PASS (12/12 tests)
+
+Implements a control-attestation registry for tracking attestation lifecycle and
+expiry risk for compliance controls.
+
+**Files added:**
+- `editor/src/ControlAttestationRegistry.h` - attestation module:
+  - attestation submission with validation/duplicate guards
+  - sign/expire lifecycle transitions with validation
+  - status filtering and expiry-window risk counting
+- `editor/tests/step602_test.cpp` - 12 tests covering:
+  - submission success/failure behavior
+  - duplicate/validation and lifecycle transition behavior
+  - expiry-window counting and expired-item exclusion behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step602_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step602_test step601_test` - PASS
+- `./editor/build-native/step602_test` - PASS (12/12)
+- `./editor/build-native/step601_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ControlAttestationRegistry.h` within header-size limit (`91` <= `600`)
+- `editor/tests/step602_test.cpp` within test-file size guidance (`157` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
