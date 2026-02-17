@@ -9657,3 +9657,39 @@ escalations while preserving hard safety/security/policy protections.
 - `editor/src/ReviewGatePolicyRefinement.h` within header-size limit (`70` <= `600`)
 - `editor/tests/step551_test.cpp` within test-file size guidance (`132` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 552: Cost vs Quality Regression Suite
+**Status:** PASS (12/12 tests)
+
+Implements a cost-vs-quality regression suite to enforce that optimization
+policy tightening preserves quality, pass rate, and safety while meeting token
+reduction targets.
+
+**Files added:**
+- `editor/src/CostQualityRegressionSuite.h` - regression suite module:
+  - evaluates optimized runs against absolute quality/pass/safety floors
+  - enforces minimum token reduction targets
+  - detects relative quality/pass regressions vs baseline
+  - reports detailed failure codes and token reduction deltas
+- `editor/tests/step552_test.cpp` - 12 tests covering:
+  - passing baseline/optimized scenario
+  - token/quality/pass/safety floor failures
+  - relative regression detection behavior
+  - multi-failure reporting behavior
+  - threshold boundary behavior
+  - token reduction reporting behavior
+  - negative reduction failure behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step552_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step552_test step551_test` - PASS
+- `./editor/build-native/step552_test` - PASS (12/12)
+- `./editor/build-native/step551_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CostQualityRegressionSuite.h` within header-size limit (`60` <= `600`)
+- `editor/tests/step552_test.cpp` within test-file size guidance (`167` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
