@@ -6663,3 +6663,40 @@ skeleton generation → architect review/approval → workflow task materializat
   - annotated multi-module skeleton generation
   - architect review/modify/approve state model
   - end-to-end architect-mode flow readiness for phase 23b scaffolding
+
+### Step 477: Architect Templates
+**Status:** PASS (12/12 tests)
+
+Introduces reusable architecture templates that instantiate starter module
+layouts, dependencies, function stubs, and annotations for common product
+shapes (REST API, CLI, library, microservice, full stack).
+
+**Files added:**
+- `editor/src/ArchitectTemplates.h` — template library:
+  - `ArchitectureTemplateKind`, `TemplateInput`, `TemplateOutput`
+  - `ArchitectTemplates::instantiate(...)`
+  - template-specific module graphs and function stubs
+  - default annotation emission for generated functions:
+    - `@Intent`
+    - `@Complexity`
+    - `@ContextWidth`
+    - `@Automatability`
+    - `@Contract`
+- `editor/tests/step477_test.cpp` — 12 tests covering:
+  - expected module sets for each template kind
+  - annotation presence on generated function stubs
+  - `primaryEntity` parameterization (e.g. `createBook`)
+  - dependency expectations (e.g. `routes -> handlers`)
+  - template metadata notes and language defaults
+  - non-empty outputs across all template kinds
+- `editor/CMakeLists.txt` — `step477_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step477_test step476_test` — PASS
+- `./editor/build-native/step477_test` — PASS (12/12)
+- `./editor/build-native/step476_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectTemplates.h` within header-size limit (`182` <= `600`)
+- `editor/tests/step477_test.cpp` within test-file size guidance (`166` lines)
+- Naming/style aligned with `ARCHITECTURE.md` conventions (`PascalCase` types, `camelCase` functions)
