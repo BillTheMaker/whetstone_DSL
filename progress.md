@@ -7473,3 +7473,41 @@ metrics.
 - `editor/src/SelfHostTranspileAudit.h` within header-size limit (`178` <= `600`)
 - `editor/tests/step495_test.cpp` within test-file size guidance (`139` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 496: Self-Annotated Workflow
+**Status:** PASS (12/12 tests)
+
+Adds a self-modernization workflow model targeting
+`editor/src/AnnotationValidator.h`, with rule-level routing across
+deterministic, LLM, and human-review paths and deterministic output
+validity checks.
+
+**Files added:**
+- `editor/src/SelfModernizationWorkflow.h` — self-improvement workflow layer:
+  - `ModernizationRuleSpec`, `ModernizationTask`, `ModernizationWorkflowReport`
+  - `defaultRules()` for validator modernization rule set
+  - routing policy:
+    - simple rules -> `deterministic`
+    - complex rules -> `llm` + review
+    - new diagnostic code rules -> `human` + critical priority
+  - deterministic execution path generating validator rule stubs
+  - deterministic output validation via C++ parser (`Pipeline::parse`)
+  - aggregate routing and deterministic-validity metrics
+- `editor/tests/step496_test.cpp` — 12 tests covering:
+  - target file and default rule taxonomy
+  - routing behavior by rule complexity/type
+  - deterministic code generation and parser-valid output checks
+  - workflow summary/count consistency
+  - diagnostic-code range semantics
+  - completion-note presence
+- `editor/CMakeLists.txt` — `step496_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step496_test step495_test` — PASS
+- `./editor/build-native/step496_test` — PASS (12/12)
+- `./editor/build-native/step495_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfModernizationWorkflow.h` within header-size limit (`157` <= `600`)
+- `editor/tests/step496_test.cpp` within test-file size guidance (`159` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
