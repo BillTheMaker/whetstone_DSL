@@ -10836,3 +10836,36 @@ check identities and generated test-skeleton handles.
 - `editor/src/AcceptanceCriteriaBinding.h` within header-size limit (`83` <= `600`)
 - `editor/tests/step581_test.cpp` within test-file size guidance (`185` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 582: Intake-to-Queue Simulation Harness
+**Status:** PASS (12/12 tests)
+
+Implements an end-to-end intake simulation harness from markdown ingestion to
+queue-ready taskitems with confidence, escalation, and acceptance coverage.
+
+**Files added:**
+- `editor/src/IntakeToQueueSimulationHarness.h` - end-to-end harness module:
+  - parser -> normalization -> decomposition -> review -> generation -> annotation -> binding pipeline
+  - queue metrics aggregation (queued/escalated/check-count)
+  - failure-stage notes for each pipeline gate
+  - successful queue readiness signaling
+- `editor/tests/step582_test.cpp` - 12 tests covering:
+  - full pipeline success behavior
+  - parse/normalize/review/binding failure propagation behavior
+  - modify-review path behavior
+  - queue/check/escalation metric behavior
+  - success-note emission behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step582_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step582_test step581_test` - PASS
+- `./editor/build-native/step582_test` - PASS (12/12)
+- `./editor/build-native/step581_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/IntakeToQueueSimulationHarness.h` within header-size limit (`96` <= `600`)
+- `editor/tests/step582_test.cpp` within test-file size guidance (`193` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
