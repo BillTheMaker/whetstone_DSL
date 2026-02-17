@@ -10473,3 +10473,47 @@ runtime costs and exposes hotspot-ranked metadata for debug surfaces.
 - `editor/src/PerformanceProbeOverlay.h` within header-size limit (`110` <= `600`)
 - `editor/tests/step572_test.cpp` within test-file size guidance (`175` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 573: Sprint 31 Integration + Summary
+**Status:** PASS (8/8 tests)
+
+Completes Sprint 31 integration by aggregating Phase 31a and 31b readiness signals
+into phase/sprint pass states with closure diagnostics.
+
+**Files added:**
+- `editor/src/Sprint31IntegrationSummary.h` - sprint integration module:
+  - aggregates Phase 31a and 31b step readiness signals
+  - computes phase pass flags and overall Sprint 31 pass flag
+  - emits per-step failure notes and phase blocked notes
+  - emits sprint readiness notes on full pass
+- `editor/tests/step573_test.cpp` - 8 tests covering:
+  - full sprint pass path
+  - phase-specific failure blocking behavior
+  - success/failure note emission behavior
+  - multi-failure aggregation behavior
+  - all-false boundary behavior
+  - phase isolation behavior on single 31b failure
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step573_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step573_test step572_test` - PASS
+- `./editor/build-native/step573_test` - PASS (8/8)
+- `./editor/build-native/step572_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint31IntegrationSummary.h` within header-size limit (`70` <= `600`)
+- `editor/tests/step573_test.cpp` within test-file size guidance (`128` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 31b totals (569-573):**
+- **Steps completed:** 5
+- **New tests in this phase plan:** 56/56 passing
+
+**Sprint 31 totals (564-573):**
+- **Steps completed:** 10
+- **New tests in this sprint plan:** 112/112 passing
+- **Phase 31a (564-568):** 56/56 passing
+- **Phase 31b (569-573):** 56/56 passing
