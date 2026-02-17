@@ -6876,3 +6876,41 @@ awareness, and multi-language orchestration into a single structured flow.
 - **Outcome:** architect mode now supports requirement parsing, decomposition,
   stack selection, skeleton generation, review/approval, template/scaffold
   generation, dependency-aware build hints, and multi-language orchestration.
+
+### Step 482: Step Spec Expander
+**Status:** PASS (9/9 tests)
+
+Begins Phase 23c self-hosting by adding a step-spec expansion engine that
+turns sprint-step markdown into structured worker handoff artifacts:
+test plan stubs, header skeleton outline, and build-system entry.
+
+**Files added:**
+- `editor/src/StepSpecExpander.h` — expansion engine:
+  - `StepSpec`, `StepExpanderInput`, `PlannedTestStub`, `HeaderSkeletonStub`, `BuildEntryStub`
+  - complexity classification:
+    - `Trivial` (1-4 tests)
+    - `Standard` (5-10 tests)
+    - `Complex` (10-15 tests)
+    - `Pipeline` (6-10 tests)
+  - heuristic test-type planning from step text:
+    - unit / negative / boundary / integration / smoke / regression
+  - complexity-budget enforcement and deterministic test naming
+  - header skeleton and build-entry stub generation (`cmake` + fallback systems)
+- `editor/tests/step482_test.cpp` — 9 tests (unit/negative/boundary focus) covering:
+  - complexity classification behavior
+  - negative/boundary test injection heuristics
+  - naming convention for generated test stubs
+  - header/build skeleton output shape
+  - empty-input warning path
+  - complexity budget range enforcement
+- `editor/CMakeLists.txt` — `step482_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step482_test step481_test` — PASS
+- `./editor/build-native/step482_test` — PASS (9/9)
+- `./editor/build-native/step481_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/StepSpecExpander.h` within header-size limit (`267` <= `600`)
+- `editor/tests/step482_test.cpp` within test-file size guidance (`149` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
