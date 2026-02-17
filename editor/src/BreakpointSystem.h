@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "DebugValidationUtil.h"
+
 struct Breakpoint {
     std::string id;
     std::string filePath;
@@ -96,7 +98,7 @@ private:
     std::map<std::string, size_t> index_;
 
     bool addBreakpoint(const Breakpoint& bp) {
-        if (bp.id.empty() || bp.filePath.empty() || bp.line <= 0) return false;
+        if (!hasRequiredDebugIds(bp.id, bp.filePath) || !isPositiveLine(bp.line)) return false;
         if (index_.count(bp.id) != 0) return false;
         breakpoints_.push_back(bp);
         index_[bp.id] = breakpoints_.size() - 1;

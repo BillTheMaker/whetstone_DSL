@@ -10118,3 +10118,40 @@ into phase-level and sprint-level outcomes with closure diagnostics.
 - **New tests in this sprint plan:** 112/112 passing
 - **Phase 30a (554-558):** 56/56 passing
 - **Phase 30b (559-563):** 56/56 passing
+
+### Sprint 30 End Refactor Pass (Architecture Compliance)
+**Status:** PASS (112/112 tests revalidated)
+
+Performed a focused post-sprint refactor against `ARCHITECTURE.md` constraints to
+reduce validation duplication across Sprint 30 debug modules while preserving
+header-only design and deterministic behavior.
+
+**Files added:**
+- `editor/src/DebugValidationUtil.h` - shared validation helpers:
+  - required debug/session/workflow id presence check
+  - positive source-line guard used by breakpoint/stack validation paths
+
+**Files modified:**
+- `editor/src/DebugSessionModel.h` - uses shared id validation utility for target/session lifecycle checks
+- `editor/src/BreakpointSystem.h` - uses shared line-validation utility for breakpoint insertion guards
+- `editor/src/ExceptionStackTraceCapture.h` - uses shared line-validation utility for frame validation
+
+**Verification run:**
+- `cmake --build editor/build-native --target step554_test step555_test step556_test step557_test step558_test step559_test step560_test step561_test step562_test step563_test` - PASS
+- `./editor/build-native/step554_test` - PASS (12/12)
+- `./editor/build-native/step555_test` - PASS (12/12)
+- `./editor/build-native/step556_test` - PASS (12/12)
+- `./editor/build-native/step557_test` - PASS (12/12)
+- `./editor/build-native/step558_test` - PASS (8/8)
+- `./editor/build-native/step559_test` - PASS (12/12)
+- `./editor/build-native/step560_test` - PASS (12/12)
+- `./editor/build-native/step561_test` - PASS (12/12)
+- `./editor/build-native/step562_test` - PASS (12/12)
+- `./editor/build-native/step563_test` - PASS (8/8)
+
+**Architecture gate check:**
+- `editor/src/DebugValidationUtil.h` within header-size limit (`12` <= `600`)
+- `editor/src/DebugSessionModel.h` within header-size limit (`108` <= `600`)
+- `editor/src/BreakpointSystem.h` within header-size limit (`120` <= `600`)
+- `editor/src/ExceptionStackTraceCapture.h` within header-size limit (`73` <= `600`)
+- Shared validation centralization reduces duplicated guard logic and keeps module boundaries aligned with `ARCHITECTURE.md`

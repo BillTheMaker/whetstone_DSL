@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "DebugValidationUtil.h"
+
 struct StackFrame {
     std::string functionName;
     std::string filePath;
@@ -52,7 +54,7 @@ private:
         std::vector<StackFrame> out;
         int index = 0;
         for (const auto& f : frames) {
-            if (f.functionName.empty() || f.filePath.empty() || f.line <= 0) {
+            if (!hasRequiredDebugIds(f.functionName, f.filePath) || !isPositiveLine(f.line)) {
                 errors.push_back("invalid_frame:" + std::to_string(index));
                 ++index;
                 continue;

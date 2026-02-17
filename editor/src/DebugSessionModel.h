@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "DebugValidationUtil.h"
+
 struct DebugTargetContext {
     std::string targetId;
     std::string bufferId;
@@ -90,7 +92,7 @@ private:
                            const std::string& executablePath,
                            bool attached,
                            bool makeCurrent) {
-        if (targetId.empty() || bufferId.empty() || executablePath.empty()) return false;
+        if (!hasRequiredDebugIds(targetId, bufferId) || executablePath.empty()) return false;
         if (state_.targets.count(targetId) != 0) return false;
 
         DebugTargetContext context;
