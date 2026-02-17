@@ -8386,3 +8386,36 @@ modifier support, and stable text fallback labels for non-glyph environments.
 - `editor/src/ModifierEdgeNotation.h` within header-size limit (`76` <= `600`)
 - `editor/tests/step519_test.cpp` within test-file size guidance (`116` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 520: Completion Overlay UX Hardening
+**Status:** PASS (12/12 tests)
+
+Implements completion-overlay hardening for predictable non-intrusive behavior:
+viewport-safe placement, dismissal intent persistence, semantic-trigger reopen
+logic, and stable pointer/keyboard navigation semantics.
+
+**Files added:**
+- `editor/src/CompletionOverlayUXHardening.h` - overlay UX module:
+  - cursor-relative placement with overflow-aware flip/clamp logic
+  - dismissal-state persistence and semantic-trigger reopen policy
+  - pointer selection clamping and empty-list handling
+  - keyboard navigation with wrap behavior
+- `editor/tests/step520_test.cpp` - 12 tests covering:
+  - placement under normal and overflow conditions
+  - dismissal/reopen behavior across trigger states
+  - pointer selection bounds and zero-item handling
+  - keyboard navigation wrap semantics
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step520_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step520_test` - PASS
+- `./editor/build-native/step520_test` - PASS (12/12)
+- `./editor/build-native/step519_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CompletionOverlayUXHardening.h` within header-size limit (`87` <= `600`)
+- `editor/tests/step520_test.cpp` within test-file size guidance (`123` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
