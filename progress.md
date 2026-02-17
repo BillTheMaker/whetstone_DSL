@@ -6065,3 +6065,40 @@ memory operands.
 **Architecture gate check:**
 - `editor/src/ast/AssemblyNodes.h` within header-size limit (`200` <= `600`)
 - `editor/tests/step460_test.cpp` within test-file size guidance (`160` lines)
+
+### Step 461: x86 Assembly Parser
+**Status:** PASS (12/12 tests)
+
+Implements x86 assembly parsing with Intel/AT&T syntax mode support, including
+labels, directives, core instructions, register recognition, and memory
+addressing extraction.
+
+**Files added:**
+- `editor/src/ast/X86AssemblyParser.h` — x86 parser:
+  - syntax-mode support (`Intel`, `ATT`)
+  - parses directives (`.section`, `.global`, `.data`, `.text`, etc.)
+  - parses labels into function shells (`label + instruction body`)
+  - parses instructions with operand splitting respecting address delimiters
+  - register recognition + inferred register size (8/16/32/64)
+  - Intel memory addressing parse (`[rbp-8]`, `[rax+rbx*4+8]`)
+  - AT&T memory addressing parse (`-8(%rbp,%rbx,4)`)
+  - warning diagnostics for unknown/unrecognized opcode lines
+  - section directives represented as namespace-like nodes (`NamespaceDeclaration`)
+- `editor/tests/step461_test.cpp` — 12 tests covering:
+  - Intel and AT&T instruction parsing
+  - global label detection
+  - directive/section parsing behavior
+  - register-size recognition across register families
+  - Intel + AT&T memory addressing extraction
+  - comment stripping behavior
+  - known-opcode vs unknown-opcode diagnostics
+- `editor/CMakeLists.txt` — `step461_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step461_test` — PASS
+- `./editor/build-native/step461_test` — PASS (12/12)
+- `./editor/build-native/step460_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/X86AssemblyParser.h` within header-size limit (`299` <= `600`)
+- `editor/tests/step461_test.cpp` within test-file size guidance (`186` lines)
