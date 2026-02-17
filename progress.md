@@ -8930,3 +8930,39 @@ notes.
 - **New tests in this sprint plan:** 112/112 passing
 - **Phase 27a (524-528):** 56/56 passing
 - **Phase 27b (529-533):** 56/56 passing
+
+## Sprint 27 End Refactor Pass (Architecture Compliance)
+
+Performed a dedicated post-sprint refactor pass to reduce duplication and
+re-validate architecture constraints without changing runtime behavior.
+
+**Refactors applied:**
+- `editor/src/ConstraintSchemaFailurePacket.h`
+  - extracted shared helper `makeUnderConstrainedContractPacket(...)`
+  - centralized schema-failure diagnostics payload construction
+- `editor/src/ConstrainedTaskitemIntegration.h`
+  - replaced inline schema-failure packet builder with shared helper usage
+  - removed duplicate private schema-failure implementation
+- `editor/src/PreApplyValidationGate.h`
+  - replaced inline schema-failure packet builder with shared helper usage
+  - removed duplicate private schema-failure implementation
+
+**Architecture compliance audit:**
+- Header size gate (`<=600` lines): PASS across Sprint 27 modules
+  - largest audited header: `editor/src/ConstraintViolationDiagnostics.h` (`169` lines)
+- `goto` usage in Sprint 27 runtime path: PASS (none)
+- Stale TODO markers in Sprint 27 modules: PASS (none)
+- Header-only pattern for Sprint 27 additions: PASS
+
+**Refactor verification run:**
+- `cmake --build editor/build-native --target step524_test step525_test step526_test step527_test step528_test step529_test step530_test step531_test step532_test step533_test` - PASS
+- `./editor/build-native/step524_test` - PASS (12/12)
+- `./editor/build-native/step525_test` - PASS (12/12)
+- `./editor/build-native/step526_test` - PASS (12/12)
+- `./editor/build-native/step527_test` - PASS (12/12)
+- `./editor/build-native/step528_test` - PASS (8/8)
+- `./editor/build-native/step529_test` - PASS (12/12)
+- `./editor/build-native/step530_test` - PASS (12/12)
+- `./editor/build-native/step531_test` - PASS (12/12)
+- `./editor/build-native/step532_test` - PASS (12/12)
+- `./editor/build-native/step533_test` - PASS (8/8)

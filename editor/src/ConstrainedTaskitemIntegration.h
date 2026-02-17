@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #include "ConstraintViolationDiagnostics.h"
+#include "ConstraintSchemaFailurePacket.h"
 
 using json = nlohmann::json;
 
@@ -38,7 +39,7 @@ public:
         auto validation = TypedTaskitemContractSchema::parseAndValidate(request.taskitemJson);
         if (!validation.valid) {
             result.schemaErrors = validation.errors;
-            result.diagnostics = schemaFailurePacket(validation.errors);
+            result.diagnostics = makeUnderConstrainedContractPacket(validation.errors);
             return result;
         }
 
@@ -65,22 +66,5 @@ public:
         result.routed = result.diagnostics.ok;
         result.executed = result.diagnostics.ok;
         return result;
-    }
-
-private:
-    static ConstraintDiagnosticPacket schemaFailurePacket(
-        const std::vector<std::string>& errors) {
-        ConstraintDiagnosticPacket packet;
-        packet.ok = false;
-        packet.recommendedAction = "escalate";
-        for (const auto& error : errors) {
-            packet.violations.push_back({
-                "under_constrained_contract",
-                "Taskitem contract failed schema validation",
-                error,
-                false
-            });
-        }
-        return packet;
     }
 };
