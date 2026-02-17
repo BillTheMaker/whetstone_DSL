@@ -7645,3 +7645,36 @@ Implements the first Phase 25b end-to-end scenario for:
 - `editor/src/GreenfieldScenarioRunner.h` within header-size limit (`153` <= `600`)
 - `editor/tests/step499_test.cpp` within test-file size guidance (`191` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 500: Scenario - Legacy Modernization
+**Status:** PASS (12/12 tests)
+
+Implements the second Phase 25b end-to-end scenario for modernizing a legacy C codebase
+with Rust as the migration target.
+
+**Files added:**
+- `editor/src/LegacyModernizationScenarioRunner.h` - scenario orchestration across:
+  - legacy C ingestion and idiom detection
+  - safety audit and modernization suggestion generation
+  - modernization workflow generation with mixed routing
+  - migration plan + execution initialization (`c` -> `rust`)
+  - API boundary analysis/preservation verification
+  - migration test generation from preserved API surface
+- `editor/tests/step500_test.cpp` - 12 scenario tests covering:
+  - legacy/safety finding expectations
+  - Rust-target modernization suggestions (including ownership strengthening)
+  - deterministic + llm workflow and migration routing
+  - API boundary + FFI annotation verification
+  - migration test-suite generation and scenario notes
+- `editor/CMakeLists.txt` - `step500_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step500_test step499_test` - PASS
+- `./editor/build-native/step500_test` - PASS (12/12)
+- `./editor/build-native/step499_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/LegacyModernizationScenarioRunner.h` within header-size limit (`125` <= `600`)
+- `editor/tests/step500_test.cpp` within test-file size guidance (`147` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
