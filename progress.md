@@ -9213,3 +9213,37 @@ legal operation mappings and module-level side-effect protection guards.
 - `editor/src/PythonTypeScriptConstructiveEditAdapter.h` within header-size limit (`84` <= `600`)
 - `editor/tests/step540_test.cpp` within test-file size guidance (`126` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 541: Rust/Go Constructive Edit Adapter
+**Status:** PASS (12/12 tests)
+
+Implements Rust/Go constructive edit adaptation with ownership/lifetime and
+concurrency-sensitive guardrails for high-risk transform paths.
+
+**Files added:**
+- `editor/src/RustGoConstructiveEditAdapter.h` - Rust/Go adapter module:
+  - legal operation mappings for functions/structs/impl/import/channel/borrow regions
+  - shared support for both `rust` and `go`
+  - borrow/lifetime safety guards for Rust-sensitive operations
+  - concurrency safety guards for Go-sensitive operations
+  - structured diagnostics for unsupported constructs/languages and illegal ops
+- `editor/tests/step541_test.cpp` - 12 tests covering:
+  - legal operation paths across Rust and Go constructs
+  - ownership/lifetime guard behavior in Rust
+  - concurrency guard behavior in Go
+  - illegal operation rejections
+  - unsupported construct/language behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step541_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step541_test step540_test` - PASS
+- `./editor/build-native/step541_test` - PASS (12/12)
+- `./editor/build-native/step540_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/RustGoConstructiveEditAdapter.h` within header-size limit (`91` <= `600`)
+- `editor/tests/step541_test.cpp` within test-file size guidance (`127` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
