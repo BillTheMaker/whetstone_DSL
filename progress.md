@@ -11635,3 +11635,33 @@ expiry risk for compliance controls.
 - `editor/src/ControlAttestationRegistry.h` within header-size limit (`91` <= `600`)
 - `editor/tests/step602_test.cpp` within test-file size guidance (`157` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 603: Compliance Operational Readiness
+**Status:** PASS (12/12 tests)
+
+Implements an operational readiness evaluator that scores compliance posture and
+surfaces release-blocking findings.
+
+**Files added:**
+- `editor/src/ComplianceOperationalReadiness.h` - readiness evaluation module:
+  - snapshot validation for non-negative operational metrics
+  - weighted readiness scoring with `[0,100]` clamp
+  - blocking-finding generation and release-eligibility decision
+- `editor/tests/step603_test.cpp` - 12 tests covering:
+  - validation success/failure behavior
+  - positive/risk signal score behavior and clamp boundaries
+  - blocker reporting and release eligibility behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step603_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step603_test step602_test` - PASS
+- `./editor/build-native/step603_test` - PASS (12/12)
+- `./editor/build-native/step602_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ComplianceOperationalReadiness.h` within header-size limit (`60` <= `600`)
+- `editor/tests/step603_test.cpp` within test-file size guidance (`146` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
