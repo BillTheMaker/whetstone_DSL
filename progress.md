@@ -8851,3 +8851,41 @@ post-apply contract expectations.
 - `editor/src/ContractDeltaChecker.h` within header-size limit (`149` <= `600`)
 - `editor/tests/step531_test.cpp` within test-file size guidance (`200` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 532: Retry/Escalation Protocol for Constraint Failures
+**Status:** PASS (12/12 tests)
+
+Implements deterministic retry/escalation behavior for constraint failures,
+including automatic correction for retryable scope failures and full failure
+packet escalation when non-retryable or unresolved conditions remain.
+
+**Files added:**
+- `editor/src/RetryEscalationProtocol.h` - retry/escalation module:
+  - immediate pass-through for already-valid diagnostics
+  - immediate escalation for non-retryable violations
+  - deterministic repair pass for correctable retryable failures
+  - retry-budget control with attempt history
+  - machine-readable escalation packet with reason/final diagnostics/attempts
+- `editor/tests/step532_test.cpp` - 12 tests covering:
+  - resolved/no-retry path
+  - immediate escalation for non-retryable and mixed failures
+  - successful retry for correctable failures
+  - retry-budget exhaustion behavior
+  - escalation packet structure and attempt history
+  - deterministic repeatability guarantees
+  - zero-budget edge case
+  - applied-fix metadata capture
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step532_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step532_test step531_test` - PASS
+- `./editor/build-native/step532_test` - PASS (12/12)
+- `./editor/build-native/step531_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/RetryEscalationProtocol.h` within header-size limit (`129` <= `600`)
+- `editor/tests/step532_test.cpp` within test-file size guidance (`171` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
