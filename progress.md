@@ -10440,3 +10440,36 @@ replay with deterministic eviction and session/window query helpers.
 - `editor/src/TimeTravelDebugEventBuffer.h` within header-size limit (`86` <= `600`)
 - `editor/tests/step571_test.cpp` within test-file size guidance (`174` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 572: Performance Probe Overlay
+**Status:** PASS (12/12 tests)
+
+Implements a pause-time performance probe overlay model that aggregates per-line
+runtime costs and exposes hotspot-ranked metadata for debug surfaces.
+
+**Files added:**
+- `editor/src/PerformanceProbeOverlay.h` - probe overlay module:
+  - per-sample validation and duplicate-id guards
+  - per-line duration/count aggregation by session + buffer
+  - hotspot ranking with threshold and limit controls
+  - pause-line neighborhood overlay window extraction
+- `editor/tests/step572_test.cpp` - 12 tests covering:
+  - sample ingestion success/failure behavior
+  - duplicate sample rejection behavior
+  - aggregate grouping/filtering behavior
+  - hotspot ranking/threshold behavior
+  - pause overlay window boundary behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step572_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step572_test step571_test` - PASS
+- `./editor/build-native/step572_test` - PASS (12/12)
+- `./editor/build-native/step571_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PerformanceProbeOverlay.h` within header-size limit (`110` <= `600`)
+- `editor/tests/step572_test.cpp` within test-file size guidance (`175` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
