@@ -324,6 +324,7 @@ static void renderEditorPanel(EditorState& state) {
                                 state.completionPending = true;
                                 state.completionLastChange = ImGui::GetTime();
                                 state.completionVisible = false;
+                                state.completionDismissed = false;
                                 state.completionSelected = 0;
                                 if (state.lsp) state.lsp->clearCompletionItems();
                                 if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
@@ -441,11 +442,18 @@ static void renderEditorPanel(EditorState& state) {
                                 if (prefix.empty() || key.rfind(prefix, 0) == 0) filtered.push_back(item);
                             }
 
-                            state.completionVisible = !filtered.empty();
+                            if (filtered.empty()) {
+                                state.completionVisible = false;
+                                state.completionDismissed = false;
+                            } else if (!state.completionDismissed) {
+                                state.completionVisible = true;
+                            }
                             if (state.completionVisible) {
                                 ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x + 20.0f,
                                                                  ImGui::GetWindowPos().y + 60.0f));
                                 ImGui::BeginChild("##completionPopup", ImVec2(300, 150), true);
+                                bool popupHovered =
+                                    ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
                                 int maxIndex = std::max(0, (int)filtered.size() - 1);
                                 if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
                                     state.completionSelected = std::min(state.completionSelected + 1, maxIndex);
@@ -459,6 +467,7 @@ static void renderEditorPanel(EditorState& state) {
                                 if (dismiss) {
                                     state.lsp->clearCompletionItems();
                                     state.completionVisible = false;
+                                    state.completionDismissed = true;
                                 }
 
                                 auto deriveLibrary = [](const std::string& name) {
@@ -503,8 +512,13 @@ static void renderEditorPanel(EditorState& state) {
                                     state.applyCompletion(state.active(), item.insertText, start, cursor);
                                     state.lsp->clearCompletionItems();
                                     state.completionVisible = false;
+                                    state.completionDismissed = false;
                                 }
                                 ImGui::EndChild();
+                                if (ImGui::IsMouseClicked(0) && !popupHovered) {
+                                    state.completionVisible = false;
+                                    state.completionDismissed = true;
+                                }
                             }
                         }
 

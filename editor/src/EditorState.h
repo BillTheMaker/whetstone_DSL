@@ -208,6 +208,7 @@ struct EditorState {
     double            symbolsLastChange = 0.0;
     bool              completionPending = false;
     bool              completionVisible = false;
+    bool              completionDismissed = false;
     int               completionSelected = 0;
     double            completionLastChange = 0.0;
     bool              lspChangePending = false;
@@ -601,4 +602,3 @@ struct NullLSPTransport : public LSPTransport {
     bool isOpen() const override { return false; }
     void close() override {}
 };
-

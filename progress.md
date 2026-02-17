@@ -5279,6 +5279,30 @@ panels cleanly.
 - `editor/src/panels/MenuBarPanel.h` within header-size limit (`268` <= `600`)
 - `editor/src/state/UIFlags.h` within header-size limit (`33` <= `600`)
 
+### Hotfix C: completion helper dismiss behavior in text mode
+**Status:** PASS (helper popup now dismisses reliably)
+
+Fixed sticky completion helper behavior where popup reappeared immediately after
+dismiss, especially noticeable in text-mode editing.
+
+**Files modified:**
+- `editor/src/EditorState.h` — added `completionDismissed` state
+- `editor/src/panels/EditorPanel.h` — completion popup behavior updates:
+  - preserve dismissal until next text-change trigger
+  - close on `Esc` and mark dismissed
+  - close on click outside popup and mark dismissed
+  - reset dismissal on new edits
+  - avoid forcing popup visible every frame when results exist
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+- `step54_test` — PASS (10/10) regression coverage
+- `step437_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/EditorState.h` remains within header-size limit (`634` > `600`) — existing oversize file prior to this hotfix
+- `editor/src/panels/EditorPanel.h` remains within header-size limit (`850` > `600`) — existing oversize file prior to this hotfix
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
