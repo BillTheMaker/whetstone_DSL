@@ -5417,6 +5417,10 @@ reporting, plus language-version heuristics and bounded 0-10 legacy scoring.
 - Routed queue with `whetstone_route_all_ready`.
 - Note: workflow state in `whetstone_mcp` is session-scoped; execute/get_work_item
   must run in the same long-lived MCP session.
+- Experiment outcome: MCP task flow is functional, but current execution overhead
+  (session management + transport framing + state locality) is still higher than
+  direct text-editing workflow for implementation speed. Keep MCP usage for trace
+  capture and behavior tuning, while using direct edits as primary path for sprint velocity.
 
 **Verification run:**
 - `step438_test` — PASS (12/12) new step coverage
@@ -5427,6 +5431,211 @@ reporting, plus language-version heuristics and bounded 0-10 legacy scoring.
 **Architecture gate check:**
 - `editor/src/LegacyIdiomDetector.h` within header-size limit (`193` <= `600`)
 - `editor/tests/step438_test.cpp` within test-file size guidance (`129` lines)
+
+**Step 438 experiment note (follow-up):**
+- Human-in-the-loop comparison confirmed that normal direct text editing is
+  currently faster and easier for sprint delivery than the MCP worker path.
+- Decision for now: keep direct editing as the primary implementation path,
+  and use MCP/task-queue flows selectively for behavior tracing and later
+  training-data/worker-tuning experiments.
+
+### Step 439: Safety Audit via Annotations
+**Status:** PASS (12/12 tests)
+
+Implemented structured safety analysis with annotation-based findings,
+CWE mapping, and per-function risk classification.
+
+**Files created:**
+- `editor/src/SafetyAuditor.h` — full safety audit model:
+  - buffer overflow detection (gets, strcpy, sprintf, strcat, unchecked array access)
+  - use-after-free detection (manual malloc/free without RAII, dangling dereference)
+  - null dereference detection (nullable pointers without null check, unchecked malloc)
+  - race condition detection (shared mutable state + threading without synchronization)
+  - integer overflow detection (unchecked arithmetic on integer types)
+  - CWE code mapping (CWE-120, CWE-416, CWE-476, CWE-362, CWE-190, CWE-787)
+  - risk levels: 0=info, 1=low, 2=medium, 3=high, 4=critical
+  - per-function safety findings with max risk aggregation
+- `editor/tests/step439_test.cpp` — 12 tests covering:
+  1. buffer overflow via gets() → CWE-120
+  2. buffer overflow via strcpy() → CWE-120
+  3. use-after-free with manual malloc/free → CWE-416
+  4. dangling pointer dereference after free → @Lifetime(dangling)
+  5. null dereference with unchecked nullable pointer → CWE-476
+  6. unchecked malloc return value → @Nullability(unchecked-alloc)
+  7. race condition: thread + global mutable state without sync → CWE-362
+  8. no false positive when mutex synchronization present
+  9. integer overflow without bounds check → CWE-190
+  10. no false positive when INT_MAX check present
+  11. per-function findings include function name and max risk
+  12. comprehensive CWE mapping across all categories
+- `editor/CMakeLists.txt` — `step439_test` target
+
+**Verification run:**
+- `step439_test` — PASS (12/12) new step coverage
+- `step438_test` — PASS (12/12) regression coverage
+- `step54_test` — PASS (10/10) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SafetyAuditor.h` within header-size limit (`225` <= `600`)
+- `editor/tests/step439_test.cpp` within test-file size guidance (`148` lines)
+
+### Step 440: Modernization Suggestions
+**Status:** PASS (12/12 tests)
+
+Maps legacy patterns to modern replacements with @Modernize annotations,
+effort classification (quick win / moderate / deep refactor), and cross-language
+modernization support (C→Rust ownership, C→Java/Python GC).
+
+**Files created:**
+- `editor/src/ModernizationSuggester.h` — suggestion model:
+  - maps 7 legacy patterns to modern replacements (malloc→smart_ptr, sprintf→format,
+    strcpy→string, gets→fgets, goto→structured, pointer_arith→span, K&R→ANSI)
+  - safety-derived suggestions (unprotected shared state→mutex, unchecked arith→SafeInt)
+  - cross-language suggestions (C→Rust ownership, C→Java/Python GC)
+  - effort enum: QuickWin, Moderate, DeepRefactor
+  - @Modernize(from=..., to=..., risk=...) annotation format
+- `editor/tests/step440_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — `step440_test` target
+
+### Step 441: Modernization Workflow Generation
+**Status:** PASS (12/12 tests)
+
+Converts modernization suggestions into an ordered workflow with routing
+(deterministic/LLM/human), dependency tracking, and skeleton code generation.
+
+**Files created:**
+- `editor/src/ModernizationWorkflow.h` — workflow model:
+  - work items with routing (QuickWin→Deterministic, Moderate→LLM, DeepRefactor→Human)
+  - priority ordering (safe changes first, risky last)
+  - dependency graph (deep refactors depend on quick wins)
+  - skeleton generation with @Modernize inline comments
+- `editor/tests/step441_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — `step441_test` target
+
+### Step 442: Modernization RPC + MCP
+**Status:** PASS (12/12 tests)
+
+JSON-RPC dispatch and MCP tool definitions for the full modernization pipeline.
+
+**Files created:**
+- `editor/src/ModernizationRPC.h` — RPC handler + MCP tool defs:
+  - `analyzeLegacy` / `whetstone_analyze_legacy` — legacy idiom detection
+  - `getSafetyReport` / `whetstone_get_safety_report` — structured safety audit
+  - `suggestModernization` / `whetstone_suggest_modernization` — modernization suggestions
+  - `createModernizationWorkflow` / `whetstone_create_modernization_workflow` — full pipeline
+  - JSON serialization for all report types
+  - canHandle() + dispatch() for integration with existing RPC chain
+  - 4 MCP tool definitions with input schemas
+- `editor/tests/step442_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — `step442_test` target
+
+### Step 443: Phase 20a Integration
+**Status:** PASS (8/8 tests)
+
+End-to-end integration: legacy C file → analyze → safety audit → suggest →
+workflow → validate routing and risk ordering via both native API and JSON-RPC.
+
+**Files created:**
+- `editor/tests/step443_test.cpp` — 8 integration tests covering:
+  - full pipeline legacy→workflow, safety report CWE validation,
+  - risk ordering verification, C→Rust cross-language, RPC pipeline,
+  - deterministic vs LLM/human routing, language version detection
+
+### Step 444: Migration Plan Generator
+**Status:** PASS (12/12 tests)
+
+Multi-file project analysis with dependency resolution, phased migration ordering
+(leaves first), and effort/risk/routing classification per migration unit.
+
+**Files created:**
+- `editor/src/MigrationPlanGenerator.h` — plan generator:
+  - FileInfo input with exports/imports for dependency resolution
+  - topological phase assignment (leaf modules = phase 0)
+  - effort (file size), risk (API surface + deps), routing classification
+  - ordered execution plan respecting dependencies
+- `editor/tests/step444_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — `step444_test` target
+
+### Step 445: API Boundary Preservation
+**Status:** PASS (12/12 tests)
+
+Preserves public API surfaces during migration with function signature extraction,
+type mappings, @Contract annotations, and FFI boundary generation.
+
+**Files created:**
+- `editor/src/APIBoundaryPreserver.h` — boundary preserver:
+  - public function signature extraction from source
+  - type mappings C→Rust/Java/Python (int→i32, char*→&str, etc.)
+  - @Contract annotations (null preconditions, return postconditions)
+  - FFI boundaries (#[no_mangle] for Rust, JNI for Java)
+  - verifyPreservation() for pre/post migration comparison
+- `editor/tests/step445_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — `step445_test` target
+
+### Step 446: Test Generation for Migration Validation
+**Status:** PASS (12/12 tests)
+
+Auto-generates equivalence, edge case, and performance regression tests for
+migrated modules in the target language.
+
+**Files created:**
+- `editor/src/MigrationTestGenerator.h` — test generator:
+  - equivalence tests (same inputs → same outputs) per public function
+  - edge case tests from @Contract pre/post conditions (null handling, etc.)
+  - performance regression tests
+  - target-language-specific test body generation (Rust #[test], Java @Test, Python def test_)
+  - SLM/LLM routing for generated test skeletons
+- `editor/tests/step446_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — `step446_test` target
+
+### Step 447: Migration Execution Integration
+**Status:** PASS (12/12 tests)
+
+Hooks migration plans into orchestration with dependency-respecting execution,
+rollback annotations, progressive (partial) migration, and FFI boundary management.
+
+**Files created:**
+- `editor/src/MigrationExecutor.h` — execution engine:
+  - work items with cross-unit dependency tracking
+  - ready-items computation (unblocked pending items)
+  - completeUnit/failUnit state transitions
+  - rollback annotations (@Rollback pointing to original files)
+  - partial migration detection (mixed-language state)
+  - FFI boundary auto-detection during progressive migration
+- `editor/tests/step447_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — `step447_test` target
+
+### Step 448: Phase 20b Integration + Sprint 20 Summary
+**Status:** PASS (8/8 tests)
+
+Full integration: 3-file C project → Rust migration with API preservation,
+test generation, partial migration with FFI boundaries, and combined
+modernization + migration pipeline.
+
+**Files created:**
+- `editor/tests/step448_test.cpp` — 8 integration tests covering:
+  - full 3-file C→Rust migration, API boundary preservation,
+  - generated test validation, partial migration (2/3 files),
+  - FFI boundary management, legacy+migration combined pipeline,
+  - sprint 20 complete pipeline verification
+
+**Sprint 20 totals:**
+- **Steps:** 438-448 (11 steps)
+- **Tests:** 124/124 passing
+- **Headers created:** 8 (LegacyIdiomDetector, SafetyAuditor, ModernizationSuggester,
+  ModernizationWorkflow, ModernizationRPC, MigrationPlanGenerator, APIBoundaryPreserver,
+  MigrationTestGenerator, MigrationExecutor)
+- **MCP tools added:** 4 (whetstone_analyze_legacy, whetstone_get_safety_report,
+  whetstone_suggest_modernization, whetstone_create_modernization_workflow)
+- **Capabilities delivered:**
+  - Legacy code analysis (K&R, goto, deprecated APIs, manual memory, pointer arithmetic)
+  - Safety audit with CWE mapping (CWE-120, 190, 362, 416, 476, 787)
+  - Modernization suggestions with effort classification and @Modernize annotations
+  - Workflow generation with deterministic/LLM/human routing
+  - Multi-file migration planning with dependency-ordered phases
+  - API boundary preservation with type mappings, contracts, FFI annotations
+  - Test generation in target language (Rust, Java, Python)
+  - Progressive migration with FFI boundary management
 
 # Roadmap Planning — Sprints 12-25+
 
