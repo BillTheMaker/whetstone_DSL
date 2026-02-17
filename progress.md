@@ -9149,3 +9149,35 @@ telemetry into a single constrained execution surface for agent-facing editing.
 - **Steps completed:** 5
 - **New tests in phase plan:** 56/56 passing
 - **Legal-choice API + validation + telemetry integration:** PASS
+
+### Step 539: C/C++ Constructive Edit Adapter
+**Status:** PASS (12/12 tests)
+
+Implements a C/C++ constructive edit adapter with construct-aware legal
+operation mapping and header/source boundary safety checks.
+
+**Files added:**
+- `editor/src/CppConstructiveEditAdapter.h` - C/C++ adapter module:
+  - legal operation mappings for declarations/definitions/includes/macros/classes/members
+  - language support for both `c` and `cpp`
+  - header/source boundary guards for sensitive operations
+  - structured diagnostics for unsupported constructs/languages and blocked ops
+- `editor/tests/step539_test.cpp` - 12 tests covering:
+  - legal operation paths across declarations, definitions, includes, macros, members
+  - boundary-safe rejections (header/source violations)
+  - unsupported construct/language behavior
+  - C language compatibility path
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step539_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step539_test step538_test` - PASS
+- `./editor/build-native/step539_test` - PASS (12/12)
+- `./editor/build-native/step538_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CppConstructiveEditAdapter.h` within header-size limit (`90` <= `600`)
+- `editor/tests/step539_test.cpp` within test-file size guidance (`126` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
