@@ -4944,6 +4944,56 @@ tracking into a panel-ready snapshot.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 432: Phase 19a Integration
+**Status:** PASS (8/8 tests)
+
+Added Phase 19a integration coverage ensuring task board, task detail actions,
+dependency view, and progress dashboard stay synchronized across workflow state
+changes and review lifecycle transitions.
+
+**Files created:**
+- `editor/tests/step432_test.cpp` — 8 integration tests covering:
+  1. task board state sync
+  2. dependency graph update after completion
+  3. progress dashboard timeline/blocker sync
+  4. review approve flow updates board+detail
+  5. review reject flow requeues on board
+  6. dependency-node click to detail navigation
+  7. board filter/detail consistency
+  8. end-to-end visible flow (route -> execute -> review -> complete)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step432_test` target
+
+**Verification run:**
+- `step432_test` — PASS (8/8) new phase-integration coverage
+- `step431_test` — PASS (12/12) regression coverage
+- `step430_test` — PASS (12/12) regression coverage
+
+**Phase 19a completion snapshot (Steps 428-432):**
+- Step 428: task board model (kanban columns, filters, moves)
+- Step 429: task detail model (skeleton/result/diff/routing/review actions)
+- Step 430: dependency graph visualization adapter
+- Step 431: progress dashboard model
+- Step 432: integration across board/detail/graph/dashboard
+
+**Architecture gate check (end of Phase 19a):**
+- New Phase 19a headers within header-size limit:
+  - `editor/src/WorkflowTaskBoard.h` (`154` <= `600`)
+  - `editor/src/WorkflowTaskDetail.h` (`121` <= `600`)
+  - `editor/src/WorkflowDependencyView.h` (`94` <= `600`)
+  - `editor/src/WorkflowProgressDashboard.h` (`112` <= `600`)
+- New Phase 19a tests within file-size guidance:
+  - `editor/tests/step428_test.cpp` (`186` lines)
+  - `editor/tests/step429_test.cpp` (`169` lines)
+  - `editor/tests/step430_test.cpp` (`155` lines)
+  - `editor/tests/step431_test.cpp` (`202` lines)
+  - `editor/tests/step432_test.cpp` (`182` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
