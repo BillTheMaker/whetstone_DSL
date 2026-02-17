@@ -11407,3 +11407,36 @@ roles, execution eligibility, and normalized risk scoring.
 - `editor/src/ApprovalEscalationPlanner.h` within header-size limit (`68` <= `600`)
 - `editor/tests/step595_test.cpp` within test-file size guidance (`149` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 596: Escalation Audit Ledger
+**Status:** PASS (12/12 tests)
+
+Implements escalation audit logging for policy decisions, actors, outcomes, and
+risk tracking across approval flows.
+
+**Files added:**
+- `editor/src/EscalationAuditLedger.h` - audit ledger module:
+  - escalation entry recording with validation guards
+  - insertion-order audit retrieval
+  - actor-filtered audit query
+  - average risk and deny-count aggregation
+- `editor/tests/step596_test.cpp` - 12 tests covering:
+  - record success/failure behavior
+  - duplicate/id/field/risk validation behavior
+  - insertion-order behavior
+  - actor filtering behavior
+  - aggregate metric behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step596_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step596_test step595_test` - PASS
+- `./editor/build-native/step596_test` - PASS (12/12)
+- `./editor/build-native/step595_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/EscalationAuditLedger.h` within header-size limit (`74` <= `600`)
+- `editor/tests/step596_test.cpp` within test-file size guidance (`166` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
