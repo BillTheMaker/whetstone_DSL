@@ -6360,3 +6360,33 @@ named methods in Java/Python.
 **Architecture gate check:**
 - `editor/src/ast/CppOperators.h` within header-size limit (`129` <= `600`)
 - `editor/tests/step468_test.cpp` within test-file size guidance (`152` lines)
+
+### Step 469: Initializer Lists + STL Patterns
+**Status:** PASS (12/12 tests)
+
+Adds focused support for C++ initializer-list parsing plus STL container and
+iterator-loop pattern recognition with lightweight annotation outputs.
+
+**Files added:**
+- `editor/src/ast/CppInitializerStl.h` — initializer/STL helpers:
+  - `InitializerListExpression` model
+  - initializer-list parser
+  - STL container recognition (`vector`, `map`, `set`, `string`)
+  - element-type extraction from template arguments
+  - iterator-loop pattern detector with `@Loop(iterator)` annotation
+  - JSON round-trip helpers for initializer-list node
+- `editor/tests/step469_test.cpp` — 12 tests covering:
+  - initializer-list parsing and round-trip
+  - STL container kind/type recognition
+  - container annotation output checks
+  - iterator-pattern detection (`begin/end`, `auto it`) and non-iterator negative case
+- `editor/CMakeLists.txt` — `step469_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step469_test` — PASS
+- `./editor/build-native/step469_test` — PASS (12/12)
+- `./editor/build-native/step468_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/CppInitializerStl.h` within header-size limit (`135` <= `600`)
+- `editor/tests/step469_test.cpp` within test-file size guidance (`138` lines)
