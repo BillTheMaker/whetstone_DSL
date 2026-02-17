@@ -5174,6 +5174,64 @@ integrates approve/reject actions with keyboard shortcut metadata.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 437: Phase 19b Integration + Sprint Summary
+**Status:** PASS (8/8 tests)
+
+Added Phase 19b integration coverage validating that annotation overlays,
+workflow status overlays, and review comparison views work together in a single
+visual workflow path.
+
+**Files created:**
+- `editor/tests/step437_test.cpp` — 8 integration tests covering:
+  1. inline annotation badge visibility on annotated code
+  2. heatmap emphasis for complex regions
+  3. workflow status overlay projection from live state
+  4. code-overlay status click -> review comparison access
+  5. task-board review selection -> comparison access
+  6. approve flow updates board + overlay state
+  7. reject flow requeues and reflects overlay status
+  8. end-to-end visualization stack operability (badges/heatmap/overlay/review/dashboard)
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step437_test` target
+
+**Verification run:**
+- `step437_test` — PASS (8/8) new integration coverage
+- `step436_test` — PASS (12/12) regression coverage
+- `step435_test` — PASS (12/12) regression coverage
+- `step434_test` — PASS (12/12) regression coverage
+
+**Sprint 19 completion snapshot (Steps 428-437):**
+- Phase 19a (428-432): task board, task detail, dependency graph, progress dashboard, integration
+- Phase 19b (433-437): annotation badges, heatmap, workflow status overlay, review comparison, integration
+- Result: workflow visualization stack operational end-to-end across board, code overlays, and review flow
+
+**Architecture gate check (end of Sprint 19):**
+- New Sprint 19 headers within header-size limit:
+  - `editor/src/WorkflowTaskBoard.h` (`154` <= `600`)
+  - `editor/src/WorkflowTaskDetail.h` (`121` <= `600`)
+  - `editor/src/WorkflowDependencyView.h` (`94` <= `600`)
+  - `editor/src/WorkflowProgressDashboard.h` (`112` <= `600`)
+  - `editor/src/CodeAnnotationBadges.h` (`88` <= `600`)
+  - `editor/src/CodeAnnotationHeatmap.h` (`50` <= `600`)
+  - `editor/src/WorkflowStatusOverlay.h` (`94` <= `600`)
+  - `editor/src/ReviewComparisonView.h` (`118` <= `600`)
+- New Sprint 19 tests within file-size guidance:
+  - `editor/tests/step428_test.cpp` (`186` lines)
+  - `editor/tests/step429_test.cpp` (`169` lines)
+  - `editor/tests/step430_test.cpp` (`155` lines)
+  - `editor/tests/step431_test.cpp` (`202` lines)
+  - `editor/tests/step432_test.cpp` (`182` lines)
+  - `editor/tests/step433_test.cpp` (`141` lines)
+  - `editor/tests/step434_test.cpp` (`126` lines)
+  - `editor/tests/step435_test.cpp` (`155` lines)
+  - `editor/tests/step436_test.cpp` (`173` lines)
+  - `editor/tests/step437_test.cpp` (`208` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
