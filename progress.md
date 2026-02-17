@@ -8419,3 +8419,39 @@ logic, and stable pointer/keyboard navigation semantics.
 - `editor/src/CompletionOverlayUXHardening.h` within header-size limit (`87` <= `600`)
 - `editor/tests/step520_test.cpp` within test-file size guidance (`123` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 521: Notification + Status Signaling Refresh
+**Status:** PASS (12/12 tests)
+
+Implements refreshed notification/status signaling semantics with consistent
+info/warn/error/critical behavior, readability guarantees, duration policies,
+and stack management rules including persistent critical signaling.
+
+**Files added:**
+- `editor/src/NotificationStatusRefresh.h` - notification signaling module:
+  - severity-specific style and duration policy
+  - message factory with policy-derived timing
+  - expiration logic with dismissal override and persistent critical support
+  - stack-capping policy retaining newest messages
+  - readability checks for text/icon contrast
+- `editor/tests/step521_test.cpp` - 12 tests covering:
+  - duration progression by severity
+  - persistent critical behavior
+  - readability checks across levels
+  - expire/no-expire timing boundaries
+  - dismissed-message handling
+  - stack truncation behavior and ordering
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step521_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step521_test` - PASS
+- `./editor/build-native/step521_test` - PASS (12/12)
+- `./editor/build-native/step520_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/NotificationStatusRefresh.h` within header-size limit (`72` <= `600`)
+- `editor/tests/step521_test.cpp` within test-file size guidance (`133` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
