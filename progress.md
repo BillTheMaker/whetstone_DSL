@@ -8738,3 +8738,41 @@ constraint diagnostics before execution is allowed.
 - **Steps completed:** 5
 - **New tests in phase plan:** 56/56 passing
 - **Constraint model + diagnostics + integration:** PASS
+
+### Step 529: Pre-Apply Validation Gate
+**Status:** PASS (12/12 tests)
+
+Adds a deterministic pre-apply gate that validates candidate edits against
+contract schema, allowed targets, legal operation graph, and in-scope symbol
+snapshot before any mutation is allowed.
+
+**Files added:**
+- `editor/src/PreApplyValidationGate.h` - pre-apply validation module:
+  - schema-first taskitem validation gate
+  - forbidden-aware scope snapshot build for candidate edit context
+  - operation/symbol constraint evaluation via structured diagnostics
+  - explicit `allowed` and `mayMutateBuffer` decision flags
+  - target-kind contract enforcement (`target_out_of_contract`)
+- `editor/tests/step529_test.cpp` - 12 tests covering:
+  - valid pre-apply allow path
+  - illegal op, unsupported context, and out-of-scope symbol rejections
+  - target contract mismatch rejection
+  - forbidden symbol rejection
+  - schema-failure rejection paths
+  - retry vs escalate action semantics
+  - multi-violation aggregation behavior
+  - empty symbol-list edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step529_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step529_test step528_test` - PASS
+- `./editor/build-native/step529_test` - PASS (12/12)
+- `./editor/build-native/step528_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PreApplyValidationGate.h` within header-size limit (`130` <= `600`)
+- `editor/tests/step529_test.cpp` within test-file size guidance (`202` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

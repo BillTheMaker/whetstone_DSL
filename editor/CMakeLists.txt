@@ -3640,4 +3640,13 @@ target_link_libraries(step528_test PRIVATE
     tree_sitter_javascript tree_sitter_typescript
     tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+add_executable(step529_test tests/step529_test.cpp)
+target_include_directories(step529_test PRIVATE src)
+target_link_libraries(step529_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
