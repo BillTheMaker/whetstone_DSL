@@ -4702,6 +4702,61 @@ usage and compute cost rollups by worker/profile for model-dispatch reporting.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 427: Phase 18b Integration + Sprint Summary
+**Status:** PASS (8/8 tests)
+
+Added Phase 18b integration coverage validating that model-profile selection,
+context optimization, batch planning, and cost accounting compose into a
+coherent dispatch pipeline.
+
+**Files created:**
+- `editor/tests/step427_test.cpp` — 8 integration tests covering:
+  1. profile -> context -> batch -> cost pipeline composition
+  2. profile mapping impact on context scope selection
+  3. batching token-savings behavior
+  4. cost report worker/profile breakdowns
+  5. budget alignment across profile sizes
+  6. cost variance tracking for estimate drift
+  7. deterministic multi-group batching
+  8. expected default worker/profile mappings
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step427_test` target
+
+**Verification run:**
+- `step427_test` — PASS (8/8) new phase-integration coverage
+- `step426_test` — PASS (12/12) regression coverage
+- `step425_test` — PASS (12/12) regression coverage
+
+**Phase 18b completion snapshot (Steps 423-427):**
+- Step 423: model profile registry + configurable worker mapping
+- Step 424: context-window optimization by model budget
+- Step 425: batch task submission planning + savings estimates
+- Step 426: token/cost tracking and reporting
+- Step 427: end-to-end integration across 18b components
+
+**Sprint 18 completion snapshot (Steps 417-427):**
+- Phase 18a complete (Steps 417-422, 68 tests)
+- Phase 18b complete (Steps 423-427, 56 tests)
+- Sprint 18 total: 11 steps, 124 tests
+
+**Architecture gate check (end of Sprint 18):**
+- New Sprint 18b headers within header-size limit:
+  - `editor/src/ModelProfileRegistry.h` (`172` <= `600`)
+  - `editor/src/ContextWindowOptimizer.h` (`115` <= `600`)
+  - `editor/src/BatchTaskSubmitter.h` (`123` <= `600`)
+  - `editor/src/WorkflowCostTracker.h` (`150` <= `600`)
+- New Sprint 18b tests within file-size guidance:
+  - `editor/tests/step423_test.cpp` (`169` lines)
+  - `editor/tests/step424_test.cpp` (`156` lines)
+  - `editor/tests/step425_test.cpp` (`194` lines)
+  - `editor/tests/step426_test.cpp` (`174` lines)
+  - `editor/tests/step427_test.cpp` (`164` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
