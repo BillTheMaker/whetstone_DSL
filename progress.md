@@ -11710,3 +11710,33 @@ without changing behavior.
 - `editor/src/ControlAttestationRegistry.h` (`88` <= `600`)
 - `editor/src/ComplianceOperationalReadiness.h` (`58` <= `600`)
 - Naming conventions and header-only module constraints remain aligned with `ARCHITECTURE.md`.
+
+### Step 604: Release Certification Packet
+**Status:** PASS (12/12 tests)
+
+Implements release certification check tracking with pass/fail accounting and
+category filtering.
+
+**Files added:**
+- `editor/src/ReleaseCertificationPacket.h` - certification packet module:
+  - check recording with validation/duplicate guards
+  - pass/fail status mutation per check
+  - aggregate pass/fail accounting and category filters
+- `editor/tests/step604_test.cpp` - 12 tests covering:
+  - record success/failure behavior
+  - duplicate/validation behavior
+  - result mutation, aggregate counters, and category filtering behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step604_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step604_test step603_test` - PASS
+- `./editor/build-native/step604_test` - PASS (12/12)
+- `./editor/build-native/step603_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ReleaseCertificationPacket.h` within header-size limit (`68` <= `600`)
+- `editor/tests/step604_test.cpp` within test-file size guidance (`154` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
