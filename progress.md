@@ -8697,3 +8697,44 @@ violations with machine-readable retry/escalation payloads.
 - `editor/src/ConstraintViolationDiagnostics.h` within header-size limit (`169` <= `600`)
 - `editor/tests/step527_test.cpp` within test-file size guidance (`223` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 528: Phase 27a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates the Phase 27a constrained pipeline so taskitems must pass typed
+contract validation, symbol-scope extraction, legal operation checks, and
+constraint diagnostics before execution is allowed.
+
+**Files added:**
+- `editor/src/ConstrainedTaskitemIntegration.h` - phase integration gate:
+  - schema-first taskitem validation via Step 524 contract module
+  - forbidden-aware scope snapshot extraction via Step 526
+  - constraint diagnostics evaluation via Step 527
+  - deterministic route/execute decision (`routed` + `executed`)
+  - actionable schema-failure packet generation for under-constrained taskitems
+- `editor/tests/step528_test.cpp` - 8 tests covering:
+  - full constrained path success for valid taskitem
+  - schema rejection for missing required constraint fields
+  - schema rejection for missing diagnostics delta and duplicate allowed ops
+  - illegal operation rejection with escalation diagnostics
+  - out-of-scope symbol rejection with retry diagnostics
+  - forbidden symbol and unsupported-context rejection paths
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step528_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step528_test step527_test` - PASS
+- `./editor/build-native/step528_test` - PASS (8/8)
+- `./editor/build-native/step527_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ConstrainedTaskitemIntegration.h` within header-size limit (`86` <= `600`)
+- `editor/tests/step528_test.cpp` within test-file size guidance (`179` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 27a totals (524-528):**
+- **Steps completed:** 5
+- **New tests in phase plan:** 56/56 passing
+- **Constraint model + diagnostics + integration:** PASS
