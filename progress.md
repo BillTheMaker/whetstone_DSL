@@ -9621,3 +9621,39 @@ cost, rejection, and latency metrics by worker and task class.
 - `editor/src/WorkerEfficiencyDashboardModel.h` within header-size limit (`71` <= `600`)
 - `editor/tests/step550_test.cpp` within test-file size guidance (`170` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 551: Review-Gate Policy Refinement
+**Status:** PASS (12/12 tests)
+
+Implements refined review-gate policy logic to reduce unnecessary human
+escalations while preserving hard safety/security/policy protections.
+
+**Files added:**
+- `editor/src/ReviewGatePolicyRefinement.h` - review-gate policy module:
+  - policy-violation hard block precedence
+  - safety/security escalation precedence
+  - repeated post-apply failure escalation trigger
+  - high-confidence deterministic auto-approval path
+  - moderate-confidence auto-approve-with-audit path
+  - low-confidence/high-cost escalation behavior
+- `editor/tests/step551_test.cpp` - 12 tests covering:
+  - policy/safety/security precedence behavior
+  - failure-streak escalation behavior
+  - auto-approve and audit-path behavior
+  - low-confidence/high-cost escalation behavior
+  - precedence override behavior across mixed conditions
+  - threshold boundary behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step551_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step551_test step550_test` - PASS
+- `./editor/build-native/step551_test` - PASS (12/12)
+- `./editor/build-native/step550_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ReviewGatePolicyRefinement.h` within header-size limit (`70` <= `600`)
+- `editor/tests/step551_test.cpp` within test-file size guidance (`132` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
