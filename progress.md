@@ -11665,3 +11665,48 @@ surfaces release-blocking findings.
 - `editor/src/ComplianceOperationalReadiness.h` within header-size limit (`60` <= `600`)
 - `editor/tests/step603_test.cpp` within test-file size guidance (`146` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+## Sprint 34 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Completed the end-of-sprint refactor and architecture audit for Steps 594-603.
+The refactor extracts repeated validation-error plumbing into a shared utility
+without changing behavior.
+
+**Files added:**
+- `editor/src/ValidationErrorUtil.h` - shared `failWith()` helper for uniform
+  validation failure handling across sprint compliance/security modules.
+
+**Files modified:**
+- `editor/src/SecurityExceptionReviewBoard.h`
+- `editor/src/ComplianceEvidenceBundle.h`
+- `editor/src/ControlAttestationRegistry.h`
+- `editor/src/ComplianceOperationalReadiness.h`
+
+**Refactor result:**
+- Removed duplicated private `fail()` helpers from sprint modules.
+- Kept all modules header-only and within architecture size constraints.
+- Preserved public interfaces and runtime behavior.
+
+**Verification run (full sprint matrix):**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step594_test step595_test step596_test step597_test step598_test step599_test step600_test step601_test step602_test step603_test` - PASS
+- `./editor/build-native/step594_test` - PASS (12/12)
+- `./editor/build-native/step595_test` - PASS (12/12)
+- `./editor/build-native/step596_test` - PASS (12/12)
+- `./editor/build-native/step597_test` - PASS (12/12)
+- `./editor/build-native/step598_test` - PASS (8/8)
+- `./editor/build-native/step599_test` - PASS (12/12)
+- `./editor/build-native/step600_test` - PASS (12/12)
+- `./editor/build-native/step601_test` - PASS (12/12)
+- `./editor/build-native/step602_test` - PASS (12/12)
+- `./editor/build-native/step603_test` - PASS (12/12)
+- Sprint 34 matrix total: **116/116 passing**
+
+**Architecture gate check:**
+- `editor/src/ValidationErrorUtil.h` (`9` <= `600`)
+- `editor/src/SecurityExceptionReviewBoard.h` (`83` <= `600`)
+- `editor/src/ComplianceEvidenceBundle.h` (`54` <= `600`)
+- `editor/src/ControlAttestationRegistry.h` (`88` <= `600`)
+- `editor/src/ComplianceOperationalReadiness.h` (`58` <= `600`)
+- Naming conventions and header-only module constraints remain aligned with `ARCHITECTURE.md`.

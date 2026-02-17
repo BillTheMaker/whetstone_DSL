@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "ValidationErrorUtil.h"
+
 enum class AttestationStatus {
     Draft,
     Signed,
@@ -25,12 +27,12 @@ public:
     bool submit(const ControlAttestation& attestation, std::string* error) {
         if (!error) return false;
         error->clear();
-        if (attestation.attestationId.empty()) return fail(error, "attestation_id_missing");
-        if (attestation.controlId.empty()) return fail(error, "control_id_missing");
-        if (attestation.owner.empty()) return fail(error, "owner_missing");
-        if (attestation.daysUntilExpiry < 0) return fail(error, "expiry_days_invalid");
-        if (attestation.status == AttestationStatus::Expired) return fail(error, "status_invalid");
-        if (items_.count(attestation.attestationId) != 0) return fail(error, "attestation_duplicate");
+        if (attestation.attestationId.empty()) return failWith(error, "attestation_id_missing");
+        if (attestation.controlId.empty()) return failWith(error, "control_id_missing");
+        if (attestation.owner.empty()) return failWith(error, "owner_missing");
+        if (attestation.daysUntilExpiry < 0) return failWith(error, "expiry_days_invalid");
+        if (attestation.status == AttestationStatus::Expired) return failWith(error, "status_invalid");
+        if (items_.count(attestation.attestationId) != 0) return failWith(error, "attestation_duplicate");
         items_[attestation.attestationId] = attestation;
         order_.push_back(attestation.attestationId);
         return true;
@@ -42,9 +44,9 @@ public:
         if (!error) return false;
         error->clear();
         auto it = items_.find(attestationId);
-        if (it == items_.end()) return fail(error, "attestation_missing");
-        if (signer.empty()) return fail(error, "signer_missing");
-        if (it->second.status == AttestationStatus::Expired) return fail(error, "attestation_expired");
+        if (it == items_.end()) return failWith(error, "attestation_missing");
+        if (signer.empty()) return failWith(error, "signer_missing");
+        if (it->second.status == AttestationStatus::Expired) return failWith(error, "attestation_expired");
         it->second.status = AttestationStatus::Signed;
         it->second.signer = signer;
         return true;
@@ -54,7 +56,7 @@ public:
         if (!error) return false;
         error->clear();
         auto it = items_.find(attestationId);
-        if (it == items_.end()) return fail(error, "attestation_missing");
+        if (it == items_.end()) return failWith(error, "attestation_missing");
         it->second.status = AttestationStatus::Expired;
         return true;
     }
@@ -83,9 +85,4 @@ public:
 private:
     std::map<std::string, ControlAttestation> items_;
     std::vector<std::string> order_;
-
-    static bool fail(std::string* error, const char* code) {
-        *error = code;
-        return false;
-    }
 };

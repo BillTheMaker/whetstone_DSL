@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "ValidationErrorUtil.h"
+
 struct ComplianceEvidenceItem {
     std::string itemId;
     std::string controlId;
@@ -17,11 +19,11 @@ public:
     bool addEvidence(const ComplianceEvidenceItem& item, std::string* error) {
         if (!error) return false;
         error->clear();
-        if (item.itemId.empty()) return fail(error, "item_id_missing");
-        if (item.controlId.empty()) return fail(error, "control_id_missing");
-        if (item.artifactPath.empty()) return fail(error, "artifact_path_missing");
-        if (item.summary.empty()) return fail(error, "summary_missing");
-        if (items_.count(item.itemId) != 0) return fail(error, "item_duplicate");
+        if (item.itemId.empty()) return failWith(error, "item_id_missing");
+        if (item.controlId.empty()) return failWith(error, "control_id_missing");
+        if (item.artifactPath.empty()) return failWith(error, "artifact_path_missing");
+        if (item.summary.empty()) return failWith(error, "summary_missing");
+        if (items_.count(item.itemId) != 0) return failWith(error, "item_duplicate");
         items_[item.itemId] = item;
         order_.push_back(item.itemId);
         return true;
@@ -49,9 +51,4 @@ public:
 private:
     std::map<std::string, ComplianceEvidenceItem> items_;
     std::vector<std::string> order_;
-
-    static bool fail(std::string* error, const char* code) {
-        *error = code;
-        return false;
-    }
 };

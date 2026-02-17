@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "ValidationErrorUtil.h"
+
 enum class ExceptionDecision {
     Pending,
     Approved,
@@ -29,11 +31,11 @@ public:
                 std::string* error) {
         if (!error) return false;
         error->clear();
-        if (caseId.empty()) return fail(error, "case_id_missing");
-        if (operation.empty()) return fail(error, "operation_missing");
-        if (requester.empty()) return fail(error, "requester_missing");
-        if (justification.empty()) return fail(error, "justification_missing");
-        if (cases_.count(caseId) != 0) return fail(error, "case_duplicate");
+        if (caseId.empty()) return failWith(error, "case_id_missing");
+        if (operation.empty()) return failWith(error, "operation_missing");
+        if (requester.empty()) return failWith(error, "requester_missing");
+        if (justification.empty()) return failWith(error, "justification_missing");
+        if (cases_.count(caseId) != 0) return failWith(error, "case_duplicate");
         cases_[caseId] = {caseId, operation, requester, justification, ExceptionDecision::Pending, ""};
         order_.push_back(caseId);
         return true;
@@ -46,9 +48,9 @@ public:
         if (!error) return false;
         error->clear();
         auto it = cases_.find(caseId);
-        if (it == cases_.end()) return fail(error, "case_missing");
-        if (reviewer.empty()) return fail(error, "reviewer_missing");
-        if (decision == ExceptionDecision::Pending) return fail(error, "decision_invalid");
+        if (it == cases_.end()) return failWith(error, "case_missing");
+        if (reviewer.empty()) return failWith(error, "reviewer_missing");
+        if (decision == ExceptionDecision::Pending) return failWith(error, "decision_invalid");
         it->second.decision = decision;
         it->second.reviewer = reviewer;
         return true;
@@ -78,9 +80,4 @@ public:
 private:
     std::map<std::string, SecurityExceptionCase> cases_;
     std::vector<std::string> order_;
-
-    static bool fail(std::string* error, const char* code) {
-        *error = code;
-        return false;
-    }
 };

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "ValidationErrorUtil.h"
+
 struct ComplianceReadinessSnapshot {
     int controlsCovered = 0;
     int artifactCount = 0;
@@ -19,12 +21,12 @@ public:
     static bool validateInput(const ComplianceReadinessSnapshot& s, std::string* error) {
         if (!error) return false;
         error->clear();
-        if (s.controlsCovered < 0) return fail(error, "controls_covered_invalid");
-        if (s.artifactCount < 0) return fail(error, "artifact_count_invalid");
-        if (s.signedAttestations < 0) return fail(error, "signed_attestations_invalid");
-        if (s.expiringSoon < 0) return fail(error, "expiring_soon_invalid");
-        if (s.approvedExceptions < 0) return fail(error, "approved_exceptions_invalid");
-        if (s.openRunbooks < 0) return fail(error, "open_runbooks_invalid");
+        if (s.controlsCovered < 0) return failWith(error, "controls_covered_invalid");
+        if (s.artifactCount < 0) return failWith(error, "artifact_count_invalid");
+        if (s.signedAttestations < 0) return failWith(error, "signed_attestations_invalid");
+        if (s.expiringSoon < 0) return failWith(error, "expiring_soon_invalid");
+        if (s.approvedExceptions < 0) return failWith(error, "approved_exceptions_invalid");
+        if (s.openRunbooks < 0) return failWith(error, "open_runbooks_invalid");
         return true;
     }
 
@@ -53,8 +55,4 @@ public:
     }
 
 private:
-    static bool fail(std::string* error, const char* code) {
-        *error = code;
-        return false;
-    }
 };
