@@ -6538,3 +6538,46 @@ and preference overrides.
 **Architecture gate check:**
 - `editor/src/ArchitectTechStackSelector.h` within header-size limit (`156` <= `600`)
 - `editor/tests/step473_test.cpp` within test-file size guidance (`168` lines)
+
+### Step 474: Skeleton Generation from Requirements
+**Status:** PASS (12/12 tests)
+
+Builds an annotated multi-module skeleton project spec from requirements,
+module graph, and technology choices, including routing/contract/dependency
+annotations suitable for workflow creation.
+
+**Files added:**
+- `editor/src/ArchitectSkeletonGenerator.h` — skeleton generator:
+  - output model:
+    - `SkeletonAnnotation`
+    - `SkeletonFunctionSpec`
+    - `SkeletonModuleSpec`
+    - `SkeletonProjectSpec`
+  - module-level skeleton assembly from stack decisions
+  - function stub generation by module role (api/auth/ui/data/etc.)
+  - annotation generation:
+    - `@Intent`
+    - `@Complexity`
+    - `@ContextWidth`
+    - `@Automatability`
+    - `@Contract`
+  - dependency capture from module graph edges
+  - sparse/partial stack fallback behavior
+- `editor/tests/step474_test.cpp` — 12 tests covering:
+  - module and language propagation from graph + stack
+  - function skeleton generation by module
+  - annotation presence and value behavior
+  - dependency propagation
+  - context/automatability routing semantics
+  - contract enrichment under security requirements
+  - sparse-input fallback behavior
+- `editor/CMakeLists.txt` — `step474_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step474_test` — PASS
+- `./editor/build-native/step474_test` — PASS (12/12)
+- `./editor/build-native/step473_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectSkeletonGenerator.h` within header-size limit (`198` <= `600`)
+- `editor/tests/step474_test.cpp` within test-file size guidance (`187` lines)
