@@ -10556,3 +10556,38 @@ all components header-only and within file-size constraints.
 - `editor/src/TimeTravelDebugEventBuffer.h` within header-size limit (`86` <= `600`)
 - `editor/src/PerformanceProbeOverlay.h` within header-size limit (`110` <= `600`)
 - Shared validation centralization reduces repeated primitive guards and keeps module boundaries aligned with `ARCHITECTURE.md`
+
+### Step 574: Markdown Spec Parser
+**Status:** PASS (12/12 tests)
+
+Implements markdown intake parsing for architect specs, including section
+extraction, categorized requirement bullets, and source-anchor traceability.
+
+**Files added:**
+- `editor/src/MarkdownSpecParser.h` - markdown parser module:
+  - top-level section extraction (`##` headings)
+  - section anchor generation for traceability
+  - categorized bullet extraction (goals/constraints/dependencies/acceptance)
+  - source line capture per extracted requirement
+  - whitespace normalization and guard handling
+- `editor/tests/step574_test.cpp` - 12 tests covering:
+  - section/category extraction behavior
+  - anchor/traceability field behavior
+  - orphan bullet handling behavior
+  - empty/no-section failure behavior
+  - bullet text trimming behavior
+  - subsection-heading handling behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step574_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step574_test step573_test` - PASS
+- `./editor/build-native/step574_test` - PASS (12/12)
+- `./editor/build-native/step573_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MarkdownSpecParser.h` within header-size limit (`142` <= `600`)
+- `editor/tests/step574_test.cpp` within test-file size guidance (`178` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
