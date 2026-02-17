@@ -10733,3 +10733,38 @@ normalization/conflict detection, decomposition, and architect review workflow.
 **Phase 32a totals (574-578):**
 - **Steps completed:** 5
 - **New tests in this phase plan:** 56/56 passing
+
+### Step 579: Taskitem Generator v2
+**Status:** PASS (12/12 tests)
+
+Implements v2 taskitem generation from decomposed scope plans, including
+queue-readiness metadata, prerequisite operations, and dependency hints.
+
+**Files added:**
+- `editor/src/TaskitemGeneratorV2.h` - task generator module:
+  - taskitem generation from milestone/workstream decomposition
+  - stable task id generation
+  - prerequisite operation inference for constrained execution
+  - queue-readiness gating based on requirement/prereq presence
+  - milestone-order dependency hint emission
+- `editor/tests/step579_test.cpp` - 12 tests covering:
+  - generation success/failure behavior
+  - id/title/milestone mapping behavior
+  - queue-readiness behavior
+  - prerequisite inference behavior
+  - dependency-hint behavior
+  - empty-workstream handling behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step579_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step579_test step578_test` - PASS
+- `./editor/build-native/step579_test` - PASS (12/12)
+- `./editor/build-native/step578_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TaskitemGeneratorV2.h` within header-size limit (`65` <= `600`)
+- `editor/tests/step579_test.cpp` within test-file size guidance (`225` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
