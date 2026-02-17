@@ -11374,3 +11374,36 @@ allow/review/deny decisions with explainable rule matching.
 - `editor/src/PolicyGuardrailCatalog.h` within header-size limit (`75` <= `600`)
 - `editor/tests/step594_test.cpp` within test-file size guidance (`158` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 595: Approval Escalation Planner
+**Status:** PASS (12/12 tests)
+
+Implements escalation planning from guardrail decisions, including approver
+roles, execution eligibility, and normalized risk scoring.
+
+**Files added:**
+- `editor/src/ApprovalEscalationPlanner.h` - escalation planner module:
+  - converts allow/review/deny guardrail results into escalation plans
+  - assigns escalation level and approver roles
+  - computes execution eligibility from plan state
+  - computes bounded risk score (`0..100`)
+- `editor/tests/step595_test.cpp` - 12 tests covering:
+  - allow/review/deny planning behavior
+  - default rule fallback behavior
+  - reason/operation propagation behavior
+  - execution eligibility behavior
+  - risk score ordering and cap behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step595_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step595_test step594_test` - PASS
+- `./editor/build-native/step595_test` - PASS (12/12)
+- `./editor/build-native/step594_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ApprovalEscalationPlanner.h` within header-size limit (`68` <= `600`)
+- `editor/tests/step595_test.cpp` within test-file size guidance (`149` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
