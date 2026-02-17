@@ -4805,6 +4805,53 @@ columns, card metadata, filtering, and manual column reassignment semantics.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 429: Task Detail View
+**Status:** PASS (12/12 tests)
+
+Added a task-detail model layer with review actions so board-selected items can
+surface skeleton/result context, routing rationale, diff summary, and approval/
+rejection operations in one consistent view model.
+
+**Files created:**
+- `editor/src/WorkflowTaskDetail.h` — task-detail support:
+  - detail projection (`TaskDetailView`) for one work item
+  - skeleton stub generation based on file language
+  - generated-code and line-delta diff summary
+  - routing explanation synthesis
+  - annotation-tag extraction from work-item semantics
+  - review actions:
+    - `approve` (`review` -> `complete`)
+    - `reject` (`review` -> `ready`, feedback required)
+- `editor/tests/step429_test.cpp` — 12 tests covering:
+  1. detail build for existing item
+  2. missing-item handling
+  3. skeleton/generated payload inclusion
+  4. diff summary inclusion
+  5. routing explanation inclusion
+  6. annotation tag inclusion
+  7. rejection-history inclusion
+  8. approve transition behavior
+  9. approve invalid-status rejection
+  10. reject transition + feedback persistence
+  11. reject feedback-required validation
+  12. reject invalid-status rejection
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step429_test` target
+
+**Verification run:**
+- `step429_test` — PASS (12/12) new step coverage
+- `step428_test` — PASS (12/12) regression coverage
+- `step427_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowTaskDetail.h` within header-size limit (`121` <= `600`)
+- `editor/tests/step429_test.cpp` within test-file size guidance (`169` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
