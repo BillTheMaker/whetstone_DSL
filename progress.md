@@ -11830,3 +11830,33 @@ service-level breach aggregation.
 - `editor/src/OperationalSLOWatch.h` within header-size limit (`64` <= `600`)
 - `editor/tests/step607_test.cpp` within test-file size guidance (`150` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 608: Incident Postmortem Ledger
+**Status:** PASS (12/12 tests)
+
+Implements incident postmortem tracking with corrective-action completion and
+status/percent rollups.
+
+**Files added:**
+- `editor/src/IncidentPostmortemLedger.h` - postmortem ledger module:
+  - postmortem intake with validation and duplicate guards
+  - corrective-action completion updates with status transitions
+  - completion-percent and open/completed aggregate counters
+- `editor/tests/step608_test.cpp` - 12 tests covering:
+  - intake success/failure validation behavior
+  - update success/failure behavior and state transitions
+  - completion-percent behavior including zero-action edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step608_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step608_test step607_test` - PASS
+- `./editor/build-native/step608_test` - PASS (12/12)
+- `./editor/build-native/step607_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/IncidentPostmortemLedger.h` within header-size limit (`85` <= `600`)
+- `editor/tests/step608_test.cpp` within test-file size guidance (`151` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
