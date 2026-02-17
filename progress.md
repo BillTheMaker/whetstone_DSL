@@ -7678,3 +7678,37 @@ with Rust as the migration target.
 - `editor/src/LegacyModernizationScenarioRunner.h` within header-size limit (`125` <= `600`)
 - `editor/tests/step500_test.cpp` within test-file size guidance (`147` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 501: Scenario - Cross-Language Port
+**Status:** PASS (12/12 tests)
+
+Implements the third Phase 25b end-to-end scenario for porting a Python ML-style
+pipeline to Rust with confidence and review gating.
+
+**Files added:**
+- `editor/src/CrossLanguagePortScenarioRunner.h` - scenario orchestration across:
+  - Python function intake and hot-loop tagging
+  - intent-driven semantic transpilation (`python` -> `rust`)
+  - memory model analysis (GC -> borrow-checked target model)
+  - concurrency translation (`asyncio`/async-await -> Rust tokio-oriented runtime notes)
+  - per-function confidence scoring and low-confidence review surfacing
+  - behavioral equivalence assertion generation
+- `editor/tests/step501_test.cpp` - 12 scenario tests covering:
+  - language/source expectations and function extraction
+  - hot-loop identification
+  - idiomatic transpilation patterns
+  - memory/concurrency translation expectations
+  - confidence/review semantics
+  - equivalence assertion generation and scenario notes
+- `editor/CMakeLists.txt` - `step501_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step501_test step500_test` - PASS
+- `./editor/build-native/step501_test` - PASS (12/12)
+- `./editor/build-native/step500_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CrossLanguagePortScenarioRunner.h` within header-size limit (`127` <= `600`)
+- `editor/tests/step501_test.cpp` within test-file size guidance (`165` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
