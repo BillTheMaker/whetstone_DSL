@@ -5848,3 +5848,36 @@ types, concurrency, and memory translation components.
 **Architecture gate check:**
 - `editor/tests/step454_test.cpp` within test-file size guidance (`119` lines)
 - No new production header introduced in this integration step
+
+### Step 455: Behavioral Equivalence Checking
+**Status:** PASS (12/12 tests)
+
+Implements behavioral-equivalence assertion generation with contract annotation
+grading from confidence scores (verified/likely/unverified+review).
+
+**Files added:**
+- `editor/src/BehavioralEquivalence.h` — equivalence checker:
+  - `EquivalenceAssertion`, `BehavioralCheckResult`, `BehavioralChecker`
+  - inferred input generation for sort/search/sum/generic functions
+  - inferred expected-output stubs for common patterns
+  - confidence scoring heuristics from target translation shape
+  - contract annotation assignment:
+    - `@Contract(verified)` (>=0.90)
+    - `@Contract(likely)` (>=0.70)
+    - `@Contract(unverified), @Review(required,human)` (<0.70)
+- `editor/tests/step455_test.cpp` — 12 tests covering:
+  - input inference for sort/search/sum/generic categories
+  - custom input override behavior
+  - confidence-tiered contract annotation mapping
+  - same-language high-confidence default behavior
+  - assertion metadata (`sameErrors`, `allPassing`) expectations
+- `editor/CMakeLists.txt` — `step455_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step455_test` — PASS
+- `./editor/build-native/step455_test` — PASS (12/12)
+- `./editor/build-native/step454_test` — PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/BehavioralEquivalence.h` within header-size limit (`141` <= `600`)
+- `editor/tests/step455_test.cpp` within test-file size guidance (`194` lines)
