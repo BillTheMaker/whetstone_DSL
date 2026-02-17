@@ -9905,3 +9905,41 @@ editor navigation anchors for each stack frame.
 - `editor/src/ExceptionStackTraceCapture.h` within header-size limit (`71` <= `600`)
 - `editor/tests/step557_test.cpp` within test-file size guidance (`149` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 558: Phase 30a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates debug session lifecycle, breakpoint handling, stepping, and exception
+capture into a complete Phase 30a debug control-plane cycle.
+
+**Files added:**
+- `editor/src/Phase30aIntegration.h` - Phase 30a integration gate:
+  - composes Step 554 session lifecycle, Step 555 breakpoint system,
+    Step 556 step engine, and Step 557 exception capture
+  - executes breakpoint-hit to step-command to optional exception flow
+  - emits integrated pass/fail state with explicit error reasons
+- `editor/tests/step558_test.cpp` - 8 tests covering:
+  - full cycle pass paths (with and without exception)
+  - breakpoint add/hit failure paths
+  - step command failure path
+  - session start failure path
+  - step-result propagation and exception anchor linkage
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step558_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step558_test step557_test` - PASS
+- `./editor/build-native/step558_test` - PASS (8/8)
+- `./editor/build-native/step557_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase30aIntegration.h` within header-size limit (`80` <= `600`)
+- `editor/tests/step558_test.cpp` within test-file size guidance (`117` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 30a totals (554-558):**
+- **Steps completed:** 5
+- **New tests in phase plan:** 56/56 passing
+- **Debug control-plane integration:** PASS
