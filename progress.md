@@ -5941,3 +5941,40 @@ and review-flag rollups.
 **Architecture gate check:**
 - `editor/src/TranslationReport.h` within header-size limit (`174` <= `600`)
 - `editor/tests/step457_test.cpp` within test-file size guidance (`168` lines)
+
+### Step 458: Transpilation RPC + MCP
+**Status:** PASS (12/12 tests)
+
+Exposes semantic transpilation/reporting/equivalence/confidence as JSON-RPC
+handlers and MCP tool definitions.
+
+**Files added:**
+- `editor/src/TranspilationRPC.h` — RPC + MCP handler:
+  - JSON handlers:
+    - `transpile`
+    - `getTranslationReport`
+    - `verifyEquivalence`
+    - `getConfidence`
+  - `canHandle` + `dispatch` integration shape (JSON-RPC 2.0 envelope)
+  - MCP tool definitions:
+    - `whetstone_transpile`
+    - `whetstone_get_translation_report`
+    - `whetstone_verify_equivalence`
+    - `whetstone_get_confidence`
+  - JSON serialization helpers for confidence/report/equivalence payloads
+- `editor/tests/step458_test.cpp` — 12 tests covering:
+  - handler method coverage and dispatch behavior
+  - result schema/content validation for each RPC method
+  - unknown-method error envelope
+  - MCP tool definition count/names/schema-required fields
+  - low-confidence review and no-intent review behavior
+- `editor/CMakeLists.txt` — `step458_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step458_test` — PASS
+- `./editor/build-native/step458_test` — PASS (12/12)
+- `./editor/build-native/step457_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TranspilationRPC.h` within header-size limit (`255` <= `600`)
+- `editor/tests/step458_test.cpp` within test-file size guidance (`193` lines)
