@@ -5303,6 +5303,21 @@ dismiss, especially noticeable in text-mode editing.
 - `editor/src/EditorState.h` remains within header-size limit (`634` > `600`) — existing oversize file prior to this hotfix
 - `editor/src/panels/EditorPanel.h` remains within header-size limit (`850` > `600`) — existing oversize file prior to this hotfix
 
+### Hotfix D: completion selection bounds hardening (stability)
+**Status:** PASS (build stable)
+
+Hardened completion popup selection handling to prevent stale-selection indexing
+when the candidate list shrinks between frames (e.g., while typing quickly and
+confirming with Enter/Tab).
+
+**Files modified:**
+- `editor/src/panels/EditorPanel.h` — clamped `completionSelected` before navigation and before selection accept
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+- `step54_test` — PASS (10/10) regression coverage
+- `step437_test` — PASS (8/8) regression coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

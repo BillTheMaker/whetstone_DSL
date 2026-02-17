@@ -455,6 +455,7 @@ static void renderEditorPanel(EditorState& state) {
                                 bool popupHovered =
                                     ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
                                 int maxIndex = std::max(0, (int)filtered.size() - 1);
+                                state.completionSelected = std::max(0, std::min(state.completionSelected, maxIndex));
                                 if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
                                     state.completionSelected = std::min(state.completionSelected + 1, maxIndex);
                                 }
@@ -500,6 +501,9 @@ static void renderEditorPanel(EditorState& state) {
                                 }
 
                                 if (accept && !filtered.empty()) {
+                                    state.completionSelected =
+                                        std::max(0, std::min(state.completionSelected,
+                                                             (int)filtered.size() - 1));
                                     const auto& item = filtered[state.completionSelected];
                                     bool preferred = built.preferredNames.count(item.label) > 0;
                                     if (!preferred) {
