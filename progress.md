@@ -9943,3 +9943,36 @@ capture into a complete Phase 30a debug control-plane cycle.
 - **Steps completed:** 5
 - **New tests in phase plan:** 56/56 passing
 - **Debug control-plane integration:** PASS
+
+### Step 559: Call Stack and Frame Inspector
+**Status:** PASS (12/12 tests)
+
+Implements call stack frame inspection with frame navigation and variable scope
+mapping for runtime inspection surfaces.
+
+**Files added:**
+- `editor/src/CallStackFrameInspector.h` - frame inspector module:
+  - frame selection by index
+  - payload validation for frame navigation metadata
+  - selected-frame scope extraction
+  - variable name listing helper for panel rendering
+- `editor/tests/step559_test.cpp` - 12 tests covering:
+  - top/middle/bottom frame navigation
+  - invalid/empty stack guard behavior
+  - invalid frame payload guard behavior
+  - variable scope mapping and exposure behavior
+  - selected-index reporting behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step559_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step559_test step558_test` - PASS
+- `./editor/build-native/step559_test` - PASS (12/12)
+- `./editor/build-native/step558_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CallStackFrameInspector.h` within header-size limit (`58` <= `600`)
+- `editor/tests/step559_test.cpp` within test-file size guidance (`146` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
