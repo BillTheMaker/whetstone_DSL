@@ -11920,3 +11920,33 @@ inbound/outbound rollups.
 - `editor/src/ServiceDependencyRiskMap.h` within header-size limit (`78` <= `600`)
 - `editor/tests/step610_test.cpp` within test-file size guidance (`154` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 611: On-Call Coverage Planner
+**Status:** PASS (12/12 tests)
+
+Implements on-call shift planning with coverage checks and service gap
+calculation.
+
+**Files added:**
+- `editor/src/OnCallCoveragePlanner.h` - on-call coverage module:
+  - shift registration with validation/duplicate guards
+  - hour-based coverage checks by service
+  - shift counting and daily coverage-gap calculation
+- `editor/tests/step611_test.cpp` - 12 tests covering:
+  - shift add success/failure behavior
+  - coverage query behavior and invalid input handling
+  - aggregate count and coverage-gap behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step611_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step611_test step610_test` - PASS
+- `./editor/build-native/step611_test` - PASS (12/12)
+- `./editor/build-native/step610_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/OnCallCoveragePlanner.h` within header-size limit (`78` <= `600`)
+- `editor/tests/step611_test.cpp` within test-file size guidance (`147` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
