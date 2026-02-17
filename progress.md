@@ -11860,3 +11860,33 @@ status/percent rollups.
 - `editor/src/IncidentPostmortemLedger.h` within header-size limit (`85` <= `600`)
 - `editor/tests/step608_test.cpp` within test-file size guidance (`151` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 609: Change Freeze Calendar
+**Status:** PASS (12/12 tests)
+
+Implements deployment change-freeze windows with environment/day freeze checks
+and active-window listing.
+
+**Files added:**
+- `editor/src/ChangeFreezeCalendar.h` - freeze calendar module:
+  - freeze window registration with validation/duplicate guards
+  - freeze checks by environment and day
+  - aggregate window counting and active-on-day filtering
+- `editor/tests/step609_test.cpp` - 12 tests covering:
+  - window add success/failure behavior
+  - freeze query behavior and invalid query inputs
+  - aggregate count and active-window listing behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step609_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step609_test step608_test` - PASS
+- `./editor/build-native/step609_test` - PASS (12/12)
+- `./editor/build-native/step608_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ChangeFreezeCalendar.h` within header-size limit (`67` <= `600`)
+- `editor/tests/step609_test.cpp` within test-file size guidance (`149` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
