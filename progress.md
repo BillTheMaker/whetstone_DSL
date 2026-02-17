@@ -4900,6 +4900,50 @@ coding, critical-path highlighting, hover details, and click navigation IDs.
   - `editor/src/MCPServer.h` (`1940` > `600`)
   - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
 
+### Step 431: Progress Dashboard
+**Status:** PASS (12/12 tests)
+
+Added a progress-dashboard model adapter that composes workflow stats,
+progress/timeline metrics, blocker summaries, worker distribution, and cost
+tracking into a panel-ready snapshot.
+
+**Files created:**
+- `editor/src/WorkflowProgressDashboard.h` — dashboard support:
+  - completion metrics passthrough (percent, throughput, ETA)
+  - throughput series derivation from timeline events
+  - worker-breakdown slices with percentage normalization
+  - blocker-summary projection for action surfaces
+  - optional cost integration (`WorkflowCostTracker`) with remaining-cost estimate
+- `editor/tests/step431_test.cpp` — 12 tests covering:
+  1. completion metric passthrough
+  2. throughput-series length from timeline
+  3. completed-count progression in throughput series
+  4. worker-slice presence
+  5. worker-percent normalization
+  6. blocker-summary projection
+  7. populated cost fields with tracker
+  8. remaining-cost estimate path
+  9. zero-cost behavior without tracker
+  10. empty-timeline edge case
+  11. ETA passthrough
+  12. zero-total workflow edge case
+
+**Files modified:**
+- `editor/CMakeLists.txt` — `step431_test` target
+
+**Verification run:**
+- `step431_test` — PASS (12/12) new step coverage
+- `step430_test` — PASS (12/12) regression coverage
+- `step429_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/WorkflowProgressDashboard.h` within header-size limit (`112` <= `600`)
+- `editor/tests/step431_test.cpp` within test-file size guidance (`202` lines)
+- Legacy oversized headers persist:
+  - `editor/src/ast/Serialization.h` (`1427` > `600`)
+  - `editor/src/MCPServer.h` (`1940` > `600`)
+  - `editor/src/HeadlessAgentRPCHandler.h` (`2768` > `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
