@@ -6287,3 +6287,41 @@ projection of range loops.
 **Architecture gate check:**
 - `editor/src/ast/CppRangeStructured.h` within header-size limit (`150` <= `600`)
 - `editor/tests/step466_test.cpp` within test-file size guidance (`163` lines)
+
+### Step 467: Exception Handling
+**Status:** PASS (12/12 tests)
+
+Adds C++ exception-handling gap coverage for try/catch clauses, throw
+expressions, noexcept detection, JSON round-trip, and cross-language exception
+model projections.
+
+**Files added:**
+- `editor/src/ast/CppExceptions.h` — exception helper model:
+  - `TryCatchStatement`, `CatchClause`, `ThrowExpression`
+  - parse helpers:
+    - `parseTryCatch(...)`
+    - `parseThrowExpression(...)`
+    - `hasNoexcept(...)`
+  - JSON round-trip helpers for try/catch and throw expression
+  - projections:
+    - C++ try/catch → Rust `Result`/`match`
+    - C++ try/catch → Python `try/except`
+    - C++ try/catch → Go `if err != nil`
+- `editor/tests/step467_test.cpp` — 12 tests covering:
+  - single and multi-catch parsing
+  - catch-all parsing
+  - throw expression parsing
+  - noexcept detection
+  - JSON round-trip
+  - Rust/Python/Go projection checks
+  - invalid parse failure behavior
+- `editor/CMakeLists.txt` — `step467_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step467_test` — PASS
+- `./editor/build-native/step467_test` — PASS (12/12)
+- `./editor/build-native/step466_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ast/CppExceptions.h` within header-size limit (`178` <= `600`)
+- `editor/tests/step467_test.cpp` within test-file size guidance (`148` lines)
