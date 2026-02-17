@@ -5978,3 +5978,57 @@ handlers and MCP tool definitions.
 **Architecture gate check:**
 - `editor/src/TranspilationRPC.h` within header-size limit (`255` <= `600`)
 - `editor/tests/step458_test.cpp` within test-file size guidance (`193` lines)
+
+### Step 459: Phase 21b Integration + Sprint 21 Summary
+**Status:** PASS (8/8 tests)
+
+Adds end-to-end integration coverage for semantic transpilation, report
+generation, confidence scoring, equivalence checks, and RPC/MCP surface.
+
+**Files added:**
+- `editor/tests/step459_test.cpp` — 8 integration tests covering:
+  - semantic transpile flow (Python→Rust) with confidence follow-up
+  - translation report rationale/summary validation
+  - low-confidence auto-review behavior
+  - equivalence assertion generation
+  - full JSON-RPC dispatch flow and unknown-method handling
+  - MCP tool surface completeness for Phase 21b tools
+- `editor/CMakeLists.txt` — `step459_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step459_test` — PASS
+- `./editor/build-native/step459_test` — PASS (8/8)
+- `./editor/build-native/step458_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step459_test.cpp` within test-file size guidance (`167` lines)
+- No new production header introduced in this integration step
+
+**Sprint 21 totals:**
+- **Steps:** 449-459 (11 steps)
+- **Tests:** 124/124 passing
+- **Headers created:** 9
+  - `IntentTranslator.h`
+  - `AlgorithmEquivalence.h`
+  - `TypeSystemTranslator.h`
+  - `ConcurrencyTranslator.h`
+  - `MemoryModelTranslator.h`
+  - `BehavioralEquivalence.h`
+  - `TranspilationConfidence.h`
+  - `TranslationReport.h`
+  - `TranspilationRPC.h`
+- **MCP tools added:** 4
+  - `whetstone_transpile`
+  - `whetstone_get_translation_report`
+  - `whetstone_verify_equivalence`
+  - `whetstone_get_confidence`
+- **Capabilities delivered:**
+  - intent-driven idiomatic translation selection
+  - algorithm pattern recognition and stdlib equivalence mapping
+  - cross-language type model translation with lossiness annotations
+  - concurrency model translation with runtime/review signals
+  - ownership/lifetime memory model translation with safety deltas
+  - behavioral equivalence assertion generation with contract grading
+  - deterministic confidence scoring and review gating
+  - per-function/project translation reporting
+  - RPC + MCP interfaces for transpilation pipeline operations
