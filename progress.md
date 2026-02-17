@@ -11260,3 +11260,47 @@ including section/check coverage and readiness scoring.
 - `editor/src/DocumentationOperatorPlaybooks.h` within header-size limit (`99` <= `600`)
 - `editor/tests/step592_test.cpp` within test-file size guidance (`154` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 593: Sprint 33 Integration + Program Summary
+**Status:** PASS (8/8 tests)
+
+Completes Sprint 33 integration by aggregating product-experience and
+operational-hardening readiness into final program-level outcome signals.
+
+**Files added:**
+- `editor/src/Sprint33IntegrationSummary.h` - sprint integration module:
+  - aggregates Phase 33a and 33b gate signals
+  - computes phase pass flags and Sprint 33 pass flag
+  - emits per-step failure notes and blocked phase notes
+  - emits sprint-level completion notes on full pass
+- `editor/tests/step593_test.cpp` - 8 tests covering:
+  - full sprint pass path
+  - phase-specific failure blocking behavior
+  - success/failure note emission behavior
+  - multi-failure aggregation behavior
+  - all-false boundary behavior
+  - phase isolation behavior on single 33b failure
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step593_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step593_test step592_test` - PASS
+- `./editor/build-native/step593_test` - PASS (8/8)
+- `./editor/build-native/step592_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint33IntegrationSummary.h` within header-size limit (`70` <= `600`)
+- `editor/tests/step593_test.cpp` within test-file size guidance (`128` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 33b totals (589-593):**
+- **Steps completed:** 5
+- **New tests in this phase plan:** 56/56 passing
+
+**Sprint 33 totals (584-593):**
+- **Steps completed:** 10
+- **New tests in this sprint plan:** 112/112 passing
+- **Phase 33a (584-588):** 56/56 passing
+- **Phase 33b (589-593):** 56/56 passing
