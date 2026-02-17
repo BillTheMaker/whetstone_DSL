@@ -6816,3 +6816,63 @@ interface boundaries (`@Link`, `@Shim`) flagged for human review.
 - `editor/src/ArchitectMultiLanguageOrchestrator.h` within header-size limit (`175` <= `600`)
 - `editor/tests/step480_test.cpp` within test-file size guidance (`203` lines)
 - Header-only and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 481: Phase 23b Integration + Sprint Summary
+**Status:** PASS (8/8 tests)
+
+Adds an integrated architect pipeline for Phase 23b that composes:
+template instantiation, scaffold file planning/application, dependency/build
+awareness, and multi-language orchestration into a single structured flow.
+
+**Files added:**
+- `editor/src/ArchitectProjectPipeline.h` — integration composition layer:
+  - `ArchitectPipelineResult` aggregate output model
+  - `fromTemplate(...)`:
+    - `ArchitectTemplates` -> `ArchitectScaffoldGenerator` ->
+      `ArchitectBuildAwareness` -> `ArchitectMultiLanguageOrchestrator`
+  - `fromSkeleton(...)` for direct skeleton-based orchestration
+  - `overrideModuleLanguage(...)` for mid-planning stack adjustment/replan flow
+- `editor/tests/step481_test.cpp` — 8 integration tests covering:
+  - REST API template -> scaffold -> workflow end-to-end
+  - multi-language Python+Rust+SQL orchestration as one project plan
+  - mid-planning language override and scaffold regeneration
+  - Semanno annotations present in scaffolded source files
+  - scaffold apply materialization (`.whetstone` + project files)
+  - cross-language shim/review flags
+  - sidecar generation completeness
+  - structured output shape for MCP consumers
+- `editor/CMakeLists.txt` — `step481_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step481_test step480_test` — PASS
+- `./editor/build-native/step481_test` — PASS (8/8)
+- `./editor/build-native/step480_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectProjectPipeline.h` within header-size limit (`58` <= `600`)
+- `editor/tests/step481_test.cpp` within test-file size guidance (`156` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 23b totals (477-481):**
+- **Steps:** 5
+- **Tests:** 56/56 passing
+- **Headers added:** 5
+  - `ArchitectTemplates.h`
+  - `ArchitectScaffoldGenerator.h`
+  - `ArchitectBuildAwareness.h`
+  - `ArchitectMultiLanguageOrchestrator.h`
+  - `ArchitectProjectPipeline.h`
+- **Capabilities delivered:**
+  - reusable architecture templates for common project archetypes
+  - scaffold planning/application via `fileCreate`/`fileWrite`-compatible ops
+  - language-specific dependency/build hint annotation layer
+  - single-plan orchestration across multi-language module graphs with `@Link/@Shim`
+  - integrated Phase 23b pipeline with mid-planning language override/replan support
+
+**Sprint 23 totals (471-481):**
+- **Steps:** 11
+- **Tests:** 124/124 passing
+- **Headers added:** 10
+- **Outcome:** architect mode now supports requirement parsing, decomposition,
+  stack selection, skeleton generation, review/approval, template/scaffold
+  generation, dependency-aware build hints, and multi-language orchestration.
