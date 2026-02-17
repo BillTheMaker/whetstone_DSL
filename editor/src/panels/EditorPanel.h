@@ -321,12 +321,19 @@ static void renderEditorPanel(EditorState& state) {
                             }
                             if (res.changed) {
                                 state.onTextChanged();
-                                state.completionPending = true;
-                                state.completionLastChange = ImGui::GetTime();
-                                state.completionVisible = false;
-                                state.completionDismissed = false;
-                                state.completionSelected = 0;
-                                if (state.lsp) state.lsp->clearCompletionItems();
+                                if (state.ui.showCompletionHelper) {
+                                    state.completionPending = true;
+                                    state.completionLastChange = ImGui::GetTime();
+                                    state.completionVisible = false;
+                                    state.completionDismissed = false;
+                                    state.completionSelected = 0;
+                                    if (state.lsp) state.lsp->clearCompletionItems();
+                                } else {
+                                    state.completionPending = false;
+                                    state.completionVisible = false;
+                                    state.completionDismissed = false;
+                                    if (state.lsp) state.lsp->clearCompletionItems();
+                                }
                                 if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
                                     int cursor = state.active()->widget.getCursor();
                                     if (cursor > 0 && state.active()->editBuf[cursor - 1] == '(') {
@@ -356,7 +363,9 @@ static void renderEditorPanel(EditorState& state) {
                         }
 
                         double now = ImGui::GetTime();
-                        if (state.completionPending && (now - state.completionLastChange) > 0.2) {
+                        if (state.ui.showCompletionHelper &&
+                            state.completionPending &&
+                            (now - state.completionLastChange) > 0.2) {
                             if (state.lsp && state.active() && state.active()->path.rfind("(untitled", 0) != 0) {
                                 int lineZero = std::max(0, state.active()->cursorLine - 1);
                                 int colZero = std::max(0, state.active()->cursorCol - 1);
@@ -403,7 +412,7 @@ static void renderEditorPanel(EditorState& state) {
                             state.analysisPending = false;
                         }
 
-                        if (state.lsp && state.active()) {
+                        if (state.ui.showCompletionHelper && state.lsp && state.active()) {
                             auto items = state.lsp->getCompletionItems();
                             int cursor = state.active()->widget.getCursor();
                             std::string prefix = EditorState::wordPrefixAt(state.active()->editBuf, cursor);
@@ -524,6 +533,11 @@ static void renderEditorPanel(EditorState& state) {
                                     state.completionDismissed = true;
                                 }
                             }
+                        }
+                        if (!state.ui.showCompletionHelper) {
+                            state.completionPending = false;
+                            state.completionVisible = false;
+                            state.completionDismissed = false;
                         }
 
                         if (state.showSuggestionPopup) {

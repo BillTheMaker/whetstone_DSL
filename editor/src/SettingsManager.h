@@ -54,6 +54,8 @@ public:
     void setAutoSaveSeconds(int seconds) { autoSaveSeconds_ = seconds; }
     bool getShowMinimap() const { return showMinimap_; }
     void setShowMinimap(bool value) { showMinimap_ = value; }
+    bool getShowCompletionHelper() const { return showCompletionHelper_; }
+    void setShowCompletionHelper(bool value) { showCompletionHelper_ = value; }
     bool getShowLineNumbers() const { return showLineNumbers_; }
     void setShowLineNumbers(bool value) { showLineNumbers_ = value; }
     bool getReduceMotion() const { return reduceMotion_; }
@@ -101,6 +103,7 @@ public:
             updateUrl_ = j.value("updateUrl", updateUrl_);
             autoSaveSeconds_ = j.value("autoSaveSeconds", autoSaveSeconds_);
             showMinimap_ = j.value("showMinimap", showMinimap_);
+            showCompletionHelper_ = j.value("showCompletionHelper", showCompletionHelper_);
             showLineNumbers_ = j.value("showLineNumbers", showLineNumbers_);
             reduceMotion_ = j.value("reduceMotion", reduceMotion_);
             useAnnotationShapes_ = j.value("useAnnotationShapes", useAnnotationShapes_);
@@ -149,6 +152,7 @@ public:
             j["updateUrl"] = updateUrl_;
             j["autoSaveSeconds"] = autoSaveSeconds_;
             j["showMinimap"] = showMinimap_;
+            j["showCompletionHelper"] = showCompletionHelper_;
             j["showLineNumbers"] = showLineNumbers_;
             j["reduceMotion"] = reduceMotion_;
             j["useAnnotationShapes"] = useAnnotationShapes_;
@@ -234,6 +238,7 @@ private:
     std::string updateUrl_ = "https://example.com/whetstone/releases.json";
     int autoSaveSeconds_ = 0;
     bool showMinimap_ = false;
+    bool showCompletionHelper_ = false;
     bool showLineNumbers_ = true;
     bool reduceMotion_ = false;
     bool useAnnotationShapes_ = true;

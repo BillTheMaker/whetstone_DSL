@@ -5318,6 +5318,25 @@ confirming with Enter/Tab).
 - `step54_test` — PASS (10/10) regression coverage
 - `step437_test` — PASS (8/8) regression coverage
 
+### Hotfix E: inline completion helper default-off + toggle
+**Status:** PASS (helper now opt-in)
+
+Changed inline completion helper to default OFF and only appear when explicitly
+enabled by the user.
+
+**Files modified:**
+- `editor/src/state/UIFlags.h` — added `showCompletionHelper` UI flag (default `false`)
+- `editor/src/SettingsManager.h` — added persisted `showCompletionHelper` setting
+- `editor/src/BufferOps.h` — synced `showCompletionHelper` with settings load/save
+- `editor/src/panels/MenuBarPanel.h` — View toggle: `Inline Completion Helper`
+- `editor/src/panels/SettingsPanel.h` — Settings checkbox and cleanup on disable
+- `editor/src/panels/EditorPanel.h` — gated completion requests/rendering behind toggle
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+- `step54_test` — PASS (10/10) regression coverage
+- `step437_test` — PASS (8/8) regression coverage
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)

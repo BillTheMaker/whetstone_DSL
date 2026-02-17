@@ -305,6 +305,7 @@ inline void EditorState::applySession(const SessionData& session) {
 
 inline void EditorState::applySettingsToState() {
     ui.showMinimap = settings.getShowMinimap();
+    ui.showCompletionHelper = settings.getShowCompletionHelper();
     ui.showLineNumbers = settings.getShowLineNumbers();
     ui.layoutPreset = LayoutManager::presetFromName(settings.getLayoutPreset());
     keys.setProfile(KeybindingManager::profileFromName(settings.getKeybindingProfile()));
@@ -320,6 +321,7 @@ inline void EditorState::loadSettingsFromDisk() {
 
 inline void EditorState::saveSettingsToDisk() {
     settings.setShowMinimap(ui.showMinimap);
+    settings.setShowCompletionHelper(ui.showCompletionHelper);
     settings.setShowLineNumbers(ui.showLineNumbers);
     settings.setLayoutPreset(LayoutManager::presetName(ui.layoutPreset));
     settings.setKeybindingProfile(KeybindingManager::profileName(keys.getProfile()));

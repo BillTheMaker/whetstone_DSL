@@ -90,6 +90,7 @@ static void renderMenuBar(EditorState& state) {
     if (ImGui::BeginMenu("View")) {
         ImGui::MenuItem("Show Whitespace", nullptr, &state.ui.showWhitespace);
         ImGui::MenuItem("Show Minimap", nullptr, &state.ui.showMinimap);
+        ImGui::MenuItem("Inline Completion Helper", nullptr, &state.ui.showCompletionHelper);
         ImGui::MenuItem("Show Annotations", nullptr, &state.ui.showAnnotations);
         ImGui::MenuItem("Show Outline", nullptr, &state.ui.showOutline);
         ImGui::MenuItem("Terminal", state.keys.getBinding("view.toggleTerminal").toString().c_str(),

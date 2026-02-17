@@ -12,6 +12,7 @@ enum class FocusRegion {
 struct UIFlags {
     bool showWhitespace = false;
     bool showMinimap = false;
+    bool showCompletionHelper = false;
     bool showAnnotations = false;
     bool showOutline = true;
     bool showLineNumbers = true;

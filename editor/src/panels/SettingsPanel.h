@@ -339,6 +339,17 @@ static void renderSettingsPanel(EditorState& state) {
         state.ui.showMinimap = showMinimap;
         settingsChanged = true;
     }
+    bool showCompletionHelper = state.ui.showCompletionHelper;
+    if (ImGui::Checkbox("Inline Completion Helper", &showCompletionHelper)) {
+        state.ui.showCompletionHelper = showCompletionHelper;
+        if (!showCompletionHelper) {
+            state.completionPending = false;
+            state.completionVisible = false;
+            state.completionDismissed = false;
+            if (state.lsp) state.lsp->clearCompletionItems();
+        }
+        settingsChanged = true;
+    }
     bool showLineNumbers = state.ui.showLineNumbers;
     if (ImGui::Checkbox("Show Line Numbers", &showLineNumbers)) {
         state.ui.showLineNumbers = showLineNumbers;
