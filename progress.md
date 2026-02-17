@@ -10661,3 +10661,38 @@ including requirement mapping and uncertainty scoring for architect intake.
 - `editor/src/ScopeMilestoneDecomposer.h` within header-size limit (`147` <= `600`)
 - `editor/tests/step576_test.cpp` within test-file size guidance (`201` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 577: Architect Review Surface for Intake
+**Status:** PASS (12/12 tests)
+
+Implements an architect review control surface for extracted constraints,
+enabling approve/modify/reject decisions before task generation.
+
+**Files added:**
+- `editor/src/ArchitectReviewSurface.h` - review surface module:
+  - constraint review item loading from normalized requirements
+  - approve/modify/reject decision lifecycle with reviewer attribution
+  - reviewed text override support for modified constraints
+  - decision summary counters and completeness gating
+  - guard rails for missing reviewer/text/unknown requirement ids
+- `editor/tests/step577_test.cpp` - 12 tests covering:
+  - review-load success/failure behavior
+  - approve/modify/reject behavior
+  - unknown-id and missing-input guard behavior
+  - review summary count/completeness behavior
+  - decision override behavior
+  - non-constraint filtering behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step577_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step577_test step576_test` - PASS
+- `./editor/build-native/step577_test` - PASS (12/12)
+- `./editor/build-native/step576_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ArchitectReviewSurface.h` within header-size limit (`126` <= `600`)
+- `editor/tests/step577_test.cpp` within test-file size guidance (`178` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
