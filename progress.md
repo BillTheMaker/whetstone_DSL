@@ -11089,3 +11089,40 @@ review, queue, constrained edits, and verification stages.
 - `editor/src/GuidedArchitectExecutionDemoMode.h` within header-size limit (`95` <= `600`)
 - `editor/tests/step587_test.cpp` within test-file size guidance (`182` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 588: Phase 33a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates Phase 33a product-experience components into a single first-use
+readiness gate for onboarding value visibility.
+
+**Files added:**
+- `editor/src/Phase33aIntegration.h` - Phase 33a integration module:
+  - onboarding flow readiness check
+  - workflow visualization readiness check
+  - capability panel readiness check
+  - guided demo-mode progression check
+  - phase pass synthesis with success/blocking notes
+- `editor/tests/step588_test.cpp` - 8 tests covering:
+  - full phase pass path
+  - component readiness signal behavior
+  - note emission behavior
+  - phase flag conjunction behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step588_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step588_test step587_test` - PASS
+- `./editor/build-native/step588_test` - PASS (8/8)
+- `./editor/build-native/step587_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase33aIntegration.h` within header-size limit (`94` <= `600`)
+- `editor/tests/step588_test.cpp` within test-file size guidance (`101` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+**Phase 33a totals (584-588):**
+- **Steps completed:** 5
+- **New tests in this phase plan:** 56/56 passing
