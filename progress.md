@@ -5356,6 +5356,29 @@ noisy unrelated suggestions (for example `std::*` symbols when typing `#inc`).
 - `step54_test` — PASS (10/10) regression coverage
 - `step437_test` — PASS (8/8) regression coverage
 
+## Sprint 20 Kickoff (MCP Trial)
+
+### Step 438 kickoff via `whetstone_mcp` tool path
+**Status:** PASS (MCP tool chain works for basic edit operations)
+
+Ran a real stdio MCP session against `whetstone_mcp` using framed
+`Content-Length` JSON-RPC requests and verified tool execution.
+
+**MCP calls executed:**
+1. `initialize`
+2. `tools/list`
+3. `tools/call` -> `whetstone_workspace_list` (glob=`sprint20*`)
+4. `tools/call` -> `whetstone_file_write`
+
+**File created through MCP tool call:**
+- `editor/src/LegacyIdiomDetector.h` (Step 438 scaffold)
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_editor` — PASS
+
+**Architecture gate check:**
+- `editor/src/LegacyIdiomDetector.h` within header-size limit (`8` <= `600`)
+
 # Roadmap Planning — Sprints 12-25+
 
 ## Status: Planning Complete (Sprints 12-19 detailed, 20-25 in roadmap.md)
