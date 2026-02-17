@@ -9181,3 +9181,35 @@ operation mapping and header/source boundary safety checks.
 - `editor/src/CppConstructiveEditAdapter.h` within header-size limit (`90` <= `600`)
 - `editor/tests/step539_test.cpp` within test-file size guidance (`126` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 540: Python/TypeScript Constructive Edit Adapter
+**Status:** PASS (12/12 tests)
+
+Implements Python/TypeScript constructive edit adaptation with construct-aware
+legal operation mappings and module-level side-effect protection guards.
+
+**Files added:**
+- `editor/src/PythonTypeScriptConstructiveEditAdapter.h` - Python/TypeScript adapter module:
+  - legal operation mappings for functions/classes/imports/signatures/module statements
+  - shared support for both `python` and `typescript`
+  - module side-effect risk guardrails for reorder/delete/inline-sensitive paths
+  - structured diagnostics for unsupported constructs/languages and illegal ops
+- `editor/tests/step540_test.cpp` - 12 tests covering:
+  - legal operation paths across Python/TypeScript constructs
+  - side-effect risk blocking behavior
+  - illegal operation rejections for constrained constructs
+  - unsupported construct/language behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step540_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step540_test step539_test` - PASS
+- `./editor/build-native/step540_test` - PASS (12/12)
+- `./editor/build-native/step539_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PythonTypeScriptConstructiveEditAdapter.h` within header-size limit (`84` <= `600`)
+- `editor/tests/step540_test.cpp` within test-file size guidance (`126` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
