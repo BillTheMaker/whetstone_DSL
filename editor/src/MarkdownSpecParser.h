@@ -1,6 +1,8 @@
 #pragma once
 // Step 574: Markdown Spec Parser
 
+#include "IntakeTextUtil.h"
+
 #include <algorithm>
 #include <cctype>
 #include <sstream>
@@ -71,7 +73,7 @@ public:
             item.line = lineNo;
             if (item.text.empty()) continue;
 
-            const std::string lowerTitle = toLower(currentSection.title);
+            const std::string lowerTitle = intakeToLower(currentSection.title);
             if (contains(lowerTitle, "goal")) {
                 spec.goals.push_back(item);
             } else if (contains(lowerTitle, "constraint")) {
@@ -101,14 +103,6 @@ private:
         return text.find(needle) != std::string::npos;
     }
 
-    static std::string toLower(const std::string& value) {
-        std::string out = value;
-        std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) {
-            return static_cast<char>(std::tolower(c));
-        });
-        return out;
-    }
-
     static std::string trimLeft(const std::string& value) {
         std::size_t i = 0;
         while (i < value.size() && std::isspace(static_cast<unsigned char>(value[i]))) ++i;
@@ -124,19 +118,7 @@ private:
     }
 
     static std::string makeAnchor(const std::string& title) {
-        std::string anchor;
-        bool previousDash = false;
-        for (char c : toLower(title)) {
-            if (std::isalnum(static_cast<unsigned char>(c))) {
-                anchor.push_back(c);
-                previousDash = false;
-            } else if (!previousDash) {
-                anchor.push_back('-');
-                previousDash = true;
-            }
-        }
-        while (!anchor.empty() && anchor.front() == '-') anchor.erase(anchor.begin());
-        while (!anchor.empty() && anchor.back() == '-') anchor.pop_back();
+        std::string anchor = intakeSanitizeToken(title, '-');
         return anchor.empty() ? "section" : anchor;
     }
 };

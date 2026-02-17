@@ -1,10 +1,9 @@
 #pragma once
 // Step 581: Acceptance-Criteria Binding
 
+#include "IntakeTextUtil.h"
 #include "TaskitemConfidenceAmbiguity.h"
 
-#include <algorithm>
-#include <cctype>
 #include <string>
 #include <vector>
 
@@ -61,23 +60,9 @@ public:
 
 private:
     static std::string makeTestSkeleton(const std::string& taskId, const std::string& checkText) {
-        return "test_" + sanitize(taskId) + "_" + sanitize(checkText);
-    }
-
-    static std::string sanitize(const std::string& text) {
-        std::string out;
-        bool lastUnderscore = false;
-        for (char c : text) {
-            if (std::isalnum(static_cast<unsigned char>(c))) {
-                out.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
-                lastUnderscore = false;
-            } else if (!lastUnderscore) {
-                out.push_back('_');
-                lastUnderscore = true;
-            }
-        }
-        while (!out.empty() && out.front() == '_') out.erase(out.begin());
-        while (!out.empty() && out.back() == '_') out.pop_back();
-        return out.empty() ? "check" : out;
+        const std::string a = intakeSanitizeToken(taskId, '_');
+        const std::string b = intakeSanitizeToken(checkText, '_');
+        return "test_" + (a.empty() ? std::string("task") : a) + "_" +
+               (b.empty() ? std::string("check") : b);
     }
 };

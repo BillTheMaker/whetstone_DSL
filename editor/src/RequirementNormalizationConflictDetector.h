@@ -1,9 +1,9 @@
 #pragma once
 // Step 575: Requirement Normalization and Conflict Detection
 
+#include "IntakeTextUtil.h"
 #include "MarkdownSpecParser.h"
 
-#include <algorithm>
 #include <cctype>
 #include <map>
 #include <set>
@@ -81,20 +81,7 @@ private:
     }
 
     static std::string normalizeText(const std::string& text) {
-        std::string out;
-        bool lastSpace = false;
-        for (char c : text) {
-            if (std::isalnum(static_cast<unsigned char>(c))) {
-                out.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
-                lastSpace = false;
-            } else {
-                if (!lastSpace) out.push_back(' ');
-                lastSpace = true;
-            }
-        }
-        while (!out.empty() && out.front() == ' ') out.erase(out.begin());
-        while (!out.empty() && out.back() == ' ') out.pop_back();
-        return out;
+        return intakeCompactLowerAlnumSpaces(text);
     }
 
     static bool isAmbiguous(const std::string& normalizedText) {

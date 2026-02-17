@@ -10913,3 +10913,41 @@ signals into phase/sprint outcomes with closure diagnostics.
 - **New tests in this sprint plan:** 112/112 passing
 - **Phase 32a (574-578):** 56/56 passing
 - **Phase 32b (579-583):** 56/56 passing
+
+### Sprint 32 End Refactor Pass (Architecture Compliance)
+**Status:** PASS (112/112 tests revalidated)
+
+Performed a focused post-sprint refactor to centralize intake text
+normalization/sanitization logic used by markdown parsing, requirement
+normalization, and acceptance test-skeleton generation.
+
+**Files added:**
+- `editor/src/IntakeTextUtil.h` - shared intake text helpers:
+  - lowercase normalization helper
+  - compact alnum-space normalization helper
+  - generic token sanitization helper with configurable separators
+
+**Files modified:**
+- `editor/src/MarkdownSpecParser.h` - switched heading/lowercase/anchor normalization paths to shared intake text helpers
+- `editor/src/RequirementNormalizationConflictDetector.h` - switched requirement text canonicalization to shared compact-normalization helper
+- `editor/src/AcceptanceCriteriaBinding.h` - switched test-skeleton token sanitization to shared intake token sanitizer
+
+**Verification run:**
+- `cmake --build editor/build-native --target step574_test step575_test step576_test step577_test step578_test step579_test step580_test step581_test step582_test step583_test` - PASS
+- `./editor/build-native/step574_test` - PASS (12/12)
+- `./editor/build-native/step575_test` - PASS (12/12)
+- `./editor/build-native/step576_test` - PASS (12/12)
+- `./editor/build-native/step577_test` - PASS (12/12)
+- `./editor/build-native/step578_test` - PASS (8/8)
+- `./editor/build-native/step579_test` - PASS (12/12)
+- `./editor/build-native/step580_test` - PASS (12/12)
+- `./editor/build-native/step581_test` - PASS (12/12)
+- `./editor/build-native/step582_test` - PASS (12/12)
+- `./editor/build-native/step583_test` - PASS (8/8)
+
+**Architecture gate check:**
+- `editor/src/IntakeTextUtil.h` within header-size limit (`48` <= `600`)
+- `editor/src/MarkdownSpecParser.h` within header-size limit (`124` <= `600`)
+- `editor/src/RequirementNormalizationConflictDetector.h` within header-size limit (`153` <= `600`)
+- `editor/src/AcceptanceCriteriaBinding.h` within header-size limit (`68` <= `600`)
+- Shared normalization centralization reduces duplicated string-normalization logic and stays aligned with `ARCHITECTURE.md`
