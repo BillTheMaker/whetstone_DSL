@@ -10626,3 +10626,38 @@ intake requirements, including ambiguity flags and source traceability.
 - `editor/src/RequirementNormalizationConflictDetector.h` within header-size limit (`166` <= `600`)
 - `editor/tests/step575_test.cpp` within test-file size guidance (`200` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 576: Scope and Milestone Decomposer
+**Status:** PASS (12/12 tests)
+
+Implements requirement decomposition into milestone/workstream planning units,
+including requirement mapping and uncertainty scoring for architect intake.
+
+**Files added:**
+- `editor/src/ScopeMilestoneDecomposer.h` - decomposition module:
+  - requirement-kind partitioning into milestone buckets
+  - workstream generation with requirement-id linkage
+  - architect review workstream generation from detected conflicts
+  - per-workstream/per-milestone/overall uncertainty scoring
+  - milestone pruning and uncertainty bound handling
+- `editor/tests/step576_test.cpp` - 12 tests covering:
+  - decomposition success/failure behavior
+  - milestone/workstream routing behavior
+  - requirement-id mapping behavior
+  - conflict-driven review stream behavior
+  - uncertainty scoring behavior and bounds
+  - empty milestone pruning behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step576_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step576_test step575_test` - PASS
+- `./editor/build-native/step576_test` - PASS (12/12)
+- `./editor/build-native/step575_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ScopeMilestoneDecomposer.h` within header-size limit (`147` <= `600`)
+- `editor/tests/step576_test.cpp` within test-file size guidance (`201` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
