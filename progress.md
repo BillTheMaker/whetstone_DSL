@@ -5736,3 +5736,32 @@ literal/syntactic rewrites.
 **Architecture gate check:**
 - `editor/src/AlgorithmEquivalence.h` within header-size limit (`228` <= `600`)
 - `editor/tests/step450_test.cpp` within test-file size guidance (`143` lines)
+
+### Step 451: Type System Translation
+**Status:** PASS (12/12 tests)
+
+Completes type-system mapping across language boundaries with explicit safety
+classification and risk annotations for lossy projections.
+
+**Files added:**
+- `editor/src/TypeSystemTranslator.h` — type translation engine:
+  - nullable mapping (`Optional<T>`/`T?`), generic collections, maps, enums
+  - class-hierarchy projection (`trait + struct`, `interface + struct`, `struct + vtable`)
+  - primitive/string translation across Rust/Python/Java/C/C++/Go
+  - safety classification (`Preserved`, `Widened`, `Narrowed`, `Lossy`)
+  - risk annotation tagging for lossy targets (`@Risk(medium|high)`)
+- `editor/tests/step451_test.cpp` — 12 tests covering:
+  - nullable/generic/map translations and safety categories
+  - enum/class/string lossy/narrowed mappings
+  - unknown-type pass-through behavior
+  - mixed-batch translation with lossy-count validation
+- `editor/CMakeLists.txt` — `step451_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step451_test` — PASS
+- `./editor/build-native/step451_test` — PASS (12/12)
+- `./editor/build-native/step450_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/TypeSystemTranslator.h` within header-size limit (`140` <= `600`)
+- `editor/tests/step451_test.cpp` within test-file size guidance (`146` lines)
