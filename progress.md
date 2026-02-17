@@ -7392,3 +7392,43 @@ parse-rate metrics, construct counts, and skipped-construct logging.
 - `editor/src/SelfHostCodebaseAudit.h` within header-size limit (`139` <= `600`)
 - `editor/tests/step493_test.cpp` within test-file size guidance (`172` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 494: Annotate Whetstone's Own Code
+**Status:** PASS (12/12 tests)
+
+Builds a self-host annotation audit pass over parsed Whetstone headers to
+measure inferred annotation signals (`@Complexity`, `@Risk`, `@Owner`,
+`@Intent`, `@TailCall`) on the codebase itself.
+
+**Files added:**
+- `editor/src/SelfHostAnnotationAudit.h` — annotation audit layer:
+  - `FileAnnotationAudit`, `SelfAnnotationAuditReport`
+  - integrates:
+    - `SelfHostHarness` parsing
+    - `AnnotationInference::inferAll(...)`
+    - `SafetyAuditor` risk signal extraction
+  - per-file/aggregate metrics:
+    - inferred annotation totals
+    - complexity counts
+    - risk counts (safety findings + unsafe cast/pointer pattern signals)
+    - owner counts (inference + smart-pointer pattern signals)
+    - intent counts from descriptive function names
+    - tail-call counts
+  - inline-source audit mode for focused rule tests
+- `editor/tests/step494_test.cpp` — 12 tests covering:
+  - real-corpus audit execution and parse-rate metrics
+  - category signal extraction (complexity/risk/owner/intent/tailcall)
+  - negative path for unparseable input
+  - aggregate-vs-per-file metric consistency
+  - real-corpus non-zero signal checks
+- `editor/CMakeLists.txt` — `step494_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step494_test step493_test` — PASS
+- `./editor/build-native/step494_test` — PASS (12/12)
+- `./editor/build-native/step493_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfHostAnnotationAudit.h` within header-size limit (`180` <= `600`)
+- `editor/tests/step494_test.cpp` within test-file size guidance (`142` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
