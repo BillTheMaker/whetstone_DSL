@@ -9396,3 +9396,40 @@ post-apply failure escalation.
 - `editor/src/ConstrainedRoutingRulesetExtension.h` within header-size limit (`60` <= `600`)
 - `editor/tests/step544_test.cpp` within test-file size guidance (`126` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 545: Context Bundle Minimizer
+**Status:** PASS (12/12 tests)
+
+Implements minimal-sufficient context bundling for constrained taskitems,
+retaining contract-relevant context while dropping unrelated project and
+dependency noise for narrow operations.
+
+**Files added:**
+- `editor/src/ContextBundleMinimizer.h` - context minimization module:
+  - seeds relevance keys from contract targets/symbols/ops
+  - filters file/project/dependency context by relevance and structural heuristics
+  - applies stricter pruning for narrow operations
+  - returns explicit kept vs removed context sets
+  - deterministic dedupe normalization for outputs
+- `editor/tests/step545_test.cpp` - 12 tests covering:
+  - narrow-mode relevance retention/drop behavior
+  - non-narrow structural keep behavior
+  - symbol/op-driven relevance behavior
+  - dedupe behavior for kept/removed sets
+  - empty-input edge case
+  - irrelevant-note dropping behavior
+  - dependency relevance by symbol-match behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step545_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step545_test step544_test` - PASS
+- `./editor/build-native/step545_test` - PASS (12/12)
+- `./editor/build-native/step544_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ContextBundleMinimizer.h` within header-size limit (`88` <= `600`)
+- `editor/tests/step545_test.cpp` within test-file size guidance (`169` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
