@@ -6620,3 +6620,46 @@ adjustment, approval).
 **Architecture gate check:**
 - `editor/src/ArchitectReviewInterface.h` within header-size limit (`231` <= `600`)
 - `editor/tests/step475_test.cpp` within test-file size guidance (`171` lines)
+
+### Step 476: Phase 23a Integration
+**Status:** PASS (8/8 tests)
+
+Adds full Phase 23a integration coverage for architect mode:
+problem description parsing → module decomposition → tech stack selection →
+skeleton generation → architect review/approval → workflow task materialization.
+
+**Files added:**
+- `editor/tests/step476_test.cpp` — 8 integration tests covering:
+  - end-to-end extraction/decomposition/selection flow for bookstore API scenario
+  - frontend/database stack expectation checks
+  - skeleton annotation presence checks
+  - architect review modifications + approval
+  - workflow task creation after approval
+  - dependency graph and structured review snapshot checks
+- `editor/CMakeLists.txt` — `step476_test` target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step476_test` — PASS
+- `./editor/build-native/step476_test` — PASS (8/8)
+- `./editor/build-native/step475_test` — PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step476_test.cpp` within test-file size guidance (`148` lines)
+- No new production header introduced in this integration step
+
+**Phase 23a totals (471-476):**
+- **Steps:** 6
+- **Tests:** 68/68 passing
+- **Headers added:** 5
+  - `ArchitectProblemParser.h`
+  - `ArchitectModuleDecomposer.h`
+  - `ArchitectTechStackSelector.h`
+  - `ArchitectSkeletonGenerator.h`
+  - `ArchitectReviewInterface.h`
+- **Capabilities delivered:**
+  - natural-language requirement extraction with confidence
+  - strategy-aware module decomposition graph generation
+  - per-module tech stack selection with preference overrides
+  - annotated multi-module skeleton generation
+  - architect review/modify/approve state model
+  - end-to-end architect-mode flow readiness for phase 23b scaffolding
