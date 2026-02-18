@@ -12779,3 +12779,49 @@ mutation preview acceptance, code update, and chat-session save/restore.
 - `editor/src/Sprint37IntegrationSummary.h` (`104` <= `600`)
 - `editor/tests/step633_test.cpp` within test-file size guidance (`109` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+## Sprint 37 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Completed end-of-sprint modified-files audit for Steps 624-633 and refactored
+the two Sprint 37-touched UI functions that exceeded the `ARCHITECTURE.md`
+single-function line limit.
+
+**Files modified:**
+- `editor/src/panels/AgentChatPanel.h`
+- `editor/src/panels/StatusBarPanel.h`
+
+**Refactor result:**
+- Split `renderAgentChatPanel(...)` into focused helpers:
+  - session sync, context injection, task-tab rendering, history rendering,
+    tool-call rendering, mutation-preview rendering, task-row rendering,
+    composer, autosave.
+- Split `renderStatusBar(...)` into focused helpers:
+  - background-color selection, left cluster, center notification, recording +
+    agent indicator, right-text composition/render.
+- Preserved panel behavior while bringing Sprint 37 touched code in line with
+  function-size constraints.
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target whetstone_editor` - PASS
+- `cmake --build editor/build-native --target step624_test step625_test step626_test step627_test step628_test step629_test step630_test step631_test step632_test step633_test` - PASS
+- `./editor/build-native/step624_test` - PASS (12/12)
+- `./editor/build-native/step625_test` - PASS (12/12)
+- `./editor/build-native/step626_test` - PASS (12/12)
+- `./editor/build-native/step627_test` - PASS (12/12)
+- `./editor/build-native/step628_test` - PASS (8/8)
+- `./editor/build-native/step629_test` - PASS (12/12)
+- `./editor/build-native/step630_test` - PASS (12/12)
+- `./editor/build-native/step631_test` - PASS (12/12)
+- `./editor/build-native/step632_test` - PASS (12/12)
+- `./editor/build-native/step633_test` - PASS (8/8)
+- Sprint 37 matrix total: **112/112 passing**
+
+**Architecture gate check:**
+- `editor/src/panels/AgentChatPanel.h` (`242` <= `600`)
+- `editor/src/panels/StatusBarPanel.h` (`231` <= `600`)
+- `editor/src/Sprint37IntegrationSummary.h` (`104` <= `600`)
+- `editor/src/AgentTaskSlots.h` (`154` <= `600`)
+- `editor/src/AgentTaskStatusOverlay.h` (`79` <= `600`)
+- `editor/tests/step633_test.cpp` within test-file size guidance (`109` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
