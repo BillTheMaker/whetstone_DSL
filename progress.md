@@ -12354,3 +12354,66 @@ match the registered MCP tool surface, including Sprint 36 tools and Sprint
 **Architecture gate check:**
 - `editor/tests/step622_test.cpp` within test-file size guidance (`142` lines)
 - Tool catalog refresh does not violate header-only or naming constraints in `ARCHITECTURE.md`
+
+### Step 623: Sprint 36 Integration + Summary
+**Status:** PASS (8/8 tests)
+
+Adds a Sprint 36 summary runner validating a fresh MCP initialize handshake
+(with instructions) followed by architect intake, taskitem generation, and
+queue readiness evaluation in one flow.
+
+**Files added:**
+- `editor/src/Sprint36IntegrationSummary.h` - summary integration runner:
+  - initialize instructions presence check
+  - 614→615→616 stage orchestration and summary extraction
+- `editor/tests/step623_test.cpp` - 8 tests covering:
+  - initialize instructions availability
+  - stage-by-stage success for clear spec
+  - queue readiness/task summary checks
+  - risky-spec escalation blocker behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step623_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step623_test step622_test` - PASS
+- `./editor/build-native/step623_test` - PASS (8/8)
+- `./editor/build-native/step622_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint36IntegrationSummary.h` within header-size limit (`79` <= `600`)
+- `editor/tests/step623_test.cpp` within test-file size guidance (`122` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+## Sprint 36 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Completed end-of-sprint architecture audit for Steps 614-623. No refactor was
+required because Sprint 36 modules remained within constraints.
+
+**Verification run (full sprint matrix):**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step614_test step615_test step616_test step617_test step618_test step619_test step620_test step621_test step622_test step623_test` - PASS
+- `./editor/build-native/step614_test` - PASS (12/12)
+- `./editor/build-native/step615_test` - PASS (12/12)
+- `./editor/build-native/step616_test` - PASS (12/12)
+- `./editor/build-native/step617_test` - PASS (12/12)
+- `./editor/build-native/step618_test` - PASS (8/8)
+- `./editor/build-native/step619_test` - PASS (12/12)
+- `./editor/build-native/step620_test` - PASS (12/12)
+- `./editor/build-native/step621_test` - PASS (12/12)
+- `./editor/build-native/step622_test` - PASS (8/8)
+- `./editor/build-native/step623_test` - PASS (8/8)
+- Sprint 36 matrix total: **108/108 passing**
+
+**Architecture gate check (Sprint 36 files):**
+- `editor/src/MCPServer.h` (`551` <= `600`)
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` (`552` <= `600`)
+- `editor/src/MCPProjectConfig.h` (`128` <= `600`)
+- `editor/src/mcp_main.cpp` (`184` <= `1500`)
+- `editor/src/headless_rpc/DispatchPart3.h` (`494` <= `600`)
+- `editor/src/AgentPermissionPolicy.h` (`132` <= `600`)
+- `editor/src/Sprint36aIntegration.h` (`71` <= `600`)
+- `editor/src/Sprint36IntegrationSummary.h` (`79` <= `600`)
+- Naming conventions and header-only architecture constraints remain aligned with `ARCHITECTURE.md`
