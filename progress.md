@@ -13228,3 +13228,27 @@ install-rule generation.
 - `editor/src/ProjectAstCMakeGenerator.h` (`38` <= `600`)
 - `editor/tests/step645_test.cpp` within test-file size guidance (`33` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 646: In-editor test runner
+**Status:** PASS (12/12 tests)
+
+Adds a test-runner model for in-editor execution with per-target pass/fail
+results, summary counters, completion status, and failure-to-source linking.
+
+**Files added:**
+- `editor/src/InEditorTestRunnerModel.h` - in-editor test runner model
+- `editor/tests/step646_test.cpp` - 12 tests for runner behavior and edge cases
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step646_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step646_test step645_test` - PASS
+- `./editor/build-native/step646_test` - PASS (12/12)
+- `./editor/build-native/step645_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/InEditorTestRunnerModel.h` (`40` <= `600`)
+- `editor/tests/step646_test.cpp` within test-file size guidance (`25` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
