@@ -13276,3 +13276,28 @@ reason messaging and allow/block decision helpers for mutation requests.
 - `editor/src/SelfModificationSafetyGuard.h` (`28` <= `600`)
 - `editor/tests/step647_test.cpp` within test-file size guidance (`25` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 648: Phase 39a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates self-hosting config load, AST-driven CMake generation, in-editor
+test runner execution, and live-binary mutation blocking into one Phase 39a
+readiness signal.
+
+**Files added:**
+- `editor/src/Phase39aIntegration.h` - integration runner for Step 644-647
+- `editor/tests/step648_test.cpp` - 8 integration checks
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step648_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step648_test step647_test` - PASS
+- `./editor/build-native/step648_test` - PASS (8/8)
+- `./editor/build-native/step647_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase39aIntegration.h` (`49` <= `600`)
+- `editor/tests/step648_test.cpp` within test-file size guidance (`21` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
