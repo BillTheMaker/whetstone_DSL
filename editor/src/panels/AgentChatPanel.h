@@ -3,8 +3,10 @@
 #include "../AgentChatPanelModel.h"
 #include "../AgentChatContextInjector.h"
 #include "../AgentChatSessionPersistence.h"
+#include "../AgentTaskStatusOverlay.h"
 #include "../EditorState.h"
 #include "../EditorUtils.h"
+#include <ctime>
 
 static int countChatContextNodes(const ASTNode* node) {
     if (!node) return 0;
@@ -21,6 +23,7 @@ static void renderAgentChatPanel(EditorState& state) {
     }
 
     AgentChatState& chat = state.agent.chat;
+    AgentTaskSlotsState& taskSlots = state.agent.taskSlots;
     const std::string projectFile = state.activeBuffer ? state.activeBuffer->path : "";
     if (!projectFile.empty() &&
         (!chat.sessionLoaded || chat.loadedProjectFile != projectFile)) {
@@ -52,6 +55,31 @@ static void renderAgentChatPanel(EditorState& state) {
         snapshot.openAnnotationCount = countAnnotationNodes(ast);
         AgentChatContextInjector::inject(&chat, snapshot, "context");
     }
+    (void)AgentTaskSlots::assignPendingToSlots(&taskSlots);
+    const int nowSeconds = static_cast<int>(std::time(nullptr));
+    const auto overlayRows = AgentTaskStatusOverlay::buildRows(taskSlots, nowSeconds);
+
+    if (!overlayRows.empty() && ImGui::BeginTabBar("##AgentTaskSlotsTabs")) {
+        for (const auto& row : overlayRows) {
+            std::string tabName = (row.slotIndex >= 0)
+                ? ("Slot " + std::to_string(row.slotIndex + 1) + ": " + row.taskId)
+                : ("Pending: " + row.taskId);
+            if (ImGui::BeginTabItem(tabName.c_str())) {
+                ImGui::Text("Task: %s", row.description.c_str());
+                ImGui::Text("Status: %s", row.status.c_str());
+                ImGui::Text("Elapsed: %ds", row.elapsedSeconds);
+                ImGui::Text("Tool Calls: %d", row.toolCallsMade);
+                ImGui::Text("Current Step: %s", row.currentStep.c_str());
+                if (row.canCancel &&
+                    ImGui::Button(("Cancel##tab_" + row.taskId).c_str())) {
+                    (void)AgentTaskStatusOverlay::cancelTask(&taskSlots, row.taskId);
+                }
+                ImGui::EndTabItem();
+            }
+        }
+        ImGui::EndTabBar();
+    }
+
     ImGui::BeginChild("##AgentChatHistory", ImVec2(0, -120), true);
     for (const auto& msg : chat.messages) {
         ImGui::Text("[%s] %s", msg.timestamp.c_str(), AgentChatPanelModel::roleLabel(msg.role));
@@ -131,6 +159,23 @@ static void renderAgentChatPanel(EditorState& state) {
                                                   preview.previewId,
                                                   preview.mutationJson);
                 }
+            }
+        }
+    }
+
+    if (!overlayRows.empty()) {
+        ImGui::Separator();
+        ImGui::TextUnformatted("Agent Tasks");
+        for (const auto& row : overlayRows) {
+            ImGui::Text("[%s] %s", row.status.c_str(), row.description.c_str());
+            ImGui::SameLine();
+            ImGui::TextDisabled("(elapsed: %ds, tools: %d, step: %s)",
+                                row.elapsedSeconds,
+                                row.toolCallsMade,
+                                row.currentStep.c_str());
+            if (row.canCancel &&
+                ImGui::Button(("Cancel##row_" + row.taskId).c_str())) {
+                (void)AgentTaskStatusOverlay::cancelTask(&taskSlots, row.taskId);
             }
         }
     }

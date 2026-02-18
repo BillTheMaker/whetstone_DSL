@@ -12700,3 +12700,49 @@ assignment for concurrent chat threads.
 - `editor/src/state/AgentState.h` (`31` <= `600`)
 - `editor/tests/step631_test.cpp` within test-file size guidance (`161` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 632: Agent task status overlay
+**Status:** PASS (12/12 tests)
+
+Adds agent task status visibility in the editor shell:
+status bar summary (`[Agent: X running, Y pending]`) and detailed task rows in
+the agent chat panel with description, elapsed time, tool-call count, current
+step, and per-task cancel action.
+
+**Files added:**
+- `editor/src/AgentTaskStatusOverlay.h` - overlay model:
+  - status summary composition for status bar rendering
+  - per-task row projection for task-panel rendering
+  - status text mapping and cancel dispatch helper
+- `editor/tests/step632_test.cpp` - 12 tests covering:
+  - running/pending summary counts and label formatting
+  - empty-task edge behavior
+  - task-row projection, elapsed-time computation, and cancelability flags
+  - tool-call/current-step projection and cancellation semantics
+
+**Files modified:**
+- `editor/src/AgentTaskSlots.h` - extended task metadata + helpers:
+  - start-time-aware slot assignment overload
+  - progress updates (`toolCallsMade`, `currentStep`)
+  - elapsed tracking for overlay reporting
+- `editor/src/panels/StatusBarPanel.h` - status-bar agent item:
+  - renders overlay summary when work is active
+  - click opens the agent chat panel
+- `editor/src/panels/AgentChatPanel.h` - task tabs + task list rendering:
+  - slot tabs for parallel task threads
+  - detailed task rows with cancel controls
+- `editor/CMakeLists.txt` - `step632_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step632_test step631_test` - PASS
+- `./editor/build-native/step632_test` - PASS (12/12)
+- `./editor/build-native/step631_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentTaskStatusOverlay.h` (`83` <= `600`)
+- `editor/src/AgentTaskSlots.h` (`157` <= `600`)
+- `editor/src/panels/StatusBarPanel.h` (`223` <= `600`)
+- `editor/src/panels/AgentChatPanel.h` (`208` <= `600`)
+- `editor/tests/step632_test.cpp` within test-file size guidance (`193` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

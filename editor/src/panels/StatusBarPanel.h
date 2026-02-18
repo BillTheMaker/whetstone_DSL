@@ -1,6 +1,7 @@
 #pragma once
 #include "../EditorState.h"
 #include "../EditorUtils.h"
+#include "../AgentTaskStatusOverlay.h"
 #include "../ThemeEngine.h"
 #include <fstream>
 #include <filesystem>
@@ -158,6 +159,15 @@ static void renderStatusBar(EditorState& state) {
     }
     if (recording) {
         ImGui::PopStyleColor(2);
+    }
+
+    AgentTaskStatusSummary taskSummary =
+        AgentTaskStatusOverlay::buildSummary(state.agent.taskSlots);
+    if (taskSummary.hasWork) {
+        ImGui::SameLine(0, 10);
+        if (ImGui::Button(taskSummary.label.c_str())) {
+            state.ui.showAgentChatPanel = true;
+        }
     }
 
     // Right cluster: Ln/Col, selection, zoom, git

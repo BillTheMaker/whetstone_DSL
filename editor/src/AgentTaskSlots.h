@@ -16,6 +16,10 @@ struct AgentBackgroundTask {
     std::string description;
     AgentTaskStatus status = AgentTaskStatus::Pending;
     int slotIndex = -1;
+    int startedAtSeconds = 0;
+    int lastElapsedSeconds = 0;
+    int toolCallsMade = 0;
+    std::string currentStep;
 };
 
 struct AgentTaskSlotsState {
@@ -43,6 +47,10 @@ public:
     }
 
     static int assignPendingToSlots(AgentTaskSlotsState* state) {
+        return assignPendingToSlotsAt(state, 0);
+    }
+
+    static int assignPendingToSlotsAt(AgentTaskSlotsState* state, int nowSeconds) {
         if (!state) return 0;
         int assigned = 0;
         int running = runningCount(*state);
@@ -51,6 +59,9 @@ public:
             if (task.status != AgentTaskStatus::Pending) continue;
             task.status = AgentTaskStatus::Running;
             task.slotIndex = nextAvailableSlot(*state);
+            if (task.startedAtSeconds == 0 && nowSeconds > 0) {
+                task.startedAtSeconds = nowSeconds;
+            }
             ++running;
             ++assigned;
         }
@@ -70,6 +81,29 @@ public:
         if (!task) return false;
         task->status = AgentTaskStatus::Cancelled;
         task->slotIndex = -1;
+        return true;
+    }
+
+    static bool updateTaskProgress(AgentTaskSlotsState* state,
+                                   const std::string& taskId,
+                                   int toolCallsMade,
+                                   const std::string& currentStep) {
+        AgentBackgroundTask* task = findMutable(state, taskId);
+        if (!task) return false;
+        if (toolCallsMade >= 0) task->toolCallsMade = toolCallsMade;
+        task->currentStep = currentStep;
+        return true;
+    }
+
+    static bool tickTaskElapsed(AgentTaskSlotsState* state,
+                                const std::string& taskId,
+                                int nowSeconds) {
+        AgentBackgroundTask* task = findMutable(state, taskId);
+        if (!task) return false;
+        if (task->startedAtSeconds <= 0 || nowSeconds < task->startedAtSeconds) {
+            return false;
+        }
+        task->lastElapsedSeconds = nowSeconds - task->startedAtSeconds;
         return true;
     }
 
