@@ -15,6 +15,9 @@
 #include <functional>
 #include <algorithm>
 #include <cctype>
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
 #include <nlohmann/json.hpp>
 
 #include "MarkdownSpecParser.h"
@@ -145,7 +148,8 @@ private:
             {"serverInfo", {
                 {"name", "whetstone-mcp"},
                 {"version", "0.1.0"}
-            }}
+            }},
+            {"instructions", loadInitializeInstructions()}
         };
         return response;
     }
@@ -340,6 +344,33 @@ private:
         if (ext == ".rs") return "rust";
         if (ext == ".go") return "go";
         return "";
+    }
+
+    static std::string readFileText(const std::string& path) {
+        std::ifstream input(path);
+        if (!input.is_open()) return "";
+        std::ostringstream buffer;
+        buffer << input.rdbuf();
+        return buffer.str();
+    }
+
+    static std::string loadInitializeInstructions() {
+        const char* envPath = std::getenv("WHETSTONE_SYSTEM_PROMPT_PATH");
+        if (envPath != nullptr) {
+            std::string envText = readFileText(envPath);
+            if (!envText.empty()) return envText;
+        }
+
+        const std::vector<std::string> candidates = {
+            "tools/claude/system_prompt.txt",
+            "../tools/claude/system_prompt.txt",
+            "../../tools/claude/system_prompt.txt"
+        };
+        for (const auto& path : candidates) {
+            std::string text = readFileText(path);
+            if (!text.empty()) return text;
+        }
+        return "System prompt unavailable: tools/claude/system_prompt.txt not found.";
     }
 
     static bool isIgnoredOnboardPath(const std::string& path) {

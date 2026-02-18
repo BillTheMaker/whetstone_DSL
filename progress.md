@@ -12157,3 +12157,32 @@ ready-count/escalation summaries, and bound acceptance-check queue JSON.
 - `editor/src/MCPServer.h` within header-size limit (`520` <= `600`)
 - `editor/tests/step616_test.cpp` within test-file size guidance (`237` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 617: MCP initialize `instructions` field
+**Status:** PASS (12/12 tests)
+
+Adds an `instructions` string field to MCP `initialize` responses, populated from
+`tools/claude/system_prompt.txt` (with fallback path probing and env override).
+
+**Files modified:**
+- `editor/src/MCPServer.h` - initialize payload now includes `instructions`; added
+  file-loading helpers for prompt text lookup.
+- `editor/CMakeLists.txt` - `step617_test` target
+
+**Files added:**
+- `editor/tests/step617_test.cpp` - 12 tests covering:
+  - initialize response shape and protocol continuity
+  - instructions field presence and expected content
+  - parity with `tools/claude/system_prompt.txt`
+  - compatibility checks for tools list and notifications behavior
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step617_test step616_test` - PASS
+- `./editor/build-native/step617_test` - PASS (12/12)
+- `./editor/build-native/step616_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MCPServer.h` within header-size limit (`551` <= `600`)
+- `editor/tests/step617_test.cpp` within test-file size guidance (`165` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
