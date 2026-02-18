@@ -1,6 +1,8 @@
 #pragma once
 // Step 624: Agent Chat Panel model
 
+#include "AgentToolCallVisualization.h"
+
 #include <cctype>
 #include <string>
 #include <vector>
@@ -19,6 +21,7 @@ struct AgentChatMessage {
 
 struct AgentChatState {
     std::vector<AgentChatMessage> messages;
+    std::vector<AgentToolCallView> toolCalls;
     std::string draftInput;
     bool autoScroll = true;
     bool open = false;
@@ -49,6 +52,20 @@ public:
                                const std::string& timestamp) {
         if (!state) return;
         state->messages.push_back({AgentChatRole::Tool, content, timestamp});
+        state->autoScroll = true;
+    }
+
+    static void addToolCall(AgentChatState* state,
+                            const std::string& toolName,
+                            const json& input,
+                            const json& output,
+                            const std::string& timestamp) {
+        if (!state) return;
+        AgentToolCallView view = AgentToolCallVisualization::build(toolName, input, output);
+        state->toolCalls.push_back(view);
+        state->messages.push_back({AgentChatRole::Tool,
+                                   AgentToolCallVisualization::inlineLabel(view),
+                                   timestamp});
         state->autoScroll = true;
     }
 

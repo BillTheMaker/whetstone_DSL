@@ -12458,3 +12458,38 @@ role/timestamp metadata, and a dedicated chat panel surface.
 - `editor/src/state/UIFlags.h` (`35` <= `600`)
 - `editor/src/main.cpp` (`590` <= `1500`)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 625: Tool call visualization
+**Status:** PASS (12/12 tests)
+
+Adds structured tool-call visualization for agent activity, including inline
+labels, tool-specific summaries, collapsible call records, and input/output
+JSON payload capture.
+
+**Files added:**
+- `editor/src/AgentToolCallVisualization.h` - tool call view model:
+  - summary generation for mutate/generate/pipeline calls
+  - inline label formatting and expand/collapse state helper
+- `editor/tests/step625_test.cpp` - 12 tests covering:
+  - summary/label generation behavior
+  - JSON payload capture
+  - expand/collapse toggling
+  - chat model integration with stored tool call entries
+
+**Files modified:**
+- `editor/src/AgentChatPanelModel.h` - added tool call list state + `addToolCall()` helper
+- `editor/src/panels/AgentChatPanel.h` - renders tool calls as collapsible blocks with input/output JSON
+- `editor/CMakeLists.txt` - `step625_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step625_test step624_test` - PASS
+- `./editor/build-native/step625_test` - PASS (12/12)
+- `./editor/build-native/step624_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentToolCallVisualization.h` (`63` <= `600`)
+- `editor/src/AgentChatPanelModel.h` (`91` <= `600`)
+- `editor/src/panels/AgentChatPanel.h` (`58` <= `600`)
+- `editor/tests/step625_test.cpp` within test-file size guidance (`155` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
