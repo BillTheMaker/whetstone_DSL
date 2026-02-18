@@ -13013,3 +13013,34 @@ stubs, dependency wiring, and JSON tool-response shaping.
 - `editor/src/ProjectSkeletonGenerator.h` (`67` <= `600`)
 - `editor/tests/step639_test.cpp` within test-file size guidance (`121` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 640: MQTT pub/sub boilerplate generator
+**Status:** PASS (12/12 tests)
+
+Adds MQTT boilerplate generation for typed pub/sub client scaffolding with
+topic/QoS metadata, reconnect hooks, and nlohmann-json deserialization points
+for generated handlers.
+
+**Files added:**
+- `editor/src/MqttBoilerplateGenerator.h` - MQTT boilerplate module:
+  - validates client/topic input
+  - emits client header and source skeleton text
+  - embeds topic and QoS handling markers for generated code
+- `editor/tests/step640_test.cpp` - 12 tests covering:
+  - required-input edge cases
+  - client API method emission
+  - expected topic/QoS and JSON parsing markers
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step640_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step640_test step639_test` - PASS
+- `./editor/build-native/step640_test` - PASS (12/12)
+- `./editor/build-native/step639_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MqttBoilerplateGenerator.h` (`56` <= `600`)
+- `editor/tests/step640_test.cpp` within test-file size guidance (`123` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
