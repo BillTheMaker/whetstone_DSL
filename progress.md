@@ -12951,3 +12951,34 @@ for generated `#ifdef` paths.
 - `editor/src/PlatformCMakeTargetGenerator.h` (`43` <= `600`)
 - `editor/tests/step637_test.cpp` within test-file size guidance (`117` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 638: Phase 38a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates Sprint 38a generators into a single host-buildable drone skeleton
+flow: schema types, capability declarations, error synthesis, platform guards,
+and a shared-header main entry path.
+
+**Files added:**
+- `editor/src/Phase38aIntegration.h` - phase integration runner:
+  - composes Step 634-637 modules
+  - validates emitted interface target and shared include path assumptions
+  - reports host skeleton readiness signal
+- `editor/tests/step638_test.cpp` - 8 tests covering:
+  - schema/capability/error/platform generation success
+  - main entry and shared-header integration
+  - host-skeleton buildability signal
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step638_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step638_test step637_test` - PASS
+- `./editor/build-native/step638_test` - PASS (8/8)
+- `./editor/build-native/step637_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase38aIntegration.h` (`61` <= `600`)
+- `editor/tests/step638_test.cpp` within test-file size guidance (`83` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
