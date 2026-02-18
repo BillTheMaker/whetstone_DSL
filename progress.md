@@ -12982,3 +12982,34 @@ and a shared-header main entry path.
 - `editor/src/Phase38aIntegration.h` (`61` <= `600`)
 - `editor/tests/step638_test.cpp` within test-file size guidance (`83` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 639: `whetstone_generate_project` MCP tool
+**Status:** PASS (12/12 tests)
+
+Adds a project skeleton generator for one-call C++ project bootstrap from
+description metadata, including `CMakeLists.txt`, `main.cpp`, module-header
+stubs, dependency wiring, and JSON tool-response shaping.
+
+**Files added:**
+- `editor/src/ProjectSkeletonGenerator.h` - project-generation module:
+  - generator entrypoint for project name/description/dependencies
+  - CMake and main-entry text emission
+  - MCP-style JSON response shaping helper
+- `editor/tests/step639_test.cpp` - 12 tests covering:
+  - tool identity and invalid-input handling
+  - project/cmake/main generation behavior
+  - dependency propagation and response payload shape
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step639_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step639_test step638_test` - PASS
+- `./editor/build-native/step639_test` - PASS (12/12)
+- `./editor/build-native/step638_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ProjectSkeletonGenerator.h` (`67` <= `600`)
+- `editor/tests/step639_test.cpp` within test-file size guidance (`121` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
