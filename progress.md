@@ -12888,3 +12888,35 @@ a header-only `supports(...)` helper.
 - `editor/src/CapabilityDeclarationGenerator.h` (`68` <= `600`)
 - `editor/tests/step635_test.cpp` within test-file size guidance (`116` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 636: Error type synthesis for drone
+**Status:** PASS (12/12 tests)
+
+Adds a drone error synthesis module covering `MqttError`, `NexusError`,
+`ExecutionError`, and `CapabilityMismatch` with category mapping, retryability
+rules, and `std::expected` alias generation helpers.
+
+**Files added:**
+- `editor/src/DroneErrorSynthesis.h` - error synthesis model:
+  - error kind and spec modeling
+  - category and expected-alias helpers
+  - header text synthesis for generated drone error types
+- `editor/tests/step636_test.cpp` - 12 tests covering:
+  - class/category mapping correctness
+  - expected-alias generation behavior
+  - retryability edge cases
+  - synthesized-header content and empty-namespace handling
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step636_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step636_test step635_test` - PASS
+- `./editor/build-native/step636_test` - PASS (12/12)
+- `./editor/build-native/step635_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/DroneErrorSynthesis.h` (`62` <= `600`)
+- `editor/tests/step636_test.cpp` within test-file size guidance (`109` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
