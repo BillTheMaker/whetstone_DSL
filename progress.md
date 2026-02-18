@@ -13203,3 +13203,28 @@ self-hosting eligibility checks.
 - `editor/src/SelfHostingProjectConfig.h` (`53` <= `600`)
 - `editor/tests/step644_test.cpp` within test-file size guidance (`135` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 645: CMake generator from Whetstone project description
+**Status:** PASS (12/12 tests)
+
+Adds a project-AST-to-CMake generator supporting source target emission, test
+target scaffolding, dependency `find_package` lines, vcpkg hook, and optional
+install-rule generation.
+
+**Files added:**
+- `editor/src/ProjectAstCMakeGenerator.h` - CMake generation module
+- `editor/tests/step645_test.cpp` - 12 tests for AST-to-CMake behavior and edges
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step645_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step645_test step644_test` - PASS
+- `./editor/build-native/step645_test` - PASS (12/12)
+- `./editor/build-native/step644_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ProjectAstCMakeGenerator.h` (`38` <= `600`)
+- `editor/tests/step645_test.cpp` within test-file size guidance (`33` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
