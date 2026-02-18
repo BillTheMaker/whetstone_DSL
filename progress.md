@@ -12857,3 +12857,34 @@ INTERFACE target text.
 - `editor/src/SchemaToCppGenerator.h` (`116` <= `600`)
 - `editor/tests/step634_test.cpp` within test-file size guidance (`128` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 635: Capability declaration struct generator
+**Status:** PASS (12/12 tests)
+
+Adds a capability declaration generator for shared drone/orchestrator types:
+`NodeCapability`, `CapabilitySet`, `EnergyContext`, and `JobRequirements`, plus
+a header-only `supports(...)` helper.
+
+**Files added:**
+- `editor/src/CapabilityDeclarationGenerator.h` - capability type generator:
+  - emits shared capability structs and helper logic
+  - supports namespace customization for generated header text
+  - exposes generated type set metadata for validation/tests
+- `editor/tests/step635_test.cpp` - 12 tests covering:
+  - namespace validation and default generation
+  - generated type presence and helper emission
+  - header-only pattern checks and type set integrity
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step635_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step635_test step634_test` - PASS
+- `./editor/build-native/step635_test` - PASS (12/12)
+- `./editor/build-native/step634_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CapabilityDeclarationGenerator.h` (`68` <= `600`)
+- `editor/tests/step635_test.cpp` within test-file size guidance (`116` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
