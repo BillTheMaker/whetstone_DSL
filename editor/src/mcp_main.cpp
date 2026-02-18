@@ -8,6 +8,8 @@
 
 #include "HeadlessEditorState.h"
 #include "MCPBridge.h"
+#include "MCPProjectConfig.h"
+#include "AgentPermissionPolicy.h"
 #include "ast/Serialization.h"
 
 #include <csignal>
@@ -116,14 +118,34 @@ int main(int argc, char** argv) {
     // Create headless state
     HeadlessEditorState state;
     state.verbose = verbose;
-    if (!workspace.empty()) state.workspaceRoot = workspace;
-    if (!language.empty())  state.defaultLanguage = language;
+    MCPProjectConfigLoadResult configLoad;
+    if (!workspace.empty()) {
+        configLoad = MCPProjectConfig::loadFromWorkspace(workspace);
+        if (!configLoad.error.empty()) {
+            std::cerr << "[whetstone-mcp] Config load warning: " << configLoad.error << "\n";
+        }
+    }
+
+    if (configLoad.found && !configLoad.config.workspace.empty()) {
+        state.workspaceRoot = configLoad.config.workspace;
+    } else if (!workspace.empty()) {
+        state.workspaceRoot = workspace;
+    }
+
+    if (!language.empty()) {
+        state.defaultLanguage = language;
+    } else if (configLoad.found && !configLoad.config.defaultLanguage.empty()) {
+        state.defaultLanguage = configLoad.config.defaultLanguage;
+    }
 
     // Create an empty default buffer so getAST etc. work immediately
     state.openBuffer("(scratch)", "", state.defaultLanguage);
 
-    // Set default agent role to Refactor for full MCP access
-    state.setAgentRole("mcp-session", AgentRole::Refactor);
+    AgentRole role = AgentRole::Refactor;
+    if (configLoad.found && !configLoad.config.agentRole.empty()) {
+        role = AgentPermissionPolicy::roleFromString(configLoad.config.agentRole);
+    }
+    state.setAgentRole("mcp-session", role);
 
     // Create bridge and wire handlers
     MCPBridge bridge;
@@ -138,8 +160,11 @@ int main(int argc, char** argv) {
 
     // Log startup info to stderr (stdout is the MCP transport)
     std::cerr << "[whetstone-mcp] Starting MCP server v0.1.0\n";
-    if (!workspace.empty())
-        std::cerr << "[whetstone-mcp] Workspace: " << workspace << "\n";
+    if (!state.workspaceRoot.empty())
+        std::cerr << "[whetstone-mcp] Workspace: " << state.workspaceRoot << "\n";
+    if (configLoad.found && !configLoad.config.mcpWorkspaceAlias.empty())
+        std::cerr << "[whetstone-mcp] Workspace alias: "
+                  << configLoad.config.mcpWorkspaceAlias << "\n";
     std::cerr << "[whetstone-mcp] Language: " << state.defaultLanguage << "\n";
     if (verbose)
         std::cerr << "[whetstone-mcp] Verbose mode enabled\n";

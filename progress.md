@@ -12216,3 +12216,39 @@ readiness tool.
 - `editor/src/Sprint36aIntegration.h` within header-size limit (`71` <= `600`)
 - `editor/tests/step618_test.cpp` within test-file size guidance (`121` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 619: `.whetstone.json` per-project config schema
+**Status:** PASS (12/12 tests)
+
+Introduces per-project MCP config parsing/loading for:
+`workspace`, `defaultLanguage`, `agentRole`, and `mcpWorkspaceAlias`.
+`whetstone_mcp` now reads `.whetstone.json` from the `--workspace` directory
+at startup when present.
+
+**Files added:**
+- `editor/src/MCPProjectConfig.h` - project config schema and loader:
+  - JSON text/object parsing with field type validation
+  - workspace-root file loading from `.whetstone.json`
+- `editor/tests/step619_test.cpp` - 12 tests covering:
+  - schema parse success/failure paths
+  - invalid field type handling
+  - workspace file discovery/load/error behavior
+
+**Files modified:**
+- `editor/src/mcp_main.cpp` - startup config integration:
+  - loads `.whetstone.json` for provided `--workspace`
+  - applies configured workspace/language/agent role defaults
+  - reports workspace alias in startup logs when provided
+- `editor/CMakeLists.txt` - `step619_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step619_test step618_test` - PASS
+- `./editor/build-native/step619_test` - PASS (12/12)
+- `./editor/build-native/step618_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MCPProjectConfig.h` within header-size limit (`102` <= `600`)
+- `editor/src/mcp_main.cpp` within main-size limit (`177` <= `1500`)
+- `editor/tests/step619_test.cpp` within test-file size guidance (`169` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
