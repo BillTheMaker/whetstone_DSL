@@ -13252,3 +13252,27 @@ results, summary counters, completion status, and failure-to-source linking.
 - `editor/src/InEditorTestRunnerModel.h` (`40` <= `600`)
 - `editor/tests/step646_test.cpp` within test-file size guidance (`25` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 647: Self-modification safety guard
+**Status:** PASS (12/12 tests)
+
+Adds a self-modification guard for live editor-binary paths with explicit block
+reason messaging and allow/block decision helpers for mutation requests.
+
+**Files added:**
+- `editor/src/SelfModificationSafetyGuard.h` - live-binary mutation guard model
+- `editor/tests/step647_test.cpp` - 12 tests for path matching, block reasons, and edges
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step647_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step647_test step646_test` - PASS
+- `./editor/build-native/step647_test` - PASS (12/12)
+- `./editor/build-native/step646_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfModificationSafetyGuard.h` (`28` <= `600`)
+- `editor/tests/step647_test.cpp` within test-file size guidance (`25` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
