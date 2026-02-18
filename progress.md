@@ -13600,3 +13600,28 @@ unused exports with scoring and refactor-threshold recommendation logic.
 - `editor/src/EntropyScannerModel.h` (`65` <= `600`)
 - `editor/tests/step659_test.cpp` within test-file size guidance (`24` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 660: `whetstone_generate_inference_job` MCP tool
+**Status:** PASS (12/12 tests)
+
+Adds inference-job generation model for entropy observations with structured
+job payload output (`type`, `goal`, `context.files`, `context.entropy_score`,
+`bounty`) and input validation/error signaling.
+
+**Files added:**
+- `editor/src/InferenceJobGenerator.h` - inference-job generator model
+- `editor/tests/step660_test.cpp` - 12 tests for generation and validation paths
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step660_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step660_test step659_test` - PASS
+- `./editor/build-native/step660_test` - PASS (12/12)
+- `./editor/build-native/step659_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/InferenceJobGenerator.h` (`32` <= `600`)
+- `editor/tests/step660_test.cpp` within test-file size guidance (`24` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
