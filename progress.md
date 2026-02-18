@@ -12563,3 +12563,35 @@ state tracking and inline control wiring for each preview item.
 - `editor/src/panels/AgentChatPanel.h` (`106` <= `600`)
 - `editor/tests/step627_test.cpp` within test-file size guidance (`137` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 628: Phase 37a Integration
+**Status:** PASS (8/8 tests)
+
+Adds a phase-level integration harness covering the full chat-loop behavior:
+user message submission, tool call visualization, mutation preview creation,
+accept decision, and final code state update.
+
+**Files added:**
+- `editor/src/Phase37aIntegration.h` - integration runner:
+  - user/spec submission to chat model
+  - simulated `whetstone_generate_code` tool call capture
+  - mutation preview creation + acceptance path
+  - final active-code update state
+- `editor/tests/step628_test.cpp` - 8 tests covering:
+  - full happy-path flow progression
+  - acceptance and AST/code-update behavior
+  - empty-spec edge case handling
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step628_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step628_test step627_test` - PASS
+- `./editor/build-native/step628_test` - PASS (8/8)
+- `./editor/build-native/step627_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase37aIntegration.h` (`51` <= `600`)
+- `editor/tests/step628_test.cpp` within test-file size guidance (`93` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
