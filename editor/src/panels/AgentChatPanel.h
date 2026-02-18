@@ -1,8 +1,16 @@
 #pragma once
 
 #include "../AgentChatPanelModel.h"
+#include "../AgentChatContextInjector.h"
 #include "../EditorState.h"
 #include "../EditorUtils.h"
+
+static int countChatContextNodes(const ASTNode* node) {
+    if (!node) return 0;
+    int total = 1;
+    for (const auto* child : node->allChildren()) total += countChatContextNodes(child);
+    return total;
+}
 
 static void renderAgentChatPanel(EditorState& state) {
     if (!state.ui.showAgentChatPanel) return;
@@ -12,6 +20,18 @@ static void renderAgentChatPanel(EditorState& state) {
     }
 
     AgentChatState& chat = state.agent.chat;
+    if (chat.systemContext.empty()) {
+        AgentChatRuntimeSnapshot snapshot;
+        if (state.activeBuffer) {
+            snapshot.activeFile = state.activeBuffer->path;
+            snapshot.language = state.activeBuffer->language;
+        }
+        snapshot.workspacePath = state.workspaceRoot.empty() ? "." : state.workspaceRoot;
+        Module* ast = state.activeAST();
+        snapshot.astNodeCount = countChatContextNodes(ast);
+        snapshot.openAnnotationCount = countAnnotationNodes(ast);
+        AgentChatContextInjector::inject(&chat, snapshot, "context");
+    }
     ImGui::BeginChild("##AgentChatHistory", ImVec2(0, -120), true);
     for (const auto& msg : chat.messages) {
         ImGui::Text("[%s] %s", msg.timestamp.c_str(), AgentChatPanelModel::roleLabel(msg.role));

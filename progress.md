@@ -12595,3 +12595,37 @@ accept decision, and final code state update.
 - `editor/src/Phase37aIntegration.h` (`51` <= `600`)
 - `editor/tests/step628_test.cpp` within test-file size guidance (`93` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 629: Project context auto-injection
+**Status:** PASS (12/12 tests)
+
+Adds automatic chat-context injection at chat start with:
+active file, language, AST node count, open annotation count, and workspace path.
+
+**Files added:**
+- `editor/src/AgentChatContextInjector.h` - context block model + prompt injection:
+  - runtime snapshot-to-context conversion
+  - prompt-text composition for system context
+  - chat-state context injection helper
+- `editor/tests/step629_test.cpp` - 12 tests covering:
+  - snapshot/context mapping defaults and field propagation
+  - prompt text composition content
+  - injection behavior for system context + assistant message + auto-scroll
+
+**Files modified:**
+- `editor/src/AgentChatPanelModel.h` - added `systemContext` storage field
+- `editor/src/panels/AgentChatPanel.h` - auto-injects context snapshot on chat start
+- `editor/CMakeLists.txt` - `step629_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step629_test step628_test` - PASS
+- `./editor/build-native/step629_test` - PASS (12/12)
+- `./editor/build-native/step628_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentChatContextInjector.h` (`54` <= `600`)
+- `editor/src/AgentChatPanelModel.h` (`112` <= `600`)
+- `editor/src/panels/AgentChatPanel.h` (`126` <= `600`)
+- `editor/tests/step629_test.cpp` within test-file size guidance (`146` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

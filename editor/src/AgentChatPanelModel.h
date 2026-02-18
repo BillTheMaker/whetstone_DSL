@@ -26,6 +26,7 @@ struct AgentChatState {
     std::vector<AgentToolCallView> toolCalls;
     std::vector<AgentMutationPreview> mutationPreviews;
     std::vector<MutationApprovalRecord> mutationApprovals;
+    std::string systemContext;
     std::string draftInput;
     bool autoScroll = true;
     bool open = false;
