@@ -13106,3 +13106,69 @@ drone-side typed dispatch wiring.
 - `editor/src/JobDispatchTableGenerator.h` (`55` <= `600`)
 - `editor/tests/step642_test.cpp` within test-file size guidance (`125` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 643: Sprint 38 Integration + Summary
+**Status:** PASS (8/8 tests)
+
+Adds Sprint 38 end-to-end integration composition for project skeleton, MQTT
+client scaffolding, SQLite data layer, and dispatch-table generation, with a
+compile-readiness summary signal for the generated drone stack.
+
+**Files added:**
+- `editor/src/Sprint38IntegrationSummary.h` - sprint integration runner:
+  - composes Step 639-642 generators
+  - validates CMake/main/topic-handler readiness signals
+  - reports compile-ready summary status
+- `editor/tests/step643_test.cpp` - 8 tests covering:
+  - per-generator success signals
+  - CMake/main/topic-handler readiness checks
+  - compile-ready aggregate signal
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step643_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step643_test step642_test` - PASS
+- `./editor/build-native/step643_test` - PASS (8/8)
+- `./editor/build-native/step642_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint38IntegrationSummary.h` (`60` <= `600`)
+- `editor/tests/step643_test.cpp` within test-file size guidance (`83` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+## Sprint 38 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Completed end-of-sprint modified-files audit for Steps 634-643.
+No additional refactor was required: all Sprint 38 files were already compliant
+with size/function constraints and naming conventions.
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target step634_test step635_test step636_test step637_test step638_test step639_test step640_test step641_test step642_test step643_test` - PASS
+- `./editor/build-native/step634_test` - PASS (12/12)
+- `./editor/build-native/step635_test` - PASS (12/12)
+- `./editor/build-native/step636_test` - PASS (12/12)
+- `./editor/build-native/step637_test` - PASS (12/12)
+- `./editor/build-native/step638_test` - PASS (8/8)
+- `./editor/build-native/step639_test` - PASS (12/12)
+- `./editor/build-native/step640_test` - PASS (12/12)
+- `./editor/build-native/step641_test` - PASS (12/12)
+- `./editor/build-native/step642_test` - PASS (12/12)
+- `./editor/build-native/step643_test` - PASS (8/8)
+- Sprint 38 matrix total: **112/112 passing**
+
+**Architecture gate check:**
+- `editor/src/SchemaToCppGenerator.h` (`116` <= `600`)
+- `editor/src/CapabilityDeclarationGenerator.h` (`68` <= `600`)
+- `editor/src/DroneErrorSynthesis.h` (`62` <= `600`)
+- `editor/src/PlatformCMakeTargetGenerator.h` (`43` <= `600`)
+- `editor/src/Phase38aIntegration.h` (`61` <= `600`)
+- `editor/src/ProjectSkeletonGenerator.h` (`67` <= `600`)
+- `editor/src/MqttBoilerplateGenerator.h` (`56` <= `600`)
+- `editor/src/SQLiteDataLayerGenerator.h` (`47` <= `600`)
+- `editor/src/JobDispatchTableGenerator.h` (`55` <= `600`)
+- `editor/src/Sprint38IntegrationSummary.h` (`60` <= `600`)
+- Sprint 38 test files remain within test-file size guidance.
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
