@@ -13456,3 +13456,27 @@ within architecture size/function constraints.
 - `editor/src/Sprint39IntegrationSummary.h` (`45` <= `600`)
 - Sprint 39 test files remain within test-file size guidance.
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 654: HiveMind job publisher from editor
+**Status:** PASS (12/12 tests)
+
+Adds a dispatch publisher model for `whetstone_dispatch_to_hivemind` style flow,
+covering taskitem validation, nexus queue signal, and MQTT topic publish signal.
+
+**Files added:**
+- `editor/src/HiveMindJobPublisher.h` - dispatch publisher model
+- `editor/tests/step654_test.cpp` - 12 tests for dispatch validation/publish flow
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step654_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step654_test step653_test` - PASS
+- `./editor/build-native/step654_test` - PASS (12/12)
+- `./editor/build-native/step653_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/HiveMindJobPublisher.h` (`29` <= `600`)
+- `editor/tests/step654_test.cpp` within test-file size guidance (`26` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
