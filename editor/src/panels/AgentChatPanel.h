@@ -2,6 +2,7 @@
 
 #include "../AgentChatPanelModel.h"
 #include "../AgentChatContextInjector.h"
+#include "../AgentChatSessionPersistence.h"
 #include "../EditorState.h"
 #include "../EditorUtils.h"
 
@@ -20,6 +21,25 @@ static void renderAgentChatPanel(EditorState& state) {
     }
 
     AgentChatState& chat = state.agent.chat;
+    const std::string projectFile = state.activeBuffer ? state.activeBuffer->path : "";
+    if (!projectFile.empty() &&
+        (!chat.sessionLoaded || chat.loadedProjectFile != projectFile)) {
+        AgentChatSavedSession loaded;
+        std::string error;
+        if (AgentChatSessionPersistence::loadLatestSession(state.workspaceRoot,
+                                                           projectFile,
+                                                           &loaded,
+                                                           &error)) {
+            chat = loaded.chat;
+            chat.loadedProjectFile = projectFile;
+            chat.sessionLoaded = true;
+            chat.persistedMessageCount = chat.messages.size();
+        } else {
+            chat.loadedProjectFile = projectFile;
+            chat.sessionLoaded = true;
+        }
+    }
+
     if (chat.systemContext.empty()) {
         AgentChatRuntimeSnapshot snapshot;
         if (state.activeBuffer) {
@@ -120,6 +140,19 @@ static void renderAgentChatPanel(EditorState& state) {
     ImGui::SameLine();
     if (ImGui::Button("Send", ImVec2(80, 80))) {
         AgentChatPanelModel::sendUserMessage(&chat, "now");
+    }
+
+    if (!projectFile.empty() &&
+        chat.sessionLoaded &&
+        chat.messages.size() != chat.persistedMessageCount) {
+        std::string error;
+        if (AgentChatSessionPersistence::saveSession(state.workspaceRoot,
+                                                     projectFile,
+                                                     "autosave",
+                                                     chat,
+                                                     &error)) {
+            chat.persistedMessageCount = chat.messages.size();
+        }
     }
 
     ImGui::End();

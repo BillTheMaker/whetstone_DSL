@@ -12629,3 +12629,40 @@ active file, language, AST node count, open annotation count, and workspace path
 - `editor/src/panels/AgentChatPanel.h` (`126` <= `600`)
 - `editor/tests/step629_test.cpp` within test-file size guidance (`146` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 630: Chat session persistence
+**Status:** PASS (12/12 tests)
+
+Implements per-project-file chat session persistence under workspace storage,
+with latest-session restore and session timestamp indexing.
+
+**Files added:**
+- `editor/src/AgentChatSessionPersistence.h` - persistence module:
+  - store path resolution under workspace
+  - append-save and latest-load APIs by project file
+  - session timestamp listing and JSON encode/decode for chat state
+- `editor/tests/step630_test.cpp` - 12 tests covering:
+  - path derivation and save/load validation
+  - latest-session retrieval and ordering
+  - per-project-file isolation
+  - session-context round-trip behavior
+
+**Files modified:**
+- `editor/src/AgentChatPanelModel.h` - session bookkeeping fields for load/save state
+- `editor/src/panels/AgentChatPanel.h` - panel wiring:
+  - auto-load latest session on project switch/open
+  - auto-save session snapshots when message count changes
+- `editor/CMakeLists.txt` - `step630_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step630_test step629_test` - PASS
+- `./editor/build-native/step630_test` - PASS (12/12)
+- `./editor/build-native/step629_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentChatSessionPersistence.h` (`167` <= `600`)
+- `editor/src/AgentChatPanelModel.h` (`116` <= `600`)
+- `editor/src/panels/AgentChatPanel.h` (`159` <= `600`)
+- `editor/tests/step630_test.cpp` within test-file size guidance (`184` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

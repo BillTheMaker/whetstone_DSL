@@ -5,6 +5,7 @@
 #include "AgentMutationPreview.h"
 #include "AgentMutationApproval.h"
 
+#include <cstddef>
 #include <cctype>
 #include <string>
 #include <vector>
@@ -28,6 +29,9 @@ struct AgentChatState {
     std::vector<MutationApprovalRecord> mutationApprovals;
     std::string systemContext;
     std::string draftInput;
+    std::string loadedProjectFile;
+    std::size_t persistedMessageCount = 0;
+    bool sessionLoaded = false;
     bool autoScroll = true;
     bool open = false;
 };
