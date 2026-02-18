@@ -1,0 +1,150 @@
+{
+  "sprint": 41,
+  "goal": "Wire whetstone_schema_to_cpp and whetstone_generate_dispatch_table as live MCP tools",
+  "context": "Two C++ generator classes exist (Steps 634, 642) but are not registered in the MCP layer. This sprint is pure plumbing — no new logic. The pattern to follow is RegisterArchitectIntakeTools.h (Sprint 36).",
+  "architectureInvariants": [
+    "Header-only C++ — all new code in .h files",
+    "600-line file limit — split if approaching",
+    "MCP-first — every capability exposed as an MCP tool",
+    "No new external dependencies",
+    "Binary must rebuild without warnings after each step"
+  ],
+  "taskitems": [
+    {
+      "taskId": "S41-664",
+      "title": "Create RegisterCodegenTools.h — wire whetstone_schema_to_cpp",
+      "milestoneId": "Sprint41",
+      "dependencyTaskIds": [],
+      "prerequisiteOps": [
+        "read editor/src/SchemaToCppGenerator.h",
+        "read editor/src/mcp/RegisterArchitectIntakeTools.h",
+        "read editor/src/mcp/RegisterASTTools.h"
+      ],
+      "queueReady": true,
+      "confidence": 96,
+      "ambiguityCount": 0,
+      "escalate": false,
+      "reasons": [
+        "SchemaToCppGenerator.h is complete. Interface: SchemaToCppGenerator::generate(json schema, string headerName, string targetName) → SchemaToCppOutput{success, headerCode, cmakeInterfaceTarget, errors[]}. toolName() already returns 'whetstone_schema_to_cpp'.",
+        "Create editor/src/mcp/RegisterCodegenTools.h. Define registerCodegenTools() method. Push tool to tools_ with name 'whetstone_schema_to_cpp', description, and input_schema {schema (object), header_name (string), target_name (string)}. All required.",
+        "Lambda handler: parse args['schema'] as json, args['header_name'] and args['target_name'] as strings. Call SchemaToCppGenerator::generate(). Return {success, header_code, cmake_interface_target, errors} as json.",
+        "Write editor/tests/step664_test.cpp with 12 tests: valid schema produces struct, schema without title errors, empty properties produces 'raw' field, integer/bool/number types map to int/bool/double, sanitizeIdentifier strips special chars, cmakeInterfaceTarget non-empty on success, invalid schema errors cleanly, multi-field struct round-trips via from_json/to_json, MCP handler returns success=false on bad input, success=true on minimal valid, headerCode contains '#pragma once', toolName() == 'whetstone_schema_to_cpp'.",
+        "Add step664_test to CMakeLists.txt using the same pattern as step663_test.",
+        "Build and run: cmake --build editor/build-native --target step664_test && ./editor/build-native/step664_test"
+      ]
+    },
+    {
+      "taskId": "S41-665",
+      "title": "Add whetstone_generate_dispatch_table to RegisterCodegenTools.h",
+      "milestoneId": "Sprint41",
+      "dependencyTaskIds": ["S41-664"],
+      "prerequisiteOps": [
+        "read editor/src/JobDispatchTableGenerator.h",
+        "read editor/src/mcp/RegisterCodegenTools.h"
+      ],
+      "queueReady": true,
+      "confidence": 94,
+      "ambiguityCount": 0,
+      "escalate": false,
+      "reasons": [
+        "JobDispatchTableGenerator.h is complete. Interface: JobDispatchTableGenerator::generate(vector<JobDispatchEntrySpec>) → JobDispatchTableOutput{success, headerCode, errors[]}. JobDispatchEntrySpec has: jobType, requiredCaps (vector<string>), payloadType, executor (all strings).",
+        "Add whetstone_generate_dispatch_table to registerCodegenTools() in RegisterCodegenTools.h. Input schema: {entries: array of {job_type (string, required), required_caps (array of string, optional), payload_type (string, optional), executor (string, required)}}.",
+        "Lambda handler: parse args['entries'] json array. For each element, construct JobDispatchEntrySpec. Call JobDispatchTableGenerator::generate(). Return {success, header_code, errors}.",
+        "Write editor/tests/step665_test.cpp with 12 tests: single entry produces valid C++ header, multiple entries all appear, empty entries[] returns entries_required error, missing executor handled, headerCode contains '#pragma once' and 'makeDispatchTable', requiredCaps appear as comments, handler parses json array correctly, success=false on bad input, output contains '{' and '}', job_type appears as string key, executor appears as value, roundtrip job_type string present.",
+        "Add step665_test to CMakeLists.txt.",
+        "Build and run: cmake --build editor/build-native --target step665_test && ./editor/build-native/step665_test"
+      ]
+    },
+    {
+      "taskId": "S41-666",
+      "title": "Wire RegisterCodegenTools.h into MCPServer + tools.json",
+      "milestoneId": "Sprint41",
+      "dependencyTaskIds": ["S41-665"],
+      "prerequisiteOps": [
+        "read editor/src/MCPServer.h lines 530-560",
+        "read editor/src/mcp/RegisterOnboardingAndAllTools.h",
+        "read tools/claude/tools.json"
+      ],
+      "queueReady": true,
+      "confidence": 98,
+      "ambiguityCount": 0,
+      "escalate": false,
+      "reasons": [
+        "MCPServer.h: add '#include \"mcp/RegisterCodegenTools.h\"' after the existing RegisterArchitectIntakeTools include (around line 550). This follows the identical pattern of every other Register*.h in the file.",
+        "RegisterOnboardingAndAllTools.h: add 'registerCodegenTools();' inside registerWhetstoneTools() after 'registerArchitectIntakeTools();'. RegisterOnboardingAndAllTools.h is the single place all registerX() calls are collected.",
+        "tools/claude/tools.json: add two entries matching the exact JSON structure of existing entries. Entry 1: name='whetstone_schema_to_cpp', description='Generate a typed C++ header struct with nlohmann JSON serializers from a JSON Schema object. Returns header_code and cmake_interface_target.', input_schema with schema(object), header_name(string), target_name(string) all required. Entry 2: name='whetstone_generate_dispatch_table', description='Generate a C++ dispatch table header (makeDispatchTable()) from a list of job type specs.', input_schema with entries(array of objects with job_type+executor required).",
+        "Write editor/tests/step666_test.cpp with 8 tests verifying: MCPServer initializes, registerWhetstoneTools calls registerCodegenTools, tools.json is valid JSON, both tool names present in tools.json, tool count is previous+2, tools_ vector contains both new names, handlers map contains both new names, no duplicate tool names.",
+        "Add step666_test to CMakeLists.txt.",
+        "Build and run: cmake --build editor/build-native --target step666_test && ./editor/build-native/step666_test"
+      ]
+    },
+    {
+      "taskId": "S41-667",
+      "title": "Rebuild whetstone_mcp binary and smoke test both new tools",
+      "milestoneId": "Sprint41",
+      "dependencyTaskIds": ["S41-666"],
+      "prerequisiteOps": [
+        "read hivemind/schemas/energy_context.schema.json",
+        "read editor/src/mcp_main.cpp"
+      ],
+      "queueReady": true,
+      "confidence": 90,
+      "ambiguityCount": 1,
+      "escalate": false,
+      "reasons": [
+        "Build: cmake -S editor -B editor/build-native && cmake --build editor/build-native --target whetstone_mcp. Must complete without errors or warnings.",
+        "Smoke test via MCP stdio protocol (send JSON-RPC to stdin, read from stdout). Use the MCPBridge stdio format: {jsonrpc:'2.0', id:1, method:'tools/list', params:{}}. Verify both new tool names appear in the response.",
+        "Smoke test whetstone_schema_to_cpp: send tools/call with the energy_context.schema.json content as 'schema', header_name='EnergyContext.h', target_name='energy_context_types'. Verify success=true and header_code contains 'struct'.",
+        "Smoke test whetstone_generate_dispatch_table: send tools/call with entries for the 4 HiveMind job types [{job_type:'agent_swarm',executor:'handleAgentSwarm'},{job_type:'cuda_task',executor:'handleCudaTask'},{job_type:'compile_job',executor:'handleCompileJob'},{job_type:'shell_script',executor:'handleShellScript'}]. Verify success=true and header_code contains 'makeDispatchTable'.",
+        "Ambiguity: the exact JSON-RPC framing for the whetstone_mcp stdio protocol — read mcp_main.cpp to confirm MCPBridge input format before crafting test input.",
+        "Write editor/tests/step667_test.cpp with 8 tests: binary exists + executable, runs without crash on --help, tools/list is valid JSON, schema_to_cpp in tools/list, dispatch_table in tools/list, schema_to_cpp call returns success=true, dispatch_table call returns success=true, binary exits on SIGTERM.",
+        "Add step667_test to CMakeLists.txt."
+      ]
+    },
+    {
+      "taskId": "S41-668",
+      "title": "Sprint 41 integration summary",
+      "milestoneId": "Sprint41",
+      "dependencyTaskIds": ["S41-667"],
+      "prerequisiteOps": [
+        "read editor/src/Sprint40IntegrationSummary.h"
+      ],
+      "queueReady": true,
+      "confidence": 99,
+      "ambiguityCount": 0,
+      "escalate": false,
+      "reasons": [
+        "Create editor/src/Sprint41IntegrationSummary.h. Model it exactly on Sprint40IntegrationSummary.h.",
+        "Capture: tool_count_before=82, tool_count_after=84, steps_completed=5 (664-668), files_added=['RegisterCodegenTools.h'], files_modified=['MCPServer.h','RegisterOnboardingAndAllTools.h','tools/claude/tools.json'], success=true.",
+        "Write editor/tests/step668_test.cpp with 8 tests: struct constructable, tool_count_before==82, tool_count_after==84, steps_completed==5, files_added contains RegisterCodegenTools.h, files_modified contains MCPServer.h, files_modified contains tools.json, success==true.",
+        "Add step668_test to CMakeLists.txt.",
+        "Run full sprint regression: cmake --build editor/build-native --target step664_test step665_test step666_test step667_test step668_test. All must pass.",
+        "Update progress.md with Sprint 41 entries (one block per step, matching format of Sprint 40 blocks).",
+        "Commit: 'Sprint 41: wire whetstone_schema_to_cpp + whetstone_generate_dispatch_table as MCP tools (Steps 664-668)'"
+      ]
+    }
+  ],
+  "agentOrientation": {
+    "readFirst": ["ARCHITECT.md", "sprint41_plan.md"],
+    "keyFiles": {
+      "implementationTarget": "editor/src/mcp/RegisterCodegenTools.h",
+      "wiringPoints": [
+        "editor/src/MCPServer.h (add #include)",
+        "editor/src/mcp/RegisterOnboardingAndAllTools.h (add registerCodegenTools() call)"
+      ],
+      "catalogUpdate": "tools/claude/tools.json",
+      "existingImpls": [
+        "editor/src/SchemaToCppGenerator.h",
+        "editor/src/JobDispatchTableGenerator.h"
+      ],
+      "patternToFollow": "editor/src/mcp/RegisterArchitectIntakeTools.h"
+    },
+    "doNotModify": [
+      "editor/src/SchemaToCppGenerator.h — implementation complete, do not change",
+      "editor/src/JobDispatchTableGenerator.h — implementation complete, do not change",
+      "editor/src/mcp_main.cpp — entry point, no changes needed"
+    ],
+    "buildCommand": "cmake -S editor -B editor/build-native && cmake --build editor/build-native --target whetstone_mcp",
+    "testPattern": "cmake --build editor/build-native --target step{N}_test && ./editor/build-native/step{N}_test"
+  }
+}
