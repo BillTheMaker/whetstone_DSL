@@ -13349,3 +13349,27 @@ validation, hash verification, binary replace gating, and restart scheduling.
 - `editor/src/HiveMindAutoUpdateModel.h` (`41` <= `600`)
 - `editor/tests/step650_test.cpp` within test-file size guidance (`26` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 651: Language generator plugin manifest
+**Status:** PASS (12/12 tests)
+
+Adds plugin-manifest validation and discovery helpers for shared-library
+language generator extensions (`whetstone-plugin-*.so`) and factory symbol naming.
+
+**Files added:**
+- `editor/src/LanguageGeneratorPluginManifest.h` - plugin manifest model
+- `editor/tests/step651_test.cpp` - 12 tests for validation/discovery behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step651_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step651_test step650_test` - PASS
+- `./editor/build-native/step651_test` - PASS (12/12)
+- `./editor/build-native/step650_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/LanguageGeneratorPluginManifest.h` (`30` <= `600`)
+- `editor/tests/step651_test.cpp` within test-file size guidance (`26` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
