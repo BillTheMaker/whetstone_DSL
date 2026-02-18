@@ -2,6 +2,7 @@
 // Step 624: Agent Chat Panel model
 
 #include "AgentToolCallVisualization.h"
+#include "AgentMutationPreview.h"
 
 #include <cctype>
 #include <string>
@@ -22,6 +23,7 @@ struct AgentChatMessage {
 struct AgentChatState {
     std::vector<AgentChatMessage> messages;
     std::vector<AgentToolCallView> toolCalls;
+    std::vector<AgentMutationPreview> mutationPreviews;
     std::string draftInput;
     bool autoScroll = true;
     bool open = false;
@@ -66,6 +68,22 @@ public:
         state->messages.push_back({AgentChatRole::Tool,
                                    AgentToolCallVisualization::inlineLabel(view),
                                    timestamp});
+        state->autoScroll = true;
+    }
+
+    static void addMutationPreview(AgentChatState* state,
+                                   const std::string& previewId,
+                                   const std::string& mutationJson,
+                                   const std::string& beforeCode,
+                                   const std::string& afterCode,
+                                   const std::string& timestamp) {
+        if (!state) return;
+        AgentMutationPreview preview = AgentMutationPreviewBuilder::build(
+            previewId, mutationJson, beforeCode, afterCode);
+        state->mutationPreviews.push_back(preview);
+        std::string label = std::string("[PREVIEW] ") + previewId +
+                            (preview.hasChanges ? " (changes)" : " (no changes)");
+        state->messages.push_back({AgentChatRole::Tool, label, timestamp});
         state->autoScroll = true;
     }
 

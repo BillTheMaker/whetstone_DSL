@@ -12493,3 +12493,37 @@ JSON payload capture.
 - `editor/src/panels/AgentChatPanel.h` (`58` <= `600`)
 - `editor/tests/step625_test.cpp` within test-file size guidance (`155` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 626: AST mutation preview
+**Status:** PASS (12/12 tests)
+
+Adds mutation preview records with before/after code snapshots and line-level
+diff metadata so pending agent edits can be inspected before application.
+
+**Files added:**
+- `editor/src/AgentMutationPreview.h` - preview model:
+  - before/after code capture
+  - line-diff generation via `DiffUtils`
+  - change-detection flagging and split-line helpers
+- `editor/tests/step626_test.cpp` - 12 tests covering:
+  - preview creation and payload retention
+  - diff/change detection behavior
+  - chat integration for preview record + message insertion
+
+**Files modified:**
+- `editor/src/AgentChatPanelModel.h` - added mutation preview storage + append helper
+- `editor/src/panels/AgentChatPanel.h` - added collapsible side-by-side preview rendering
+- `editor/CMakeLists.txt` - `step626_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step626_test step625_test` - PASS
+- `./editor/build-native/step626_test` - PASS (12/12)
+- `./editor/build-native/step625_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentMutationPreview.h` (`41` <= `600`)
+- `editor/src/AgentChatPanelModel.h` (`109` <= `600`)
+- `editor/src/panels/AgentChatPanel.h` (`85` <= `600`)
+- `editor/tests/step626_test.cpp` within test-file size guidance (`135` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

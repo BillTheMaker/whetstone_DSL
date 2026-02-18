@@ -47,6 +47,33 @@ static void renderAgentChatPanel(EditorState& state) {
         }
     }
 
+    if (!chat.mutationPreviews.empty()) {
+        ImGui::Separator();
+        ImGui::TextUnformatted("Mutation Previews");
+        for (std::size_t i = 0; i < chat.mutationPreviews.size(); ++i) {
+            const auto& preview = chat.mutationPreviews[i];
+            std::string header = preview.previewId + (preview.hasChanges ? " (changes)" : " (no changes)");
+            if (ImGui::CollapsingHeader((header + "##preview_" + std::to_string(i)).c_str())) {
+                ImGui::TextUnformatted("Mutation JSON");
+                ImGui::BeginChild(("##preview_json_" + std::to_string(i)).c_str(), ImVec2(-1, 60), true);
+                ImGui::TextUnformatted(preview.mutationJson.c_str());
+                ImGui::EndChild();
+
+                ImGui::Columns(2, ("##preview_cols_" + std::to_string(i)).c_str(), true);
+                ImGui::TextUnformatted("Before");
+                ImGui::BeginChild(("##preview_before_" + std::to_string(i)).c_str(), ImVec2(0, 100), true);
+                ImGui::TextUnformatted(preview.beforeCode.c_str());
+                ImGui::EndChild();
+                ImGui::NextColumn();
+                ImGui::TextUnformatted("After");
+                ImGui::BeginChild(("##preview_after_" + std::to_string(i)).c_str(), ImVec2(0, 100), true);
+                ImGui::TextUnformatted(preview.afterCode.c_str());
+                ImGui::EndChild();
+                ImGui::Columns(1);
+            }
+        }
+    }
+
     ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
     InputTextMultilineStr("##AgentChatInput", &chat.draftInput, ImVec2(-90, 80), flags);
     ImGui::SameLine();
