@@ -14,7 +14,7 @@ static void renderMenuBar(EditorState& state) {
         }
         if (ImGui::MenuItem("Open...", state.keys.getBinding("file.open").toString().c_str()))
         {
-            auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go","*.org"}, state.lastDialogPath});
+            auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go","*.org","*.md","*.txt","*.docx","*.*"}, state.lastDialogPath});
             if (!path.empty()) {
                 state.lastDialogPath = path;
                 state.doOpen(path, state.defaultBufferMode());
@@ -34,11 +34,13 @@ static void renderMenuBar(EditorState& state) {
         if (ImGui::MenuItem("Open Folder...")) {
             auto path = FileDialog::openFolder({"Open Folder", state.workspaceRoot});
             if (!path.empty()) {
-                state.workspaceRoot = path;
-                state.fileTreeDirty = true;
-                state.search.projectSearch.setRoot(state.workspaceRoot);
-                state.lastDialogPath = path;
-                state.refreshBuildSystem();
+                std::string error;
+                if (!state.setWorkspaceRoot(path, &error)) {
+                    state.notify(NotificationLevel::Error,
+                                 "Failed to open folder: " + error);
+                } else {
+                    state.lastDialogPath = path;
+                }
             }
         }
         if (ImGui::MenuItem("Save", state.keys.getBinding("file.save").toString().c_str()))
@@ -99,6 +101,7 @@ static void renderMenuBar(EditorState& state) {
         ImGui::MenuItem("Libraries", nullptr, &state.library.showLibraryBrowserPanel);
         ImGui::MenuItem("Compose", nullptr, &state.library.showCompositionPanel);
         ImGui::MenuItem("Memory Strategies", nullptr, &state.ui.showMemoryStrategies);
+        ImGui::MenuItem("Agent Chat", nullptr, &state.ui.showAgentChatPanel);
         ImGui::MenuItem("Emacs Packages", nullptr, &state.emacsState.showEmacsPackagesPanel);
         ImGui::MenuItem("Emacs Bridge", nullptr, &state.emacsState.showEmacsBridgePanel);
         ImGui::MenuItem("Settings", nullptr, &state.ui.showSettingsPanel);

@@ -12417,3 +12417,44 @@ required because Sprint 36 modules remained within constraints.
 - `editor/src/Sprint36aIntegration.h` (`71` <= `600`)
 - `editor/src/Sprint36IntegrationSummary.h` (`79` <= `600`)
 - Naming conventions and header-only architecture constraints remain aligned with `ARCHITECTURE.md`
+
+### Step 624: Agent Chat Panel model
+**Status:** PASS (12/12 tests)
+
+Introduces the core in-editor agent chat model with message history, draft input,
+role/timestamp metadata, and a dedicated chat panel surface.
+
+**Files added:**
+- `editor/src/AgentChatPanelModel.h` - chat model/state:
+  - message roles (user/assistant/tool)
+  - message history storage + draft input
+  - send/append helpers with trim and auto-scroll behavior
+- `editor/src/panels/AgentChatPanel.h` - ImGui chat panel renderer:
+  - scrollable message history
+  - multi-line input + send action
+- `editor/tests/step624_test.cpp` - 12 tests covering:
+  - empty/default state behavior
+  - send validation and draft clearing
+  - role/timestamp/order correctness
+  - auto-scroll and role-label mapping
+
+**Files modified:**
+- `editor/src/state/AgentState.h` - added `AgentChatState` sub-struct storage
+- `editor/src/state/UIFlags.h` - added `showAgentChatPanel` visibility toggle
+- `editor/src/panels/MenuBarPanel.h` - view menu toggle for Agent Chat panel
+- `editor/src/main.cpp` - panel include + render wiring
+- `editor/CMakeLists.txt` - `step624_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step624_test step623_test` - PASS
+- `./editor/build-native/step624_test` - PASS (12/12)
+- `./editor/build-native/step623_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentChatPanelModel.h` (`74` <= `600`)
+- `editor/src/panels/AgentChatPanel.h` (`36` <= `600`)
+- `editor/src/state/AgentState.h` (`23` <= `600`)
+- `editor/src/state/UIFlags.h` (`35` <= `600`)
+- `editor/src/main.cpp` (`590` <= `1500`)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

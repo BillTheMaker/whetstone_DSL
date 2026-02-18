@@ -33,6 +33,7 @@
 #include "panels/BottomPanel.h"
 #include "panels/StatusBarPanel.h"
 #include "panels/HelpPanelWindow.h"
+#include "panels/AgentChatPanel.h"
 
 static std::string emacsChordForEvent(SDL_Keycode sym, Uint16 mods) {
     std::string base;
@@ -344,10 +345,11 @@ int main(int, char**) {
                     DragDropHandler::handleDrop(droppedFile,
                         [&](const std::string& p) { state.doOpen(p, state.defaultBufferMode()); },
                         [&](const std::string& p) {
-                            state.workspaceRoot = p;
-                            state.fileTreeDirty = true;
-                            state.search.projectSearch.setRoot(state.workspaceRoot);
-                            state.refreshBuildSystem();
+                            std::string error;
+                            if (!state.setWorkspaceRoot(p, &error)) {
+                                state.notify(NotificationLevel::Error,
+                                             "Failed to open dropped folder: " + error);
+                            }
                         });
                     SDL_free(droppedFile);
                 }
@@ -523,6 +525,7 @@ int main(int, char**) {
         renderCommandPalette(state);
         renderEditorPanel(state);
         renderBottomPanel(state);
+        renderAgentChatPanel(state);
         renderMemoryStrategiesPanel(state);
         renderStatusBar(state);
         static FirstRunWizardState wizard;

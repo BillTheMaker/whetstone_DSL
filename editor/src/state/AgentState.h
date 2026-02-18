@@ -7,6 +7,7 @@
 #include "AgentRegistry.h"
 #include "AgentMarketplace.h"
 #include "AgentPermissionPolicy.h"
+#include "../AgentChatPanelModel.h"
 
 struct AgentState {
     std::unique_ptr<WebSocketAgentServer> server;
@@ -18,4 +19,5 @@ struct AgentState {
     WorkflowRecorder workflowRecorder;
     AgentRegistry registry;
     AgentMarketplaceState marketplace;
+    AgentChatState chat;
 };

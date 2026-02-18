@@ -14,7 +14,7 @@ struct UIFlags {
     bool showMinimap = false;
     bool showCompletionHelper = false;
     bool showAnnotations = false;
-    bool showOutline = true;
+    bool showOutline = false;
     bool showLineNumbers = true;
     bool showLspSettings = false;
     bool showSettingsPanel = false;
@@ -25,6 +25,7 @@ struct UIFlags {
     bool showAnnotateWizard = false;
     bool showProjectWizard = false;
     bool showAgentWizard = false;
+    bool showAgentChatPanel = false;
     bool requestLayoutReset = false;
     bool requestBottomCollapse = false;
     int bottomTab = 0; // 0=Output,1=AST,2=Highlighted
