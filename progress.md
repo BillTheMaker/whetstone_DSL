@@ -13172,3 +13172,34 @@ with size/function constraints and naming conventions.
 - `editor/src/Sprint38IntegrationSummary.h` (`60` <= `600`)
 - Sprint 38 test files remain within test-file size guidance.
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 644: `.whetstone.json` for the editor project itself
+**Status:** PASS (12/12 tests)
+
+Adds a self-hosting project-config model for Whetstone’s own workspace using
+`.whetstone.json` semantics, including JSON round-trip helpers and
+self-hosting eligibility checks.
+
+**Files added:**
+- `editor/src/SelfHostingProjectConfig.h` - self-hosting config model:
+  - JSON encode/decode for project/workspace/source/test metadata
+  - validation with structured error signaling
+  - `canSelfHost(...)` readiness helper
+- `editor/tests/step644_test.cpp` - 12 tests covering:
+  - JSON emission and parse behavior
+  - invalid-config edge rejection
+  - self-hosting readiness decision paths
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step644_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step644_test step643_test` - PASS
+- `./editor/build-native/step644_test` - PASS (12/12)
+- `./editor/build-native/step643_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SelfHostingProjectConfig.h` (`53` <= `600`)
+- `editor/tests/step644_test.cpp` within test-file size guidance (`135` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
