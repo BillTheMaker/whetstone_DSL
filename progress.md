@@ -13480,3 +13480,27 @@ covering taskitem validation, nexus queue signal, and MQTT topic publish signal.
 - `editor/src/HiveMindJobPublisher.h` (`29` <= `600`)
 - `editor/tests/step654_test.cpp` within test-file size guidance (`26` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 655: Job status subscriber panel
+**Status:** PASS (12/12 tests)
+
+Adds swarm job-status panel modeling for pending/running/completed/failed job
+counts and per-job display formatting.
+
+**Files added:**
+- `editor/src/SwarmStatusPanelModel.h` - swarm status summary model
+- `editor/tests/step655_test.cpp` - 12 tests for status counting and label/state text
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step655_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step655_test step654_test` - PASS
+- `./editor/build-native/step655_test` - PASS (12/12)
+- `./editor/build-native/step654_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SwarmStatusPanelModel.h` (`46` <= `600`)
+- `editor/tests/step655_test.cpp` within test-file size guidance (`27` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
