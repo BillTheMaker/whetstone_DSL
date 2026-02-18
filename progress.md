@@ -12920,3 +12920,34 @@ rules, and `std::expected` alias generation helpers.
 - `editor/src/DroneErrorSynthesis.h` (`62` <= `600`)
 - `editor/tests/step636_test.cpp` within test-file size guidance (`109` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 637: Cross-platform CMake target generator
+**Status:** PASS (12/12 tests)
+
+Adds cross-platform generation helpers for platform-annotated blocks, including
+CMake processor guards, compile-definition emission, and platform macro mapping
+for generated `#ifdef` paths.
+
+**Files added:**
+- `editor/src/PlatformCMakeTargetGenerator.h` - platform-target generator:
+  - guarded CMake target-source generation
+  - annotation-to-macro mapping
+  - compile-time `#ifdef` wrapper generation
+- `editor/tests/step637_test.cpp` - 12 tests covering:
+  - annotation and input validation
+  - CMake guard/text emission behavior
+  - macro mapping for target platforms and fallback behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step637_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step637_test step636_test` - PASS
+- `./editor/build-native/step637_test` - PASS (12/12)
+- `./editor/build-native/step636_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PlatformCMakeTargetGenerator.h` (`43` <= `600`)
+- `editor/tests/step637_test.cpp` within test-file size guidance (`117` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
