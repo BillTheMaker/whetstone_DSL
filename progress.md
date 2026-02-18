@@ -13576,3 +13576,27 @@ apiary browser visibility into one Phase 40a readiness flow.
 - `editor/src/Phase40aIntegration.h` (`38` <= `600`)
 - `editor/tests/step658_test.cpp` within test-file size guidance (`20` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 659: Entropy scanner - editor-side
+**Status:** PASS (12/12 tests)
+
+Adds entropy scanning model for duplicate signatures, similar module names, and
+unused exports with scoring and refactor-threshold recommendation logic.
+
+**Files added:**
+- `editor/src/EntropyScannerModel.h` - entropy scan/scoring model
+- `editor/tests/step659_test.cpp` - 12 tests for scan signals and thresholds
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step659_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step659_test step658_test` - PASS
+- `./editor/build-native/step659_test` - PASS (12/12)
+- `./editor/build-native/step658_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/EntropyScannerModel.h` (`65` <= `600`)
+- `editor/tests/step659_test.cpp` within test-file size guidance (`24` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
