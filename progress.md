@@ -12252,3 +12252,38 @@ at startup when present.
 - `editor/src/mcp_main.cpp` within main-size limit (`177` <= `1500`)
 - `editor/tests/step619_test.cpp` within test-file size guidance (`169` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 620: Config auto-discovery (walk up from CWD)
+**Status:** PASS (12/12 tests)
+
+Adds upward-walk config discovery so `whetstone_mcp` can boot without an
+explicit `--workspace` flag by finding the nearest `.whetstone.json` from CWD.
+
+**Files modified:**
+- `editor/src/MCPProjectConfig.h` - added:
+  - `discoverFromCwd()` walk-up discovery
+  - `sourceWorkspaceRoot` capture for discovered config location
+- `editor/src/mcp_main.cpp` - startup now:
+  - uses discovery path when `--workspace` is omitted
+  - applies discovered workspace root when config file omits `workspace`
+  - emits discovery warnings on invalid start/config parse errors
+- `editor/CMakeLists.txt` - `step620_test` target
+
+**Files added:**
+- `editor/tests/step620_test.cpp` - 12 tests covering:
+  - exact/parent/nearest config discovery behavior
+  - no-config and invalid-start directory cases
+  - parse-error propagation from nearest config file
+  - field parsing during discovery and source-root tracking
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step620_test step619_test` - PASS
+- `./editor/build-native/step620_test` - PASS (12/12)
+- `./editor/build-native/step619_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/MCPProjectConfig.h` within header-size limit (`128` <= `600`)
+- `editor/src/mcp_main.cpp` within main-size limit (`184` <= `1500`)
+- `editor/tests/step620_test.cpp` within test-file size guidance (`191` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

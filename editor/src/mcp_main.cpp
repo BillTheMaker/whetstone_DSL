@@ -124,12 +124,19 @@ int main(int argc, char** argv) {
         if (!configLoad.error.empty()) {
             std::cerr << "[whetstone-mcp] Config load warning: " << configLoad.error << "\n";
         }
+    } else {
+        configLoad = MCPProjectConfig::discoverFromCwd();
+        if (!configLoad.error.empty()) {
+            std::cerr << "[whetstone-mcp] Config discovery warning: " << configLoad.error << "\n";
+        }
     }
 
     if (configLoad.found && !configLoad.config.workspace.empty()) {
         state.workspaceRoot = configLoad.config.workspace;
     } else if (!workspace.empty()) {
         state.workspaceRoot = workspace;
+    } else if (configLoad.found) {
+        state.workspaceRoot = configLoad.sourceWorkspaceRoot;
     }
 
     if (!language.empty()) {

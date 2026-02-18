@@ -18,6 +18,7 @@ struct MCPProjectConfigData {
 
 struct MCPProjectConfigLoadResult {
     bool found = false;
+    std::string sourceWorkspaceRoot;
     MCPProjectConfigData config;
     std::string error;
 };
@@ -69,6 +70,7 @@ public:
             out.error = "workspace_missing";
             return out;
         }
+        out.sourceWorkspaceRoot = workspaceRoot;
 
         std::filesystem::path path = std::filesystem::path(workspaceRoot) / ".whetstone.json";
         if (!std::filesystem::exists(path)) return out;
@@ -83,6 +85,30 @@ public:
         std::string text((std::istreambuf_iterator<char>(in)),
                          std::istreambuf_iterator<char>());
         if (!parseText(text, &out.config, &out.error)) return out;
+        return out;
+    }
+
+    static MCPProjectConfigLoadResult discoverFromCwd(const std::string& startDir = "") {
+        MCPProjectConfigLoadResult out;
+        std::filesystem::path current = startDir.empty()
+            ? std::filesystem::current_path()
+            : std::filesystem::path(startDir);
+        if (!std::filesystem::exists(current)) {
+            out.error = "start_dir_not_found";
+            return out;
+        }
+
+        current = std::filesystem::weakly_canonical(current);
+        while (true) {
+            std::filesystem::path candidate = current / ".whetstone.json";
+            if (std::filesystem::exists(candidate)) {
+                return loadFromWorkspace(current.string());
+            }
+            if (current == current.root_path()) break;
+            std::filesystem::path parent = current.parent_path();
+            if (parent == current) break;
+            current = parent;
+        }
         return out;
     }
 
