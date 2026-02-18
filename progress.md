@@ -13504,3 +13504,27 @@ counts and per-job display formatting.
 - `editor/src/SwarmStatusPanelModel.h` (`46` <= `600`)
 - `editor/tests/step655_test.cpp` within test-file size guidance (`27` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 656: Apiary browser panel
+**Status:** PASS (12/12 tests)
+
+Adds apiary browser panel modeling for tool listing, capability filtering, and
+tool title/source metadata presentation.
+
+**Files added:**
+- `editor/src/ApiaryBrowserPanelModel.h` - apiary panel model
+- `editor/tests/step656_test.cpp` - 12 tests for filtering and metadata behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step656_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step656_test step655_test` - PASS
+- `./editor/build-native/step656_test` - PASS (12/12)
+- `./editor/build-native/step655_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/ApiaryBrowserPanelModel.h` (`36` <= `600`)
+- `editor/tests/step656_test.cpp` within test-file size guidance (`29` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
