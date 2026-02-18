@@ -52,6 +52,9 @@ static void renderAgentChatPanel(EditorState& state) {
         ImGui::TextUnformatted("Mutation Previews");
         for (std::size_t i = 0; i < chat.mutationPreviews.size(); ++i) {
             const auto& preview = chat.mutationPreviews[i];
+            AgentMutationApproval::ensureRecord(&chat.mutationApprovals, preview.previewId);
+            const MutationApprovalRecord* approval =
+                AgentMutationApproval::find(chat.mutationApprovals, preview.previewId);
             std::string header = preview.previewId + (preview.hasChanges ? " (changes)" : " (no changes)");
             if (ImGui::CollapsingHeader((header + "##preview_" + std::to_string(i)).c_str())) {
                 ImGui::TextUnformatted("Mutation JSON");
@@ -70,6 +73,24 @@ static void renderAgentChatPanel(EditorState& state) {
                 ImGui::TextUnformatted(preview.afterCode.c_str());
                 ImGui::EndChild();
                 ImGui::Columns(1);
+
+                ImGui::Separator();
+                if (approval) {
+                    ImGui::Text("Decision: %s", AgentMutationApproval::decisionText(approval->decision).c_str());
+                }
+                if (ImGui::Button(("Accept##" + preview.previewId).c_str())) {
+                    AgentMutationApproval::accept(&chat.mutationApprovals, preview.previewId);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(("Reject##" + preview.previewId).c_str())) {
+                    AgentMutationApproval::reject(&chat.mutationApprovals, preview.previewId, "user_rejected");
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(("Modify##" + preview.previewId).c_str())) {
+                    AgentMutationApproval::modify(&chat.mutationApprovals,
+                                                  preview.previewId,
+                                                  preview.mutationJson);
+                }
             }
         }
     }

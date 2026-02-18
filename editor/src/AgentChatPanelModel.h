@@ -3,6 +3,7 @@
 
 #include "AgentToolCallVisualization.h"
 #include "AgentMutationPreview.h"
+#include "AgentMutationApproval.h"
 
 #include <cctype>
 #include <string>
@@ -24,6 +25,7 @@ struct AgentChatState {
     std::vector<AgentChatMessage> messages;
     std::vector<AgentToolCallView> toolCalls;
     std::vector<AgentMutationPreview> mutationPreviews;
+    std::vector<MutationApprovalRecord> mutationApprovals;
     std::string draftInput;
     bool autoScroll = true;
     bool open = false;

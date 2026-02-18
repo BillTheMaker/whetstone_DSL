@@ -12527,3 +12527,39 @@ diff metadata so pending agent edits can be inspected before application.
 - `editor/src/panels/AgentChatPanel.h` (`85` <= `600`)
 - `editor/tests/step626_test.cpp` within test-file size guidance (`135` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 627: Inline accept/reject controls
+**Status:** PASS (12/12 tests)
+
+Adds human-in-the-loop mutation decisions with explicit accept/reject/modify
+state tracking and inline control wiring for each preview item.
+
+**Files added:**
+- `editor/src/AgentMutationApproval.h` - approval model:
+  - pending/accepted/rejected/modified decision states
+  - accept/reject/modify transitions with validation
+  - rejection feedback message shaping
+- `editor/tests/step627_test.cpp` - 12 tests covering:
+  - record creation/idempotency
+  - decision transition behavior
+  - validation for reject/modify payloads
+  - decision/rejection text formatting and lookup behavior
+
+**Files modified:**
+- `editor/src/AgentChatPanelModel.h` - added mutation approval state storage
+- `editor/src/panels/AgentChatPanel.h` - added inline `[Accept] [Reject] [Modify]` controls
+  and per-preview decision status rendering
+- `editor/CMakeLists.txt` - `step627_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step627_test step626_test` - PASS
+- `./editor/build-native/step627_test` - PASS (12/12)
+- `./editor/build-native/step626_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentMutationApproval.h` (`95` <= `600`)
+- `editor/src/AgentChatPanelModel.h` (`111` <= `600`)
+- `editor/src/panels/AgentChatPanel.h` (`106` <= `600`)
+- `editor/tests/step627_test.cpp` within test-file size guidance (`137` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
