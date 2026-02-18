@@ -24,6 +24,20 @@
             [this](const json& args) {
                 return runGenerateTaskitems(args);
             };
+
+        tools_.push_back({"whetstone_queue_ready",
+            "Evaluate queue readiness for annotated taskitems.",
+            {{"type", "object"}, {"properties", {
+                {"tasks", {{"type", "array"},
+                    {"description", "Annotated taskitems from whetstone_generate_taskitems."}}},
+                {"normalizedRequirements", {{"type", "array"},
+                    {"description", "Normalized requirements (needed for acceptance-coverage binding)."}}}
+            }}, {"required", json::array({"tasks"})}}
+        });
+        toolHandlers_["whetstone_queue_ready"] =
+            [this](const json& args) {
+                return runQueueReady(args);
+            };
     }
 
     json runArchitectIntake(const json& args) {
@@ -305,6 +319,159 @@
                 {"ambiguityCount", task.ambiguityCount},
                 {"escalate", task.escalate},
                 {"reasons", task.reasons}
+            });
+        }
+        return out;
+    }
+
+    json runQueueReady(const json& args) {
+        std::vector<AnnotatedTaskitem> tasks;
+        std::string error;
+        if (!parseAnnotatedTasksInput(args, &tasks, &error)) {
+            return {
+                {"success", false},
+                {"error", error}
+            };
+        }
+
+        std::vector<NormalizedRequirement> requirements;
+        if (!parseNormalizedRequirementsOptional(args, &requirements, &error)) {
+            return {
+                {"success", false},
+                {"error", error}
+            };
+        }
+
+        std::vector<BoundTaskitem> queue;
+        bool bindOk = AcceptanceCriteriaBinding::bind(tasks, requirements, &queue, &error);
+        int escalateCount = 0;
+        for (const auto& task : tasks) {
+            if (task.escalate) ++escalateCount;
+        }
+
+        json blockers = json::array();
+        int readyCount = 0;
+        if (!bindOk) {
+            blockers.push_back(error);
+        } else {
+            for (const auto& item : queue) {
+                if (item.task.base.queueReady && item.hasCoverage) ++readyCount;
+            }
+        }
+        if (readyCount == 0) blockers.push_back("no_ready_tasks");
+        if (escalateCount > 0) blockers.push_back("escalations_present");
+
+        return {
+            {"success", true},
+            {"ready", blockers.empty()},
+            {"blockers", blockers},
+            {"readyCount", readyCount},
+            {"escalateCount", escalateCount},
+            {"queueJson", boundQueueToJson(queue)}
+        };
+    }
+
+    static bool parseAnnotatedTasksInput(const json& args,
+                                         std::vector<AnnotatedTaskitem>* out,
+                                         std::string* error) {
+        if (!out || !error) return false;
+        error->clear();
+        out->clear();
+        if (!args.contains("tasks")) {
+            *error = "tasks_missing";
+            return false;
+        }
+        if (!args["tasks"].is_array()) {
+            *error = "tasks_not_array";
+            return false;
+        }
+
+        for (const auto& taskJson : args["tasks"]) {
+            if (!taskJson.is_object()) {
+                *error = "task_entry_invalid";
+                return false;
+            }
+            AnnotatedTaskitem task;
+            task.base.taskId = taskJson.value("taskId", "");
+            task.base.title = taskJson.value("title", "");
+            task.base.milestoneId = taskJson.value("milestoneId", "");
+            task.base.dependencyTaskIds = taskJson.value("dependencyTaskIds", std::vector<std::string>{});
+            task.base.prerequisiteOps = taskJson.value("prerequisiteOps", std::vector<std::string>{});
+            task.base.queueReady = taskJson.value("queueReady", false);
+            task.confidence = taskJson.value("confidence", 0);
+            task.ambiguityCount = taskJson.value("ambiguityCount", 0);
+            task.escalate = taskJson.value("escalate", false);
+            task.reasons = taskJson.value("reasons", std::vector<std::string>{});
+            if (task.base.taskId.empty() || task.base.title.empty() || task.base.milestoneId.empty()) {
+                *error = "task_entry_missing_fields";
+                return false;
+            }
+            out->push_back(task);
+        }
+
+        if (out->empty()) {
+            *error = "tasks_empty";
+            return false;
+        }
+        return true;
+    }
+
+    static bool parseNormalizedRequirementsOptional(const json& args,
+                                                    std::vector<NormalizedRequirement>* out,
+                                                    std::string* error) {
+        if (!out || !error) return false;
+        error->clear();
+        out->clear();
+        if (!args.contains("normalizedRequirements")) return true;
+        if (!args["normalizedRequirements"].is_array()) {
+            *error = "normalized_requirements_not_array";
+            return false;
+        }
+        for (const auto& requirementJson : args["normalizedRequirements"]) {
+            if (!requirementJson.is_object()) {
+                *error = "requirement_entry_invalid";
+                return false;
+            }
+            NormalizedRequirement requirement;
+            requirement.requirementId = requirementJson.value("requirementId", "");
+            requirement.normalizedText = requirementJson.value("normalizedText", "");
+            requirement.anchor = requirementJson.value("anchor", "");
+            requirement.sourceLine = requirementJson.value("sourceLine", 0);
+            requirement.ambiguous = requirementJson.value("ambiguous", false);
+            if (requirement.requirementId.empty() || requirement.normalizedText.empty()) {
+                *error = "requirement_entry_missing_fields";
+                return false;
+            }
+            if (!parseRequirementKind(requirementJson.value("kind", ""), &requirement.kind)) {
+                *error = "requirement_kind_invalid";
+                return false;
+            }
+            out->push_back(requirement);
+        }
+        return true;
+    }
+
+    static json boundQueueToJson(const std::vector<BoundTaskitem>& queue) {
+        json out = json::array();
+        for (const auto& item : queue) {
+            json checks = json::array();
+            for (const auto& check : item.checks) {
+                checks.push_back({
+                    {"checkId", check.checkId},
+                    {"text", check.text},
+                    {"testSkeleton", check.testSkeleton}
+                });
+            }
+            out.push_back({
+                {"task", {
+                    {"taskId", item.task.base.taskId},
+                    {"title", item.task.base.title},
+                    {"milestoneId", item.task.base.milestoneId},
+                    {"queueReady", item.task.base.queueReady},
+                    {"escalate", item.task.escalate}
+                }},
+                {"checks", checks},
+                {"hasCoverage", item.hasCoverage}
             });
         }
         return out;

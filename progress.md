@@ -12123,3 +12123,37 @@ normalized intake JSON and returns annotated taskitems.
 - `editor/src/MCPServer.h` within header-size limit (`519` <= `600`)
 - `editor/tests/step615_test.cpp` within test-file size guidance (`220` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 616: `whetstone_queue_ready` MCP Tool
+**Status:** PASS (12/12 tests)
+
+Adds queue-readiness evaluation over annotated taskitems, including blockers,
+ready-count/escalation summaries, and bound acceptance-check queue JSON.
+
+**Files modified:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` - added:
+  - `whetstone_queue_ready` tool schema + handler
+  - annotated taskitem input parsing and validation
+  - optional normalized-requirement parsing
+  - acceptance binding + readiness/blocker derivation + queue JSON shaping
+- `editor/src/MCPServer.h` - include wiring for acceptance binding types
+- `editor/CMakeLists.txt` - `step616_test` target
+
+**Files added:**
+- `editor/tests/step616_test.cpp` - 12 tests covering:
+  - MCP tool registration/schema
+  - 614→615→616 success chain
+  - ready/blocker/escalation and queue-coverage behavior
+  - malformed inputs and missing acceptance requirement handling
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step616_test step615_test` - PASS
+- `./editor/build-native/step616_test` - PASS (12/12)
+- `./editor/build-native/step615_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` within header-size limit (`478` <= `600`)
+- `editor/src/MCPServer.h` within header-size limit (`520` <= `600`)
+- `editor/tests/step616_test.cpp` within test-file size guidance (`237` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

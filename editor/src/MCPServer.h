@@ -18,6 +18,7 @@
 #include <nlohmann/json.hpp>
 
 #include "MarkdownSpecParser.h"
+#include "AcceptanceCriteriaBinding.h"
 #include "RequirementNormalizationConflictDetector.h"
 #include "ScopeMilestoneDecomposer.h"
 #include "TaskitemConfidenceAmbiguity.h"
