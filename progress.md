@@ -13397,3 +13397,62 @@ weekly summary formatting and no remote endpoint usage.
 - `editor/src/LocalTelemetryModel.h` (`41` <= `600`)
 - `editor/tests/step652_test.cpp` within test-file size guidance (`24` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 653: Sprint 39 Integration + Summary
+**Status:** PASS (8/8 tests)
+
+Adds Sprint 39 end-to-end integration across self-hosting readiness, packaging,
+auto-update execution, plugin discovery, and local telemetry reporting.
+
+**Files added:**
+- `editor/src/Sprint39IntegrationSummary.h` - sprint integration runner
+- `editor/tests/step653_test.cpp` - 8 integration summary tests
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step653_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step653_test step652_test` - PASS
+- `./editor/build-native/step653_test` - PASS (8/8)
+- `./editor/build-native/step652_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint39IntegrationSummary.h` (`45` <= `600`)
+- `editor/tests/step653_test.cpp` within test-file size guidance (`20` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+## Sprint 39 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Completed end-of-sprint modified-files audit for Steps 644-653.
+No additional refactor was required; all Sprint 39 touched modules remained
+within architecture size/function constraints.
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target step644_test step645_test step646_test step647_test step648_test step649_test step650_test step651_test step652_test step653_test` - PASS
+- `./editor/build-native/step644_test` - PASS (12/12)
+- `./editor/build-native/step645_test` - PASS (12/12)
+- `./editor/build-native/step646_test` - PASS (12/12)
+- `./editor/build-native/step647_test` - PASS (12/12)
+- `./editor/build-native/step648_test` - PASS (8/8)
+- `./editor/build-native/step649_test` - PASS (12/12)
+- `./editor/build-native/step650_test` - PASS (12/12)
+- `./editor/build-native/step651_test` - PASS (12/12)
+- `./editor/build-native/step652_test` - PASS (12/12)
+- `./editor/build-native/step653_test` - PASS (8/8)
+- Sprint 39 matrix total: **112/112 passing**
+
+**Architecture gate check:**
+- `editor/src/SelfHostingProjectConfig.h` (`53` <= `600`)
+- `editor/src/ProjectAstCMakeGenerator.h` (`38` <= `600`)
+- `editor/src/InEditorTestRunnerModel.h` (`40` <= `600`)
+- `editor/src/SelfModificationSafetyGuard.h` (`28` <= `600`)
+- `editor/src/Phase39aIntegration.h` (`49` <= `600`)
+- `editor/src/PackageScriptGenerator.h` (`29` <= `600`)
+- `editor/src/HiveMindAutoUpdateModel.h` (`41` <= `600`)
+- `editor/src/LanguageGeneratorPluginManifest.h` (`30` <= `600`)
+- `editor/src/LocalTelemetryModel.h` (`41` <= `600`)
+- `editor/src/Sprint39IntegrationSummary.h` (`45` <= `600`)
+- Sprint 39 test files remain within test-file size guidance.
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
