@@ -13325,3 +13325,27 @@ project release attributes.
 - `editor/src/PackageScriptGenerator.h` (`29` <= `600`)
 - `editor/tests/step649_test.cpp` within test-file size guidance (`24` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 650: HiveMind-push auto-update mechanism
+**Status:** PASS (12/12 tests)
+
+Adds an auto-update execution model for `update_editor` jobs with job-shape
+validation, hash verification, binary replace gating, and restart scheduling.
+
+**Files added:**
+- `editor/src/HiveMindAutoUpdateModel.h` - update execution model
+- `editor/tests/step650_test.cpp` - 12 tests for validation, hash checks, and apply flow
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step650_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step650_test step649_test` - PASS
+- `./editor/build-native/step650_test` - PASS (12/12)
+- `./editor/build-native/step649_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/HiveMindAutoUpdateModel.h` (`41` <= `600`)
+- `editor/tests/step650_test.cpp` within test-file size guidance (`26` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
