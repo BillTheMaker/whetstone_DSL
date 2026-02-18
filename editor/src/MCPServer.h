@@ -548,4 +548,5 @@ private:
 #include "mcp/RegisterOrchestratorTools.h"
 #include "mcp/RegisterReviewTools.h"
 #include "mcp/RegisterArchitectIntakeTools.h"
+#include "mcp/RegisterCodegenTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"

@@ -4855,4 +4855,41 @@ target_link_libraries(step663_test PRIVATE
     tree_sitter_javascript tree_sitter_typescript
     tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+# Sprint 41: MCP codegen tools wiring (Steps 664-668)
+add_executable(step664_test tests/step664_test.cpp)
+target_include_directories(step664_test PRIVATE src)
+target_link_libraries(step664_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step665_test tests/step665_test.cpp)
+target_include_directories(step665_test PRIVATE src)
+target_link_libraries(step665_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step666_test tests/step666_test.cpp)
+target_include_directories(step666_test PRIVATE src)
+target_link_libraries(step666_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step668_test tests/step668_test.cpp)
+target_include_directories(step668_test PRIVATE src)
+target_link_libraries(step668_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)

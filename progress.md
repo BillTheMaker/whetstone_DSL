@@ -13733,3 +13733,104 @@ with architecture constraints.
 - `editor/src/Sprint40IntegrationSummary.h` (`45` <= `600`)
 - Sprint 40 test files remain within test-file size guidance.
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 664: whetstone_schema_to_cpp MCP tool (12 tests)
+**Status:** PASS (12/12 tests)
+
+Creates `RegisterCodegenTools.h` with `registerCodegenTools()` method.
+Wires `SchemaToCppGenerator` (Step 634) as the `whetstone_schema_to_cpp` MCP tool.
+Input: JSON Schema + header_name + target_name. Output: header_code (C++ struct with
+nlohmann serializers) + cmake_interface_target snippet.
+
+**Files added:**
+- `editor/src/mcp/RegisterCodegenTools.h` — registerCodegenTools() mixin (steps 664-665)
+- `editor/tests/step664_test.cpp` — 12 tests
+
+**Files modified:**
+- `editor/CMakeLists.txt` — step664_test target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step664_test` - PASS
+- `./editor/build-native/step664_test` - PASS (12/12)
+
+**Architecture gate check:**
+- `editor/src/mcp/RegisterCodegenTools.h` within 600-line limit
+- Header-only architecture and naming conventions aligned with `ARCHITECTURE.md`
+
+### Step 665: whetstone_generate_dispatch_table MCP tool (12 tests)
+**Status:** PASS (12/12 tests)
+
+Adds `whetstone_generate_dispatch_table` to `RegisterCodegenTools.h`.
+Wires `JobDispatchTableGenerator` (Step 642) as MCP tool.
+Input: array of {job_type, required_caps[], payload_type, executor}.
+Output: C++ dispatch table header with `makeDispatchTable()`.
+
+**Files modified:**
+- `editor/src/mcp/RegisterCodegenTools.h` — adds whetstone_generate_dispatch_table
+- `editor/tests/step665_test.cpp` — 12 tests
+- `editor/CMakeLists.txt` — step665_test target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step665_test` - PASS
+- `./editor/build-native/step665_test` - PASS (12/12)
+
+### Step 666: Wire RegisterCodegenTools into MCPServer + tools.json (8 tests)
+**Status:** PASS (8/8 tests)
+
+Wires the new tools into the live MCP server:
+- `MCPServer.h`: added `#include "mcp/RegisterCodegenTools.h"` (line 551)
+- `RegisterOnboardingAndAllTools.h`: added `registerCodegenTools()` call
+- `tools/claude/tools.json`: added 2 entries (82 → 84 tools)
+
+**Files modified:**
+- `editor/src/MCPServer.h`
+- `editor/src/mcp/RegisterOnboardingAndAllTools.h`
+- `tools/claude/tools.json`
+- `editor/tests/step666_test.cpp` — 8 tests
+- `editor/CMakeLists.txt` — step666_test target
+
+**Verification run:**
+- `cmake --build editor/build-native --target step666_test` - PASS
+- `./editor/build-native/step666_test` - PASS (8/8)
+
+### Step 667: Rebuild whetstone_mcp + smoke test (manual)
+**Status:** PASS
+
+- `cmake --build editor/build-native --target whetstone_mcp` - PASS (no new warnings)
+- `tools/list` via MCP stdio: 84 tools returned, both new tools FOUND
+- `whetstone_schema_to_cpp` live call: success=True, `struct EnergyContext` generated
+- `whetstone_generate_dispatch_table` live call: success=True, `makeDispatchTable` with all 4 HiveMind job types
+
+### Step 668: Sprint 41 Integration Summary (8 tests)
+**Status:** PASS (8/8 tests)
+
+Creates `Sprint41IntegrationSummary.h`. Records: tool_count_before=82, tool_count_after=84,
+steps_completed=5, filesAdded=[RegisterCodegenTools.h, Sprint41IntegrationSummary.h],
+filesModified=[MCPServer.h, RegisterOnboardingAndAllTools.h, tools/claude/tools.json, CMakeLists.txt].
+
+**Files added:**
+- `editor/src/Sprint41IntegrationSummary.h`
+- `editor/tests/step668_test.cpp`
+
+**Verification run:**
+- `cmake --build editor/build-native --target step668_test` - PASS
+- `./editor/build-native/step668_test` - PASS (8/8)
+
+## Sprint 41 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Sprint 41 modules are compliant with architecture constraints.
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target step664_test step665_test step666_test step668_test` - PASS
+- `./editor/build-native/step664_test` - PASS (12/12)
+- `./editor/build-native/step665_test` - PASS (12/12)
+- `./editor/build-native/step666_test` - PASS (8/8)
+- `./editor/build-native/step668_test` - PASS (8/8)
+- Sprint 41 matrix total: **40/40 passing**
+
+**Architecture gate check:**
+- `editor/src/mcp/RegisterCodegenTools.h` within 600-line limit
+- `editor/src/Sprint41IntegrationSummary.h` within 600-line limit
+- Header-only architecture maintained
+- `whetstone_mcp` binary rebuilt successfully, 84 tools live

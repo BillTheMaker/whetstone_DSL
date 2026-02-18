@@ -35,6 +35,7 @@
         registerOrchestratorTools();
         registerReviewTools();
         registerArchitectIntakeTools();
+        registerCodegenTools();
         registerOnboardingTools();
     }
 };

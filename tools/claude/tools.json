@@ -12,8 +12,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_apply_annotation",
       "description": "See Whetstone MCP docs.",
@@ -24,8 +23,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_apply_quick_fix",
       "description": "See Whetstone MCP docs.",
@@ -36,8 +34,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_approve_item",
       "description": "See Whetstone MCP docs.",
@@ -48,8 +45,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_architect_intake",
       "description": "See Whetstone MCP docs.",
@@ -60,8 +56,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_assign_task",
       "description": "See Whetstone MCP docs.",
@@ -72,8 +67,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_batch_mutate",
       "description": "See Whetstone MCP docs.",
@@ -84,8 +78,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_batch_query",
       "description": "See Whetstone MCP docs.",
@@ -96,8 +89,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_close_file",
       "description": "See Whetstone MCP docs.",
@@ -108,8 +100,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_complete_task",
       "description": "See Whetstone MCP docs.",
@@ -120,8 +111,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_create_skeleton",
       "description": "See Whetstone MCP docs.",
@@ -132,8 +122,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_create_workflow",
       "description": "See Whetstone MCP docs.",
@@ -144,8 +133,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_execute_task",
       "description": "See Whetstone MCP docs.",
@@ -156,8 +144,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_export_training_data",
       "description": "See Whetstone MCP docs.",
@@ -168,8 +155,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_file_create",
       "description": "See Whetstone MCP docs.",
@@ -180,8 +166,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_file_diff",
       "description": "See Whetstone MCP docs.",
@@ -192,8 +177,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_file_read",
       "description": "See Whetstone MCP docs.",
@@ -204,8 +188,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_file_write",
       "description": "See Whetstone MCP docs.",
@@ -216,8 +199,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_generate_code",
       "description": "See Whetstone MCP docs.",
@@ -228,8 +210,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_generate_examples",
       "description": "See Whetstone MCP docs.",
@@ -240,8 +221,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_generate_taskitems",
       "description": "See Whetstone MCP docs.",
@@ -252,8 +232,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_ast",
       "description": "See Whetstone MCP docs.",
@@ -264,8 +243,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_ast_diff",
       "description": "See Whetstone MCP docs.",
@@ -276,8 +254,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_ast_subtree",
       "description": "See Whetstone MCP docs.",
@@ -288,8 +265,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_blockers",
       "description": "See Whetstone MCP docs.",
@@ -300,8 +276,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_call_hierarchy",
       "description": "See Whetstone MCP docs.",
@@ -312,8 +287,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_diagnostics",
       "description": "See Whetstone MCP docs.",
@@ -324,8 +298,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_diagnostics_delta",
       "description": "See Whetstone MCP docs.",
@@ -336,8 +309,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_environment",
       "description": "See Whetstone MCP docs.",
@@ -348,8 +320,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_event_stream",
       "description": "See Whetstone MCP docs.",
@@ -360,8 +331,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_lowering_hints",
       "description": "See Whetstone MCP docs.",
@@ -372,8 +342,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_progress",
       "description": "See Whetstone MCP docs.",
@@ -384,8 +353,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_project_diagnostics",
       "description": "See Whetstone MCP docs.",
@@ -396,8 +364,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_project_model",
       "description": "See Whetstone MCP docs.",
@@ -408,8 +375,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_quick_fixes",
       "description": "See Whetstone MCP docs.",
@@ -420,8 +386,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_ready_tasks",
       "description": "See Whetstone MCP docs.",
@@ -432,8 +397,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_recent_events",
       "description": "See Whetstone MCP docs.",
@@ -444,8 +408,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_review_context",
       "description": "See Whetstone MCP docs.",
@@ -456,8 +419,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_review_policy",
       "description": "See Whetstone MCP docs.",
@@ -468,8 +430,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_review_queue",
       "description": "See Whetstone MCP docs.",
@@ -480,8 +441,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_routing_explanation",
       "description": "See Whetstone MCP docs.",
@@ -492,8 +452,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_scope",
       "description": "See Whetstone MCP docs.",
@@ -504,8 +463,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_semantic_annotations",
       "description": "See Whetstone MCP docs.",
@@ -516,8 +474,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_unannotated_nodes",
       "description": "See Whetstone MCP docs.",
@@ -528,8 +485,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_work_item",
       "description": "See Whetstone MCP docs.",
@@ -540,8 +496,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_get_workflow_state",
       "description": "See Whetstone MCP docs.",
@@ -552,8 +507,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_index_workspace",
       "description": "See Whetstone MCP docs.",
@@ -564,8 +518,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_infer_annotations",
       "description": "See Whetstone MCP docs.",
@@ -576,8 +529,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_list_annotated_files",
       "description": "See Whetstone MCP docs.",
@@ -588,8 +540,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_list_buffers",
       "description": "See Whetstone MCP docs.",
@@ -600,8 +551,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_load_annotated_ast",
       "description": "See Whetstone MCP docs.",
@@ -612,8 +562,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_mutate",
       "description": "See Whetstone MCP docs.",
@@ -624,8 +573,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_onboard_workspace",
       "description": "See Whetstone MCP docs.",
@@ -636,8 +584,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_open_file",
       "description": "See Whetstone MCP docs.",
@@ -648,8 +595,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_orchestrate_advance",
       "description": "See Whetstone MCP docs.",
@@ -660,8 +606,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_orchestrate_run_deterministic",
       "description": "See Whetstone MCP docs.",
@@ -672,8 +617,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_orchestrate_step",
       "description": "See Whetstone MCP docs.",
@@ -684,8 +628,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_project_language",
       "description": "See Whetstone MCP docs.",
@@ -696,8 +639,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_queue_ready",
       "description": "See Whetstone MCP docs.",
@@ -708,8 +650,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_redo",
       "description": "See Whetstone MCP docs.",
@@ -720,8 +661,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_reject_item",
       "description": "See Whetstone MCP docs.",
@@ -732,8 +672,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_reject_task",
       "description": "See Whetstone MCP docs.",
@@ -744,8 +683,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_remove_semantic_annotation",
       "description": "See Whetstone MCP docs.",
@@ -756,8 +694,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_rename_symbol",
       "description": "See Whetstone MCP docs.",
@@ -768,8 +705,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_route_all_ready",
       "description": "See Whetstone MCP docs.",
@@ -780,8 +716,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_route_task",
       "description": "See Whetstone MCP docs.",
@@ -792,8 +727,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_run_pipeline",
       "description": "See Whetstone MCP docs.",
@@ -804,8 +738,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_save_all_buffers",
       "description": "See Whetstone MCP docs.",
@@ -816,8 +749,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_save_annotated_ast",
       "description": "See Whetstone MCP docs.",
@@ -828,8 +760,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_save_buffer",
       "description": "See Whetstone MCP docs.",
@@ -840,8 +771,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_save_workflow",
       "description": "See Whetstone MCP docs.",
@@ -852,8 +782,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_search_project",
       "description": "See Whetstone MCP docs.",
@@ -864,8 +793,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_set_active_buffer",
       "description": "See Whetstone MCP docs.",
@@ -876,8 +804,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_set_environment",
       "description": "See Whetstone MCP docs.",
@@ -888,8 +815,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_set_review_policy",
       "description": "See Whetstone MCP docs.",
@@ -900,8 +826,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_set_semantic_annotation",
       "description": "See Whetstone MCP docs.",
@@ -912,8 +837,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_set_workspace",
       "description": "See Whetstone MCP docs.",
@@ -924,8 +848,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_submit_result",
       "description": "See Whetstone MCP docs.",
@@ -936,8 +859,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_suggest_annotations",
       "description": "See Whetstone MCP docs.",
@@ -948,8 +870,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_undo",
       "description": "See Whetstone MCP docs.",
@@ -960,8 +881,7 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_validate_environment",
       "description": "See Whetstone MCP docs.",
@@ -972,14 +892,86 @@
       "examples": [
         {}
       ]
-    }
-    ,
+    },
     {
       "name": "whetstone_workspace_list",
       "description": "See Whetstone MCP docs.",
       "input_schema": {
         "type": "object",
         "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    },
+    {
+      "name": "whetstone_schema_to_cpp",
+      "description": "Generate a typed C++ header struct with nlohmann JSON serializers from a JSON Schema object. Returns header_code (ready to write to a .h file) and a cmake_interface_target snippet.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "object",
+            "description": "JSON Schema with 'title' and 'properties'."
+          },
+          "header_name": {
+            "type": "string",
+            "description": "Output header filename, e.g. 'EnergyContext.h'."
+          },
+          "target_name": {
+            "type": "string",
+            "description": "CMake INTERFACE target name, e.g. energy_context_types."
+          }
+        },
+        "required": [
+          "schema",
+          "header_name",
+          "target_name"
+        ]
+      },
+      "examples": [
+        {}
+      ]
+    },
+    {
+      "name": "whetstone_generate_dispatch_table",
+      "description": "Generate a C++ dispatch table header (makeDispatchTable()) from a list of job type specs. Each entry maps a job_type string to a C++ executor callable.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "description": "Array of job dispatch entries.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "job_type": {
+                  "type": "string"
+                },
+                "required_caps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "payload_type": {
+                  "type": "string"
+                },
+                "executor": {
+                  "type": "string",
+                  "description": "C++ callable expression, e.g. handleCudaTask"
+                }
+              },
+              "required": [
+                "job_type",
+                "executor"
+              ]
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ]
       },
       "examples": [
         {}
