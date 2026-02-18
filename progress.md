@@ -13649,3 +13649,27 @@ decision actions (`approve`, `reject`, `modify`) with strategy-note support.
 - `editor/src/PilotQueuePanelModel.h` (`39` <= `600`)
 - `editor/tests/step661_test.cpp` within test-file size guidance (`24` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 662: Cross-session context bridge
+**Status:** PASS (12/12 tests)
+
+Adds cross-session bridge modeling for dispatch-job context handoff to MCP
+intake and feedback return into the originating editor session.
+
+**Files added:**
+- `editor/src/CrossSessionContextBridge.h` - cross-session bridge model
+- `editor/tests/step662_test.cpp` - 12 tests for bridge request validation/flow
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step662_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step662_test step661_test` - PASS
+- `./editor/build-native/step662_test` - PASS (12/12)
+- `./editor/build-native/step661_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/CrossSessionContextBridge.h` (`29` <= `600`)
+- `editor/tests/step662_test.cpp` within test-file size guidance (`26` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
