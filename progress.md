@@ -12186,3 +12186,33 @@ Adds an `instructions` string field to MCP `initialize` responses, populated fro
 - `editor/src/MCPServer.h` within header-size limit (`551` <= `600`)
 - `editor/tests/step617_test.cpp` within test-file size guidance (`165` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 618: Phase 36a Integration
+**Status:** PASS (8/8 tests)
+
+Adds a Sprint 36a end-to-end integration harness that executes the full MCP
+intake flow: spec markdown → intake tool → taskitem generation tool → queue
+readiness tool.
+
+**Files added:**
+- `editor/src/Sprint36aIntegration.h` - integration runner:
+  - sequential MCP tool orchestration across steps 614-616
+  - stage-aware result reporting and queue summary extraction
+- `editor/tests/step618_test.cpp` - 8 integration tests covering:
+  - happy-path end-to-end readiness
+  - risky-spec escalation/blocker behavior
+  - intake-stage failure propagation for invalid markdown
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step618_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step618_test step617_test` - PASS
+- `./editor/build-native/step618_test` - PASS (8/8)
+- `./editor/build-native/step617_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint36aIntegration.h` within header-size limit (`71` <= `600`)
+- `editor/tests/step618_test.cpp` within test-file size guidance (`121` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
