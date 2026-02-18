@@ -13373,3 +13373,27 @@ language generator extensions (`whetstone-plugin-*.so`) and factory symbol namin
 - `editor/src/LanguageGeneratorPluginManifest.h` (`30` <= `600`)
 - `editor/tests/step651_test.cpp` within test-file size guidance (`26` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 652: Privacy-preserving local telemetry
+**Status:** PASS (12/12 tests)
+
+Adds local-only telemetry counters for session/tool/error/generator usage with
+weekly summary formatting and no remote endpoint usage.
+
+**Files added:**
+- `editor/src/LocalTelemetryModel.h` - local telemetry counter model
+- `editor/tests/step652_test.cpp` - 12 tests for recording/reporting behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step652_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step652_test step651_test` - PASS
+- `./editor/build-native/step652_test` - PASS (12/12)
+- `./editor/build-native/step651_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/LocalTelemetryModel.h` (`41` <= `600`)
+- `editor/tests/step652_test.cpp` within test-file size guidance (`24` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
