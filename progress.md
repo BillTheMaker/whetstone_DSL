@@ -13044,3 +13044,34 @@ for generated handlers.
 - `editor/src/MqttBoilerplateGenerator.h` (`56` <= `600`)
 - `editor/tests/step640_test.cpp` within test-file size guidance (`123` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 641: SQLite schema -> C++ data layer generator
+**Status:** PASS (12/12 tests)
+
+Adds schema-driven SQLite data-layer generation scaffolding for nexus tables,
+including transaction helpers, table CRUD wrapper markers, and prepared
+statement generation anchors.
+
+**Files added:**
+- `editor/src/SQLiteDataLayerGenerator.h` - SQLite data-layer generator:
+  - validates table inputs
+  - emits C++ DB class + transaction API scaffold
+  - emits per-table CRUD/prepared-statement section markers
+- `editor/tests/step641_test.cpp` - 12 tests covering:
+  - input validation and generation success
+  - transaction API text emission
+  - multi-table CRUD marker emission and ordering
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step641_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step641_test step640_test` - PASS
+- `./editor/build-native/step641_test` - PASS (12/12)
+- `./editor/build-native/step640_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SQLiteDataLayerGenerator.h` (`47` <= `600`)
+- `editor/tests/step641_test.cpp` within test-file size guidance (`125` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
