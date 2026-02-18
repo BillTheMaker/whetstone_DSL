@@ -8,6 +8,7 @@
 #include "AgentMarketplace.h"
 #include "AgentPermissionPolicy.h"
 #include "../AgentChatPanelModel.h"
+#include "../AgentTaskSlots.h"
 
 struct AgentState {
     std::unique_ptr<WebSocketAgentServer> server;
@@ -20,4 +21,5 @@ struct AgentState {
     AgentRegistry registry;
     AgentMarketplaceState marketplace;
     AgentChatState chat;
+    AgentTaskSlotsState taskSlots;
 };

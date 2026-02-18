@@ -12666,3 +12666,37 @@ with latest-session restore and session timestamp indexing.
 - `editor/src/panels/AgentChatPanel.h` (`159` <= `600`)
 - `editor/tests/step630_test.cpp` within test-file size guidance (`184` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 631: Background task slots (parallel agent work)
+**Status:** PASS (12/12 tests)
+
+Introduces background agent task-slot scheduling with configurable parallelism,
+pending/running/completed/cancelled state transitions, and deterministic slot
+assignment for concurrent chat threads.
+
+**Files added:**
+- `editor/src/AgentTaskSlots.h` - task-slot model and scheduling operations:
+  - queueing with generated task IDs
+  - pending-to-running assignment bounded by max slots
+  - completion/cancellation transitions and status counters
+- `editor/tests/step631_test.cpp` - 12 tests covering:
+  - max-slot validation and default values
+  - queueing semantics and empty-input edge rejection
+  - bounded parallel assignment and unique slot-index allocation
+  - completion/cancellation behavior and follow-on scheduling
+
+**Files modified:**
+- `editor/src/state/AgentState.h` - added `AgentTaskSlotsState` to agent state
+- `editor/CMakeLists.txt` - `step631_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step631_test step630_test` - PASS
+- `./editor/build-native/step631_test` - PASS (12/12)
+- `./editor/build-native/step630_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/AgentTaskSlots.h` (`118` <= `600`)
+- `editor/src/state/AgentState.h` (`31` <= `600`)
+- `editor/tests/step631_test.cpp` within test-file size guidance (`161` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
