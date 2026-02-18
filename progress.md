@@ -13625,3 +13625,27 @@ job payload output (`type`, `goal`, `context.files`, `context.entropy_score`,
 - `editor/src/InferenceJobGenerator.h` (`32` <= `600`)
 - `editor/tests/step660_test.cpp` within test-file size guidance (`24` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 661: Pilot queue panel
+**Status:** PASS (12/12 tests)
+
+Adds pilot-queue review modeling for escalate/ambiguity gating and human
+decision actions (`approve`, `reject`, `modify`) with strategy-note support.
+
+**Files added:**
+- `editor/src/PilotQueuePanelModel.h` - pilot queue decision model
+- `editor/tests/step661_test.cpp` - 12 tests for review and action behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step661_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step661_test step660_test` - PASS
+- `./editor/build-native/step661_test` - PASS (12/12)
+- `./editor/build-native/step660_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PilotQueuePanelModel.h` (`39` <= `600`)
+- `editor/tests/step661_test.cpp` within test-file size guidance (`24` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
