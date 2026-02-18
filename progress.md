@@ -12746,3 +12746,36 @@ step, and per-task cancel action.
 - `editor/src/panels/AgentChatPanel.h` (`208` <= `600`)
 - `editor/tests/step632_test.cpp` within test-file size guidance (`193` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 633: Sprint 37 Integration + Summary
+**Status:** PASS (8/8 tests)
+
+Adds a Sprint 37 end-to-end integration runner for the in-editor agent chat
+flow: context injection, background slot scheduling, status overlay signal,
+mutation preview acceptance, code update, and chat-session save/restore.
+
+**Files added:**
+- `editor/src/Sprint37IntegrationSummary.h` - integration runner:
+  - models the Sprint 37 demo path for a hivemind-style task prompt
+  - composes context injection, task-slot/overlay, mutation approval, and
+    session persistence
+  - returns summary signals for sprint-level readiness checks
+- `editor/tests/step633_test.cpp` - 8 tests covering:
+  - chat/context bootstrapping and user-message send path
+  - background-task overlay state
+  - mutation preview/accept and code refresh behavior
+  - persistence save + latest-session restore behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step633_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step633_test step632_test` - PASS
+- `./editor/build-native/step633_test` - PASS (8/8)
+- `./editor/build-native/step632_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint37IntegrationSummary.h` (`104` <= `600`)
+- `editor/tests/step633_test.cpp` within test-file size guidance (`109` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
