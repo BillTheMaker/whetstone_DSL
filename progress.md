@@ -13552,3 +13552,27 @@ flash signaling, and agent prompt-context line composition.
 - `editor/src/EnergyContextStatusModel.h` (`28` <= `600`)
 - `editor/tests/step657_test.cpp` within test-file size guidance (`24` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 658: Phase 40a Integration
+**Status:** PASS (8/8 tests)
+
+Integrates energy-status visibility, HiveMind dispatch, swarm-status view, and
+apiary browser visibility into one Phase 40a readiness flow.
+
+**Files added:**
+- `editor/src/Phase40aIntegration.h` - integration runner for Step 654-657
+- `editor/tests/step658_test.cpp` - 8 integration checks
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step658_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step658_test step657_test` - PASS
+- `./editor/build-native/step658_test` - PASS (8/8)
+- `./editor/build-native/step657_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Phase40aIntegration.h` (`38` <= `600`)
+- `editor/tests/step658_test.cpp` within test-file size guidance (`20` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
