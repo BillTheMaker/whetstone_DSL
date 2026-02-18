@@ -34,6 +34,7 @@
         registerRoutingTools();
         registerOrchestratorTools();
         registerReviewTools();
+        registerArchitectIntakeTools();
         registerOnboardingTools();
     }
 };

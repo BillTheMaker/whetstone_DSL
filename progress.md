@@ -12055,3 +12055,37 @@ while preserving behavior.
 - `editor/src/CanaryPromotionJudge.h` (`72` <= `600`)
 - `editor/src/Sprint35OperationalReadiness.h` (`54` <= `600`)
 - Naming conventions and header-only module constraints remain aligned with `ARCHITECTURE.md`.
+
+### Step 614: `whetstone_architect_intake` MCP Tool
+**Status:** PASS (12/12 tests)
+
+Wires `MarkdownSpecParser` + `RequirementNormalizationConflictDetector` into a
+single MCP tool call for architect intake.
+
+**Files added:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` - MCP registration + handler:
+  - `whetstone_architect_intake` tool schema and dispatch
+  - markdown parsing + requirement normalization pipeline
+  - parsed-spec, normalized requirements, and conflict-signal JSON shaping
+- `editor/tests/step614_test.cpp` - 12 tests covering:
+  - MCP tool registration and schema visibility
+  - successful parse/normalize output shape and counts
+  - conflict and ambiguity signal behavior
+  - input and parser/normalizer error paths
+
+**Files modified:**
+- `editor/src/MCPServer.h` - includes + Sprint 36 MCP registration include
+- `editor/src/mcp/RegisterOnboardingAndAllTools.h` - register architect intake tools
+- `editor/CMakeLists.txt` - `step614_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step614_test step613_test` - PASS
+- `./editor/build-native/step614_test` - PASS (12/12)
+- `./editor/build-native/step613_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` within header-size limit (`135` <= `600`)
+- `editor/src/MCPServer.h` within header-size limit (`516` <= `600`)
+- `editor/tests/step614_test.cpp` within test-file size guidance (`193` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`

@@ -17,6 +17,9 @@
 #include <cctype>
 #include <nlohmann/json.hpp>
 
+#include "MarkdownSpecParser.h"
+#include "RequirementNormalizationConflictDetector.h"
+
 using json = nlohmann::json;
 
 // -----------------------------------------------------------------------
@@ -509,4 +512,5 @@ private:
 #include "mcp/RegisterRoutingTools.h"
 #include "mcp/RegisterOrchestratorTools.h"
 #include "mcp/RegisterReviewTools.h"
+#include "mcp/RegisterArchitectIntakeTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"
