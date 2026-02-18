@@ -13673,3 +13673,63 @@ intake and feedback return into the originating editor session.
 - `editor/src/CrossSessionContextBridge.h` (`29` <= `600`)
 - `editor/tests/step662_test.cpp` within test-file size guidance (`26` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 663: Sprint 40 Integration + Final Summary
+**Status:** PASS (8/8 tests)
+
+Adds Sprint 40 integration summary composition across Phase 40a readiness,
+entropy detection, inference-job generation, pilot-queue review gating, and
+cross-session bridge completion.
+
+**Files added:**
+- `editor/src/Sprint40IntegrationSummary.h` - sprint integration runner
+- `editor/tests/step663_test.cpp` - 8 tests for final readiness signals
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step663_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step663_test step662_test` - PASS
+- `./editor/build-native/step663_test` - PASS (8/8)
+- `./editor/build-native/step662_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/Sprint40IntegrationSummary.h` (`45` <= `600`)
+- `editor/tests/step663_test.cpp` within test-file size guidance (`20` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+## Sprint 40 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Completed end-of-sprint modified-files audit for Steps 654-663.
+No additional refactor was required; Sprint 40 modules were already compliant
+with architecture constraints.
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target step654_test step655_test step656_test step657_test step658_test step659_test step660_test step661_test step662_test step663_test` - PASS
+- `./editor/build-native/step654_test` - PASS (12/12)
+- `./editor/build-native/step655_test` - PASS (12/12)
+- `./editor/build-native/step656_test` - PASS (12/12)
+- `./editor/build-native/step657_test` - PASS (12/12)
+- `./editor/build-native/step658_test` - PASS (8/8)
+- `./editor/build-native/step659_test` - PASS (12/12)
+- `./editor/build-native/step660_test` - PASS (12/12)
+- `./editor/build-native/step661_test` - PASS (12/12)
+- `./editor/build-native/step662_test` - PASS (12/12)
+- `./editor/build-native/step663_test` - PASS (8/8)
+- Sprint 40 matrix total: **112/112 passing**
+
+**Architecture gate check:**
+- `editor/src/HiveMindJobPublisher.h` (`29` <= `600`)
+- `editor/src/SwarmStatusPanelModel.h` (`46` <= `600`)
+- `editor/src/ApiaryBrowserPanelModel.h` (`36` <= `600`)
+- `editor/src/EnergyContextStatusModel.h` (`28` <= `600`)
+- `editor/src/Phase40aIntegration.h` (`38` <= `600`)
+- `editor/src/EntropyScannerModel.h` (`65` <= `600`)
+- `editor/src/InferenceJobGenerator.h` (`32` <= `600`)
+- `editor/src/PilotQueuePanelModel.h` (`39` <= `600`)
+- `editor/src/CrossSessionContextBridge.h` (`29` <= `600`)
+- `editor/src/Sprint40IntegrationSummary.h` (`45` <= `600`)
+- Sprint 40 test files remain within test-file size guidance.
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
