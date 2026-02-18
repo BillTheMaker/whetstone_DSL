@@ -13528,3 +13528,27 @@ tool title/source metadata presentation.
 - `editor/src/ApiaryBrowserPanelModel.h` (`36` <= `600`)
 - `editor/tests/step656_test.cpp` within test-file size guidance (`29` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 657: Energy context status bar
+**Status:** PASS (12/12 tests)
+
+Adds energy-context status modeling for status-bar label generation, conservation
+flash signaling, and agent prompt-context line composition.
+
+**Files added:**
+- `editor/src/EnergyContextStatusModel.h` - energy status/prompt model
+- `editor/tests/step657_test.cpp` - 12 tests for label/flash/prompt behavior
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step657_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step657_test step656_test` - PASS
+- `./editor/build-native/step657_test` - PASS (12/12)
+- `./editor/build-native/step656_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/EnergyContextStatusModel.h` (`28` <= `600`)
+- `editor/tests/step657_test.cpp` within test-file size guidance (`24` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
