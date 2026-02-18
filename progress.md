@@ -12825,3 +12825,35 @@ single-function line limit.
 - `editor/src/AgentTaskStatusOverlay.h` (`79` <= `600`)
 - `editor/tests/step633_test.cpp` within test-file size guidance (`109` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 634: Job schema -> typed C++ structs generator
+**Status:** PASS (12/12 tests)
+
+Introduces a schema-to-C++ generator module for shared HiveMind job payload
+types with emitted `to_json`/`from_json` helpers, validation stub, and CMake
+INTERFACE target text.
+
+**Files added:**
+- `editor/src/SchemaToCppGenerator.h` - schema conversion module:
+  - schema validation and title/field sanitization
+  - C++ struct emission with JSON adapter helpers
+  - interface-target CMake snippet generation
+- `editor/tests/step634_test.cpp` - 12 tests covering:
+  - tool identity and invalid-input rejection
+  - field type mapping and identifier sanitization
+  - JSON adapter + validation emission
+  - empty-properties edge behavior and interface-target text
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step634_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step634_test step633_test` - PASS
+- `./editor/build-native/step634_test` - PASS (12/12)
+- `./editor/build-native/step633_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/SchemaToCppGenerator.h` (`116` <= `600`)
+- `editor/tests/step634_test.cpp` within test-file size guidance (`128` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
