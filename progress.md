@@ -13301,3 +13301,27 @@ readiness signal.
 - `editor/src/Phase39aIntegration.h` (`49` <= `600`)
 - `editor/tests/step648_test.cpp` within test-file size guidance (`21` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 649: AppImage / .deb package generator
+**Status:** PASS (12/12 tests)
+
+Adds packaging-script generation for AppImage and Debian control metadata from
+project release attributes.
+
+**Files added:**
+- `editor/src/PackageScriptGenerator.h` - package script generator model
+- `editor/tests/step649_test.cpp` - 12 tests for script content and validation
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step649_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step649_test step648_test` - PASS
+- `./editor/build-native/step649_test` - PASS (12/12)
+- `./editor/build-native/step648_test` - PASS (8/8) regression coverage
+
+**Architecture gate check:**
+- `editor/src/PackageScriptGenerator.h` (`29` <= `600`)
+- `editor/tests/step649_test.cpp` within test-file size guidance (`24` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
