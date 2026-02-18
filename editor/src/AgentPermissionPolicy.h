@@ -80,6 +80,10 @@ struct AgentPermissionPolicy {
             return true;
         }
 
+        if (method == "setWorkspaceContext") {
+            return role == AgentRole::Refactor || role == AgentRole::Generator;
+        }
+
         // Mutation methods: Refactor and Generator only
         if (method == "generateCode" ||
             method == "applyMutation" ||

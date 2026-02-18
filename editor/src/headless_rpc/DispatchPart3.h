@@ -51,6 +51,30 @@
         });
     }
 
+    // --- setWorkspaceContext ---
+    if (method == "setWorkspaceContext") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"]
+                                                  : json::object();
+        std::string workspace = params.value("workspace", "");
+        std::string language = params.value("language", "");
+        if (workspace.empty()) {
+            return headlessRpcError(id, -32602, "Missing workspace");
+        }
+
+        state.workspaceRoot = workspace;
+        if (!language.empty()) state.defaultLanguage = language;
+        state.project.scanWorkspace(workspace);
+        const auto& idx = state.project.index;
+        return headlessRpcResult(id, {
+            {"workspace", state.workspaceRoot},
+            {"language", state.defaultLanguage},
+            {"fileCount", idx.fileCount()},
+            {"dirCount", idx.dirCount()}
+        });
+    }
+
     // --- getImportGraph ---
     if (method == "getImportGraph") {
         auto params = request.contains("params") ? request["params"]

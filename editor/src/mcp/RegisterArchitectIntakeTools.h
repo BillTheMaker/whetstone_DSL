@@ -38,6 +38,20 @@
             [this](const json& args) {
                 return runQueueReady(args);
             };
+
+        tools_.push_back({"whetstone_set_workspace",
+            "Switch active workspace and default language without restarting the MCP server.",
+            {{"type", "object"}, {"properties", {
+                {"workspace", {{"type", "string"},
+                    {"description", "Workspace root path."}}},
+                {"language", {{"type", "string"},
+                    {"description", "Default language for new operations."}}}
+            }}, {"required", json::array({"workspace", "language"})}}
+        });
+        toolHandlers_["whetstone_set_workspace"] =
+            [this](const json& args) {
+                return runSetWorkspace(args);
+            };
     }
 
     json runArchitectIntake(const json& args) {
@@ -475,4 +489,64 @@
             });
         }
         return out;
+    }
+
+    json runSetWorkspace(const json& args) {
+        if (!args.contains("workspace")) {
+            return {
+                {"success", false},
+                {"error", "workspace_missing"}
+            };
+        }
+        if (!args.contains("language")) {
+            return {
+                {"success", false},
+                {"error", "language_missing"}
+            };
+        }
+        if (!args["workspace"].is_string()) {
+            return {
+                {"success", false},
+                {"error", "workspace_not_string"}
+            };
+        }
+        if (!args["language"].is_string()) {
+            return {
+                {"success", false},
+                {"error", "language_not_string"}
+            };
+        }
+
+        const std::string workspace = args.value("workspace", "");
+        const std::string language = args.value("language", "");
+        if (workspace.empty()) {
+            return {
+                {"success", false},
+                {"error", "workspace_empty"}
+            };
+        }
+        if (language.empty()) {
+            return {
+                {"success", false},
+                {"error", "language_empty"}
+            };
+        }
+
+        json result = callWhetstone("setWorkspaceContext", {
+            {"workspace", workspace},
+            {"language", language}
+        });
+        if (hasCallError(result)) {
+            return {
+                {"success", false},
+                {"error", result["error"]}
+            };
+        }
+        return {
+            {"success", true},
+            {"workspace", result.value("workspace", workspace)},
+            {"language", result.value("language", language)},
+            {"fileCount", result.value("fileCount", 0)},
+            {"dirCount", result.value("dirCount", 0)}
+        };
     }

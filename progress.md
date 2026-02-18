@@ -12287,3 +12287,39 @@ explicit `--workspace` flag by finding the nearest `.whetstone.json` from CWD.
 - `editor/src/mcp_main.cpp` within main-size limit (`184` <= `1500`)
 - `editor/tests/step620_test.cpp` within test-file size guidance (`191` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 621: `whetstone_set_workspace` MCP tool
+**Status:** PASS (12/12 tests)
+
+Adds runtime workspace/language switching for a live MCP daemon without
+restart, including a new headless RPC method to apply workspace context.
+
+**Files modified:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` - added:
+  - `whetstone_set_workspace` tool registration, validation, and RPC bridge
+  - forwarding to `setWorkspaceContext` with structured response mapping
+- `editor/src/headless_rpc/DispatchPart3.h` - added `setWorkspaceContext`:
+  - applies workspace root + default language
+  - re-indexes workspace and returns file/dir counts
+- `editor/src/AgentPermissionPolicy.h` - permission rule for `setWorkspaceContext`
+- `editor/CMakeLists.txt` - `step621_test` target
+
+**Files added:**
+- `editor/tests/step621_test.cpp` - 12 tests covering:
+  - tool registration/schema and input validation
+  - RPC forwarding method/argument correctness
+  - RPC success/error propagation
+  - integration with HeadlessEditorState workspace switching + workspace listing
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step621_test step620_test` - PASS
+- `./editor/build-native/step621_test` - PASS (12/12)
+- `./editor/build-native/step620_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` within header-size limit (`552` <= `600`)
+- `editor/src/headless_rpc/DispatchPart3.h` within header-size limit (`494` <= `600`)
+- `editor/src/AgentPermissionPolicy.h` within header-size limit (`132` <= `600`)
+- `editor/tests/step621_test.cpp` within test-file size guidance (`229` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
