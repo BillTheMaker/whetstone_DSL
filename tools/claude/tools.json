@@ -1,163 +1,988 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "provider": "anthropic",
   "tools": [
     {
-      "name": "whetstone_get_ast",
-      "description": "Get the current AST (Abstract Syntax Tree) of the active buffer as JSON.",
+      "name": "whetstone_add_skeleton_node",
+      "description": "See Whetstone MCP docs.",
       "input_schema": {
         "type": "object",
-        "properties": {},
-        "additionalProperties": false
+        "properties": {}
       },
       "examples": [
         {}
       ]
-    },
-    {
-      "name": "whetstone_mutate",
-      "description": "Apply a single mutation to the AST (setProperty, updateNode, deleteNode, insertNode).",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["setProperty", "updateNode", "deleteNode", "insertNode"]
-          },
-          "nodeId": { "type": "string" },
-          "property": { "type": "string" },
-          "value": { "type": "string" },
-          "parentId": { "type": "string" },
-          "role": { "type": "string" },
-          "node": { "type": "object" }
-        },
-        "required": ["type"]
-      },
-      "examples": [
-        { "type": "setProperty", "nodeId": "fn1", "property": "name", "value": "rename_me" }
-      ]
-    },
-    {
-      "name": "whetstone_batch_mutate",
-      "description": "Apply multiple mutations atomically (all succeed or rollback).",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "mutations": {
-            "type": "array",
-            "items": { "type": "object" }
-          }
-        },
-        "required": ["mutations"]
-      },
-      "examples": [
-        { "mutations": [{ "type": "deleteNode", "nodeId": "n42" }] }
-      ]
-    },
-    {
-      "name": "whetstone_get_scope",
-      "description": "Get all symbols in scope at a given AST node.",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "nodeId": { "type": "string" }
-        },
-        "required": ["nodeId"]
-      },
-      "examples": [
-        { "nodeId": "fn1" }
-      ]
-    },
-    {
-      "name": "whetstone_get_call_hierarchy",
-      "description": "Get call hierarchy for a function node (callers and callees).",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "functionId": { "type": "string" }
-        },
-        "required": ["functionId"]
-      },
-      "examples": [
-        { "functionId": "fn1" }
-      ]
-    },
-    {
-      "name": "whetstone_suggest_annotations",
-      "description": "Get memory annotation suggestions for a node or line/col location.",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "nodeId": { "type": "string" },
-          "line": { "type": "integer" },
-          "col": { "type": "integer" }
-        }
-      },
-      "examples": [
-        { "nodeId": "fn1" }
-      ]
-    },
+    }
+    ,
     {
       "name": "whetstone_apply_annotation",
-      "description": "Apply a memory annotation suggestion to the AST.",
+      "description": "See Whetstone MCP docs.",
       "input_schema": {
         "type": "object",
-        "properties": {
-          "nodeId": { "type": "string" },
-          "annotationType": { "type": "string" },
-          "strategy": { "type": "string" },
-          "reason": { "type": "string" },
-          "confidence": { "type": "number" }
-        },
-        "required": ["nodeId", "annotationType", "strategy"]
+        "properties": {}
       },
       "examples": [
-        { "nodeId": "fn1", "annotationType": "ReclaimAnnotation", "strategy": "Tracing" }
+        {}
       ]
-    },
+    }
+    ,
+    {
+      "name": "whetstone_apply_quick_fix",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_approve_item",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_architect_intake",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_assign_task",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_batch_mutate",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_batch_query",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_close_file",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_complete_task",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_create_skeleton",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_create_workflow",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_execute_task",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_export_training_data",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_file_create",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_file_diff",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_file_read",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_file_write",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
     {
       "name": "whetstone_generate_code",
-      "description": "Generate code from a natural language spec, optionally preferring imports.",
+      "description": "See Whetstone MCP docs.",
       "input_schema": {
         "type": "object",
-        "properties": {
-          "spec": { "type": "string" },
-          "preferImports": { "type": "boolean" }
-        },
-        "required": ["spec"]
+        "properties": {}
       },
       "examples": [
-        { "spec": "Create a function that sums a list of integers.", "preferImports": true }
+        {}
       ]
-    },
+    }
+    ,
     {
-      "name": "whetstone_run_pipeline",
-      "description": "Run full pipeline: parse, infer annotations, validate, optimize, generate.",
+      "name": "whetstone_generate_examples",
+      "description": "See Whetstone MCP docs.",
       "input_schema": {
         "type": "object",
-        "properties": {
-          "source": { "type": "string" },
-          "sourceLanguage": { "type": "string" },
-          "targetLanguage": { "type": "string" }
-        },
-        "required": ["source", "sourceLanguage", "targetLanguage"]
+        "properties": {}
       },
       "examples": [
-        { "source": "def add(a,b): return a+b", "sourceLanguage": "python", "targetLanguage": "cpp" }
+        {}
       ]
-    },
+    }
+    ,
+    {
+      "name": "whetstone_generate_taskitems",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_ast",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_ast_diff",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_ast_subtree",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_blockers",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_call_hierarchy",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_diagnostics",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_diagnostics_delta",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_environment",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_event_stream",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_lowering_hints",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_progress",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_project_diagnostics",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_project_model",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_quick_fixes",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_ready_tasks",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_recent_events",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_review_context",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_review_policy",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_review_queue",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_routing_explanation",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_scope",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_semantic_annotations",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_unannotated_nodes",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_work_item",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_get_workflow_state",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_index_workspace",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_infer_annotations",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_list_annotated_files",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_list_buffers",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_load_annotated_ast",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_mutate",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_onboard_workspace",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_open_file",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_orchestrate_advance",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_orchestrate_run_deterministic",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_orchestrate_step",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
     {
       "name": "whetstone_project_language",
-      "description": "Project current AST to a different target language.",
+      "description": "See Whetstone MCP docs.",
       "input_schema": {
         "type": "object",
-        "properties": {
-          "targetLanguage": { "type": "string" }
-        },
-        "required": ["targetLanguage"]
+        "properties": {}
       },
       "examples": [
-        { "targetLanguage": "rust" }
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_queue_ready",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_redo",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_reject_item",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_reject_task",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_remove_semantic_annotation",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_rename_symbol",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_route_all_ready",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_route_task",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_run_pipeline",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_save_all_buffers",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_save_annotated_ast",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_save_buffer",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_save_workflow",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_search_project",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_set_active_buffer",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_set_environment",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_set_review_policy",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_set_semantic_annotation",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_set_workspace",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_submit_result",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_suggest_annotations",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_undo",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_validate_environment",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
+      ]
+    }
+    ,
+    {
+      "name": "whetstone_workspace_list",
+      "description": "See Whetstone MCP docs.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "examples": [
+        {}
       ]
     }
   ]

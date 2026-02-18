@@ -12323,3 +12323,34 @@ restart, including a new headless RPC method to apply workspace context.
 - `editor/src/AgentPermissionPolicy.h` within header-size limit (`132` <= `600`)
 - `editor/tests/step621_test.cpp` within test-file size guidance (`229` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 622: `tools.json` refresh (version 2.0)
+**Status:** PASS (8/8 tests)
+
+Refreshed `tools/claude/tools.json` to version `2.0` and expanded coverage to
+match the registered MCP tool surface, including Sprint 36 tools and Sprint
+32-35 orchestration/review/workflow operational interfaces.
+
+**Files modified:**
+- `tools/claude/tools.json` - regenerated tool catalog:
+  - version bumped to `2.0`
+  - includes registered MCP tools (including `whetstone_architect_intake`,
+    `whetstone_generate_taskitems`, `whetstone_queue_ready`, `whetstone_set_workspace`)
+- `editor/CMakeLists.txt` - `step622_test` target
+
+**Files added:**
+- `editor/tests/step622_test.cpp` - 8 tests covering:
+  - JSON parse/version/provider validity
+  - tool-count breadth and uniqueness
+  - presence of Sprint 36 and Sprint 32-35 operational tool entries
+  - schema object presence for all tools
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step622_test step621_test` - PASS
+- `./editor/build-native/step622_test` - PASS (8/8)
+- `./editor/build-native/step621_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/tests/step622_test.cpp` within test-file size guidance (`142` lines)
+- Tool catalog refresh does not violate header-only or naming constraints in `ARCHITECTURE.md`
