@@ -13075,3 +13075,34 @@ statement generation anchors.
 - `editor/src/SQLiteDataLayerGenerator.h` (`47` <= `600`)
 - `editor/tests/step641_test.cpp` within test-file size guidance (`125` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 642: Job dispatch table generator
+**Status:** PASS (12/12 tests)
+
+Adds dispatch-table generation from job-type registry definitions with executor
+binding, payload/capability markers, and header-only factory emission for
+drone-side typed dispatch wiring.
+
+**Files added:**
+- `editor/src/JobDispatchTableGenerator.h` - dispatch generator:
+  - validates dispatch entry input
+  - emits `ExecutorFn` alias and `makeDispatchTable()` factory
+  - embeds payload/capability metadata comments per job type
+- `editor/tests/step642_test.cpp` - 12 tests covering:
+  - empty-input rejection and valid generation
+  - dispatch table and executor binding emission
+  - payload/capability marker correctness and ordering
+
+**Files modified:**
+- `editor/CMakeLists.txt` - `step642_test` target
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step642_test step641_test` - PASS
+- `./editor/build-native/step642_test` - PASS (12/12)
+- `./editor/build-native/step641_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/JobDispatchTableGenerator.h` (`55` <= `600`)
+- `editor/tests/step642_test.cpp` within test-file size guidance (`125` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
