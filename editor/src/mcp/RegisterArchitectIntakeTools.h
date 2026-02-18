@@ -10,6 +10,20 @@
             [this](const json& args) {
                 return runArchitectIntake(args);
             };
+
+        tools_.push_back({"whetstone_generate_taskitems",
+            "Generate and annotate taskitems from normalized intake requirements.",
+            {{"type", "object"}, {"properties", {
+                {"normalizedRequirements", {{"type", "array"},
+                    {"description", "Normalized requirements from whetstone_architect_intake."}}},
+                {"conflicts", {{"type", "array"},
+                    {"description", "Optional requirement conflicts from whetstone_architect_intake."}}}
+            }}, {"required", json::array({"normalizedRequirements"})}}
+        });
+        toolHandlers_["whetstone_generate_taskitems"] =
+            [this](const json& args) {
+                return runGenerateTaskitems(args);
+            };
     }
 
     json runArchitectIntake(const json& args) {
@@ -132,4 +146,166 @@
             if (requirement.ambiguous) ++count;
         }
         return count;
+    }
+
+    json runGenerateTaskitems(const json& args) {
+        RequirementNormalizationResult normalized;
+        std::string error;
+        if (!parseNormalizedInput(args, &normalized, &error)) {
+            return {
+                {"success", false},
+                {"error", error}
+            };
+        }
+
+        DecomposedScopePlan plan;
+        if (!ScopeMilestoneDecomposer::decompose(normalized, &plan, &error)) {
+            return {
+                {"success", false},
+                {"error", error}
+            };
+        }
+
+        std::vector<GeneratedTaskitem> generated;
+        if (!TaskitemGeneratorV2::generate(plan, &generated, &error)) {
+            return {
+                {"success", false},
+                {"error", error}
+            };
+        }
+
+        std::vector<AnnotatedTaskitem> annotated;
+        if (!TaskitemConfidenceAmbiguity::annotate(generated, normalized, &annotated, &error)) {
+            return {
+                {"success", false},
+                {"error", error}
+            };
+        }
+
+        int escalateCount = 0;
+        for (const auto& task : annotated) {
+            if (task.escalate) ++escalateCount;
+        }
+
+        return {
+            {"success", true},
+            {"tasks", annotatedTaskitemsToJson(annotated)},
+            {"planSummary", {
+                {"milestoneCount", (int)plan.milestones.size()},
+                {"overallUncertainty", plan.overallUncertainty}
+            }},
+            {"conflictCount", (int)normalized.conflicts.size()},
+            {"ambiguousRequirementCount", countAmbiguousRequirements(normalized.requirements)},
+            {"escalateCount", escalateCount}
+        };
+    }
+
+    static bool parseNormalizedInput(const json& args,
+                                     RequirementNormalizationResult* out,
+                                     std::string* error) {
+        if (!out || !error) return false;
+        error->clear();
+        out->requirements.clear();
+        out->conflicts.clear();
+
+        if (!args.contains("normalizedRequirements")) {
+            *error = "normalized_requirements_missing";
+            return false;
+        }
+        if (!args["normalizedRequirements"].is_array()) {
+            *error = "normalized_requirements_not_array";
+            return false;
+        }
+
+        for (const auto& requirementJson : args["normalizedRequirements"]) {
+            if (!requirementJson.is_object()) {
+                *error = "requirement_entry_invalid";
+                return false;
+            }
+            NormalizedRequirement requirement;
+            requirement.requirementId = requirementJson.value("requirementId", "");
+            requirement.normalizedText = requirementJson.value("normalizedText", "");
+            requirement.anchor = requirementJson.value("anchor", "");
+            requirement.sourceLine = requirementJson.value("sourceLine", 0);
+            requirement.ambiguous = requirementJson.value("ambiguous", false);
+            if (requirement.requirementId.empty() || requirement.normalizedText.empty()) {
+                *error = "requirement_entry_missing_fields";
+                return false;
+            }
+
+            if (!parseRequirementKind(requirementJson.value("kind", ""), &requirement.kind)) {
+                *error = "requirement_kind_invalid";
+                return false;
+            }
+            out->requirements.push_back(requirement);
+        }
+
+        if (out->requirements.empty()) {
+            *error = "normalized_requirements_empty";
+            return false;
+        }
+
+        if (!args.contains("conflicts")) return true;
+        if (!args["conflicts"].is_array()) {
+            *error = "conflicts_not_array";
+            return false;
+        }
+        for (const auto& conflictJson : args["conflicts"]) {
+            if (!conflictJson.is_object()) {
+                *error = "conflict_entry_invalid";
+                return false;
+            }
+            RequirementConflict conflict;
+            conflict.leftRequirementId = conflictJson.value("leftRequirementId", "");
+            conflict.rightRequirementId = conflictJson.value("rightRequirementId", "");
+            conflict.conflictType = conflictJson.value("conflictType", "");
+            conflict.detail = conflictJson.value("detail", "");
+            if (conflict.leftRequirementId.empty() || conflict.rightRequirementId.empty()) {
+                *error = "conflict_entry_missing_fields";
+                return false;
+            }
+            out->conflicts.push_back(conflict);
+        }
+        return true;
+    }
+
+    static bool parseRequirementKind(const std::string& kind,
+                                     NormalizedRequirementKind* outKind) {
+        if (!outKind) return false;
+        if (kind == "goal") {
+            *outKind = NormalizedRequirementKind::Goal;
+            return true;
+        }
+        if (kind == "constraint") {
+            *outKind = NormalizedRequirementKind::Constraint;
+            return true;
+        }
+        if (kind == "dependency") {
+            *outKind = NormalizedRequirementKind::Dependency;
+            return true;
+        }
+        if (kind == "acceptance") {
+            *outKind = NormalizedRequirementKind::Acceptance;
+            return true;
+        }
+        return false;
+    }
+
+    static json annotatedTaskitemsToJson(const std::vector<AnnotatedTaskitem>& tasks) {
+        json out = json::array();
+        for (const auto& task : tasks) {
+            out.push_back({
+                {"taskId", task.base.taskId},
+                {"title", task.base.title},
+                {"milestoneId", task.base.milestoneId},
+                {"dependencyTaskIds", task.base.dependencyTaskIds},
+                {"prerequisiteOps", task.base.prerequisiteOps},
+                {"queueReady", task.base.queueReady},
+                {"confidence", task.confidence},
+                {"ambiguityCount", task.ambiguityCount},
+                {"escalate", task.escalate},
+                {"reasons", task.reasons}
+            });
+        }
+        return out;
     }

@@ -19,6 +19,9 @@
 
 #include "MarkdownSpecParser.h"
 #include "RequirementNormalizationConflictDetector.h"
+#include "ScopeMilestoneDecomposer.h"
+#include "TaskitemConfidenceAmbiguity.h"
+#include "TaskitemGeneratorV2.h"
 
 using json = nlohmann::json;
 

@@ -12089,3 +12089,37 @@ single MCP tool call for architect intake.
 - `editor/src/MCPServer.h` within header-size limit (`516` <= `600`)
 - `editor/tests/step614_test.cpp` within test-file size guidance (`193` lines)
 - Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
+
+### Step 615: `whetstone_generate_taskitems` MCP Tool
+**Status:** PASS (12/12 tests)
+
+Wires `ScopeMilestoneDecomposer` + `TaskitemGeneratorV2` +
+`TaskitemConfidenceAmbiguity` into a single MCP tool call that consumes
+normalized intake JSON and returns annotated taskitems.
+
+**Files modified:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` - added:
+  - `whetstone_generate_taskitems` tool schema + handler
+  - normalized requirement/conflict JSON parsing and validation
+  - decompose/generate/annotate pipeline + annotated taskitem JSON output
+- `editor/src/MCPServer.h` - include wiring for decomposition/taskitem modules
+- `editor/CMakeLists.txt` - `step615_test` target
+
+**Files added:**
+- `editor/tests/step615_test.cpp` - 12 tests covering:
+  - MCP tool registration/schema
+  - intake-output-to-taskitem generation path
+  - confidence/escalation/conflict behavior
+  - malformed input and validation error paths
+
+**Verification run:**
+- `cmake -S editor -B editor/build-native` - PASS
+- `cmake --build editor/build-native --target step615_test step614_test` - PASS
+- `./editor/build-native/step615_test` - PASS (12/12)
+- `./editor/build-native/step614_test` - PASS (12/12) regression coverage
+
+**Architecture gate check:**
+- `editor/src/mcp/RegisterArchitectIntakeTools.h` within header-size limit (`311` <= `600`)
+- `editor/src/MCPServer.h` within header-size limit (`519` <= `600`)
+- `editor/tests/step615_test.cpp` within test-file size guidance (`220` lines)
+- Header-only architecture and naming conventions remain aligned with `ARCHITECTURE.md`
