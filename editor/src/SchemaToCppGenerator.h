@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-using json = nlohmann::json;
-
 struct SchemaToCppOutput {
     bool success = false;
     std::string headerCode;
@@ -18,7 +16,7 @@ struct SchemaToCppOutput {
 
 class SchemaToCppGenerator {
 public:
-    static SchemaToCppOutput generate(const json& schema,
+    static SchemaToCppOutput generate(const nlohmann::json& schema,
                                       const std::string& headerName,
                                       const std::string& targetName) {
         SchemaToCppOutput out;
