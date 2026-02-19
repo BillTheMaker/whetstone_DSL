@@ -36,6 +36,10 @@
         registerReviewTools();
         registerArchitectIntakeTools();
         registerCodegenTools();
+        registerModelingTools();
+        registerContextTools();
+        registerValidationTools();
+        registerMetricsTools();
         registerOnboardingTools();
     }
 };

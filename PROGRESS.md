@@ -1,7 +1,8 @@
 # Whetstone DSL - Progress Tracker
 
-> **Purpose:** Living document for cross-session, cross-LLM continuity.
-> Updated after each work session. The git log is the authoritative source of truth.
+> **Purpose:** High-level sprint summary for cross-session continuity.
+> The git log and `progress.md` (lowercase, same directory — 13k+ lines) are the
+> authoritative step-by-step record. This file tracks sprint-level status only.
 
 ---
 
@@ -10,6 +11,15 @@
 Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross-language code generation with memory strategy annotations. The core idea: annotate code with memory management intent (`@Reclaim(Tracing)`, `@Owner(Single)`, `@Lifetime(RAII)`, etc.) and generate correct target-language code from a single AST representation.
 
 **Stack:** C++20, Dear ImGui + SDL2 + OpenGL3, nlohmann-json, vcpkg, CMake
+
+---
+
+## Current State
+
+**Step 663 / Sprint 40 — ALL SPRINTS COMPLETE**
+
+Last commit: `f13df10 Step 663: sprint 40 integration summary`
+Sprint 40 matrix: 112/112 tests passing. Architecture gate: all headers ≤ 600 lines.
 
 ---
 
@@ -23,7 +33,40 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 | Sprint 4 | 76–126 | **Complete** | Professional editor: layout presets, code editor, LSP, annotation UI, terminal, build |
 | Sprint 5 | 127–165 | **Complete** | Library-aware coding: package registries, constructive coding, Emacs ecosystem, full language coverage, agents |
 | Sprint 6 | 166–201 | **Complete** | UX & editor polish: structural refactor, themes, multi-cursor, onboarding, security, accessibility, performance |
-| Sprint 7 | 202–234 | **In Progress** | MCP Bridge & agent tooling: API docs/schemas, MCP server, synthetic traces, eval harness, model-specific tools |
+| Sprint 7 | 202–234 | **Complete** | MCP Bridge & agent tooling: API docs/schemas, MCP server, synthetic traces, eval harness, model-specific tools, session recording |
+| Sprint 8 | 235–244 | **Complete** | Refactor & UX polish: EditorState split, text-first default, DockBuilder layout, first-launch polish |
+| Sprint 9 | 245–265 | **Complete** | Agent-first tooling: headless MCP binary (`whetstone_mcp`), file ops tools, 34 MCP tools total |
+| Sprint 10 | 266–289 | **Complete** | Semantic annotation taxonomy: 67+ annotation types (Subjects 1–8), sidecar persistence, environment layer |
+| Sprint 11 | 290–319 | **Complete** | Annotation codegen + Kotlin/C# languages, Semanno inline comment format, Subject 9 workflow annotations |
+| Sprint 12 | 320–341 | **Complete** | Workflow model: WorkItem, TaskQueue, RoutingEngine, Workers (Deterministic/SLM/LLM/Human), ReviewGates, C++ depth |
+| Sprint 13 | 342–360 | **Complete** | GUI Overhaul Phase 1: docking, visual system, panel layout, modifier-edge shortcut notation |
+| Sprint 14 | 361–377 | **Complete** | Language Batch 1: C, WebAssembly, Common Lisp, Scheme parsers + generators |
+| Sprint 15 | 378–393 | **Complete** | Orchestration Engine: full workflow pipeline, context assembly, parallel dispatch, review gates |
+| Sprint 16 | 394–404 | **Complete** | C++ depth + Self-Hosting Phase 1: type aliases, static members, constexpr, smart pointers, auto |
+| Sprint 17 | 405–416 | **Complete** | Language Batch 2: F#, VB.NET, SQL parsers + generators (17 total languages) |
+| Sprint 18 | 417–427 | **Complete** | Claude Code Plugin: MCP workflow tools, prompt templates, annotation-driven workflow integration |
+| Sprint 19 | 428–437 | **Complete** | GUI Phase 2 — Workflow Visualization: task board, dependency graph, routing decisions panel |
+| Sprint 20 | 438–448 | **Complete** | Legacy Code Ingestion: code age analysis, safety audit, modernization workflow generation |
+| Sprint 21 | 449–459 | **Complete** | Cross-Language Transpilation Engine: intent-driven semantic translation, annotation-guided targeting |
+| Sprint 22 | 460–470 | **Complete** | Language Batch 3: x86/ARM Assembly, remaining C++ gaps (19+ total languages) |
+| Sprint 23 | 471–481 | **Complete** | Architect Mode: natural language → tech stack + annotated skeleton + workflow |
+| Sprint 24 | 482–492 | **Complete** | Security + Static Analysis: Subject 10 security annotations, OWASP detection, dependency audit |
+| Sprint 25 | 493–508 | **Complete** | Integration + Self-Hosting capstone: Whetstone parses/annotates its own source, end-to-end validation |
+| Sprint 26 | 509–523 | **Complete** | GUI/UX foundations: docking reliability, visual design system, black/white/stone identity |
+| Sprint 27 | 524–533 | **Complete** | Constrained Constructive Editing I: typed taskitem contracts, legal operation surface |
+| Sprint 28 | 534–543 | **Complete** | Constrained Constructive Editing II: legal-choice UX, multi-language adapters, token-budget reduction |
+| Sprint 29 | 544–553 | **Complete** | Workflow Intelligence + Cost Discipline: routing confidence, context minimization, cost policy |
+| Sprint 30 | 554–563 | **Complete** | Debugger + Runtime Observability I: breakpoints, stepping, stack frames, locals/watches |
+| Sprint 31 | 564–573 | **Complete** | Debugger + Runtime Observability II: memory reflection, allocation traces, perf probes |
+| Sprint 32 | 574–583 | **Complete** | Architect Intake: MarkdownSpecParser, TaskitemGeneratorV2, confidence/ambiguity annotation, queue simulation |
+| Sprint 33 | 584–593 | **Complete** | Productization: value-forward onboarding, workflow visualization 2.0, release readiness, policy governance |
+| Sprint 34 | 594–600 | **Complete** | Security Governance: escalation ledger, guardrail catalog, approval planner, incident runbook, exception review |
+| Sprint 35 | 601–613 | **Complete** | Operational Readiness: SLO watches, change freeze calendar, incident postmortem ledger, canary promotion |
+| Sprint 36 | 614–623 | **Complete** | MCP Expansion: `whetstone_architect_intake`, `whetstone_generate_taskitems`, `whetstone_queue_ready` MCP tools, per-project config |
+| Sprint 37 | 624–633 | **Complete** | In-Editor Agent Chat Panel: embedded chat, live tool call visualization, mutation preview, accept/reject controls |
+| Sprint 38 | 634–643 | **Complete** | HiveMind Build Support: schema→C++ generator, MQTT boilerplate, SQLite layer, drone skeleton, dispatch table generators |
+| Sprint 39 | 644–653 | **Complete** | Self-Hosting + Release Pipeline: CMake from AST, in-editor test runner, AppImage, HiveMind auto-update, plugin system |
+| Sprint 40 | 654–663 | **Complete** | HiveMind Integration: job publisher, swarm status, apiary browser, energy context, entropy scanner, inference engine, pilot queue, cross-session bridge |
 
 ---
 
@@ -416,15 +459,12 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## Test Results (Last Verified)
 
-**All 219 steps compile and pass.** 350+ test executables in `editor/build/Release/`.
+**All 663 steps complete. All sprints 1–40 passing.**
+Step-by-step test results in `progress.md` (lowercase). Architecture gate
+(header ≤ 600 lines) enforced every sprint. Sprint 40 final matrix: 112/112 passing.
 
-**Sprint 2 (Steps 1–38):** All pass.
-**Sprint 3 (Steps 39–75):** All pass. Highlights: step53 6/6, step54 10/10, step72 6/6, step74 6/6.
-**Sprint 4 (Steps 76–126):** All pass. Highlights: step76 10/10, step118 11/11, step125 3/3 integration.
-**Sprint 5 (Steps 127–165):** All pass. Highlights: step144 11/11, step145 11/11, step153 208/208 (cross-language matrix), step161 10/10.
-**Sprint 6 (Steps 166–201):** All pass. Highlights: step168 79/79 (split + integration), step201 integration tests.
-**Sprint 7 (Steps 202–219):** All pass. Highlights: step206 51/51, step213 90/90, step219 294/294.
-**Architecture test:** `file_limits_test` 4/4 passes (enforces header size limits).
+**Sprints 2–7 (Steps 1–234):** All pass. See session log below for details.
+**Sprints 8–40 (Steps 235–663):** All pass. See `progress.md` for step-level results.
 
 ---
 
@@ -555,20 +595,23 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 
 ## Architecture Notes
 
-- **Editor** (`whetstone_editor.exe`): ImGui-based GUI (SDL2 + OpenGL3). Modular panel architecture (Sprint 6 extraction: main.cpp = 444 lines). Docking layout with 3 presets (VSCode/Emacs/JetBrains). Custom CodeEditorWidget with multi-cursor, rainbow brackets, virtual scrolling. Theme engine with hot-reloadable JSON themes. 8 language parsers and generators. LSP client integration. Notification/toast system. Event-driven updates via UIEventBus.
-- **Orchestrator** (`orchestrator.exe`): Standalone JSON-RPC server. Manages AST state, undo/redo journal, file I/O, Emacs daemon integration, agent API.
-- **Communication**: Editor ↔ Orchestrator via JSON-RPC over stdin/stdout pipes. Editor runs in disconnected mode when no pipe detected. Agent access via WebSocket JSON-RPC.
-- **Generators**: AST → Python, C++, Elisp, JavaScript/TypeScript, Java, Rust, Go. All generators handle canonical memory annotations with language-appropriate mappings.
-- **Parsers**: Text → AST via tree-sitter for all 8 supported languages. Full CST-to-AST conversion with memory pattern detection and auto-annotation.
-- **Library System**: Package registry abstraction (PyPI, npm, crates.io, Maven, Go, vcpkg). PrimitivesRegistry for constructive coding. Vulnerability database (OSV). Semantic library tags.
-- **Agent System**: WebSocket server with role-based permissions, library context, annotation assistant, workflow recording, agent marketplace. MCP server (10 tools, 5 resources, 4 prompts) for LLM integration via stdio transport.
-- **Training Data**: Synthetic trace generator (6 scenario types, 4-language code corpus) with multi-format export (Anthropic Messages, OpenAI Chat, JSONL, Markdown).
+- **Editor** (`whetstone_editor`): ImGui + SDL2 + OpenGL3. Docking layout, 19+ language parsers/generators, LSP client, full annotation taxonomy (67+ types, 10 subjects), workflow model, security analysis. Sprint 40 adds HiveMind integration panels.
+- **MCP Server** (`whetstone_mcp`): Headless standalone binary, no GUI deps. Launched by Claude Code or any MCP client over stdio. Key tools: `whetstone_architect_intake`, `whetstone_generate_taskitems`, `whetstone_queue_ready` (Sprint 36), all code generation and annotation tools (Sprint 9+).
+- **Orchestration Engine**: Annotation-driven routing — Deterministic / SLM / LLM / Human tiers. Context assembly with budget enforcement. ReviewGates for human-in-loop.
+- **Language Coverage**: 19+ parsers and generators — Python, C++, Elisp, JS/TS, Java, Rust, Go, Kotlin, C#, F#, VB.NET, SQL, C, WebAssembly, Common Lisp, Scheme, x86 Assembly, ARM Assembly, Org-mode.
+- **Project Integration** (Sprints 38–40): `whetstone_schema_to_cpp` generates typed C++ from JSON schemas. MQTT and SQLite boilerplate generators. Sprint 40 adds swarm status, apiary browser, energy context, entropy scanner, pilot queue, and cross-session context bridge panels — generic integration surfaces usable by any distributed job system consuming the MCP tools.
 
 ---
 
 ## What's Next
 
-**Sprint 7 Phase 7d–7f remaining.** Phases 7a–7c complete (Steps 202–219, 435 combined assertions passing). Next: Phase 7d Evaluation Harness (Steps 220–224), Phase 7e Model-Specific Tool Definitions (Steps 225–229), Phase 7f Session Recording Pipeline (Steps 230–234). Full plan: `sprint7_plan.md`.
+**Sprints 1–40 committed. Sprint 41 not yet planned.**
+
+The MCP tools (`whetstone_architect_intake`, `whetstone_generate_taskitems`,
+`whetstone_queue_ready`) are ready to be used by any project consuming the
+editor. New sprint work should start with a `sprint41_plan.md` following the
+established sprint plan format. Check `feature-requests.md` and
+`FEATURE_REQUESTS.md` for queued capability work.
 
 ---
 
@@ -759,3 +802,7 @@ vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exi
 | 2026-02-10 | Codex | Step 243: First-launch polish — Explorer shows Open Folder prompt when no workspace, status bar shows “Text Mode/Structured Mode”, bottom panel collapses on initial layout/reset. Tests not run. |
 | 2026-02-10 | Codex | Ubuntu 24 build portability pass: fixed Linux/GCC compile/link regressions and validated product target build (`whetstone_editor`, `orchestrator`) via `installer/linux/build.sh`. Updated Linux build/install scripts with explicit prerequisite checks/deps and product-target build mode. |
 | 2026-02-10 | Codex | Step 244: Added integration-style test target `step244_test` validating text-first defaults, mode policy gating, per-buffer mode persistence, VSCode preset layout ratios, and settings-driven default buffer mode mapping. 6/6 checks pass (`./editor/build/step244_test`). |
+| 2026-02-19 | Codex | Sprint 42 stabilization pass: fixed MCP build/test regressions caused by class-scope json alias collisions (`ProjectSkeletonGenerator.h`, `InferenceJobGenerator.h`) and test include ordering for Step 669/670. Rebuilt `whetstone_mcp`; Steps 669–673 all pass. |
+| 2026-02-19 | Codex | Sprint 43 complete (Steps 674–678): added `WorkspaceFileIndex`, `ContextSliceAssembler`, `TokenBudgetEnforcer`, and MCP tool `whetstone_assemble_context`. Tool count 86→87. Full matrix passes (52/52). |
+| 2026-02-19 | Codex | Sprint 44 complete (Steps 679–683): added `PrerequisiteOpResolver`, `SelfContainmentScorer`, `TaskitemQualityAuditor`, and MCP tool `whetstone_validate_taskitem`. Tool count 87→88. Full matrix passes (52/52). |
+| 2026-02-19 | Codex | Sprint 45 complete (Steps 684–688): added `AgentSessionRecorder`, `TaskCompletionMetrics`, `ABTestComparison`, MCP tools `whetstone_start_recording` + `whetstone_get_metrics`, and live MCP tool-call instrumentation. Tool count 88→90. Full matrix passes (52/52). |

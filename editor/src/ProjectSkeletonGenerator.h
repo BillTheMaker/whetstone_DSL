@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-using json = nlohmann::json;
-
 struct GeneratedProjectSkeleton {
     bool success = false;
     std::string name;
@@ -53,7 +51,7 @@ public:
         return out;
     }
 
-    static json asToolResponse(const GeneratedProjectSkeleton& out) {
+    static nlohmann::json asToolResponse(const GeneratedProjectSkeleton& out) {
         return {
             {"success", out.success},
             {"name", out.name},

@@ -13834,3 +13834,313 @@ Sprint 41 modules are compliant with architecture constraints.
 - `editor/src/Sprint41IntegrationSummary.h` within 600-line limit
 - Header-only architecture maintained
 - `whetstone_mcp` binary rebuilt successfully, 84 tools live
+
+### Step 669: RegisterModelingTools.h — wire whetstone_generate_project (12 tests)
+**Status:** PASS (12/12 tests)
+
+Creates `editor/src/mcp/RegisterModelingTools.h` and wires `ProjectSkeletonGenerator`
+as `whetstone_generate_project`.
+
+**Files added:**
+- `editor/src/mcp/RegisterModelingTools.h`
+- `editor/tests/step669_test.cpp`
+
+**Files modified:**
+- `editor/CMakeLists.txt`
+
+**Verification run:**
+- `cmake --build editor/build-native --target step669_test` - PASS
+- `./editor/build-native/step669_test` - PASS (12/12)
+
+### Step 670: RegisterModelingTools.h — wire whetstone_generate_inference_job (12 tests)
+**Status:** PASS (12/12 tests)
+
+Adds `whetstone_generate_inference_job` registration and handler to
+`RegisterModelingTools.h` using `InferenceJobGenerator::generate(...)`.
+
+**Files added:**
+- `editor/tests/step670_test.cpp`
+
+**Files modified:**
+- `editor/src/mcp/RegisterModelingTools.h`
+- `editor/CMakeLists.txt`
+
+**Verification run:**
+- `cmake --build editor/build-native --target step670_test` - PASS
+- `./editor/build-native/step670_test` - PASS (12/12)
+
+### Step 671: Wire RegisterModelingTools into MCPServer + tools.json (8 tests)
+**Status:** PASS (8/8 tests)
+
+Wires modeling tools into live MCP registration chain and updates tool catalog.
+
+**Files modified:**
+- `editor/src/MCPServer.h`
+- `editor/src/mcp/RegisterOnboardingAndAllTools.h`
+- `tools/claude/tools.json`
+- `editor/tests/step671_test.cpp`
+- `editor/CMakeLists.txt`
+
+**Verification run:**
+- `cmake --build editor/build-native --target step671_test` - PASS
+- `./editor/build-native/step671_test` - PASS (8/8)
+
+### Step 672: Rebuild whetstone_mcp + smoke test (8 tests)
+**Status:** PASS (8/8 tests)
+
+Builds `whetstone_mcp` and verifies both new modeling tools appear in `tools/list`
+and handle valid calls.
+
+**Files added:**
+- `editor/tests/step672_test.cpp`
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_mcp` - PASS
+- `cmake --build editor/build-native --target step672_test` - PASS
+- `./editor/build-native/step672_test` - PASS (8/8)
+
+### Step 673: Sprint 42 Integration Summary (8 tests)
+**Status:** PASS (8/8 tests)
+
+Creates `Sprint42IntegrationSummary.h`. Records: tool_count_before=84,
+tool_count_after=86, steps_completed=5, filesAdded=[RegisterModelingTools.h,
+Sprint42IntegrationSummary.h], filesModified=[MCPServer.h,
+RegisterOnboardingAndAllTools.h, tools/claude/tools.json, CMakeLists.txt].
+
+**Files added:**
+- `editor/src/Sprint42IntegrationSummary.h`
+- `editor/tests/step673_test.cpp`
+
+**Verification run:**
+- `cmake --build editor/build-native --target step673_test` - PASS
+- `./editor/build-native/step673_test` - PASS (8/8)
+
+## Sprint 42 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+Sprint 42 modules are compliant with architecture constraints.
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target step669_test step670_test step671_test step672_test step673_test` - PASS
+- `./editor/build-native/step669_test` - PASS (12/12)
+- `./editor/build-native/step670_test` - PASS (12/12)
+- `./editor/build-native/step671_test` - PASS (8/8)
+- `./editor/build-native/step672_test` - PASS (8/8)
+- `./editor/build-native/step673_test` - PASS (8/8)
+- Sprint 42 matrix total: **48/48 passing**
+
+**Architecture gate check:**
+- `editor/src/mcp/RegisterModelingTools.h` within 600-line limit
+- `editor/src/Sprint42IntegrationSummary.h` within 600-line limit
+- Header-only architecture maintained
+- `whetstone_mcp` binary rebuilt successfully, 86 tools live
+
+## Sprint 42 Stabilization Pass
+**Status:** PASS
+
+Resolved Sprint 42 compile/wiring regressions and revalidated the full matrix.
+
+**Fixes applied:**
+- Removed class-scope `json` alias collision in:
+  - `editor/src/ProjectSkeletonGenerator.h`
+  - `editor/src/InferenceJobGenerator.h`
+- Fixed test include ordering/import coverage:
+  - `editor/tests/step669_test.cpp`
+  - `editor/tests/step670_test.cpp`
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_mcp step669_test step670_test step671_test step672_test step673_test` - PASS
+- `./editor/build-native/step669_test` - PASS (12/12)
+- `./editor/build-native/step670_test` - PASS (12/12)
+- `./editor/build-native/step671_test` - PASS (8/8)
+- `./editor/build-native/step672_test` - PASS (8/8)
+- `./editor/build-native/step673_test` - PASS (8/8)
+
+### Step 674: WorkspaceFileIndex — symbol definition index (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented file/symbol index with top-level declaration heuristics and multi-file lookup.
+
+**Files added:**
+- `editor/src/WorkspaceFileIndex.h`
+- `editor/tests/step674_test.cpp`
+
+### Step 675: ContextSliceAssembler — minimal section extraction (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented symbol/head/line-hint slicing with brace-aware extraction and fallbacks.
+
+**Files added:**
+- `editor/src/ContextSliceAssembler.h`
+- `editor/tests/step675_test.cpp`
+
+### Step 676: TokenBudgetEnforcer — trim to budget (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented deterministic whole-slice budget enforcement with token estimate reporting.
+
+**Files added:**
+- `editor/src/TokenBudgetEnforcer.h`
+- `editor/tests/step676_test.cpp`
+
+### Step 677: whetstone_assemble_context MCP tool (8 tests)
+**Status:** PASS (8/8 tests)
+
+Added MCP tool wiring, budget report output, and tool catalog update.
+
+**Files added:**
+- `editor/src/mcp/RegisterContextTools.h`
+- `editor/tests/step677_test.cpp`
+
+**Files modified:**
+- `editor/src/MCPServer.h`
+- `editor/src/mcp/RegisterOnboardingAndAllTools.h`
+- `tools/claude/tools.json`
+
+### Step 678: Sprint 43 Integration Summary (8 tests)
+**Status:** PASS (8/8 tests)
+
+Recorded Sprint 43 integration metadata and verification status.
+
+**Files added:**
+- `editor/src/Sprint43IntegrationSummary.h`
+- `editor/tests/step678_test.cpp`
+
+## Sprint 43 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target whetstone_mcp step674_test step675_test step676_test step677_test step678_test` - PASS
+- `./editor/build-native/step674_test` - PASS (12/12)
+- `./editor/build-native/step675_test` - PASS (12/12)
+- `./editor/build-native/step676_test` - PASS (12/12)
+- `./editor/build-native/step677_test` - PASS (8/8)
+- `./editor/build-native/step678_test` - PASS (8/8)
+- Sprint 43 matrix total: **52/52 passing**
+- Tool count: **86 → 87**
+
+### Step 679: PrerequisiteOpResolver — resolve ops to workspace paths (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented parser/resolver for `read`/`run` prerequisite ops including optional line range parsing.
+
+**Files added:**
+- `editor/src/PrerequisiteOpResolver.h`
+- `editor/tests/step679_test.cpp`
+
+### Step 680: SelfContainmentScorer — score taskitem 0–100 (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented deterministic scoring model with deductions, issue reporting, and clamp behavior.
+
+**Files added:**
+- `editor/src/SelfContainmentScorer.h`
+- `editor/tests/step680_test.cpp`
+
+### Step 681: TaskitemQualityAuditor — batch report (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented batch scoring, category counts, average score, and top issue aggregation.
+
+**Files added:**
+- `editor/src/TaskitemQualityAuditor.h`
+- `editor/tests/step681_test.cpp`
+
+### Step 682: whetstone_validate_taskitem MCP tool (8 tests)
+**Status:** PASS (8/8 tests)
+
+Added taskitem validation MCP wiring, report serialization, and tools catalog update.
+
+**Files added:**
+- `editor/src/mcp/RegisterValidationTools.h`
+- `editor/tests/step682_test.cpp`
+
+**Files modified:**
+- `editor/src/MCPServer.h`
+- `editor/src/mcp/RegisterOnboardingAndAllTools.h`
+- `tools/claude/tools.json`
+
+### Step 683: Sprint 44 Integration Summary (8 tests)
+**Status:** PASS (8/8 tests)
+
+Recorded Sprint 44 integration metadata and verification status.
+
+**Files added:**
+- `editor/src/Sprint44IntegrationSummary.h`
+- `editor/tests/step683_test.cpp`
+
+## Sprint 44 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target whetstone_mcp step679_test step680_test step681_test step682_test step683_test` - PASS
+- `./editor/build-native/step679_test` - PASS (12/12)
+- `./editor/build-native/step680_test` - PASS (12/12)
+- `./editor/build-native/step681_test` - PASS (12/12)
+- `./editor/build-native/step682_test` - PASS (8/8)
+- `./editor/build-native/step683_test` - PASS (8/8)
+- Sprint 44 matrix total: **52/52 passing**
+- Tool count: **87 → 88**
+
+### Step 684: AgentSessionRecorder — session instrumentation (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented per-session tool-call recording with token estimation and file-read classification.
+
+**Files added:**
+- `editor/src/AgentSessionRecorder.h`
+- `editor/tests/step684_test.cpp`
+
+### Step 685: TaskCompletionMetrics — task outcome metrics (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented diff-style line change accounting, test flags, and quality score clamping.
+
+**Files added:**
+- `editor/src/TaskCompletionMetrics.h`
+- `editor/tests/step685_test.cpp`
+
+### Step 686: ABTestComparison — baseline vs whetstone comparison (12 tests)
+**Status:** PASS (12/12 tests)
+
+Implemented token/read/duration/quality delta comparison with safe zero-baseline handling.
+
+**Files added:**
+- `editor/src/ABTestComparison.h`
+- `editor/tests/step686_test.cpp`
+
+### Step 687: whetstone_start_recording + whetstone_get_metrics MCP tools (8 tests)
+**Status:** PASS (8/8 tests)
+
+Added metrics tools and live recording instrumentation in MCP tool dispatch path.
+
+**Files added:**
+- `editor/src/mcp/RegisterMetricsTools.h`
+- `editor/tests/step687_test.cpp`
+
+**Files modified:**
+- `editor/src/MCPServer.h`
+- `editor/src/mcp/RegisterOnboardingAndAllTools.h`
+- `tools/claude/tools.json`
+
+### Step 688: Sprint 45 Integration Summary (8 tests)
+**Status:** PASS (8/8 tests)
+
+Recorded Sprint 45 integration metadata and verification status.
+
+**Files added:**
+- `editor/src/Sprint45IntegrationSummary.h`
+- `editor/tests/step688_test.cpp`
+
+## Sprint 45 Refactor Pass (Architecture Compliance)
+**Status:** PASS
+
+**Verification run (full sprint matrix):**
+- `cmake --build editor/build-native --target whetstone_mcp step684_test step685_test step686_test step687_test step688_test` - PASS
+- `./editor/build-native/step684_test` - PASS (12/12)
+- `./editor/build-native/step685_test` - PASS (12/12)
+- `./editor/build-native/step686_test` - PASS (12/12)
+- `./editor/build-native/step687_test` - PASS (8/8)
+- `./editor/build-native/step688_test` - PASS (8/8)
+- Sprint 45 matrix total: **52/52 passing**
+- Tool count: **88 → 90**

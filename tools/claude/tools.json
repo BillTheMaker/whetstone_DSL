@@ -976,6 +976,225 @@
       "examples": [
         {}
       ]
+    },
+    {
+      "name": "whetstone_generate_project",
+      "description": "Generate a C++ project skeleton from a name, description, and dependencies. Returns CMakeLists.txt content, main.cpp stub, and module header paths.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Project name."
+          },
+          "description": {
+            "type": "string",
+            "description": "Short project description."
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ]
+      },
+      "examples": [
+        {}
+      ]
+    },
+    {
+      "name": "whetstone_generate_inference_job",
+      "description": "Generate a HiveMind inference job payload from an entropy observation. Returns a structured job suitable for dispatch to the nexus.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string"
+          },
+          "entropy_score": {
+            "type": "integer"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bounty": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "goal",
+          "entropy_score",
+          "files"
+        ]
+      },
+      "examples": [
+        {}
+      ]
+    },
+    {
+      "name": "whetstone_assemble_context",
+      "description": "Assemble minimal cross-file context slices for requested files/symbols and enforce a token budget.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "description": "List of slice requests.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "File path relative to workspace."
+                },
+                "symbol": {
+                  "type": "string",
+                  "description": "Symbol name to extract (optional)."
+                },
+                "line_hint": {
+                  "type": "integer",
+                  "description": "Line number hint (optional)."
+                },
+                "head_lines": {
+                  "type": "integer",
+                  "description": "Head fallback line count (optional, default 40)."
+                }
+              },
+              "required": [
+                "path"
+              ]
+            }
+          },
+          "max_tokens": {
+            "type": "integer",
+            "description": "Token budget (default 8000)."
+          }
+        },
+        "required": [
+          "files"
+        ]
+      },
+      "examples": [
+        {}
+      ]
+    },
+    {
+      "name": "whetstone_validate_taskitem",
+      "description": "Validate taskitem self-containment quality and resolve prerequisite ops against a workspace root.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "taskitems": {
+            "type": "array",
+            "description": "One or more taskitems to validate.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "task_id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "prerequisite_ops": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "confidence": {
+                  "type": "integer"
+                },
+                "dependency_task_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "task_id"
+              ]
+            }
+          },
+          "workspace": {
+            "type": "string",
+            "description": "Workspace root path to resolve file paths against."
+          }
+        },
+        "required": [
+          "taskitems"
+        ]
+      },
+      "examples": [
+        {}
+      ]
+    },
+    {
+      "name": "whetstone_start_recording",
+      "description": "Begin recording MCP tool-call metrics for a new session.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Unique session identifier."
+          },
+          "task_description": {
+            "type": "string",
+            "description": "Task description for this session."
+          }
+        },
+        "required": [
+          "session_id",
+          "task_description"
+        ]
+      },
+      "examples": [
+        {}
+      ]
+    },
+    {
+      "name": "whetstone_get_metrics",
+      "description": "Finalize the current recording session and optionally compare against a baseline.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string"
+          },
+          "baseline": {
+            "type": "object",
+            "description": "Optional baseline SessionRecord JSON."
+          },
+          "quality_rating": {
+            "type": "integer"
+          },
+          "baseline_quality": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id"
+        ]
+      },
+      "examples": [
+        {}
+      ]
     }
   ]
 }

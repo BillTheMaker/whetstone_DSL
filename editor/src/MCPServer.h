@@ -15,6 +15,7 @@
 #include <functional>
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
@@ -26,6 +27,15 @@
 #include "ScopeMilestoneDecomposer.h"
 #include "TaskitemConfidenceAmbiguity.h"
 #include "TaskitemGeneratorV2.h"
+#include "WorkspaceFileIndex.h"
+#include "ContextSliceAssembler.h"
+#include "TokenBudgetEnforcer.h"
+#include "PrerequisiteOpResolver.h"
+#include "SelfContainmentScorer.h"
+#include "TaskitemQualityAuditor.h"
+#include "AgentSessionRecorder.h"
+#include "TaskCompletionMetrics.h"
+#include "ABTestComparison.h"
 
 using json = nlohmann::json;
 
@@ -128,6 +138,9 @@ private:
     RpcCallback rpcCallback_;
     ResourceReader resourceReader_;
     bool initialized_ = false;
+    AgentSessionRecorder sessionRecorder_;
+    bool recordingActive_ = false;
+    std::string recordingSessionId_;
 
     // ---------------------------------------------------------------
     //  Protocol handlers
@@ -197,7 +210,20 @@ private:
         }
 
         try {
+            const auto t0 = std::chrono::steady_clock::now();
             json result = it->second(args);
+            const auto t1 = std::chrono::steady_clock::now();
+            const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+            if (recordingActive_ &&
+                toolName != "whetstone_start_recording" &&
+                toolName != "whetstone_get_metrics") {
+                auto rec = AgentSessionRecorder::makeRecord(
+                    toolName,
+                    args.dump(),
+                    result.dump(),
+                    ms);
+                sessionRecorder_.record(rec);
+            }
             std::string text = result.dump(2);
             response["result"] = {
                 {"content", json::array({{{"type", "text"}, {"text", text}}})},
@@ -549,4 +575,8 @@ private:
 #include "mcp/RegisterReviewTools.h"
 #include "mcp/RegisterArchitectIntakeTools.h"
 #include "mcp/RegisterCodegenTools.h"
+#include "mcp/RegisterModelingTools.h"
+#include "mcp/RegisterContextTools.h"
+#include "mcp/RegisterValidationTools.h"
+#include "mcp/RegisterMetricsTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"

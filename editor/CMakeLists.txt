@@ -4892,4 +4892,188 @@ target_link_libraries(step668_test PRIVATE
     tree_sitter_javascript tree_sitter_typescript
     tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+# Sprint 42: MCP modeling tools wiring (Steps 669-673)
+add_executable(step669_test tests/step669_test.cpp)
+target_include_directories(step669_test PRIVATE src)
+target_link_libraries(step669_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step670_test tests/step670_test.cpp)
+target_include_directories(step670_test PRIVATE src)
+target_link_libraries(step670_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step671_test tests/step671_test.cpp)
+target_include_directories(step671_test PRIVATE src)
+target_link_libraries(step671_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step672_test tests/step672_test.cpp)
+target_include_directories(step672_test PRIVATE src)
+target_link_libraries(step672_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step673_test tests/step673_test.cpp)
+target_include_directories(step673_test PRIVATE src)
+target_link_libraries(step673_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+# Sprint 43: Cross-file context assembly (Steps 674-678)
+add_executable(step674_test tests/step674_test.cpp)
+target_include_directories(step674_test PRIVATE src)
+target_link_libraries(step674_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step675_test tests/step675_test.cpp)
+target_include_directories(step675_test PRIVATE src)
+target_link_libraries(step675_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step676_test tests/step676_test.cpp)
+target_include_directories(step676_test PRIVATE src)
+target_link_libraries(step676_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step677_test tests/step677_test.cpp)
+target_include_directories(step677_test PRIVATE src)
+target_link_libraries(step677_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step678_test tests/step678_test.cpp)
+target_include_directories(step678_test PRIVATE src)
+target_link_libraries(step678_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+# Sprint 44: Taskitem self-containment validator (Steps 679-683)
+add_executable(step679_test tests/step679_test.cpp)
+target_include_directories(step679_test PRIVATE src)
+target_link_libraries(step679_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step680_test tests/step680_test.cpp)
+target_include_directories(step680_test PRIVATE src)
+target_link_libraries(step680_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step681_test tests/step681_test.cpp)
+target_include_directories(step681_test PRIVATE src)
+target_link_libraries(step681_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step682_test tests/step682_test.cpp)
+target_include_directories(step682_test PRIVATE src)
+target_link_libraries(step682_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step683_test tests/step683_test.cpp)
+target_include_directories(step683_test PRIVATE src)
+target_link_libraries(step683_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+# Sprint 45: Agent session metrics + A/B harness (Steps 684-688)
+add_executable(step684_test tests/step684_test.cpp)
+target_include_directories(step684_test PRIVATE src)
+target_link_libraries(step684_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step685_test tests/step685_test.cpp)
+target_include_directories(step685_test PRIVATE src)
+target_link_libraries(step685_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step686_test tests/step686_test.cpp)
+target_include_directories(step686_test PRIVATE src)
+target_link_libraries(step686_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step687_test tests/step687_test.cpp)
+target_include_directories(step687_test PRIVATE src)
+target_link_libraries(step687_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step688_test tests/step688_test.cpp)
+target_include_directories(step688_test PRIVATE src)
+target_link_libraries(step688_test PRIVATE
+    nlohmann_json::nlohmann_json
+    unofficial::tree-sitter::tree-sitter
+    tree_sitter_python tree_sitter_cpp tree_sitter_elisp
+    tree_sitter_javascript tree_sitter_typescript
+    tree_sitter_java tree_sitter_rust tree_sitter_go)
+
 # Step 12: Dear ImGui shell scaffolding created (main.cpp exists but not built due to dependencies)
