@@ -14144,3 +14144,16 @@ Recorded Sprint 45 integration metadata and verification status.
 - `./editor/build-native/step688_test` - PASS (8/8)
 - Sprint 45 matrix total: **52/52 passing**
 - Tool count: **88 → 90**
+
+## Post-Sprint Warning Cleanup
+**Status:** PASS
+
+Resolved remaining `whetstone_mcp` build warning:
+`-Wchanges-meaning` for class-scope `json` alias imported via `SchemaToCppGenerator.h`.
+
+**Fix applied:**
+- Updated `editor/src/SchemaToCppGenerator.h` to remove `using json = nlohmann::json;`
+  and use `nlohmann::json` directly in the public API signature.
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_mcp` - PASS
