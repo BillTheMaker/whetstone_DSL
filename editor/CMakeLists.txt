@@ -7282,3 +7282,44 @@ target_link_libraries(step847_test PRIVATE nlohmann_json::nlohmann_json unoffici
 add_executable(step848_test tests/step848_test.cpp)
 target_include_directories(step848_test PRIVATE src)
 target_link_libraries(step848_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+# Sprint 62: Adapter Quality Telemetry and Failure Taxonomy (Steps 849-858)
+add_executable(step849_test tests/step849_test.cpp)
+target_include_directories(step849_test PRIVATE src)
+target_link_libraries(step849_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step850_test tests/step850_test.cpp)
+target_include_directories(step850_test PRIVATE src)
+target_link_libraries(step850_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step851_test tests/step851_test.cpp)
+target_include_directories(step851_test PRIVATE src)
+target_link_libraries(step851_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step852_test tests/step852_test.cpp)
+target_include_directories(step852_test PRIVATE src)
+target_link_libraries(step852_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step853_test tests/step853_test.cpp)
+target_include_directories(step853_test PRIVATE src)
+target_link_libraries(step853_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step854_test tests/step854_test.cpp)
+target_include_directories(step854_test PRIVATE src)
+target_link_libraries(step854_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step855_test tests/step855_test.cpp)
+target_include_directories(step855_test PRIVATE src)
+target_link_libraries(step855_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step856_test tests/step856_test.cpp)
+target_include_directories(step856_test PRIVATE src)
+target_link_libraries(step856_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step857_test tests/step857_test.cpp)
+target_include_directories(step857_test PRIVATE src)
+target_link_libraries(step857_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step858_test tests/step858_test.cpp)
+target_include_directories(step858_test PRIVATE src)
+target_link_libraries(step858_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)

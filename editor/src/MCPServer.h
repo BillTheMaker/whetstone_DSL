@@ -732,4 +732,5 @@ private:
 #include "mcp/RegisterGovernanceTools.h"
 #include "mcp/RegisterGraduationTools.h"
 #include "mcp/RegisterCertificationTools.h"
+#include "mcp/RegisterFailureTelemetryTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"

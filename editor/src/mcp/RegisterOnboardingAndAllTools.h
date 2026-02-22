@@ -57,6 +57,7 @@
         registerGovernanceTools();
         registerGraduationTools();
         registerCertificationTools();
+        registerFailureTelemetryTools();
         registerOnboardingTools();
     }
 };
