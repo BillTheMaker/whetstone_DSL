@@ -13,6 +13,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <cctype>
 #include <tree_sitter/api.h>
 
 extern "C" {
@@ -59,6 +60,14 @@ public:
                                                  const std::string& language) {
         std::vector<HighlightSpan> spans;
         if (source.empty()) return spans;
+        if (language == "markdown") {
+            walkMarkdownSimple(source, spans);
+            std::sort(spans.begin(), spans.end(),
+                      [](const HighlightSpan& a, const HighlightSpan& b) {
+                          return a.start < b.start;
+                      });
+            return spans;
+        }
 
         TSParser* parser = ts_parser_new();
         const TSLanguage* lang = nullptr;
@@ -146,6 +155,44 @@ private:
         uint32_t e = ts_node_end_byte(node);
         if (s < e) {
             spans.push_back({s, e, cat});
+        }
+    }
+
+    static void walkMarkdownSimple(const std::string& source,
+                                   std::vector<HighlightSpan>& spans) {
+        size_t lineStart = 0;
+        bool inFence = false;
+        while (lineStart <= source.size()) {
+            size_t lineEnd = source.find('\n', lineStart);
+            if (lineEnd == std::string::npos) lineEnd = source.size();
+            std::string line = source.substr(lineStart, lineEnd - lineStart);
+            std::string trimmed = line;
+            while (!trimmed.empty() && std::isspace((unsigned char)trimmed.front())) {
+                trimmed.erase(trimmed.begin());
+            }
+
+            if (trimmed.rfind("```", 0) == 0 || trimmed.rfind("~~~", 0) == 0) {
+                spans.push_back({(uint32_t)lineStart, (uint32_t)lineEnd, TokenCategory::Keyword});
+                inFence = !inFence;
+            } else if (inFence) {
+                spans.push_back({(uint32_t)lineStart, (uint32_t)lineEnd, TokenCategory::String});
+            } else if (!trimmed.empty() && trimmed[0] == '#') {
+                spans.push_back({(uint32_t)lineStart, (uint32_t)lineEnd, TokenCategory::Keyword});
+            } else {
+                size_t tickStart = line.find('`');
+                while (tickStart != std::string::npos) {
+                    size_t tickEnd = line.find('`', tickStart + 1);
+                    if (tickEnd == std::string::npos) break;
+                    spans.push_back({
+                        (uint32_t)(lineStart + tickStart),
+                        (uint32_t)(lineStart + tickEnd + 1),
+                        TokenCategory::Builtin
+                    });
+                    tickStart = line.find('`', tickEnd + 1);
+                }
+            }
+            if (lineEnd == source.size()) break;
+            lineStart = lineEnd + 1;
         }
     }
 

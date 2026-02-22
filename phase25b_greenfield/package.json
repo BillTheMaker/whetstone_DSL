@@ -1,0 +1,9 @@
+{
+  "name": "phase25b_greenfield",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "echo build",
+    "test": "echo test"
+  }
+}

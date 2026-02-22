@@ -573,6 +573,8 @@ struct EditorState {
     void updateCursorPos(int bytePos);
 
     void refreshFileTree();
+
+    bool setWorkspaceRoot(const std::string& path, std::string* error = nullptr);
 };
 
 // --- LspOps (extracted Step 238) ---

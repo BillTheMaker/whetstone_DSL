@@ -84,6 +84,9 @@ static void RenderFileTree(const FileNode& node, EditorState& state) {
     }
 
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    if (!state.workspaceRoot.empty() && node.path == state.workspaceRoot) {
+        flags |= ImGuiTreeNodeFlags_DefaultOpen;
+    }
     if (ImGui::TreeNodeEx(node.name.c_str(), flags)) {
         for (const auto& child : node.children) {
             RenderFileTree(child, state);
@@ -107,7 +110,7 @@ static void RenderWelcome(WelcomeScreen& welcome, EditorState& state, std::strin
     }
     ImGui::SameLine();
     if (ImGui::Button("Open File")) {
-        auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go"}, lastDialogPath});
+        auto path = FileDialog::openFile({"Open File", {"*.py","*.cpp","*.h","*.el","*.js","*.ts","*.java","*.rs","*.go","*.org","*.md","*.txt","*.docx","*.*"}, lastDialogPath});
         if (!path.empty()) {
             lastDialogPath = path;
             state.doOpen(path, state.defaultBufferMode());
@@ -117,10 +120,13 @@ static void RenderWelcome(WelcomeScreen& welcome, EditorState& state, std::strin
     if (ImGui::Button("Open Folder")) {
         auto path = FileDialog::openFolder({"Open Folder", state.workspaceRoot});
         if (!path.empty()) {
-            state.workspaceRoot = path;
-            state.fileTreeDirty = true;
-            state.search.projectSearch.setRoot(state.workspaceRoot);
-            lastDialogPath = path;
+            std::string error;
+            if (state.setWorkspaceRoot(path, &error)) {
+                lastDialogPath = path;
+            } else {
+                state.notify(NotificationLevel::Error,
+                             "Failed to open folder: " + error);
+            }
         }
     }
 

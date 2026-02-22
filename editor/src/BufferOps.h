@@ -4,6 +4,124 @@
 // Buffer, file, project, and session operations.
 // Included from EditorState.h after the EditorState struct definition.
 
+inline std::string detectLanguageFromPath(const std::string& path) {
+    std::filesystem::path p(path);
+    std::string ext = p.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (ext == ".py") return "python";
+    if (ext == ".cpp" || ext == ".cc" || ext == ".cxx" || ext == ".c" ||
+        ext == ".h" || ext == ".hpp" || ext == ".hh") return "cpp";
+    if (ext == ".el") return "elisp";
+    if (ext == ".js" || ext == ".mjs" || ext == ".cjs") return "javascript";
+    if (ext == ".ts" || ext == ".tsx") return "typescript";
+    if (ext == ".java") return "java";
+    if (ext == ".rs") return "rust";
+    if (ext == ".go") return "go";
+    if (ext == ".org") return "org";
+    if (ext == ".md" || ext == ".markdown") return "markdown";
+    if (ext == ".txt" || ext == ".rst") return "text";
+    if (ext == ".docx") return "text";
+    if (ext == ".json" || ext == ".yaml" || ext == ".yml" ||
+        ext == ".toml" || ext == ".xml" || ext == ".ini" ||
+        ext == ".cfg" || ext == ".conf") return "text";
+    return "text";
+}
+
+inline bool supportsStructuredMode(const std::string& language) {
+    return language == "python" || language == "cpp" || language == "elisp" ||
+           language == "javascript" || language == "typescript" ||
+           language == "java" || language == "rust" || language == "go";
+}
+
+inline std::string replaceAll(std::string s, const std::string& from, const std::string& to) {
+    if (from.empty()) return s;
+    size_t pos = 0;
+    while ((pos = s.find(from, pos)) != std::string::npos) {
+        s.replace(pos, from.size(), to);
+        pos += to.size();
+    }
+    return s;
+}
+
+inline std::string decodeXmlEntities(std::string s) {
+    s = replaceAll(std::move(s), "&lt;", "<");
+    s = replaceAll(std::move(s), "&gt;", ">");
+    s = replaceAll(std::move(s), "&amp;", "&");
+    s = replaceAll(std::move(s), "&quot;", "\"");
+    s = replaceAll(std::move(s), "&apos;", "'");
+    return s;
+}
+
+inline std::string shellSingleQuote(const std::string& path) {
+    std::string out;
+    out.reserve(path.size() + 8);
+    out.push_back('\'');
+    for (char c : path) {
+        if (c == '\'') out += "'\\''";
+        else out.push_back(c);
+    }
+    out.push_back('\'');
+    return out;
+}
+
+inline bool readDocxAsText(const std::string& path, std::string& outText, std::string& outError) {
+    outText.clear();
+    outError.clear();
+#ifdef _WIN32
+    outError = "DOCX import is currently available on Linux/macOS builds only";
+    return false;
+#else
+    std::string command = "unzip -p " + shellSingleQuote(path) + " word/document.xml 2>/dev/null";
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        outError = "failed to run unzip";
+        return false;
+    }
+    char buffer[4096];
+    std::string xml;
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        xml += buffer;
+    }
+    int rc = pclose(pipe);
+    if (rc != 0 || xml.empty()) {
+        outError = "could not extract DOCX XML (is unzip installed?)";
+        return false;
+    }
+
+    xml = replaceAll(std::move(xml), "<w:tab/>", "\t");
+    xml = replaceAll(std::move(xml), "<w:br/>", "\n");
+    xml = replaceAll(std::move(xml), "<w:cr/>", "\n");
+    xml = replaceAll(std::move(xml), "</w:p>", "\n\n");
+
+    std::string plain;
+    plain.reserve(xml.size());
+    bool inTag = false;
+    for (char c : xml) {
+        if (c == '<') {
+            inTag = true;
+            continue;
+        }
+        if (c == '>') {
+            inTag = false;
+            continue;
+        }
+        if (!inTag) plain.push_back(c);
+    }
+    plain = decodeXmlEntities(std::move(plain));
+
+    while (plain.find("\n\n\n") != std::string::npos) {
+        plain = replaceAll(std::move(plain), "\n\n\n", "\n\n");
+    }
+    if (plain.empty()) {
+        outError = "DOCX contained no readable text";
+        return false;
+    }
+    outText = std::move(plain);
+    return true;
+#endif
+}
+
 inline std::string EditorState::makeUntitledName() const {
     if (!buffers.hasBuffer("(untitled)")) return "(untitled)";
     int i = 1;
@@ -26,7 +144,7 @@ inline void EditorState::createBuffer(const std::string& path, const std::string
     bool disableSyntaxHighlight,
     bool deferAstSync) {
     BufferManager::BufferMode effectiveMode = mode;
-    if (language == "org") effectiveMode = BufferManager::BufferMode::Text;
+    if (!supportsStructuredMode(language)) effectiveMode = BufferManager::BufferMode::Text;
     if (buffers.hasBuffer(path)) {
         buffers.switchToBuffer(path);
         activeBuffer = bufferStates[path].get();
@@ -192,9 +310,17 @@ inline bool EditorState::loadProject(const std::string& path) {
         closeAllBuffers();
 
         if (!project.workspaceRoot.empty()) {
-            workspaceRoot = project.workspaceRoot;
-            fileTreeDirty = true;
-            search.projectSearch.setRoot(workspaceRoot);
+            std::string rootError;
+            if (!setWorkspaceRoot(project.workspaceRoot, &rootError)) {
+                notify(NotificationLevel::Warning,
+                       "Project workspace is unavailable: " + rootError);
+            }
+        } else {
+            std::filesystem::path projectPath(path);
+            std::string parent = projectPath.parent_path().string();
+            if (!parent.empty()) {
+                setWorkspaceRoot(parent, nullptr);
+            }
         }
 
         std::string activePath = project.activePath;
@@ -282,9 +408,7 @@ inline bool EditorState::loadSession(SessionData& out) {
 inline void EditorState::applySession(const SessionData& session) {
     closeAllBuffers();
     if (!session.workspaceRoot.empty()) {
-        workspaceRoot = session.workspaceRoot;
-        fileTreeDirty = true;
-        search.projectSearch.setRoot(workspaceRoot);
+        setWorkspaceRoot(session.workspaceRoot, nullptr);
     }
     ui.layoutPreset = LayoutManager::presetFromName(session.layoutPreset);
     for (const auto& buf : session.buffers) {
@@ -365,36 +489,32 @@ inline void EditorState::doOpen(const std::string& path,
     bool autoText = fileSizeBytes >= textBytes;
     bool disableHighlight = fileSizeBytes >= disableHlBytes;
     bool largeFileMode = disableHighlight;
+    const std::string language = detectLanguageFromPath(path);
     BufferManager::BufferMode effectiveMode = modeOverride;
+    if (!supportsStructuredMode(language)) {
+        effectiveMode = BufferManager::BufferMode::Text;
+    }
     if (autoText && modeOverride == BufferManager::BufferMode::Structured) {
         effectiveMode = BufferManager::BufferMode::Text;
     }
-    std::ifstream in(path);
-    if (in.is_open()) {
-        std::ostringstream ss;
-        ss << in.rdbuf();
-        std::string content = ss.str();
-        std::string language = "python";
-        if (path.size() > 3 && path.substr(path.size() - 3) == ".py")
-            language = "python";
-        else if (path.size() > 4 && path.substr(path.size() - 4) == ".cpp")
-            language = "cpp";
-        else if (path.size() > 2 && path.substr(path.size() - 2) == ".h")
-            language = "cpp";
-        else if (path.size() > 3 && path.substr(path.size() - 3) == ".el")
-            language = "elisp";
-        else if (path.size() > 3 && path.substr(path.size() - 3) == ".js")
-            language = "javascript";
-        else if (path.size() > 3 && path.substr(path.size() - 3) == ".ts")
-            language = "typescript";
-        else if (path.size() > 5 && path.substr(path.size() - 5) == ".java")
-            language = "java";
-        else if (path.size() > 3 && path.substr(path.size() - 3) == ".rs")
-            language = "rust";
-        else if (path.size() > 3 && path.substr(path.size() - 3) == ".go")
-            language = "go";
-        else if (path.size() > 4 && path.substr(path.size() - 4) == ".org")
-            language = "org";
+    std::string content;
+    bool opened = false;
+    std::string openError;
+    std::string ext = std::filesystem::path(path).extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (ext == ".docx") {
+        opened = readDocxAsText(path, content, openError);
+    } else {
+        std::ifstream in(path);
+        if (in.is_open()) {
+            std::ostringstream ss;
+            ss << in.rdbuf();
+            content = ss.str();
+            opened = true;
+        }
+    }
+    if (opened) {
         createBuffer(path, content, language, effectiveMode,
                      fileSizeBytes, largeFileMode, disableHighlight, deferAstSync);
         welcome.addRecentFile(path, language, bufferModeToString(effectiveMode));
@@ -416,7 +536,8 @@ inline void EditorState::doOpen(const std::string& path,
             {"sizeBytes", fileSizeBytes}
         });
     } else {
-        notify(NotificationLevel::Error, "Error opening: " + path);
+        notify(NotificationLevel::Error,
+               "Error opening: " + path + (openError.empty() ? "" : " (" + openError + ")"));
     }
 }
 
@@ -507,8 +628,50 @@ inline void EditorState::updateCursorPos(int bytePos) {
 
 inline void EditorState::refreshFileTree() {
     if (!fileTreeDirty) return;
-    fileTreeRoot = fileTree.build(workspaceRoot);
+    namespace fs = std::filesystem;
+    if (workspaceRoot.empty()) {
+        fileTreeRoot = FileNode{};
+        fileTreeDirty = false;
+        return;
+    }
+    std::error_code ec;
+    fs::path rootPath = fs::path(workspaceRoot);
+    if (!fs::exists(rootPath, ec) || !fs::is_directory(rootPath, ec)) {
+        fileTreeRoot = FileNode{};
+        fileTreeDirty = false;
+        return;
+    }
+    try {
+        fileTreeRoot = fileTree.build(rootPath.string());
+    } catch (...) {
+        fileTreeRoot = FileNode{};
+    }
     fileTreeDirty = false;
+}
+
+inline bool EditorState::setWorkspaceRoot(const std::string& path, std::string* error) {
+    if (error) error->clear();
+    namespace fs = std::filesystem;
+    if (path.empty()) {
+        workspaceRoot.clear();
+        search.projectSearch.setRoot("");
+        fileTreeRoot = FileNode{};
+        fileTreeDirty = false;
+        return true;
+    }
+
+    std::error_code ec;
+    fs::path canonical = fs::weakly_canonical(fs::path(path), ec);
+    if (ec || !fs::exists(canonical, ec) || !fs::is_directory(canonical, ec)) {
+        if (error) *error = "invalid workspace path";
+        return false;
+    }
+
+    workspaceRoot = canonical.string();
+    fileTreeDirty = true;
+    search.projectSearch.setRoot(workspaceRoot);
+    refreshBuildSystem();
+    return true;
 }
 
 inline void EditorState::navigateToTarget(const NotificationTarget& target) {

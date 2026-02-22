@@ -1,0 +1,32 @@
+{
+  "moduleId": "example-mod",
+  "moduleName": "Example",
+  "nodes": [
+    {
+      "id": "m1",
+      "kind": "module",
+      "name": "Example",
+      "language": "rust",
+      "intentTags": ["stateful"],
+      "annotations": {},
+      "metadata": {}
+    },
+    {
+      "id": "f1",
+      "kind": "function",
+      "name": "run",
+      "language": "rust",
+      "intentTags": ["algorithmic"],
+      "annotations": {},
+      "metadata": {}
+    }
+  ],
+  "edges": [
+    {"fromId": "m1", "toId": "f1", "relation": "contains"}
+  ],
+  "contracts": {
+    "preconditions": ["input_valid"],
+    "postconditions": ["output_nonempty"]
+  },
+  "extras": {}
+}

@@ -77,8 +77,9 @@ inline void EditorState::recordEditorEvent(const std::string& type, const json& 
 
 inline void EditorState::init() {
     notify(NotificationLevel::Info, "Whetstone Editor ready.");
-    workspaceRoot = std::filesystem::current_path().string();
-    search.projectSearch.setRoot(workspaceRoot);
+    workspaceRoot.clear();
+    search.projectSearch.setRoot("");
+    fileTreeRoot = FileNode{};
     fileTreeDirty = true;
     loadRecentFiles();
     loadFeatureHints(featureHints, workspaceRoot);

@@ -16,10 +16,11 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 
 ## Current State
 
-**Step 663 / Sprint 40 — ALL SPRINTS COMPLETE**
+**Step 688 / Sprint 45 — COMPLETE**
 
-Last commit: `f13df10 Step 663: sprint 40 integration summary`
-Sprint 40 matrix: 112/112 tests passing. Architecture gate: all headers ≤ 600 lines.
+Last recorded: Sprint 45 integration summary (Step 688). 52/52 tests passing.
+MCP tool count: **90 tools**. Architecture gate: all headers ≤ 600 lines.
+`whetstone_mcp` binary: `/home/bill/Documents/CLionProjects/whetstone_DSL/editor/build-native/whetstone_mcp` (built 2026-02-19)
 
 ---
 
@@ -67,6 +68,28 @@ Sprint 40 matrix: 112/112 tests passing. Architecture gate: all headers ≤ 600 
 | Sprint 38 | 634–643 | **Complete** | HiveMind Build Support: schema→C++ generator, MQTT boilerplate, SQLite layer, drone skeleton, dispatch table generators |
 | Sprint 39 | 644–653 | **Complete** | Self-Hosting + Release Pipeline: CMake from AST, in-editor test runner, AppImage, HiveMind auto-update, plugin system |
 | Sprint 40 | 654–663 | **Complete** | HiveMind Integration: job publisher, swarm status, apiary browser, energy context, entropy scanner, inference engine, pilot queue, cross-session bridge |
+| Sprint 41 | 664–668 | **Complete** | Codegen MCP tools: `whetstone_schema_to_cpp` (SchemaToCppGenerator) + `whetstone_generate_dispatch_table` (JobDispatchTableGenerator) wired via RegisterCodegenTools.h. Tool count 82→84. |
+| Sprint 42 | 669–673 | **Complete** | Stabilization + new generators: ProjectSkeletonGenerator + InferenceJobGenerator. Fixed class-scope json alias collisions. Tool count 84→86. |
+| Sprint 43 | 674–678 | **Complete** | Context assembly: WorkspaceFileIndex, ContextSliceAssembler, TokenBudgetEnforcer, `whetstone_assemble_context` MCP tool. Tool count 86→87. |
+| Sprint 44 | 679–683 | **Complete** | Taskitem quality: PrerequisiteOpResolver, SelfContainmentScorer, TaskitemQualityAuditor, `whetstone_validate_taskitem` MCP tool. Tool count 87→88. |
+| Sprint 45 | 684–688 | **Complete** | Agent metrics: AgentSessionRecorder, TaskCompletionMetrics, ABTestComparison, `whetstone_start_recording` + `whetstone_get_metrics` MCP tools. Live tool-call instrumentation. Tool count 88→90. |
+
+---
+
+## Hotfix — MCPBridge NDJSON Transport (2026-02-19, between sprints)
+
+**Problem:** `whetstone_mcp` was silently ignoring all messages from Claude Code 2.x.
+Claude Code 2.x uses MCP protocol `2025-11-25` which sends newline-delimited JSON (NDJSON).
+The binary only handled the older `2024-11-05` Content-Length framing — unrecognized lines
+were silently dropped, causing a 30-second timeout on every session startup.
+
+**Fix:** `editor/src/MCPBridge.h` — `runStdio()` now detects both transports:
+- Lines beginning with `Content-Length:` → Content-Length framing (old protocol)
+- Lines beginning with `{` → NDJSON (new protocol, responds with `{json}\n`)
+- Also fixed header-skip loop to drain ALL headers before body read (not just one line)
+
+**Binary rebuilt** 2026-02-19. No sprint step assigned (single-function fix, no new test needed).
+Next sprint starts at Step 689 as planned.
 
 ---
 
@@ -605,13 +628,14 @@ Step-by-step test results in `progress.md` (lowercase). Architecture gate
 
 ## What's Next
 
-**Sprints 1–40 committed. Sprint 41 not yet planned.**
+**Sprints 1–45 complete. Sprint 46 not yet planned.**
 
-The MCP tools (`whetstone_architect_intake`, `whetstone_generate_taskitems`,
-`whetstone_queue_ready`) are ready to be used by any project consuming the
-editor. New sprint work should start with a `sprint41_plan.md` following the
-established sprint plan format. Check `feature-requests.md` and
-`FEATURE_REQUESTS.md` for queued capability work.
+The full MCP tool suite (90 tools) is ready. New sprint work should start
+with a `sprint46_plan.md` following the established sprint plan format.
+Check `feature-requests.md` and `FEATURE_REQUESTS.md` for queued capability work.
+
+The `whetstone_mcp` binary is registered in `/home/bill/Documents/.mcp.json`
+for use by Claude Code sessions in the `/home/bill/Documents` workspace.
 
 ---
 
@@ -802,7 +826,9 @@ established sprint plan format. Check `feature-requests.md` and
 | 2026-02-10 | Codex | Step 243: First-launch polish — Explorer shows Open Folder prompt when no workspace, status bar shows “Text Mode/Structured Mode”, bottom panel collapses on initial layout/reset. Tests not run. |
 | 2026-02-10 | Codex | Ubuntu 24 build portability pass: fixed Linux/GCC compile/link regressions and validated product target build (`whetstone_editor`, `orchestrator`) via `installer/linux/build.sh`. Updated Linux build/install scripts with explicit prerequisite checks/deps and product-target build mode. |
 | 2026-02-10 | Codex | Step 244: Added integration-style test target `step244_test` validating text-first defaults, mode policy gating, per-buffer mode persistence, VSCode preset layout ratios, and settings-driven default buffer mode mapping. 6/6 checks pass (`./editor/build/step244_test`). |
-| 2026-02-19 | Codex | Sprint 42 stabilization pass: fixed MCP build/test regressions caused by class-scope json alias collisions (`ProjectSkeletonGenerator.h`, `InferenceJobGenerator.h`) and test include ordering for Step 669/670. Rebuilt `whetstone_mcp`; Steps 669–673 all pass. |
-| 2026-02-19 | Codex | Sprint 43 complete (Steps 674–678): added `WorkspaceFileIndex`, `ContextSliceAssembler`, `TokenBudgetEnforcer`, and MCP tool `whetstone_assemble_context`. Tool count 86→87. Full matrix passes (52/52). |
-| 2026-02-19 | Codex | Sprint 44 complete (Steps 679–683): added `PrerequisiteOpResolver`, `SelfContainmentScorer`, `TaskitemQualityAuditor`, and MCP tool `whetstone_validate_taskitem`. Tool count 87→88. Full matrix passes (52/52). |
-| 2026-02-19 | Codex | Sprint 45 complete (Steps 684–688): added `AgentSessionRecorder`, `TaskCompletionMetrics`, `ABTestComparison`, MCP tools `whetstone_start_recording` + `whetstone_get_metrics`, and live MCP tool-call instrumentation. Tool count 88→90. Full matrix passes (52/52). |
+| 2026-02-18 | Claude Code | Sprint 41 complete (Steps 664–668): registered `SchemaToCppGenerator` as `whetstone_schema_to_cpp` and `JobDispatchTableGenerator` as `whetstone_generate_dispatch_table` via new `RegisterCodegenTools.h`. Wired into `MCPServer.h` + `RegisterOnboardingAndAllTools.h`. `tools.json` updated (82→84 tools). `whetstone_mcp` rebuilt and smoke-tested over MCP stdio. 40/40 tests passing. |
+| 2026-02-19 | Codex | Sprint 42 complete (Steps 669–673): added `ProjectSkeletonGenerator` and `InferenceJobGenerator`; stabilization pass fixed class-scope `json` alias collisions in those headers and test include ordering for Steps 669/670. Rebuilt `whetstone_mcp`. Tool count 84→86. Steps 669–673 all pass. |
+| 2026-02-19 | Codex | Sprint 43 complete (Steps 674–678): added `WorkspaceFileIndex`, `ContextSliceAssembler`, `TokenBudgetEnforcer`, and MCP tool `whetstone_assemble_context` via new `RegisterContextTools.h`. Tool count 86→87. Full matrix passes (52/52). |
+| 2026-02-19 | Codex | Sprint 44 complete (Steps 679–683): added `PrerequisiteOpResolver`, `SelfContainmentScorer`, `TaskitemQualityAuditor`, and MCP tool `whetstone_validate_taskitem` via new `RegisterValidationTools.h`. Tool count 87→88. Full matrix passes (52/52). |
+| 2026-02-19 | Codex | Sprint 45 complete (Steps 684–688): added `AgentSessionRecorder`, `TaskCompletionMetrics`, `ABTestComparison`, MCP tools `whetstone_start_recording` + `whetstone_get_metrics` via new `RegisterMetricsTools.h`, and live MCP tool-call instrumentation in dispatch path. Tool count 88→90. Full matrix passes (52/52). |
+| 2026-02-19 | Claude Code | Updated PROGRESS.md sprint table and session log to reflect Sprints 41–45 (was stale at Sprint 40). Created `CLionProjects/whetstone_DSL/CLAUDE.md` for Claude Code session orientation. |

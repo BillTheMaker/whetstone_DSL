@@ -40,6 +40,21 @@
         registerContextTools();
         registerValidationTools();
         registerMetricsTools();
+        registerPortingFoundationTools();
+        registerRustSemanticTools();
+        registerCppRaisingTools();
+        registerEquivalenceTools();
+        registerPortingGatesTools();
+        registerSystemsFamilyTools();
+        registerDynamicFamilyTools();
+        registerManagedFamilyTools();
+        registerASTNativeFamilyTools();
+        registerLogicActorFamilyTools();
+        registerQueryFamilyTools();
+        registerLowLevelFamilyTools();
+        registerLegacyIngestionTools();
+        registerDebugWorkflowTools();
+        registerGovernanceTools();
         registerOnboardingTools();
     }
 };

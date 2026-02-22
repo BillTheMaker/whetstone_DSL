@@ -71,7 +71,7 @@
 - Phase 7f: Session recording pipeline ‚Äî capture, anonymize, export (Steps 230‚Äì234)
 
 ---
-## PHP Language Support (Full Pipeline) ó PROPOSED
+## PHP Language Support (Full Pipeline) ÔøΩ PROPOSED
 
 **Goal:** Add full PHP support (parse, AST, generate, project, and annotations) to Whetstone.
 
@@ -88,7 +88,7 @@
 
 ---
 
-## WordPress Support (Library + Semantics) ó PROPOSED
+## WordPress Support (Library + Semantics) ÔøΩ PROPOSED
 
 **Goal:** Enable WordPress-aware tooling on top of PHP support.
 
@@ -99,7 +99,7 @@
 
 ---
 
-## Rust Plugin Packaging (Conflict Resolver) ó PROPOSED
+## Rust Plugin Packaging (Conflict Resolver) ÔøΩ PROPOSED
 
 **Goal:** Package a Rust-based topological conflict resolver as a Whetstone plugin.
 
@@ -108,7 +108,7 @@
 - Packaging format and plugin discovery/loading
 - Example integration with a Rust binary or shared library
 
-## Julia Language Support (Full Pipeline) ó PROPOSED
+## Julia Language Support (Full Pipeline) ÔøΩ PROPOSED
 
 **Goal:** Add full Julia support (parse, AST, generate, project, and annotations) to Whetstone.
 
@@ -121,7 +121,7 @@
 
 ---
 
-## Julia ML Projection Layer ó PROPOSED
+## Julia ML Projection Layer ÔøΩ PROPOSED
 
 **Goal:** Map common Python ML/Numerical APIs to Julia equivalents while preserving optimization intent.
 
@@ -132,7 +132,7 @@
 - Dual projections: clean surface Julia + preserved optimization annotations
 
 
-## Julia Packaging Strategy ó PROPOSED
+## Julia Packaging Strategy ÔøΩ PROPOSED
 
 **Goal:** Define a reliable packaging path for Julia-based artifacts.
 
@@ -141,7 +141,7 @@
 - Provide recommended defaults for CLI tools vs GUI apps
 - Include guidance for minimizing startup latency and bundle size
 
-## Python/C++/JS-TS Support Enhancements ó PROPOSED
+## Python/C++/JS-TS Support Enhancements ÔøΩ PROPOSED
 
 **Goal:** Expand first-class support for Python, C++, and JS/TS beyond current parse/generate.
 
@@ -153,7 +153,7 @@
 
 ---
 
-## Plugin System Enhancements ó PROPOSED
+## Plugin System Enhancements ÔøΩ PROPOSED
 
 **Goal:** Expand plugin support for external tools and language packs.
 
@@ -162,3 +162,230 @@
 - Document plugin API and lifecycle hooks
 - Add plugin discovery and version compatibility checks
 - Provide example plugins for language packs and external analyzers
+
+---
+
+## Resource Lock Constraints on TaskItems ‚Äî SPRINT 46 CANDIDATE
+
+**Filed by:** HiveMind project agent (2026-02-21)
+**Priority:** High ‚Äî blocks correct parallel scheduling
+**Source spec:** `hivemind/docs/WHETSTONE_FEATURE_REQUEST_RESOURCE_LOCKS.md`
+**Components:** `AnnotatedTaskitem` schema, `whetstone_generate_taskitems`, `whetstone_queue_ready`, `whetstone_validate_taskitem`
+
+**Problem:**
+`dependencyTaskIds` models causal ordering (DAG edges). It does not model mutual
+exclusion ‚Äî two tasks that cannot run concurrently because they share a resource,
+even though neither depends on the other's output. Without this, the scheduler must
+either serialize everything or rely on humans to catch conflicts. Both fail at scale.
+
+**Proposed schema addition:**
+```typescript
+interface AnnotatedTaskitem {
+  // ... existing fields ...
+
+  // NEW
+  resourceLocks?: string[];  // Named resources held exclusively during execution.
+                             // Tasks with overlapping locks are serialized by scheduler.
+                             // Node-local by default. Prefix "global:" for swarm-wide mutex.
+                             // Examples: "drone-process", "sqlite-db", "file:/path/to/f",
+                             //           "global:nexus-jobs-queue"
+}
+```
+
+**Key distinction:**
+| Field | Meaning | Relationship |
+|-------|---------|--------------|
+| `dependencyTaskIds: [A]` | A must finish before I start | Directed ‚Äî A ‚Üí B |
+| `resourceLocks: ["db"]` | I need exclusive access to "db" while running | Undirected ‚Äî A ‚Üî B |
+
+**`exclusionGroup` as sugar:** `exclusionGroup: "X"` expands to `resourceLocks: ["group:X"]`.
+One model, two syntaxes.
+
+**Lock scope convention (addition to original spec):**
+All locks are node-local by default. Prefix `global:` for swarm-wide mutual exclusion.
+HiveMind's scheduler knows the dispatch target node and enforces accordingly.
+
+**Sprint 46 plan (5 steps):**
+1. Schema: add `resourceLocks?: string[]` to `AnnotatedTaskitem`
+2. Generator: infer locks in `TaskitemGeneratorV2` from spec signals ("both tests spin up a drone" ‚Üí `drone-process`, "shared SQLite DB" ‚Üí `sqlite-db`, "same port" ‚Üí `nexus-port-N`)
+3. MCP: surface locks in `whetstone_generate_taskitems` output
+4. Queue: add `resource_conflict_unresolved` warning class to `whetstone_queue_ready` (warn on serialization, don't block)
+5. Validation: `whetstone_validate_taskitem` checks lock name format, flags node-local vs global ambiguity
+
+**Precedent:** GNU Make `.NOTPARALLEL`, Bazel `tags=["exclusive"]`, GitHub Actions `concurrency:`, Kubernetes resource quotas, POSIX `flock(2)`.
+
+---
+
+## Deterministic MCP Debugging Workflow for SLM Agents ‚Äî PROPOSED
+
+**Filed by:** Whetstone execution session (2026-02-21)
+**Priority:** Critical for self-improving low-context agents
+**Goal:** Make generation + debugging robust enough that small/local models can complete tasks without expert intuition.
+
+### Why this matters
+
+Current flow is strong for generation and validation, but debugging still relies heavily on manual compile/test interpretation. Strong agents can compensate; weaker agents cannot. The system needs deterministic failure triage and patch guidance, not just raw logs.
+
+### Feature Request A: Structured Failure Packet Tool
+
+**Tool name:** `whetstone_capture_failure_packet`
+
+**Problem:**
+Compile/test output is noisy and non-deterministic across environments. SLMs need compact, stable failure packets.
+
+**Requirements:**
+- Input: command, cwd, optional target (`step707_test`, etc.)
+- Output packet fields:
+  - `failureClass` (`compile_error`, `test_assertion`, `schema_error`, `tool_contract_error`, `runtime_error`)
+  - `primaryFile`, `primaryLine`, `primarySymbol`
+  - `normalizedMessage` (deduped, canonicalized)
+  - `reproCommand`
+  - `firstFailingTest` (if test run)
+  - `confidence`
+- Deterministic normalization rules (same stderr -> same packet).
+
+**Acceptance criteria:**
+- Same failing command produces byte-stable JSON packet across repeated runs.
+- Packet size bounded (e.g., <= 8 KB) with deterministic truncation.
+
+### Feature Request B: Root-Cause Clustering Tool
+
+**Tool name:** `whetstone_cluster_failures`
+
+**Problem:**
+One broken include can yield dozens of compiler errors. Small models need one root cause, not 50 symptoms.
+
+**Requirements:**
+- Group errors by root cause signature (`missing_symbol`, `type_mismatch`, `include_cycle`, `schema_shape_mismatch`).
+- Return ordered clusters with:
+  - `clusterId`
+  - `rootCauseCandidate`
+  - `blastRadius`
+  - `fixFirst` boolean
+- Deterministic ordering by severity + source location.
+
+**Acceptance criteria:**
+- At least 80% reduction in symptom-level errors shown to agent for common compile breaks.
+
+### Feature Request C: Patch Proposal Tool
+
+**Tool name:** `whetstone_propose_patch_for_failure`
+
+**Problem:**
+Weak agents can identify a failure but cannot reliably synthesize a minimal fix.
+
+**Requirements:**
+- Input: failure packet + repository context slice.
+- Output:
+  - `patchPlan` (ordered edit intents)
+  - `candidatePatch` (unified diff)
+  - `riskLevel`
+  - `expectedTestsToRun`
+- Must include explicit invariants ("do not alter unrelated files", "preserve JSON schema keys").
+
+**Acceptance criteria:**
+- Patch can be applied automatically in dry-run mode.
+- For known failure fixtures, first proposal passes targeted test in >=60% cases.
+
+### Feature Request D: Deterministic Debug Loop Orchestrator
+
+**Tool name:** `whetstone_debug_until_green`
+
+**Problem:**
+Current workflows require manual sequencing: run test, parse output, patch, rerun.
+
+**Requirements:**
+- Single loop with explicit phases:
+  1. reproduce
+  2. capture failure packet
+  3. cluster root cause
+  4. propose patch
+  5. apply patch (optional gated)
+  6. rerun targeted tests
+  7. emit outcome report
+- Hard iteration cap (`maxIterations`) and stop reasons.
+- Full state machine emitted as JSON transitions.
+
+**Acceptance criteria:**
+- Re-running with same seed/state yields same action sequence.
+- No hidden state outside packet history.
+
+### Feature Request E: Repro Packet Archive & Replay
+
+**Tool names:** `whetstone_save_repro_packet`, `whetstone_replay_repro_packet`
+
+**Problem:**
+Debugging quality is hard to improve without stable training/eval fixtures.
+
+**Requirements:**
+- Save packet: failing command, env snapshot, file hashes, failure packet, patch attempt history.
+- Replay packet in sandbox and verify same failure class before patching.
+- Export format compatible with LoRA/SLM fine-tuning datasets.
+
+**Acceptance criteria:**
+- Replay reproduces same `failureClass` and `primaryFile` for >=95% captured packets.
+
+### Feature Request F: Minimal Context Assembler for Fixing
+
+**Tool name:** `whetstone_assemble_fix_context`
+
+**Problem:**
+Small models degrade when given broad context.
+
+**Requirements:**
+- Input: failure packet/cluster.
+- Output: minimal file slices needed to fix:
+  - failing file span
+  - relevant headers
+  - nearest tests
+  - related schema/tool contract
+- Token budget modes: `tiny`, `small`, `medium`.
+
+**Acceptance criteria:**
+- Produces <=2k token context in `tiny` mode while preserving fix success on benchmark fixtures.
+
+### Feature Request G: Regression Guard Tool
+
+**Tool name:** `whetstone_regression_guard`
+
+**Problem:**
+A fix may pass one test but silently break prior working behavior.
+
+**Requirements:**
+- Given touched files + step ID, compute deterministic smoke set:
+  - failing target
+  - neighboring step tests
+  - MCP tool registration checks
+- Emit `mustPass`, `optional`, and `deferred` buckets.
+
+**Acceptance criteria:**
+- Any patch merged by autonomous loop includes a guard report with pass/fail matrix.
+
+### Feature Request H: Debugging Metrics for SLM Readiness
+
+**Metric packet fields:**
+- `timeToFirstGreen`
+- `iterationsToGreen`
+- `tokenCostPerFix`
+- `symptomToRootCauseCompression`
+- `patchAcceptanceRate`
+- `regressionEscapeRate`
+
+**Requirement:**
+- Metrics available per run and aggregated by failure class.
+- Used to decide when to switch work from large model -> SLM.
+
+### Proposed rollout
+
+1. Phase 1: Failure packet + clustering (`A`, `B`)
+2. Phase 2: Patch proposal + fix context (`C`, `F`)
+3. Phase 3: Loop orchestrator + regression guard (`D`, `G`)
+4. Phase 4: Replay archive + readiness metrics (`E`, `H`)
+
+### Done definition for ‚ÄúSLM-ready debugging‚Äù
+
+- A small model can take a single failing test target and autonomously produce a patch that passes:
+  - target test,
+  - deterministic regression guard set,
+  - MCP tool schema checks,
+  - with full repro packet trace and no manual intervention.

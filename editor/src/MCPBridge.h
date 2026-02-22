@@ -44,28 +44,42 @@ public:
     }
 
     // Run the stdio transport loop (for standalone mcp_main.cpp)
-    // Reads JSON-RPC messages from stdin, writes responses to stdout.
-    // MCP uses Content-Length framing over stdio.
+    // Supports two transports:
+    //   - Content-Length framing (MCP protocol 2024-11-05 and earlier)
+    //   - Newline-delimited JSON / NDJSON (MCP protocol 2025-03-26 and later,
+    //     used by Claude Code 2.x)
     void runStdio() {
         std::string line;
         while (std::getline(std::cin, line)) {
-            // MCP stdio transport: Content-Length header followed by JSON body
+            // Strip trailing \r (CRLF line endings)
+            if (!line.empty() && line.back() == '\r') line.pop_back();
+
             if (line.find("Content-Length:") == 0) {
+                // Content-Length framing: header + blank line + body
                 int length = 0;
                 try {
                     length = std::stoi(line.substr(15));
                 } catch (...) {
                     continue;
                 }
-                // Skip empty line after headers
-                std::getline(std::cin, line);
-                // Read body
+                // Skip remaining headers and blank line
+                while (std::getline(std::cin, line)) {
+                    if (!line.empty() && line.back() == '\r') line.pop_back();
+                    if (line.empty()) break;
+                }
                 std::string body(length, '\0');
                 std::cin.read(&body[0], length);
 
                 std::string response = processMessage(body);
                 if (!response.empty()) {
                     std::cout << "Content-Length: " << response.size() << "\r\n\r\n" << response;
+                    std::cout.flush();
+                }
+            } else if (!line.empty() && line.front() == '{') {
+                // NDJSON transport: each line is a complete JSON-RPC message
+                std::string response = processMessage(line);
+                if (!response.empty()) {
+                    std::cout << response << "\n";
                     std::cout.flush();
                 }
             }

@@ -34,11 +34,13 @@ static void renderExplorerPanel(EditorState& state) {
         if (ImGui::Button("Open Folder")) {
             auto path = FileDialog::openFolder({"Open Folder", state.workspaceRoot});
             if (!path.empty()) {
-                state.workspaceRoot = path;
-                state.fileTreeDirty = true;
-                state.search.projectSearch.setRoot(state.workspaceRoot);
-                state.lastDialogPath = path;
-                state.refreshBuildSystem();
+                std::string error;
+                if (!state.setWorkspaceRoot(path, &error)) {
+                    state.notify(NotificationLevel::Error,
+                                 "Failed to open folder: " + error);
+                } else {
+                    state.lastDialogPath = path;
+                }
             }
         }
     } else {
