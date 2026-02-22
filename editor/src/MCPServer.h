@@ -730,4 +730,6 @@ private:
 #include "mcp/RegisterDebugWorkflowTools.h"
 #include "governance/ReviewerDecisionLedger.h"
 #include "mcp/RegisterGovernanceTools.h"
+#include "mcp/RegisterGraduationTools.h"
+#include "mcp/RegisterCertificationTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"

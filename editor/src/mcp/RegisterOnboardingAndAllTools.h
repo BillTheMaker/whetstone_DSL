@@ -55,6 +55,8 @@
         registerLegacyIngestionTools();
         registerDebugWorkflowTools();
         registerGovernanceTools();
+        registerGraduationTools();
+        registerCertificationTools();
         registerOnboardingTools();
     }
 };
