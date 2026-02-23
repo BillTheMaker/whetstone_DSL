@@ -62,6 +62,7 @@
         registerCostPlanningTools();
         registerUpgradeQueueTools();
         registerRuntimePackTools();
+        registerMigrationPlanningTools();
         registerOnboardingTools();
     }
 };

@@ -16,11 +16,13 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 
 ## Current State
 
-**Step 688 / Sprint 45 — COMPLETE**
+**Step 858 / Sprint 62 — COMPLETE**
 
-Last recorded: Sprint 45 integration summary (Step 688). 52/52 tests passing.
-MCP tool count: **90 tools**. Architecture gate: all headers ≤ 600 lines.
-`whetstone_mcp` binary: `/home/bill/Documents/CLionProjects/whetstone_DSL/editor/build-native/whetstone_mcp` (built 2026-02-19)
+Last recorded: Sprint 62 (Step 858). 30/30 sprint 60-62 tests passing.
+Sprints 46-62 complete (steps 689-858). Sprints 63-120 in progress.
+Sprints 121-130 pre-built (steps 1449-1548, debug workflow tooling).
+MCP tool count: **90+ tools**. Architecture gate: all headers ≤ 600 lines.
+`whetstone_mcp` binary: `editor/build-native/whetstone_mcp_stable`
 
 ---
 
@@ -73,6 +75,26 @@ MCP tool count: **90 tools**. Architecture gate: all headers ≤ 600 lines.
 | Sprint 43 | 674–678 | **Complete** | Context assembly: WorkspaceFileIndex, ContextSliceAssembler, TokenBudgetEnforcer, `whetstone_assemble_context` MCP tool. Tool count 86→87. |
 | Sprint 44 | 679–683 | **Complete** | Taskitem quality: PrerequisiteOpResolver, SelfContainmentScorer, TaskitemQualityAuditor, `whetstone_validate_taskitem` MCP tool. Tool count 87→88. |
 | Sprint 45 | 684–688 | **Complete** | Agent metrics: AgentSessionRecorder, TaskCompletionMetrics, ABTestComparison, `whetstone_start_recording` + `whetstone_get_metrics` MCP tools. Live tool-call instrumentation. Tool count 88→90. |
+| Sprint 46 | 689–698 | **Complete** | Porting foundation: SemanticCoreIR, LanguageToIRAdapter, IRToLanguageAdapter, LanguageSupportTier, LanguageCapabilityMatrix, MigrationAcceptanceContract. |
+| Sprint 47 | 699–708 | **Complete** | Rust IR semantics: ownership/borrow extractor, lifetime region lowering, trait/impl lowering, async intent, error model, macro boundary, unsafe risk, generic intent. |
+| Sprint 48 | 709–718 | **Complete** | C++ IR raising: ownership policy, borrow mapping, template raising, async mapping, error model, algorithm lifting, build artifact generator. |
+| Sprint 49 | 719–728 | **Complete** | Equivalence checking: differential execution harness, test vector spec, fuzz runner, property runner, behavioral divergence packet, evidence bundle, Rust/C++ runner adapters. |
+| Sprint 50 | 729–738 | **Complete** | Porting gates: gate severity policy, sanitizer gate, perf benchmarking/comparator, security scan orchestrator, supply chain audit, C++ review report template. |
+| Sprint 51 | 739–748 | **Complete** | Systems language family: C/Go/Java adapters + raising adapters, systems compatibility matrix, family acceptance report. |
+| Sprint 52 | 749–758 | **Complete** | Managed language family: C#/Kotlin/F#/VB.NET adapters, ADT pattern lowering, async model bridge, nullability/optionality bridge, family promotion. |
+| Sprint 53 | 759–768 | **Complete** | Dynamic language family: Python/JS/TS/Ruby/Lua adapters V2, dynamic risk classifier, strictness policy, family acceptance report. |
+| Sprint 54 | 769–778 | **Complete** | AST-native family: S-expression lowering, Lisp/Scheme/Elisp/Smalltalk adapters, macro hygiene boundary, eval runtime risk, projection benchmark. |
+| Sprint 55 | 779–788 | **Complete** | Logic/Actor family: Prolog/Erlang/Elixir adapters, supervision tree packet, semantic blocklist gate, logic→imperative policy, async projection policy, family report. |
+| Sprint 56 | 789–798 | **Complete** | Low-level family: x86/ARM/Wasm/C adapters, ABI calling convention, memory layout checker, host boundary contract, family acceptance report. |
+| Sprint 57 | 799–808 | **Complete** | Legacy ingestion: semantic recovery graph, assumption inference, ambiguity packet, cross-file API inference, confidence calibration, review queue generator, modernization dossier. |
+| Sprint 58 | 809–818 | **Complete** | Data query family: SQL canonical IR, MySQL/PostgreSQL/T-SQL adapters, transaction isolation packet, divergence classifier, query equivalence runner, family acceptance report. |
+| Sprint 59 | 819–828 | **Complete** | Governance: PortingReviewBoard, ReviewerDecisionLedger, WaiverPolicyPacket, PolicyPackSystem, AmbiguityTriageModel, DecisionReplayChecker, GovernanceAuditReport, `whetstone_review_porting_decision` MCP tool. |
+| Sprint 60 | 829–838 | **Complete** | Language graduation: PairMatrixRunner, TierPromotionEngine, KnownLimitationsGenerator, ReleaseReadinessScoreboard, StableCorpusCertifier, RegressionWatchlist, DocumentationPackGenerator, `whetstone_get_transpile_support_matrix` MCP tool. |
+| Sprint 61 | 839–848 | **Complete** | Continuous certification: CertificationJobScheduler, PairSelectionStrategy, EvidenceArchive, PairRegressionDetector, BlastRadiusAnalyzer, AutoBlockRuleEngine, CertificationDashboard, `whetstone_run_certification_cycle` + `whetstone_get_certification_status` MCP tools. |
+| Sprint 62 | 849–858 | **Complete** | Failure telemetry: FailureTaxonomy, PacketTagging, FailureAggregationIndexer, TrendDetector, PrioritizationScorer, RemediationGenerator, WeeklyQualityReport, `whetstone_get_failure_trends` + `whetstone_get_top_adapter_gaps` MCP tools. |
+| Sprint 63 | 859–868 | **In Progress** | Learned adapter hints (next to implement) |
+| Sprints 64–120 | 869–1448 | **Pending** | Cost planning, queue optimization, runtime packs, drift detection, corpus benchmarks, tenant policy, improvement proposals, web/API semantics, data pipelines, embedded constraints, and more |
+| Sprints 121–130 | 1449–1548 | **Complete** | Pre-built debug workflow tooling (closed-loop iteration epoch) |
 
 ---
 

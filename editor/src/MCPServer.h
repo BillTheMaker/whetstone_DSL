@@ -38,6 +38,10 @@
 #include "graduation/UpgradePriorityPolicy.h"
 #include "graduation/RuntimeAssumptionExtractor.h"
 #include "graduation/RuntimeProfileStore.h"
+#include "graduation/MigrationStepSequencer.h"
+#include "graduation/MigrationFeasibilityEngine.h"
+#include "graduation/MigrationPathCandidate.h"
+#include "graduation/MigrationProgressTracker.h"
 #include "TaskCompletionMetrics.h"
 #include "ABTestComparison.h"
 #include "LanguageCapabilityMatrix.h"
@@ -282,6 +286,7 @@ private:
     std::string recordingSessionId_;
     PairUpgradeQueue upgradeQueue_;
     RuntimeProfileStore runtimeProfileStore_;
+    MigrationProgressTracker migrationTracker_;
 
     // ---------------------------------------------------------------
     //  Protocol handlers
@@ -747,4 +752,5 @@ private:
 #include "mcp/RegisterCostPlanningTools.h"
 #include "mcp/RegisterUpgradeQueueTools.h"
 #include "mcp/RegisterRuntimePackTools.h"
+#include "mcp/RegisterMigrationPlanningTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"
