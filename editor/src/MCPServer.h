@@ -36,6 +36,8 @@
 #include "AgentSessionRecorder.h"
 #include "graduation/PairUpgradeQueue.h"
 #include "graduation/UpgradePriorityPolicy.h"
+#include "graduation/RuntimeAssumptionExtractor.h"
+#include "graduation/RuntimeProfileStore.h"
 #include "TaskCompletionMetrics.h"
 #include "ABTestComparison.h"
 #include "LanguageCapabilityMatrix.h"
@@ -279,6 +281,7 @@ private:
     bool recordingActive_ = false;
     std::string recordingSessionId_;
     PairUpgradeQueue upgradeQueue_;
+    RuntimeProfileStore runtimeProfileStore_;
 
     // ---------------------------------------------------------------
     //  Protocol handlers
@@ -743,4 +746,5 @@ private:
 #include "graduation/BudgetPolicyEnforcer.h"
 #include "mcp/RegisterCostPlanningTools.h"
 #include "mcp/RegisterUpgradeQueueTools.h"
+#include "mcp/RegisterRuntimePackTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"

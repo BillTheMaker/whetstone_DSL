@@ -61,6 +61,7 @@
         registerAdapterHintsTools();
         registerCostPlanningTools();
         registerUpgradeQueueTools();
+        registerRuntimePackTools();
         registerOnboardingTools();
     }
 };
