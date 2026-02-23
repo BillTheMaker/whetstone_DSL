@@ -60,6 +60,7 @@
         registerFailureTelemetryTools();
         registerAdapterHintsTools();
         registerCostPlanningTools();
+        registerUpgradeQueueTools();
         registerOnboardingTools();
     }
 };

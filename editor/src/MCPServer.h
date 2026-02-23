@@ -34,6 +34,8 @@
 #include "SelfContainmentScorer.h"
 #include "TaskitemQualityAuditor.h"
 #include "AgentSessionRecorder.h"
+#include "graduation/PairUpgradeQueue.h"
+#include "graduation/UpgradePriorityPolicy.h"
 #include "TaskCompletionMetrics.h"
 #include "ABTestComparison.h"
 #include "LanguageCapabilityMatrix.h"
@@ -276,6 +278,7 @@ private:
     AgentSessionRecorder sessionRecorder_;
     bool recordingActive_ = false;
     std::string recordingSessionId_;
+    PairUpgradeQueue upgradeQueue_;
 
     // ---------------------------------------------------------------
     //  Protocol handlers
@@ -739,4 +742,5 @@ private:
 #include "graduation/MultiPlanAlternativeGenerator.h"
 #include "graduation/BudgetPolicyEnforcer.h"
 #include "mcp/RegisterCostPlanningTools.h"
+#include "mcp/RegisterUpgradeQueueTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"
