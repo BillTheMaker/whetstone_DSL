@@ -22,3 +22,20 @@ out/
 # --- OS Junk ---
 .DS_Store
 Thumbs.db
+
+# --- Local Build / Runtime Artifacts (keep local, do not commit) ---
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+editor/build-native/
+build-native/
+
+# Runtime/editor local state
+imgui.ini
+.whetstone.json
+crash.log
+SDL-issue.log
+
+# Large/generated run data
+logs/
+training_data/
