@@ -735,4 +735,8 @@ private:
 #include "mcp/RegisterFailureTelemetryTools.h"
 #include "graduation/HintModelInterface.h"
 #include "mcp/RegisterAdapterHintsTools.h"
+#include "graduation/PortingCostModel.h"
+#include "graduation/MultiPlanAlternativeGenerator.h"
+#include "graduation/BudgetPolicyEnforcer.h"
+#include "mcp/RegisterCostPlanningTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"

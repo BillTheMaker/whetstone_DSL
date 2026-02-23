@@ -59,6 +59,7 @@
         registerCertificationTools();
         registerFailureTelemetryTools();
         registerAdapterHintsTools();
+        registerCostPlanningTools();
         registerOnboardingTools();
     }
 };
