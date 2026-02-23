@@ -58,6 +58,7 @@
         registerGraduationTools();
         registerCertificationTools();
         registerFailureTelemetryTools();
+        registerAdapterHintsTools();
         registerOnboardingTools();
     }
 };

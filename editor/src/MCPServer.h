@@ -733,4 +733,6 @@ private:
 #include "mcp/RegisterGraduationTools.h"
 #include "mcp/RegisterCertificationTools.h"
 #include "mcp/RegisterFailureTelemetryTools.h"
+#include "graduation/HintModelInterface.h"
+#include "mcp/RegisterAdapterHintsTools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"
