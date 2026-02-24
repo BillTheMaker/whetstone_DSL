@@ -21,6 +21,12 @@ Promote a newly built binary only if initialize health check passes:
 ./tools/mcp/promote_mcp_if_healthy.sh
 ```
 
+Validate hybrid AST/language pipeline quality for sprint summaries:
+
+```bash
+./tools/mcp/validate_hybrid_pipeline_contract.sh --start 50 --end 90
+```
+
 ## Current global MCP config
 
 Global MCP config is expected at:

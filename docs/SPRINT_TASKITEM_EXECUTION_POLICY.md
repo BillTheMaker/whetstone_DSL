@@ -51,6 +51,19 @@ Example:
 - Preserve all run artifacts under `logs/taskitem_runs/`
 - Preserve JSONL append-only history under `training_data/lora/`
 
+## Hybrid Contract Gate
+
+To reduce C++-first bias while keeping language-first and AST-first workflows available,
+run the hybrid contract validator after sprint execution:
+
+`tools/mcp/validate_hybrid_pipeline_contract.sh --start <N> --end <M>`
+
+Use strict blocking mode for enforcement:
+
+`tools/mcp/validate_hybrid_pipeline_contract.sh --start <N> --end <M> --strict --enforce-non-cpp`
+
+Reference: `docs/HYBRID_PIPELINE_CONTRACT.md`
+
 ## Handoff Requirement
 
 When finishing a batch, agents must report:
