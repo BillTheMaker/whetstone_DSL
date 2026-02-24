@@ -9523,3 +9523,83 @@ add_executable(step1407_test tests/step1407_test.cpp)
 target_include_directories(step1407_test PRIVATE src)
 target_link_libraries(step1407_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
 
+add_executable(step1419_test tests/step1419_test.cpp)
+target_include_directories(step1419_test PRIVATE src)
+target_link_libraries(step1419_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1420_test tests/step1420_test.cpp)
+target_include_directories(step1420_test PRIVATE src)
+target_link_libraries(step1420_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1421_test tests/step1421_test.cpp)
+target_include_directories(step1421_test PRIVATE src)
+target_link_libraries(step1421_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1422_test tests/step1422_test.cpp)
+target_include_directories(step1422_test PRIVATE src)
+target_link_libraries(step1422_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1423_test tests/step1423_test.cpp)
+target_include_directories(step1423_test PRIVATE src)
+target_link_libraries(step1423_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1424_test tests/step1424_test.cpp)
+target_include_directories(step1424_test PRIVATE src)
+target_link_libraries(step1424_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1425_test tests/step1425_test.cpp)
+target_include_directories(step1425_test PRIVATE src)
+target_link_libraries(step1425_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1426_test tests/step1426_test.cpp)
+target_include_directories(step1426_test PRIVATE src)
+target_link_libraries(step1426_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1427_test tests/step1427_test.cpp)
+target_include_directories(step1427_test PRIVATE src)
+target_link_libraries(step1427_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1428_test tests/step1428_test.cpp)
+target_include_directories(step1428_test PRIVATE src)
+target_link_libraries(step1428_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1429_test tests/step1429_test.cpp)
+target_include_directories(step1429_test PRIVATE src)
+target_link_libraries(step1429_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1430_test tests/step1430_test.cpp)
+target_include_directories(step1430_test PRIVATE src)
+target_link_libraries(step1430_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1431_test tests/step1431_test.cpp)
+target_include_directories(step1431_test PRIVATE src)
+target_link_libraries(step1431_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1432_test tests/step1432_test.cpp)
+target_include_directories(step1432_test PRIVATE src)
+target_link_libraries(step1432_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1433_test tests/step1433_test.cpp)
+target_include_directories(step1433_test PRIVATE src)
+target_link_libraries(step1433_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1434_test tests/step1434_test.cpp)
+target_include_directories(step1434_test PRIVATE src)
+target_link_libraries(step1434_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1435_test tests/step1435_test.cpp)
+target_include_directories(step1435_test PRIVATE src)
+target_link_libraries(step1435_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1436_test tests/step1436_test.cpp)
+target_include_directories(step1436_test PRIVATE src)
+target_link_libraries(step1436_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1437_test tests/step1437_test.cpp)
+target_include_directories(step1437_test PRIVATE src)
+target_link_libraries(step1437_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1438_test tests/step1438_test.cpp)
+target_include_directories(step1438_test PRIVATE src)
+target_link_libraries(step1438_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+

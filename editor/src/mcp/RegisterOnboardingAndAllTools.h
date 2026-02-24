@@ -113,6 +113,8 @@
         registerSprint115Tools();
         registerSprint116Tools();
         registerSprint117Tools();
+        registerSprint118Tools();
+        registerSprint119Tools();
         registerOnboardingTools();
     }
 };

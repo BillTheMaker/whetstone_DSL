@@ -985,4 +985,6 @@ private:
 #include "mcp/RegisterSprint115Tools.h"
 #include "mcp/RegisterSprint116Tools.h"
 #include "mcp/RegisterSprint117Tools.h"
+#include "mcp/RegisterSprint118Tools.h"
+#include "mcp/RegisterSprint119Tools.h"
 #include "mcp/RegisterOnboardingAndAllTools.h"
