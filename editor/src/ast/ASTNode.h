@@ -8,6 +8,9 @@ class ASTNode {
 public:
     std::string id;
     std::string conceptType;
+    std::string semanticHash;  // Optional semantic identity hash: H<version>:<hex>
+    std::string semanticHashLockState;   // "locked" or "unlocked" (empty == unlocked)
+    std::string semanticHashLockReason;  // Optional rationale for lock transitions
     ASTNode* parent = nullptr;
     int spanStartLine = -1;
     int spanStartCol = -1;
@@ -25,6 +28,10 @@ public:
 
     bool hasSpan() const {
         return spanStartLine >= 0 && spanStartCol >= 0 && spanEndLine >= 0 && spanEndCol >= 0;
+    }
+
+    bool isSemanticHashLocked() const {
+        return semanticHashLockState == "locked";
     }
 
     // Multi-valued child: append to role

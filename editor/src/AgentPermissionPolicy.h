@@ -59,6 +59,9 @@ struct AgentPermissionPolicy {
             method == "searchProject" ||
             method == "loadAnnotatedAST" ||
             method == "listAnnotatedFiles" ||
+            method == "getSemanticHashTable" ||
+            method == "listSemanticHashTables" ||
+            method == "getSemanticHashLock" ||
             method == "getSemanticAnnotations" ||
             method == "getUnannotatedNodes" ||
             method == "getEnvironment" ||
@@ -100,6 +103,8 @@ struct AgentPermissionPolicy {
             method == "undo" ||
             method == "redo" ||
             method == "saveAnnotatedAST" ||
+            method == "saveSemanticHashTable" ||
+            method == "setSemanticHashLock" ||
             method == "setSemanticAnnotation" ||
             method == "removeSemanticAnnotation" ||
             method == "setEnvironment" ||

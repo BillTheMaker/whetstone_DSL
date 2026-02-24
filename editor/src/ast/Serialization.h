@@ -602,6 +602,13 @@ inline json toJson(const ASTNode* node) {
     json j;
     j["id"] = node->id;
     j["concept"] = node->conceptType;
+    if (!node->semanticHash.empty()) j["semanticHash"] = node->semanticHash;
+    if (node->semanticHashLockState == "locked") {
+        j["semanticHashLockState"] = "locked";
+        if (!node->semanticHashLockReason.empty()) {
+            j["semanticHashLockReason"] = node->semanticHashLockReason;
+        }
+    }
     j["properties"] = propertiesToJson(node);
     if (node->hasSpan()) {
         j["span"] = {
@@ -1390,6 +1397,15 @@ inline ASTNode* fromJson(const json& j) {
 
     node->id = j.contains("id") ? j["id"].get<std::string>()
                                  : generateNodeId();
+    if (j.contains("semanticHash") && j["semanticHash"].is_string()) {
+        node->semanticHash = j["semanticHash"].get<std::string>();
+    }
+    if (j.contains("semanticHashLockState") && j["semanticHashLockState"].is_string()) {
+        node->semanticHashLockState = j["semanticHashLockState"].get<std::string>();
+    }
+    if (j.contains("semanticHashLockReason") && j["semanticHashLockReason"].is_string()) {
+        node->semanticHashLockReason = j["semanticHashLockReason"].get<std::string>();
+    }
     if (j.contains("span")) {
         const auto& span = j["span"];
         if (span.contains("start") && span.contains("end")) {

@@ -150,6 +150,27 @@ public:
     std::vector<std::string> getJournalEntries() const { return journal_; }
     void clearJournal() { journal_.clear(); }
 
+    static const ASTNode* findSemanticHashLock(const ASTNode* node) {
+        const ASTNode* cur = node;
+        while (cur) {
+            if (cur->semanticHashLockState == "locked") {
+                return cur;
+            }
+            cur = cur->parent;
+        }
+        return nullptr;
+    }
+
+    static std::string semanticHashLockWarning(const ASTNode* node) {
+        const ASTNode* locked = findSemanticHashLock(node);
+        if (!locked) return "";
+        std::string reason = locked->semanticHashLockReason.empty()
+            ? "no reason provided"
+            : locked->semanticHashLockReason;
+        std::string hash = locked->semanticHash.empty() ? "<unset>" : locked->semanticHash;
+        return "Node is under SemanticHashLock (" + hash + ", reason: " + reason + ")";
+    }
+
 private:
     // Recursive node lookup
     ASTNode* findById(ASTNode* node, const std::string& nodeId) const {
@@ -165,18 +186,21 @@ private:
     // Walk up the ancestor chain looking for an OptimizationLock annotation.
     // Returns a warning string if locked, empty string otherwise.
     std::string checkLock(const ASTNode* node) const {
+        std::string hashLockWarning = semanticHashLockWarning(node);
         const ASTNode* cur = node;
         while (cur) {
             for (const auto* anno : cur->getChildren("annotations")) {
                 if (anno->conceptType == "OptimizationLock") {
                     auto* lock = static_cast<const OptimizationLock*>(anno);
-                    return "Node is under OptimizationLock (locked by " +
-                           lock->lockedBy + ": " + lock->lockReason + ")";
+                    std::string optWarn = "Node is under OptimizationLock (locked by " +
+                                          lock->lockedBy + ": " + lock->lockReason + ")";
+                    if (!hashLockWarning.empty()) return hashLockWarning + "; " + optWarn;
+                    return optWarn;
                 }
             }
             cur = cur->parent;
         }
-        return "";
+        return hashLockWarning;
     }
 
     // Apply a string property to a node.  Returns false if the property

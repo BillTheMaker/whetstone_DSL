@@ -200,6 +200,7 @@
         std::string type = params.value("type", "");
         bool preferImports = params.value("preferImports", false);
         bool strictMode = params.value("strictMode", false);
+        std::string hashLockMode = params.value("hashLockMode", "warn");  // warn|error
         Module* ast = state.mutationAST();
         if (!ast) return headlessRpcError(id, -32001, "AST unavailable");
         ASTMutationAPI mut;
@@ -207,9 +208,22 @@
         ASTMutationAPI::MutationResult res;
         LibraryPolicyResult policy;
         std::vector<std::string> affectedIds;
+        std::string hashLockWarning;
+        auto handleHashLock = [&](ASTNode* n, const std::string& context) -> json {
+            if (!n) return json();
+            std::string w = ASTMutationAPI::semanticHashLockWarning(n);
+            if (w.empty()) return json();
+            hashLockWarning = w;
+            if (hashLockMode == "error") {
+                return headlessRpcError(id, -32012, "Semantic hash lock violation (" + context + "): " + w);
+            }
+            return json();
+        };
         if (type == "setProperty") {
             std::string nodeId = params.value("nodeId", "");
             if (!nodeId.empty()) affectedIds.push_back(nodeId);
+            json lockErr = handleHashLock(findNodeById(ast, nodeId), "setProperty");
+            if (!lockErr.is_null()) return lockErr;
             res = mut.setProperty(params.value("nodeId", ""),
                                   params.value("property", ""),
                                   params.value("value", ""));
@@ -221,10 +235,14 @@
             }
             std::string nodeId = params.value("nodeId", "");
             if (!nodeId.empty()) affectedIds.push_back(nodeId);
+            json lockErr = handleHashLock(findNodeById(ast, nodeId), "updateNode");
+            if (!lockErr.is_null()) return lockErr;
             res = mut.updateNode(params.value("nodeId", ""), props);
         } else if (type == "deleteNode") {
             std::string nodeId = params.value("nodeId", "");
             if (!nodeId.empty()) affectedIds.push_back(nodeId);
+            json lockErr = handleHashLock(findNodeById(ast, nodeId), "deleteNode");
+            if (!lockErr.is_null()) return lockErr;
             res = mut.deleteNode(params.value("nodeId", ""));
         } else if (type == "insertNode") {
             ASTNode* node = nullptr;
@@ -240,6 +258,11 @@
                     deleteTree(node);
                     return headlessRpcError(id, -32011, policy.error);
                 }
+            }
+            json lockErr = handleHashLock(findNodeById(ast, params.value("parentId", "")), "insertNode");
+            if (!lockErr.is_null()) {
+                if (node) deleteTree(node);
+                return lockErr;
             }
             res = mut.insertNode(params.value("parentId", ""),
                                  params.value("role", ""), node);
@@ -267,6 +290,7 @@
         }
         return headlessRpcResult(id, {
             {"success", true}, {"warning", res.warning},
+            {"hashLockWarning", hashLockWarning},
             {"libraryWarning", policy.warning},
             {"unknownFunctions", policy.unknownFunctions},
             {"version", state.active()
@@ -283,6 +307,7 @@
         Module* ast = state.mutationAST();
         auto params = request.contains("params") ? request["params"]
                                                   : json::object();
+        std::string hashLockMode = params.value("hashLockMode", "warn");  // warn|error
         if (!params.contains("mutations") ||
             !params["mutations"].is_array())
             return headlessRpcError(id, -32602,
@@ -291,6 +316,7 @@
         batch.setRoot(ast);
         std::vector<BatchMutationAPI::Mutation> mutations;
         std::vector<ASTNode*> ownedNodes;
+        std::vector<std::string> hashLockWarnings;
         for (const auto& m : params["mutations"]) {
             BatchMutationAPI::Mutation mut;
             mut.type = m.value("type", "");
@@ -303,7 +329,18 @@
                 mut.newNode = fromJson(m["node"]);
                 if (mut.newNode) ownedNodes.push_back(mut.newNode);
             }
+            ASTNode* guard = nullptr;
+            if (mut.type == "insertNode") guard = findNodeById(ast, mut.parentId);
+            else guard = findNodeById(ast, mut.nodeId);
+            std::string w = ASTMutationAPI::semanticHashLockWarning(guard);
+            if (!w.empty()) hashLockWarnings.push_back(w);
             mutations.push_back(mut);
+        }
+        if (!hashLockWarnings.empty() && hashLockMode == "error") {
+            for (auto* n : ownedNodes) {
+                if (n->parent == nullptr) deleteTree(n);
+            }
+            return headlessRpcError(id, -32012, "Semantic hash lock violation in batch: " + hashLockWarnings.front());
         }
         auto batchRes = batch.applySequence(mutations);
         if (!batchRes.success) {
@@ -329,6 +366,7 @@
         }
         return headlessRpcResult(id,
             {{"success", true}, {"appliedCount", batchRes.appliedCount},
+             {"hashLockWarnings", hashLockWarnings},
              {"version", state.active()
                  ? state.active()->versionTracker.version : 0}});
     }

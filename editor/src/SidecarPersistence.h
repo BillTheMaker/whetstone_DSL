@@ -10,6 +10,7 @@
 #include "ASTUtils.h"
 #include "CompactAST.h"
 #include "SemannoSidecar.h"
+#include "SemanticHashTable.h"
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
@@ -124,7 +125,9 @@ inline int countSemanticAnnotations(const ASTNode* node) {
 struct SidecarSaveResult {
     bool success = false;
     std::string sidecarPath;
+    std::string semanticHashTablePath;
     int annotationCount = 0;
+    int semanticHashCount = 0;
     std::string error;
 };
 
@@ -150,6 +153,14 @@ inline SidecarSaveResult saveSidecarAST(const std::string& workspaceRoot,
     out << astJson.dump(2);
     out.close();
 
+    auto hashSave = saveSemanticHashTable(workspaceRoot, filePath, ast);
+    if (!hashSave.success) {
+        result.error = hashSave.error;
+        return result;
+    }
+
+    result.semanticHashTablePath = hashSave.path;
+    result.semanticHashCount = hashSave.entryCount;
     result.annotationCount = countSemanticAnnotations(ast);
     result.success = true;
     return result;

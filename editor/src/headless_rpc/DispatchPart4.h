@@ -96,7 +96,9 @@
         return headlessRpcResult(id,
             {{"success", true},
              {"sidecarPath", res.sidecarPath},
-             {"annotationCount", res.annotationCount}});
+             {"annotationCount", res.annotationCount},
+             {"semanticHashTablePath", res.semanticHashTablePath},
+             {"semanticHashCount", res.semanticHashCount}});
     }
 
     // --- loadAnnotatedAST ---
@@ -130,6 +132,107 @@
             {{"files", files}, {"count", (int)files.size()}});
     }
 
+    // --- saveSemanticHashTable ---
+    if (method == "saveSemanticHashTable") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty() && state.activeBuffer) path = state.activeBuffer->path;
+        auto it = state.bufferStates.find(path);
+        if (it == state.bufferStates.end())
+            return headlessRpcError(id, -32602, "No buffer: " + path);
+        Module* ast = it->second->sync.getAST();
+        auto res = saveSemanticHashTable(state.workspaceRoot, path, ast);
+        if (!res.success) return headlessRpcError(id, -32010, res.error);
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"semanticHashTablePath", res.path},
+            {"semanticHashCount", res.entryCount}
+        });
+    }
+
+    // --- getSemanticHashTable ---
+    if (method == "getSemanticHashTable") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string path = params.value("path", "");
+        if (path.empty() && state.activeBuffer) path = state.activeBuffer->path;
+        bool refresh = params.value("refresh", false);
+        auto it = state.bufferStates.find(path);
+        if (it == state.bufferStates.end())
+            return headlessRpcError(id, -32602, "No buffer: " + path);
+        if (refresh) {
+            Module* ast = it->second->sync.getAST();
+            auto save = saveSemanticHashTable(state.workspaceRoot, path, ast);
+            if (!save.success) return headlessRpcError(id, -32010, save.error);
+        }
+        auto res = loadSemanticHashTable(state.workspaceRoot, path);
+        if (!res.success) return headlessRpcError(id, -32010, res.error);
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"semanticHashTablePath", res.path},
+            {"table", res.table}
+        });
+    }
+
+    // --- listSemanticHashTables ---
+    if (method == "listSemanticHashTables") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto files = listSemanticHashTables(state.workspaceRoot);
+        return headlessRpcResult(id, {
+            {"files", files},
+            {"count", (int)files.size()}
+        });
+    }
+
+    // --- setSemanticHashLock ---
+    if (method == "setSemanticHashLock") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        if (nodeId.empty())
+            return headlessRpcError(id, -32602, "nodeId required");
+        bool locked = params.value("locked", true);
+        std::string reason = params.value("reason", "");
+        Module* ast = state.activeAST();
+        if (!ast) return headlessRpcError(id, -32602, "No AST available");
+        ASTNode* node = findNodeById(ast, nodeId);
+        if (!node) return headlessRpcError(id, -32602, "Node not found: " + nodeId);
+        node->semanticHashLockState = locked ? "locked" : "unlocked";
+        node->semanticHashLockReason = reason;
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"nodeId", node->id},
+            {"semanticHash", node->semanticHash},
+            {"semanticHashLockState", node->semanticHashLockState},
+            {"semanticHashLockReason", node->semanticHashLockReason}
+        });
+    }
+
+    // --- getSemanticHashLock ---
+    if (method == "getSemanticHashLock") {
+        if (!AgentPermissionPolicy::canInvoke(role, method))
+            return headlessRpcError(id, -32031, "Role not permitted");
+        auto params = request.contains("params") ? request["params"] : json::object();
+        std::string nodeId = params.value("nodeId", "");
+        if (nodeId.empty())
+            return headlessRpcError(id, -32602, "nodeId required");
+        Module* ast = state.activeAST();
+        if (!ast) return headlessRpcError(id, -32602, "No AST available");
+        ASTNode* node = findNodeById(ast, nodeId);
+        if (!node) return headlessRpcError(id, -32602, "Node not found: " + nodeId);
+        return headlessRpcResult(id, {
+            {"nodeId", node->id},
+            {"semanticHash", node->semanticHash},
+            {"semanticHashLockState", node->semanticHashLockState.empty() ? "unlocked" : node->semanticHashLockState},
+            {"semanticHashLockReason", node->semanticHashLockReason}
+        });
+    }
+
     // --- setSemanticAnnotation ---
     if (method == "setSemanticAnnotation") {
         if (!AgentPermissionPolicy::canInvoke(role, method))
@@ -138,6 +241,7 @@
                                                    : json::object();
         std::string nodeId = params.value("nodeId", "");
         std::string type = params.value("type", "");
+        std::string hashLockMode = params.value("hashLockMode", "warn");  // warn|error
         json fields = params.contains("fields") ? params["fields"]
                                                   : json::object();
         if (nodeId.empty() || type.empty())
@@ -150,6 +254,10 @@
         ASTNode* target = findNodeById(ast, nodeId);
         if (!target)
             return headlessRpcError(id, -32602, "Node not found: " + nodeId);
+        std::string hashLockWarning = ASTMutationAPI::semanticHashLockWarning(target);
+        if (!hashLockWarning.empty() && hashLockMode == "error") {
+            return headlessRpcError(id, -32012, "Semantic hash lock violation: " + hashLockWarning);
+        }
 
         // Map type string to conceptType
         std::string conceptType;
@@ -246,7 +354,11 @@
             return headlessRpcError(id, -32010, "Failed to create annotation");
         target->addChild("annotations", newAnno);
 
-        return headlessRpcResult(id, {{"success", true}, {"type", type}});
+        return headlessRpcResult(id, {
+            {"success", true},
+            {"type", type},
+            {"hashLockWarning", hashLockWarning}
+        });
     }
 
     // --- getSemanticAnnotations ---

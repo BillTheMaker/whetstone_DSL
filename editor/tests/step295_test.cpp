@@ -1,13 +1,16 @@
 // Step 295: Semanno Sidecar Integration (12 tests)
 #include "SemannoSidecar.h"
 #include "SidecarPersistence.h"
+#include "SemanticHashTable.h"
 #include "ast/Module.h"
 #include "ast/Function.h"
 #include "ast/Annotation.h"
+#include "ast/Serialization.h"
 #include "EnvironmentSpec.h"
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
 
 static int passed = 0, failed = 0;
 #define TEST(name) { std::cout << "  " << #name << "... "; }
@@ -170,11 +173,15 @@ void test_alongside_ast_sidecar() {
     auto astPath = sidecarPath(tmpDir(), "test.py");
     namespace fs = std::filesystem;
     fs::create_directories(fs::path(astPath).parent_path());
-    saveSidecarAST(tmpDir(), "test.py", mod.get());
+    auto astSave = saveSidecarAST(tmpDir(), "test.py", mod.get());
+    CHECK(astSave.success, "ast sidecar save failed");
 
     // Both files should exist in same .whetstone dir
     CHECK(fs::exists(semannoResult.path), "semanno file missing");
     CHECK(fs::exists(astPath), "ast file missing");
+    CHECK(!astSave.semanticHashTablePath.empty(), "hash table path missing");
+    CHECK(fs::exists(astSave.semanticHashTablePath), "hash table file missing");
+    CHECK(astSave.semanticHashCount > 0, "hash table should have entries");
     // Both under .whetstone/
     CHECK(semannoResult.path.find(".whetstone") != std::string::npos, "wrong dir");
     CHECK(astPath.find(".whetstone") != std::string::npos, "wrong dir");
@@ -285,6 +292,77 @@ void test_empty_module() {
     PASS();
 }
 
+// 13. semanticHash field roundtrips via AST JSON
+void test_semantic_hash_roundtrip() {
+    TEST(semantic_hash_roundtrip);
+    Function fn;
+    fn.id = "fn_1";
+    fn.name = "f";
+    fn.semanticHash = "H1:00000000000000AA";
+
+    auto j = toJson(&fn);
+    CHECK(j.contains("semanticHash"), "semanticHash missing in JSON");
+    CHECK(j["semanticHash"] == "H1:00000000000000AA", "semanticHash changed in JSON");
+
+    ASTNode* restored = fromJson(j);
+    CHECK(restored != nullptr, "roundtrip restore failed");
+    CHECK(restored->semanticHash == "H1:00000000000000AA", "semanticHash missing after roundtrip");
+    delete restored;
+    PASS();
+}
+
+// 14. semantic hash table save/load/list
+void test_semantic_hash_table_roundtrip() {
+    TEST(semantic_hash_table_roundtrip);
+    cleanup();
+    auto mod = makeAnnotatedModule();
+
+    auto saved = saveSemanticHashTable(tmpDir(), "hashes.py", mod.get());
+    CHECK(saved.success, "save semantic hash table failed: " + saved.error);
+    CHECK(saved.entryCount > 0, "expected at least one hash entry");
+    CHECK(std::filesystem::exists(saved.path), "semantic hash table file missing");
+
+    auto loaded = loadSemanticHashTable(tmpDir(), "hashes.py");
+    CHECK(loaded.success, "load semantic hash table failed: " + loaded.error);
+    CHECK(loaded.table.contains("entries"), "entries missing");
+    CHECK(loaded.table["entries"].is_array(), "entries should be array");
+    CHECK(!loaded.table["entries"].empty(), "entries should not be empty");
+    CHECK(loaded.table["entries"][0].contains("semanticHash"), "semanticHash missing from entry");
+    CHECK(loaded.table["entries"][0].contains("semanticHashH1"), "semanticHashH1 missing from entry");
+    CHECK(loaded.table["entries"][0].contains("semanticHashH2"), "semanticHashH2 missing from entry");
+    CHECK(loaded.table.contains("dualEmitVersions"), "dualEmitVersions missing");
+    CHECK(loaded.table["dualEmitVersions"].is_array(), "dualEmitVersions should be array");
+    CHECK(loaded.table.contains("migration"), "migration metadata missing");
+
+    auto listed = listSemanticHashTables(tmpDir());
+    CHECK(!listed.empty(), "listSemanticHashTables should not be empty");
+    CHECK(std::find(listed.begin(), listed.end(), "hashes.py") != listed.end(),
+          "hashes.py not found in semantic hash table list");
+    PASS();
+}
+
+// 15. hash lock state roundtrips via AST JSON
+void test_semantic_hash_lock_roundtrip() {
+    TEST(semantic_hash_lock_roundtrip);
+    Function fn;
+    fn.id = "fn_lock";
+    fn.name = "f";
+    fn.semanticHash = "H1:1234567890ABCDEF";
+    fn.semanticHashLockState = "locked";
+    fn.semanticHashLockReason = "API stability";
+
+    auto j = toJson(&fn);
+    CHECK(j.value("semanticHashLockState", "") == "locked", "lock state missing");
+    CHECK(j.value("semanticHashLockReason", "") == "API stability", "lock reason missing");
+
+    ASTNode* restored = fromJson(j);
+    CHECK(restored != nullptr, "roundtrip restore failed");
+    CHECK(restored->semanticHashLockState == "locked", "lock state not restored");
+    CHECK(restored->semanticHashLockReason == "API stability", "lock reason not restored");
+    delete restored;
+    PASS();
+}
+
 int main() {
     std::cout << "=== Step 295: Semanno Sidecar Integration Tests ===\n";
     test_sidecar_path();
@@ -299,6 +377,9 @@ int main() {
     test_overwrite();
     test_properties_preserved();
     test_empty_module();
+    test_semantic_hash_roundtrip();
+    test_semantic_hash_table_roundtrip();
+    test_semantic_hash_lock_roundtrip();
     cleanup();
     std::cout << "\nResults: " << passed << "/" << (passed + failed) << " passed\n";
     return failed > 0 ? 1 : 0;

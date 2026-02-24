@@ -469,6 +469,8 @@ inline json toJsonCompact(const ASTNode* node) {
     json j;
     j["id"] = node->id;
     j["type"] = node->conceptType;
+    if (!node->semanticHash.empty()) j["semanticHash"] = node->semanticHash;
+    if (node->semanticHashLockState == "locked") j["semanticHashLockState"] = "locked";
     std::string name = getNodeName(node);
     if (!name.empty()) j["name"] = name;
     if (node->hasSpan()) j["line"] = node->spanStartLine;
@@ -498,6 +500,8 @@ inline json toJsonCompactSummary(const ASTNode* root) {
     json rootJ;
     rootJ["id"] = root->id;
     rootJ["type"] = root->conceptType;
+    if (!root->semanticHash.empty()) rootJ["semanticHash"] = root->semanticHash;
+    if (root->semanticHashLockState == "locked") rootJ["semanticHashLockState"] = "locked";
     std::string rname = getNodeName(root);
     if (!rname.empty()) rootJ["name"] = rname;
     if (root->hasSpan()) rootJ["line"] = root->spanStartLine;
@@ -509,6 +513,8 @@ inline json toJsonCompactSummary(const ASTNode* root) {
         json cj;
         cj["id"] = child->id;
         cj["type"] = child->conceptType;
+        if (!child->semanticHash.empty()) cj["semanticHash"] = child->semanticHash;
+        if (child->semanticHashLockState == "locked") cj["semanticHashLockState"] = "locked";
         std::string cname = getNodeName(child);
         if (!cname.empty()) cj["name"] = cname;
         if (child->hasSpan()) cj["line"] = child->spanStartLine;
