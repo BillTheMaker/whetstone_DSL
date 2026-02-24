@@ -115,6 +115,21 @@
         registerSprint117Tools();
         registerSprint118Tools();
         registerSprint119Tools();
+        registerSprint131Tools();
+        registerSprint132Tools();
+        registerSprint133Tools();
+        registerSprint134Tools();
+        registerSprint135Tools();
+        registerSprint136Tools();
+        registerSprint137Tools();
+        registerSprint138Tools();
+        registerSprint139Tools();
+        registerSprint140Tools();
+        registerSprint141Tools();
+        registerSprint142Tools();
+        registerSprint143Tools();
+        registerSprint144Tools();
+        registerSprint145Tools();
         registerOnboardingTools();
     }
 };
