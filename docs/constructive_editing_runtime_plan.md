@@ -146,5 +146,5 @@ Start Phase A:
 Parallel planning tranche (active):
 - `sprint228_plan.md` to `sprint231_plan.md`
 - baseline artifacts:
-  - `logs/taskitem_runs/spec_planning_baseline_20260226/fullstack_spec_readiness.json`
-  - `logs/taskitem_runs/spec_planning_baseline_20260226/deterministic_spec_readiness.json`
+  - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/fullstack_spec_readiness.json`
+  - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`

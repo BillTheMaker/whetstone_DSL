@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SPEC_INPUT="${1:?usage: run_spec_hardening_gate.sh <spec.md> [out_dir]}"
-OUT_DIR="${2:-$ROOT_DIR/logs/taskitem_runs/spec_hardening_gate_$(date +%Y%m%d_%H%M%S)}"
+OUT_DIR="${2:-$ROOT_DIR/logs/taskitem_runs/TEST_ONLY_spec_hardening_gate_$(date +%Y%m%d_%H%M%S)}"
 MIN_SCORE="${WSTONE_SPEC_READINESS_MIN_SCORE:-65}"
 RUN_PIPELINE="${WSTONE_SPEC_HARDENING_RUN_PIPELINE:-1}"
 

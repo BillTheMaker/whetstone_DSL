@@ -2,6 +2,11 @@
 
 ## Current Canonical State (2026-02-26)
 
+- `TEST_ONLY` artifact rule:
+  - Any path under `logs/taskitem_runs/TEST_ONLY_*` is validation-only data.
+  - Do not use hardened specs in `TEST_ONLY_*` as source-of-truth project specs.
+  - See `logs/taskitem_runs/TEST_ONLY_README_2026-02-26.md`.
+
 - Read first:
   - `docs/progress_log_2026-02-26.md`
   - `docs/generator_readiness_gap_registry_2026-02-26.md`

@@ -29,3 +29,8 @@ These are useful for history but should not be treated as current execution trut
 ## Rule For Next Agents
 
 When docs disagree, trust newest dated execution tracker + run artifacts under `logs/taskitem_runs/`.
+
+## Test-Only Artifact Rule
+
+- Treat directories under `logs/taskitem_runs/TEST_ONLY_*` as validation artifacts only.
+- Never treat markdown specs generated within `TEST_ONLY_*` directories as authoritative product specs.

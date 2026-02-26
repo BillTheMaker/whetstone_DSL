@@ -25,12 +25,12 @@ Planned and started:
 
 ## Baseline Evidence
 
-- `logs/taskitem_runs/spec_planning_baseline_20260226/fullstack_spec_readiness.json`
-- `logs/taskitem_runs/spec_planning_baseline_20260226/deterministic_spec_readiness.json`
-- `logs/taskitem_runs/spec_planning_hardening_20260226/sprint228_before.json`
-- `logs/taskitem_runs/spec_planning_hardening_20260226/sprint228_after.json`
-- `logs/taskitem_runs/spec_planning_hardening_20260226/sprint228_hardened.md`
-- `logs/taskitem_runs/spec_hardening_gate_20260226_s228_r2/report.json`
+- `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/fullstack_spec_readiness.json`
+- `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
+- `logs/taskitem_runs/TEST_ONLY_spec_planning_hardening_20260226/sprint228_before.json`
+- `logs/taskitem_runs/TEST_ONLY_spec_planning_hardening_20260226/sprint228_after.json`
+- `logs/taskitem_runs/TEST_ONLY_spec_planning_hardening_20260226/sprint228_hardened.md`
+- `logs/taskitem_runs/TEST_ONLY_spec_hardening_gate_20260226_s228_r2/report.json`
 
 Observed baseline:
 - both sample docs currently return `needs_spec_hardening`
@@ -49,7 +49,7 @@ Pipeline hard-gate proof:
 Reusable flow wrapper:
 - `tools/mcp/run_spec_hardening_gate.sh`
 - example invocation:
-  - `tools/mcp/run_spec_hardening_gate.sh sprint228_plan.md logs/taskitem_runs/spec_hardening_gate_20260226_s228_r2`
+  - `tools/mcp/run_spec_hardening_gate.sh sprint228_plan.md logs/taskitem_runs/TEST_ONLY_spec_hardening_gate_20260226_s228_r2`
 
 ## Explicit Completion Signal
 

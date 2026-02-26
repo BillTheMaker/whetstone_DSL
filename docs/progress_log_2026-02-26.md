@@ -72,3 +72,6 @@
   - example product meta specs (10)
 - Batch report:
   - `docs/spec_hardening_batch_report_2026-02-26.md`
+- Artifact isolation update:
+  - moved planning/hardening outputs to `logs/taskitem_runs/TEST_ONLY_*` paths.
+  - wrapper default now writes to `TEST_ONLY_spec_hardening_gate_*`.

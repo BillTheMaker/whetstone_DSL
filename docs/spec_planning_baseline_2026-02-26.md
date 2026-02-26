@@ -1,8 +1,8 @@
 # Spec Planning Baseline - 2026-02-26
 
 Run artifacts:
-- `logs/taskitem_runs/spec_planning_baseline_20260226/fullstack_spec_readiness.json`
-- `logs/taskitem_runs/spec_planning_baseline_20260226/deterministic_spec_readiness.json`
+- `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/fullstack_spec_readiness.json`
+- `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 ## Results
 

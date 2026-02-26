@@ -12,13 +12,13 @@ Corpora:
 ## Batch Artifacts
 
 Drive batch:
-- `logs/taskitem_runs/drive_spec_hardening_batch_20260226/results.jsonl`
-- `logs/taskitem_runs/drive_spec_hardening_batch_20260226/summary.json`
-- `logs/taskitem_runs/drive_spec_hardening_batch_20260226/quality_summary.json`
+- `logs/taskitem_runs/TEST_ONLY_drive_spec_hardening_batch_20260226/results.jsonl`
+- `logs/taskitem_runs/TEST_ONLY_drive_spec_hardening_batch_20260226/summary.json`
+- `logs/taskitem_runs/TEST_ONLY_drive_spec_hardening_batch_20260226/quality_summary.json`
 
 Example project meta batch:
-- `logs/taskitem_runs/example_projectmeta_hardening_batch_20260226/results.jsonl`
-- `logs/taskitem_runs/example_projectmeta_hardening_batch_20260226/summary.json`
+- `logs/taskitem_runs/TEST_ONLY_example_projectmeta_hardening_batch_20260226/results.jsonl`
+- `logs/taskitem_runs/TEST_ONLY_example_projectmeta_hardening_batch_20260226/summary.json`
 
 ## High-Density Outcomes
 
