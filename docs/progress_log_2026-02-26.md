@@ -524,3 +524,21 @@
 - Current measured result on hard sample:
   - template control injected (`requirement_count=3`, `selected_signal_count=8`)
   - intrinsic outcome unchanged (`selected_variant=0`, `best_top_gap_score=0`, `failing_profile_count=1`).
+
+## Sprint 263 Added (Same Day)
+
+- Added deterministic raw structural projector:
+  - `tools/mcp/project_raw_candidate_structure.py`
+  - pipeline control:
+    - `WSTONE_NATIVE_RAW_STRUCTURAL_PROJECTOR`
+  - summary packet:
+    - `native_raw_structural_projector`
+- Dated A/B artifacts:
+  - OFF: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_165737/00_summary.json`
+  - ON: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_165746/00_summary.json`
+- Current measured result on hard sample:
+  - raw search score uplift under projector:
+    - `best_failing_profile_count 1 -> 0`
+    - `best_top_gap_score 0 -> 88`
+    - `best_task_count 2 -> 6`
+  - but `native_impact_coverage.failing_profile_count` remained `1`, exposing scorer/gate parity mismatch.

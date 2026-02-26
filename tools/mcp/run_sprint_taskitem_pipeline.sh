@@ -55,6 +55,7 @@ NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIF
 NATIVE_RAW_HARDEN_TOP_GAPS="${WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS:-0}"
 NATIVE_RAW_SIGNAL_TARGETED_VARIANTS="${WSTONE_NATIVE_RAW_SIGNAL_TARGETED_VARIANTS:-0}"
 NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS="${WSTONE_NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS:-6}"
+NATIVE_RAW_STRUCTURAL_PROJECTOR="${WSTONE_NATIVE_RAW_STRUCTURAL_PROJECTOR:-0}"
 NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT="${WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT:-0}"
 NATIVE_RAW_TOP_GAP_BACKLOG_FILE="${WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE:-}"
 NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT:-0}"
@@ -130,6 +131,7 @@ NATIVE_MULTISHOT_JSON='{}'
 NATIVE_RAW_CANDIDATE_SEARCH_JSON='{}'
 NATIVE_RAW_HARDENING_JSON='{}'
 NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON='{}'
+NATIVE_RAW_STRUCTURAL_PROJECTOR_JSON='{}'
 NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON='{}'
 NATIVE_RAW_INTRINSIC_PROMPT_PACK_JSON='{}'
 NATIVE_RAW_TEMPLATE_CONTROL_PACK_JSON='{}'
@@ -460,9 +462,16 @@ fi
 if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
   top_gap_score_args=()
   use_top_gap_weighted_select=false
+  raw_structural_projector_enabled=false
+  raw_structural_projector_projected_variants=0
+  baseline_projected_input_count=0
+  baseline_projected_output_count=0
   if [[ "$NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT" == "1" && -n "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" && -f "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" ]]; then
     top_gap_score_args=(--top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE")
     use_top_gap_weighted_select=true
+  fi
+  if [[ "$NATIVE_RAW_STRUCTURAL_PROJECTOR" == "1" && -n "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" && -f "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" ]]; then
+    raw_structural_projector_enabled=true
   fi
   python3 "$ROOT_DIR/tools/mcp/synthesize_raw_candidate_requirement_variants.py" \
     --spec "$INPUT_FILE" \
@@ -490,16 +499,31 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
   fi
 
   printf '%s\n' "$TASKS" > "$OUT_DIR/02ae_candidate_0_tasks.json"
+  baseline_eval_tasks_path="$OUT_DIR/02ae_candidate_0_tasks.json"
+  baseline_eval_tasks_json="$TASKS"
+  if [[ "$raw_structural_projector_enabled" == true ]]; then
+    python3 "$ROOT_DIR/tools/mcp/project_raw_candidate_structure.py" \
+      --tasks "$OUT_DIR/02ae_candidate_0_tasks.json" \
+      --top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+      --out "$OUT_DIR/02ae_candidate_0_projected_tasks.json" \
+      --out-report "$OUT_DIR/02ae_candidate_0_projected_report.json" >/dev/null
+    baseline_eval_tasks_path="$OUT_DIR/02ae_candidate_0_projected_tasks.json"
+    baseline_eval_tasks_json="$(cat "$OUT_DIR/02ae_candidate_0_projected_tasks.json")"
+    baseline_projected_input_count="$(jq '.input_task_count // 0' "$OUT_DIR/02ae_candidate_0_projected_report.json")"
+    baseline_projected_output_count="$(jq '.output_task_count // 0' "$OUT_DIR/02ae_candidate_0_projected_report.json")"
+    raw_structural_projector_projected_variants=$((raw_structural_projector_projected_variants + 1))
+  fi
   python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
     --spec "$INPUT_FILE" \
     --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
-    --tasks "$OUT_DIR/02ae_candidate_0_tasks.json" \
+    --tasks "$baseline_eval_tasks_path" \
     "${top_gap_score_args[@]}" \
     --out "$OUT_DIR/02ae_candidate_0_score.json" >/dev/null
   best_variant="0"
   best_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02ae_candidate_0_score.json")"
   best_task_count="$(jq '.task_count // 0' "$OUT_DIR/02ae_candidate_0_score.json")"
   best_top_gap_score="$(jq '.top_gap_score // 0' "$OUT_DIR/02ae_candidate_0_score.json")"
+  TASKS="$baseline_eval_tasks_json"
   baseline_fail="$best_fail"
   baseline_task_count="$best_task_count"
   baseline_top_gap_score="$best_top_gap_score"
@@ -523,10 +547,22 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
     if [[ "$(printf '%s' "$cand_json" | jq -r '.success // false')" == "true" ]]; then
       cand_tasks="$(printf '%s' "$cand_json" | jq '.tasks // []')"
       printf '%s\n' "$cand_tasks" > "$OUT_DIR/02ae_candidate_${variant}_tasks.json"
+      cand_eval_tasks_path="$OUT_DIR/02ae_candidate_${variant}_tasks.json"
+      cand_eval_tasks_json="$cand_tasks"
+      if [[ "$raw_structural_projector_enabled" == true ]]; then
+        python3 "$ROOT_DIR/tools/mcp/project_raw_candidate_structure.py" \
+          --tasks "$OUT_DIR/02ae_candidate_${variant}_tasks.json" \
+          --top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+          --out "$OUT_DIR/02ae_candidate_${variant}_projected_tasks.json" \
+          --out-report "$OUT_DIR/02ae_candidate_${variant}_projected_report.json" >/dev/null
+        cand_eval_tasks_path="$OUT_DIR/02ae_candidate_${variant}_projected_tasks.json"
+        cand_eval_tasks_json="$(cat "$OUT_DIR/02ae_candidate_${variant}_projected_tasks.json")"
+        raw_structural_projector_projected_variants=$((raw_structural_projector_projected_variants + 1))
+      fi
       python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
         --spec "$INPUT_FILE" \
         --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
-        --tasks "$OUT_DIR/02ae_candidate_${variant}_tasks.json" \
+        --tasks "$cand_eval_tasks_path" \
         "${top_gap_score_args[@]}" \
         --out "$OUT_DIR/02ae_candidate_${variant}_score.json" >/dev/null
       cand_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02ae_candidate_${variant}_score.json")"
@@ -549,7 +585,7 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
         best_fail="$cand_fail"
         best_task_count="$cand_task_count"
         best_top_gap_score="$cand_top_gap_score"
-        TASKS="$cand_tasks"
+        TASKS="$cand_eval_tasks_json"
       fi
       successful=$((successful + 1))
     fi
@@ -580,10 +616,22 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
       retry_success=true
       retry_tasks="$(printf '%s' "$retry_json" | jq '.tasks // []')"
       printf '%s\n' "$retry_tasks" > "$OUT_DIR/02af_raw_adaptive_retry_tasks.json"
+      retry_eval_tasks_path="$OUT_DIR/02af_raw_adaptive_retry_tasks.json"
+      retry_eval_tasks_json="$retry_tasks"
+      if [[ "$raw_structural_projector_enabled" == true ]]; then
+        python3 "$ROOT_DIR/tools/mcp/project_raw_candidate_structure.py" \
+          --tasks "$OUT_DIR/02af_raw_adaptive_retry_tasks.json" \
+          --top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+          --out "$OUT_DIR/02af_raw_adaptive_retry_projected_tasks.json" \
+          --out-report "$OUT_DIR/02af_raw_adaptive_retry_projected_report.json" >/dev/null
+        retry_eval_tasks_path="$OUT_DIR/02af_raw_adaptive_retry_projected_tasks.json"
+        retry_eval_tasks_json="$(cat "$OUT_DIR/02af_raw_adaptive_retry_projected_tasks.json")"
+        raw_structural_projector_projected_variants=$((raw_structural_projector_projected_variants + 1))
+      fi
       python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
         --spec "$INPUT_FILE" \
         --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
-        --tasks "$OUT_DIR/02af_raw_adaptive_retry_tasks.json" \
+        --tasks "$retry_eval_tasks_path" \
         "${top_gap_score_args[@]}" \
         --out "$OUT_DIR/02af_raw_adaptive_retry_score.json" >/dev/null
       retry_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02af_raw_adaptive_retry_score.json")"
@@ -594,7 +642,7 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
         best_fail="$retry_fail"
         best_task_count="$retry_task_count"
         best_top_gap_score="$retry_top_gap_score"
-        TASKS="$retry_tasks"
+        TASKS="$retry_eval_tasks_json"
         retry_applied=true
       fi
     fi
@@ -611,6 +659,12 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
   else
     NATIVE_RAW_ADAPTIVE_RETRY_JSON='{"enabled":false}'
   fi
+  NATIVE_RAW_STRUCTURAL_PROJECTOR_JSON="$(jq -nc \
+    --argjson enabled "$raw_structural_projector_enabled" \
+    --argjson projected_variant_count "$raw_structural_projector_projected_variants" \
+    --argjson baseline_input_task_count "$baseline_projected_input_count" \
+    --argjson baseline_output_task_count "$baseline_projected_output_count" \
+    '{enabled:$enabled, projected_variant_count:$projected_variant_count, baseline_input_task_count:$baseline_input_task_count, baseline_output_task_count:$baseline_output_task_count}')"
 
   NATIVE_RAW_CANDIDATE_SEARCH_JSON="$(jq -nc \
     --argjson enabled true \
@@ -649,6 +703,7 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
 else
   NATIVE_RAW_CANDIDATE_SEARCH_JSON='{"enabled":false}'
   NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON='{"enabled":false}'
+  NATIVE_RAW_STRUCTURAL_PROJECTOR_JSON='{"enabled":false}'
 fi
 if [[ "$NATIVE_RAW_HARDEN_TOP_GAPS" == "1" ]]; then
   printf '%s\n' "$TASKS" > "$OUT_DIR/02af_raw_hardening_input_tasks.json"
@@ -997,6 +1052,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_raw_intrinsic_prompt_pack "$NATIVE_RAW_INTRINSIC_PROMPT_PACK_JSON" \
   --argjson native_raw_template_control_pack "$NATIVE_RAW_TEMPLATE_CONTROL_PACK_JSON" \
   --argjson native_raw_signal_targeted_variants "$NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON" \
+  --argjson native_raw_structural_projector "$NATIVE_RAW_STRUCTURAL_PROJECTOR_JSON" \
   --argjson native_raw_candidate_search "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" \
   --argjson native_raw_adaptive_retry "$NATIVE_RAW_ADAPTIVE_RETRY_JSON" \
   --argjson native_raw_hardening "$NATIVE_RAW_HARDENING_JSON" \
@@ -1031,6 +1087,7 @@ SUMMARY_JSON="$(jq -nc \
     native_raw_intrinsic_prompt_pack: $native_raw_intrinsic_prompt_pack,
     native_raw_template_control_pack: $native_raw_template_control_pack,
     native_raw_signal_targeted_variants: $native_raw_signal_targeted_variants,
+    native_raw_structural_projector: $native_raw_structural_projector,
     native_raw_candidate_search: $native_raw_candidate_search,
     native_raw_adaptive_retry: $native_raw_adaptive_retry,
     native_raw_hardening: $native_raw_hardening,
