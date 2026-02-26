@@ -441,3 +441,20 @@
 - Current measured result on hard sample:
   - `baseline_top_gap_score=0`, `best_top_gap_score=0`
   - run blocked correctly when uplift requirement is enabled.
+
+## Sprint 258 Added (Same Day)
+
+- Added backlog-driven raw requirement injection:
+  - `tools/mcp/synthesize_raw_top_gap_requirements.py`
+  - pipeline controls:
+    - `WSTONE_NATIVE_RAW_TOP_GAP_REQUIREMENTS`
+    - `WSTONE_NATIVE_RAW_TOP_GAP_MAX_SIGNALS`
+  - summary packet:
+    - `native_raw_top_gap_requirements`
+- Dated A/B artifacts (requirements OFF/ON):
+  - `logs/taskitem_runs/01a_fallback_intake_spec_20260226_162853/00_summary.json`
+  - `logs/taskitem_runs/01a_fallback_intake_spec_20260226_162924/00_summary.json`
+  - `logs/taskitem_runs/01a_fallback_intake_spec_20260226_162924/01e_raw_top_gap_requirements_report.json`
+- Current measured result on hard sample:
+  - injection selected `5` top signals from `20`
+  - intrinsic raw outcome unchanged (`selected_variant=0`, `best_top_gap_score=0`, `failing_profile_count=1`).

@@ -56,6 +56,8 @@ NATIVE_RAW_HARDEN_TOP_GAPS="${WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS:-0}"
 NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT="${WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT:-0}"
 NATIVE_RAW_TOP_GAP_BACKLOG_FILE="${WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE:-}"
 NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT:-0}"
+NATIVE_RAW_TOP_GAP_REQUIREMENTS="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIREMENTS:-0}"
+NATIVE_RAW_TOP_GAP_MAX_SIGNALS="${WSTONE_NATIVE_RAW_TOP_GAP_MAX_SIGNALS:-5}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -119,6 +121,7 @@ NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON='{}'
 NATIVE_MULTISHOT_JSON='{}'
 NATIVE_RAW_CANDIDATE_SEARCH_JSON='{}'
 NATIVE_RAW_HARDENING_JSON='{}'
+NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON='{}'
 INTRINSIC_REQS_JSON='[]'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 EXTRA_TASKS_JSON='[]'
@@ -333,6 +336,22 @@ if [[ "$NATIVE_INTRINSIC_BOOST" == "1" ]]; then
   NATIVE_INTRINSIC_BOOST_JSON="$(jq -nc --argjson reqs "$INTRINSIC_REQS_JSON" '{enabled:true, requirement_count:($reqs|length)}')"
 else
   NATIVE_INTRINSIC_BOOST_JSON='{"enabled":false,"requirement_count":0}'
+fi
+if [[ "$NATIVE_RAW_TOP_GAP_REQUIREMENTS" == "1" && -n "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" && -f "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" ]]; then
+  python3 "$ROOT_DIR/tools/mcp/synthesize_raw_top_gap_requirements.py" \
+    --top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+    --max-signals "$NATIVE_RAW_TOP_GAP_MAX_SIGNALS" \
+    --out "$OUT_DIR/01e_raw_top_gap_requirements.json" \
+    --out-report "$OUT_DIR/01e_raw_top_gap_requirements_report.json" >/dev/null
+  RAW_TOP_GAP_REQS_JSON="$(cat "$OUT_DIR/01e_raw_top_gap_requirements.json")"
+  NORMALIZED_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson extra "$RAW_TOP_GAP_REQS_JSON" '$base + $extra')"
+  NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON="$(jq -nc \
+    --argjson enabled true \
+    --arg backlog_file "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+    --argjson report "$(cat "$OUT_DIR/01e_raw_top_gap_requirements_report.json")" \
+    '{enabled:$enabled, backlog_file:$backlog_file, report:$report}')"
+else
+  NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON='{"enabled":false}'
 fi
 CONFLICTS="$(printf '%s' "$INTAKE_JSON" | jq '.conflicts // []')"
 GEN_ARGS="$(jq -nc --argjson nr "$NORMALIZED_REQS" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
@@ -856,6 +875,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
   --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
+  --argjson native_raw_top_gap_requirements "$NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON" \
   --argjson native_raw_candidate_search "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" \
   --argjson native_raw_hardening "$NATIVE_RAW_HARDENING_JSON" \
   --argjson native_single_shot_profile_shape "$NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON" \
@@ -885,6 +905,7 @@ SUMMARY_JSON="$(jq -nc \
     native_decomposition_retry: $native_decomposition_retry,
     native_profile_autofill: $native_profile_autofill,
     native_intrinsic_boost: $native_intrinsic_boost,
+    native_raw_top_gap_requirements: $native_raw_top_gap_requirements,
     native_raw_candidate_search: $native_raw_candidate_search,
     native_raw_hardening: $native_raw_hardening,
     native_single_shot_profile_shape: $native_single_shot_profile_shape,

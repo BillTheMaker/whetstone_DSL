@@ -223,3 +223,8 @@ Planning runtime controls (active):
 - raw candidate search can enforce top-gap uplift as hard policy:
   - `WSTONE_NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT`
   - failure code `18` when no weighted uplift is achieved
+- raw candidate generation can ingest backlog-driven top-gap normalized requirements:
+  - `tools/mcp/synthesize_raw_top_gap_requirements.py`
+  - `WSTONE_NATIVE_RAW_TOP_GAP_REQUIREMENTS`
+  - `WSTONE_NATIVE_RAW_TOP_GAP_MAX_SIGNALS`
+  - `native_raw_top_gap_requirements`
