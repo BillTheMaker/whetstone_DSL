@@ -334,3 +334,33 @@
 - Current measured result on hard fullstack sample:
   - selected mode: `single_shot_shape`
   - selected run passes impact coverage with `failing_profile_count=0`
+
+## Sprint 251 Added (Same Day)
+
+- Added richer raw-variant synthesis for raw-only candidate search:
+  - `tools/mcp/synthesize_raw_candidate_requirement_variants.py`
+  - raw search now consumes profile-bundle variants
+- Dated artifact:
+  - `logs/taskitem_runs/TEST_ONLY_sprint251_rawvariants_20260226_154355/00_summary.json`
+- Current measured result:
+  - `available_variants=8`, `attempted_variants=8`
+  - `selected_variant=0`, `failing_profile_count 7 -> 7`
+  - no raw-only uplift on this hard sample.
+
+## Sprint 252 Added (Same Day)
+
+- Added raw uplift history analyzer:
+  - `tools/mcp/analyze_raw_candidate_uplift_history.py`
+- Added closure-ladder policy routing based on historical raw uplift:
+  - `tools/mcp/run_native_profile_closure_ladder.sh`
+  - controls:
+    - `WSTONE_CLOSURE_LADDER_SKIP_RAW_WHEN_NO_UPLIFT`
+    - `WSTONE_CLOSURE_LADDER_RAW_HISTORY_GLOB`
+    - `WSTONE_CLOSURE_LADDER_RAW_HISTORY_MAX_RUNS`
+    - `WSTONE_CLOSURE_LADDER_RAW_MIN_UPLIFT_RATE`
+    - `WSTONE_CLOSURE_LADDER_RAW_MIN_RECORDS`
+- Dated artifacts:
+  - `logs/taskitem_runs/TEST_ONLY_sprint252_closure_ladder_policy_20260226/closure_ladder_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint252_closure_ladder_policy_skip2_20260226/closure_ladder_summary.json`
+- Verified forced-skip behavior:
+  - attempted modes excluded `raw_only` and started at `single_shot_shape`.

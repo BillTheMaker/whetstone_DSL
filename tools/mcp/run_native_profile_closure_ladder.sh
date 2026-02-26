@@ -14,6 +14,31 @@ if [[ ! -f "$SPEC_PATH" ]]; then
 fi
 mkdir -p "$OUT_DIR"
 
+SKIP_RAW_WHEN_NO_UPLIFT="${WSTONE_CLOSURE_LADDER_SKIP_RAW_WHEN_NO_UPLIFT:-1}"
+RAW_HISTORY_GLOB="${WSTONE_CLOSURE_LADDER_RAW_HISTORY_GLOB:-TEST_ONLY_sprint24*_raw*}"
+RAW_HISTORY_MAX_RUNS="${WSTONE_CLOSURE_LADDER_RAW_HISTORY_MAX_RUNS:-20}"
+RAW_MIN_UPLIFT_RATE="${WSTONE_CLOSURE_LADDER_RAW_MIN_UPLIFT_RATE:-0.05}"
+RAW_MIN_RECORDS="${WSTONE_CLOSURE_LADDER_RAW_MIN_RECORDS:-3}"
+
+effective_modes=(raw_only single_shot_shape multishot autofill)
+if [[ "$SKIP_RAW_WHEN_NO_UPLIFT" == "1" ]]; then
+  python3 "$ROOT_DIR/tools/mcp/analyze_raw_candidate_uplift_history.py" \
+    --runs-root "$ROOT_DIR/logs/taskitem_runs" \
+    --include-glob "$RAW_HISTORY_GLOB" \
+    --max-runs "$RAW_HISTORY_MAX_RUNS" \
+    --out "$OUT_DIR/raw_uplift_history.json" >/dev/null || true
+  if [[ -f "$OUT_DIR/raw_uplift_history.json" ]]; then
+    raw_record_count="$(jq '.record_count // 0' "$OUT_DIR/raw_uplift_history.json")"
+    raw_uplift_rate="$(jq '.uplift_rate // 0' "$OUT_DIR/raw_uplift_history.json")"
+    if [[ "$raw_record_count" -ge "$RAW_MIN_RECORDS" ]]; then
+      awk_cmp="$(awk -v a="$raw_uplift_rate" -v b="$RAW_MIN_UPLIFT_RATE" 'BEGIN{if (a < b) print 1; else print 0;}')"
+      if [[ "$awk_cmp" == "1" ]]; then
+        effective_modes=(single_shot_shape multishot autofill)
+      fi
+    fi
+  fi
+fi
+
 run_mode() {
   local mode="$1"
   local logfile="$OUT_DIR/${mode}.log"
@@ -65,12 +90,11 @@ run_mode() {
   return "$rc"
 }
 
-modes=(raw_only single_shot_shape multishot autofill)
 selected=""
 selected_run=""
 selected_rc=1
 
-for mode in "${modes[@]}"; do
+for mode in "${effective_modes[@]}"; do
   if run_mode "$mode"; then
     selected="$mode"
     selected_run="$(cat "$OUT_DIR/${mode}.run_dir")"
@@ -85,7 +109,7 @@ jq -n \
   --arg selected_mode "$selected" \
   --arg selected_run "$selected_run" \
   --argjson selected_rc "$selected_rc" \
-  --argjson attempted_modes "$(printf '%s\n' "${modes[@]}" | jq -R . | jq -s .)" \
+  --argjson attempted_modes "$(printf '%s\n' "${effective_modes[@]}" | jq -R . | jq -s .)" \
   '{
     status: (if $selected_rc == 0 then "ok" else "fail" end),
     spec:$spec,

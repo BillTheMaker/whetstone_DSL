@@ -390,13 +390,12 @@ else
     '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, target_min_task_count:$target_min_task_count}')"
 fi
 if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
-  if [[ "$(printf '%s' "$INTRINSIC_REQS_JSON" | jq 'length')" -eq 0 ]]; then
-    python3 "$ROOT_DIR/tools/mcp/synthesize_native_intrinsic_boost_requirements.py" \
-      --spec "$INPUT_FILE" \
-      --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
-      --out "$OUT_DIR/02ae_raw_candidate_requirements.json" >/dev/null
-    INTRINSIC_REQS_JSON="$(cat "$OUT_DIR/02ae_raw_candidate_requirements.json")"
-  fi
+  python3 "$ROOT_DIR/tools/mcp/synthesize_raw_candidate_requirement_variants.py" \
+    --spec "$INPUT_FILE" \
+    --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+    --max-variants "$NATIVE_RAW_CANDIDATE_MAX_VARIANTS" \
+    --out "$OUT_DIR/02ae_raw_candidate_variants.json" >/dev/null
+  VARIANTS_JSON="$(cat "$OUT_DIR/02ae_raw_candidate_variants.json")"
 
   printf '%s\n' "$TASKS" > "$OUT_DIR/02ae_candidate_0_tasks.json"
   python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
@@ -412,13 +411,13 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
   attempted=1
   successful=1
 
-  req_total="$(printf '%s' "$INTRINSIC_REQS_JSON" | jq 'length')"
+  variant_total="$(printf '%s' "$VARIANTS_JSON" | jq '.variants | length')"
   max_variants="$NATIVE_RAW_CANDIDATE_MAX_VARIANTS"
   idx=0
   variant=1
-  while [[ "$variant" -lt "$max_variants" && "$idx" -lt "$req_total" ]]; do
-    req_i="$(printf '%s' "$INTRINSIC_REQS_JSON" | jq ".[$idx]")"
-    cand_reqs="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson req "$req_i" '$base + [$req]')"
+  while [[ "$variant" -lt "$max_variants" && "$idx" -lt "$variant_total" ]]; do
+    req_bundle="$(printf '%s' "$VARIANTS_JSON" | jq ".variants[$idx]")"
+    cand_reqs="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson bundle "$req_bundle" '$base + $bundle')"
     cand_args="$(jq -nc --argjson nr "$cand_reqs" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
       '{normalizedRequirements:$nr,conflicts:$cf,strictExecutionContract:($strict == "1")}')"
     cand_raw="$(call_tool "whetstone_generate_taskitems" "$cand_args")"
@@ -457,7 +456,8 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
     --argjson baseline_task_count "$baseline_task_count" \
     --argjson best_failing_profile_count "$best_fail" \
     --argjson best_task_count "$best_task_count" \
-    '{enabled:$enabled, attempted_variants:$attempted, successful_variants:$successful, selected_variant:$best_variant, baseline_failing_profile_count:$baseline_failing_profile_count, baseline_task_count:$baseline_task_count, best_failing_profile_count:$best_failing_profile_count, best_task_count:$best_task_count}')"
+    --argjson available_variants "$variant_total" \
+    '{enabled:$enabled, attempted_variants:$attempted, successful_variants:$successful, available_variants:$available_variants, selected_variant:$best_variant, baseline_failing_profile_count:$baseline_failing_profile_count, baseline_task_count:$baseline_task_count, best_failing_profile_count:$best_failing_profile_count, best_task_count:$best_task_count}')"
   printf '%s\n' "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" > "$OUT_DIR/02ae_raw_candidate_search.json"
   if [[ "$NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT" == "1" && "$best_fail" -ge "$baseline_fail" ]]; then
     echo "error: raw candidate search did not improve failing profile count" >&2
