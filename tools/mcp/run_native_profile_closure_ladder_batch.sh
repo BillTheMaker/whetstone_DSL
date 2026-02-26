@@ -32,4 +32,13 @@ python3 "$ROOT_DIR/tools/mcp/analyze_closure_ladder_outcomes.py" \
   --include-glob "*" \
   --out "$OUT_DIR/closure_ladder_batch_summary.json" >/dev/null
 
-jq -n --arg out_dir "$OUT_DIR" --argjson summary "$(cat "$OUT_DIR/closure_ladder_batch_summary.json")" '{status:"ok", out_dir:$out_dir, summary:$summary}'
+python3 "$ROOT_DIR/tools/mcp/synthesize_raw_gap_backlog.py" \
+  --batch-dir "$OUT_DIR" \
+  --out-json "$OUT_DIR/raw_gap_backlog.json" \
+  --out-md "$OUT_DIR/raw_gap_backlog.md" >/dev/null
+
+jq -n \
+  --arg out_dir "$OUT_DIR" \
+  --argjson summary "$(cat "$OUT_DIR/closure_ladder_batch_summary.json")" \
+  --argjson backlog "$(cat "$OUT_DIR/raw_gap_backlog.json")" \
+  '{status:"ok", out_dir:$out_dir, summary:$summary, backlog:$backlog}'

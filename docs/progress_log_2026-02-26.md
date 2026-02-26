@@ -376,3 +376,18 @@
   - `selected_mode_counts.single_shot_shape=2`
   - `selected_mode_counts.multishot=1`
   - `status_counts.ok=3`
+
+## Sprint 254 Added (Same Day)
+
+- Added prioritized raw-gap backlog synthesis from closure ladder runs:
+  - `tools/mcp/synthesize_raw_gap_backlog.py`
+  - now mines `raw_only` attempt artifacts for gap signals
+- Batch ladder runner now emits:
+  - `raw_gap_backlog.json`
+  - `raw_gap_backlog.md`
+- Dated validation artifact:
+  - `logs/taskitem_runs/TEST_ONLY_sprint254_closure_ladder_batch_20260226_r2/raw_gap_backlog.json`
+- Current top missing signals in sampled backlog:
+  - `missing_prerequisite_op:whetstone_validate_taskitem`
+  - `missing_execution_contract:deterministic`
+  - `missing_prerequisite_op:whetstone_queue_ready`
