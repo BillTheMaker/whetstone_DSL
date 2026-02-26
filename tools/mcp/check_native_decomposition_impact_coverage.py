@@ -21,15 +21,21 @@ def load_native_tasks(run_dir: Path, summary: Dict) -> List[Dict]:
     retry_applied = bool(retry.get("applied", False))
     retry_path = run_dir / "02aa_generate_taskitems_retry.json"
     base_path = run_dir / "02_generate_taskitems.json"
+    tasks: List[Dict] = []
     if retry_applied and retry_path.exists():
         data = load_json(retry_path)
         if isinstance(data, dict):
-            return list(data.get("tasks") or [])
-    if base_path.exists():
+            tasks = list(data.get("tasks") or [])
+    elif base_path.exists():
         data = load_json(base_path)
         if isinstance(data, dict):
-            return list(data.get("tasks") or [])
-    return []
+            tasks = list(data.get("tasks") or [])
+
+    # Include explicitly injected extra tasks when present.
+    extra = summary.get("extra_tasks") or []
+    if isinstance(extra, list) and extra:
+        tasks = tasks + extra
+    return tasks
 
 
 def load_spec_text(summary: Dict, repo_root: Path) -> str:

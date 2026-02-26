@@ -218,3 +218,19 @@
   - `logs/taskitem_runs/TEST_ONLY_sprint242_impact_remediation_loop_20260226/extra_normalized_requirements.json`
 - Current measured loop result on hard fullstack sample:
   - `failing_profile_count 7 -> 7` (wiring complete, capability uplift still pending)
+
+## Sprint 243 Added (Same Day)
+
+- Added profile-specific remediation task synthesis:
+  - `tools/mcp/synthesize_native_impact_remediation_tasks.py`
+- Pipeline now supports injected extra tasks:
+  - `WSTONE_EXTRA_TASKS_FILE`
+  - summary packet: `extra_tasks`
+- Coverage checker now evaluates effective tasks (`native + injected`):
+  - `tools/mcp/check_native_decomposition_impact_coverage.py`
+- Enhanced remediation loop injects both constraints and tasks:
+  - `tools/mcp/run_native_impact_remediation_loop.sh`
+- Dated closure artifact:
+  - `logs/taskitem_runs/TEST_ONLY_sprint243_impact_remediation_tasks_loop_20260226_r2/remediation_loop_summary.json`
+- Current measured loop result on hard fullstack sample:
+  - `failing_profile_count 7 -> 0`
