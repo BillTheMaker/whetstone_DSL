@@ -323,3 +323,14 @@
 - Current measured result:
   - baseline `7`, best `7` failing profiles
   - run blocked correctly under require-uplift mode.
+
+## Sprint 250 Added (Same Day)
+
+- Added automatic closure ladder runner:
+  - `tools/mcp/run_native_profile_closure_ladder.sh`
+  - mode order: `raw_only -> single_shot_shape -> multishot -> autofill`
+- Dated artifact:
+  - `logs/taskitem_runs/TEST_ONLY_sprint250_closure_ladder_20260226/closure_ladder_summary.json`
+- Current measured result on hard fullstack sample:
+  - selected mode: `single_shot_shape`
+  - selected run passes impact coverage with `failing_profile_count=0`
