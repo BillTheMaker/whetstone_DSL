@@ -52,6 +52,7 @@ NATIVE_MULTISHOT_APPLY_MODE="${WSTONE_NATIVE_MULTISHOT_APPLY_MODE:-if_improves}"
 NATIVE_RAW_CANDIDATE_SEARCH="${WSTONE_NATIVE_RAW_CANDIDATE_SEARCH:-0}"
 NATIVE_RAW_CANDIDATE_MAX_VARIANTS="${WSTONE_NATIVE_RAW_CANDIDATE_MAX_VARIANTS:-8}"
 NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT:-0}"
+NATIVE_RAW_HARDEN_TOP_GAPS="${WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS:-0}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -114,6 +115,7 @@ NATIVE_INTRINSIC_BOOST_JSON='{}'
 NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON='{}'
 NATIVE_MULTISHOT_JSON='{}'
 NATIVE_RAW_CANDIDATE_SEARCH_JSON='{}'
+NATIVE_RAW_HARDENING_JSON='{}'
 INTRINSIC_REQS_JSON='[]'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 EXTRA_TASKS_JSON='[]'
@@ -467,6 +469,30 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
 else
   NATIVE_RAW_CANDIDATE_SEARCH_JSON='{"enabled":false}'
 fi
+if [[ "$NATIVE_RAW_HARDEN_TOP_GAPS" == "1" ]]; then
+  printf '%s\n' "$TASKS" > "$OUT_DIR/02af_raw_hardening_input_tasks.json"
+  python3 "$ROOT_DIR/tools/mcp/harden_native_tasks_top_gaps.py" \
+    --spec "$INPUT_FILE" \
+    --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+    --tasks "$OUT_DIR/02af_raw_hardening_input_tasks.json" \
+    --out "$OUT_DIR/02af_raw_hardening_output_tasks.json" \
+    --out-report "$OUT_DIR/02af_raw_hardening_report.json" >/dev/null
+  hardened_tasks_json="$(cat "$OUT_DIR/02af_raw_hardening_output_tasks.json")"
+  input_count_h="$(printf '%s' "$TASKS" | jq 'length')"
+  output_count_h="$(printf '%s' "$hardened_tasks_json" | jq 'length')"
+  if [[ "$output_count_h" -gt "$input_count_h" ]]; then
+    added_h_tasks="$(jq -nc --argjson shaped "$hardened_tasks_json" --argjson n "$input_count_h" '$shaped[$n:]')"
+    EXTRA_TASKS_JSON="$(jq -nc --argjson base "$EXTRA_TASKS_JSON" --argjson extra "$added_h_tasks" '$base + $extra')"
+  fi
+  TASKS="$hardened_tasks_json"
+  NATIVE_RAW_HARDENING_JSON="$(jq -nc \
+    --argjson rep "$(cat "$OUT_DIR/02af_raw_hardening_report.json")" \
+    --argjson input_count "$input_count_h" \
+    --argjson output_count "$output_count_h" \
+    '{enabled:true, input_task_count:$input_count, output_task_count:$output_count, report:$rep}')"
+else
+  NATIVE_RAW_HARDENING_JSON='{"enabled":false}'
+fi
 if [[ "$NATIVE_SINGLESHOT_PROFILE_SHAPE" == "1" ]]; then
   printf '%s\n' "$TASKS" > "$OUT_DIR/02ad_single_shot_base_tasks.json"
   python3 "$ROOT_DIR/tools/mcp/synthesize_single_shot_profile_shape_tasks.py" \
@@ -787,6 +813,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
   --argjson native_raw_candidate_search "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" \
+  --argjson native_raw_hardening "$NATIVE_RAW_HARDENING_JSON" \
   --argjson native_single_shot_profile_shape "$NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON" \
   --argjson native_multishot "$NATIVE_MULTISHOT_JSON" \
   --argjson extra_normalized_requirements "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" \
@@ -815,6 +842,7 @@ SUMMARY_JSON="$(jq -nc \
     native_profile_autofill: $native_profile_autofill,
     native_intrinsic_boost: $native_intrinsic_boost,
     native_raw_candidate_search: $native_raw_candidate_search,
+    native_raw_hardening: $native_raw_hardening,
     native_single_shot_profile_shape: $native_single_shot_profile_shape,
     native_multishot: $native_multishot,
     extra_normalized_requirements: $extra_normalized_requirements,

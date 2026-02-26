@@ -212,3 +212,7 @@ Planning runtime controls (active):
   - `tools/mcp/analyze_closure_ladder_outcomes.py`
 - raw gap backlog can be synthesized from ladder raw-only attempts:
   - `tools/mcp/synthesize_raw_gap_backlog.py`
+- raw top-gap hardening can patch weak native outputs before overlay stages:
+  - `tools/mcp/harden_native_tasks_top_gaps.py`
+  - `WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS`
+  - `native_raw_hardening`

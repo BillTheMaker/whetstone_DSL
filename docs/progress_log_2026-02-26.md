@@ -391,3 +391,21 @@
   - `missing_prerequisite_op:whetstone_validate_taskitem`
   - `missing_execution_contract:deterministic`
   - `missing_prerequisite_op:whetstone_queue_ready`
+
+## Sprint 255 Added (Same Day)
+
+- Added raw top-gap hardening stage for native tasks:
+  - `tools/mcp/harden_native_tasks_top_gaps.py`
+  - `WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS`
+  - summary packet: `native_raw_hardening`
+- Pipeline now writes hardening artifacts:
+  - `02af_raw_hardening_input_tasks.json`
+  - `02af_raw_hardening_output_tasks.json`
+  - `02af_raw_hardening_report.json`
+- Hardening stage injects profile-required prereq ops/reason keywords/execution contract fields and raises shallow task counts to profile minimum depth.
+- Dated A/B artifacts:
+  - OFF: `logs/taskitem_runs/TEST_ONLY_sprint255_rawharden_20260226_161923/06_native_impact_coverage.json`
+  - ON: `logs/taskitem_runs/TEST_ONLY_sprint255_rawharden_20260226_161924/06_native_impact_coverage.json`
+- Current measured result on hard fullstack sample:
+  - `failing_profile_count 7 -> 0`
+  - `effective_task_count 2 -> 6`
