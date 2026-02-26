@@ -220,3 +220,6 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT`
   - `WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE`
   - scorer `--top-gaps` telemetry (`top_gap_score`)
+- raw candidate search can enforce top-gap uplift as hard policy:
+  - `WSTONE_NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT`
+  - failure code `18` when no weighted uplift is achieved

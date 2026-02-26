@@ -55,6 +55,7 @@ NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIF
 NATIVE_RAW_HARDEN_TOP_GAPS="${WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS:-0}"
 NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT="${WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT:-0}"
 NATIVE_RAW_TOP_GAP_BACKLOG_FILE="${WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE:-}"
+NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT:-0}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -489,12 +490,25 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
     --argjson available_variants "$variant_total" \
     --argjson top_gap_weighted_select "$use_top_gap_weighted_select" \
     --arg top_gap_backlog_file "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
-    '{enabled:$enabled, attempted_variants:$attempted, successful_variants:$successful, available_variants:$available_variants, selected_variant:$best_variant, baseline_failing_profile_count:$baseline_failing_profile_count, baseline_task_count:$baseline_task_count, baseline_top_gap_score:$baseline_top_gap_score, best_failing_profile_count:$best_failing_profile_count, best_task_count:$best_task_count, best_top_gap_score:$best_top_gap_score, top_gap_weighted_select:$top_gap_weighted_select, top_gap_backlog_file:$top_gap_backlog_file}')"
+    --argjson top_gap_require_uplift "$NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT" \
+    '{enabled:$enabled, attempted_variants:$attempted, successful_variants:$successful, available_variants:$available_variants, selected_variant:$best_variant, baseline_failing_profile_count:$baseline_failing_profile_count, baseline_task_count:$baseline_task_count, baseline_top_gap_score:$baseline_top_gap_score, best_failing_profile_count:$best_failing_profile_count, best_task_count:$best_task_count, best_top_gap_score:$best_top_gap_score, top_gap_weighted_select:$top_gap_weighted_select, top_gap_backlog_file:$top_gap_backlog_file, top_gap_require_uplift:$top_gap_require_uplift}')"
   printf '%s\n' "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" > "$OUT_DIR/02ae_raw_candidate_search.json"
   if [[ "$NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT" == "1" && "$best_fail" -ge "$baseline_fail" ]]; then
     echo "error: raw candidate search did not improve failing profile count" >&2
     echo "error: see $OUT_DIR/02ae_raw_candidate_search.json" >&2
     exit 17
+  fi
+  if [[ "$NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT" == "1" ]]; then
+    if [[ "$use_top_gap_weighted_select" != true ]]; then
+      echo "error: raw top-gap uplift requires weighted select with a valid backlog file" >&2
+      echo "error: set WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT=1 and WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE=<path>" >&2
+      exit 18
+    fi
+    if [[ "$best_top_gap_score" -le "$baseline_top_gap_score" ]]; then
+      echo "error: raw candidate search did not improve top-gap score" >&2
+      echo "error: see $OUT_DIR/02ae_raw_candidate_search.json" >&2
+      exit 18
+    fi
   fi
 else
   NATIVE_RAW_CANDIDATE_SEARCH_JSON='{"enabled":false}'
