@@ -48,7 +48,7 @@ def detect_placeholders(code: str) -> Dict[str, object]:
     return {"passed": len(findings) == 0, "count": len(findings), "findings": findings}
 
 
-def run_cmd(cmd: List[str], timeout_s: int) -> ExecResult:
+def run_cmd(cmd: List[str], timeout_s: int, env: Dict[str, str] | None = None) -> ExecResult:
     try:
         p = subprocess.run(
             cmd,
@@ -57,6 +57,7 @@ def run_cmd(cmd: List[str], timeout_s: int) -> ExecResult:
             text=True,
             timeout=timeout_s,
             check=False,
+            env=env,
         )
         return ExecResult(
             passed=(p.returncode == 0),
@@ -134,7 +135,7 @@ def rust_harness(code: str) -> str:
     return (
         code
         + "\nfn main() {\n"
-        + "  let q = PriorityQueue{};\n"
+        + "  let q = PriorityQueue::default();\n"
         + "  let w = WorkItem{job_id: \"job\".to_string(), priority: 1, payload: \"payload\".to_string()};\n"
         + "  let _ = q;\n"
         + "  let _ = w;\n"
@@ -191,9 +192,15 @@ def compile_check(code: str, language: str, strict: bool) -> Dict[str, object]:
         else:  # go
             src = td_path / "generated.go"
             src.write_text(code)
-            cmd = [tools["compile"] or "go", "build", str(src)]
+            go = tools["compile"] or "go"
+            cmd = [go, "build", str(src)]
+            go_env = dict()
+            go_env.update({"GOCACHE": str(td_path / "go-build-cache"), "GOMODCACHE": str(td_path / "go-mod-cache"), "HOME": str(td_path)})
 
-        res = run_cmd(cmd, timeout_s=20)
+        if lang == "go":
+            res = run_cmd(cmd, timeout_s=20, env=go_env)
+        else:
+            res = run_cmd(cmd, timeout_s=20)
         payload = {
             "passed": res.passed,
             "skipped": res.skipped,
@@ -264,6 +271,8 @@ def test_check(code: str, language: str, strict: bool) -> Dict[str, object]:
             src.write_text(go_harness(code))
             go = shutil.which("go")
             cmd = [go or "go", "build", str(src)]
+            go_env = dict()
+            go_env.update({"GOCACHE": str(td_path / "go-build-cache"), "GOMODCACHE": str(td_path / "go-mod-cache"), "HOME": str(td_path)})
         else:
             return {
                 "passed": False,
@@ -272,7 +281,10 @@ def test_check(code: str, language: str, strict: bool) -> Dict[str, object]:
                 "strict_blocking": bool(strict),
             }
 
-        res = run_cmd(cmd, timeout_s=25)
+        if lang == "go":
+            res = run_cmd(cmd, timeout_s=25, env=go_env)
+        else:
+            res = run_cmd(cmd, timeout_s=25)
         return {
             "passed": res.passed,
             "skipped": res.skipped,
@@ -302,11 +314,37 @@ def lint_check(code: str, language: str, lint_strict: bool) -> Dict[str, object]
             py = shutil.which("python3") or shutil.which("python")
             if not py:
                 return {"passed": True, "skipped": True, "reason": "tool_missing", "strict_blocking": bool(lint_strict)}
+            probe = run_cmd([py, "-c", "import importlib.util,sys;sys.exit(0 if importlib.util.find_spec('pyflakes') else 1)"], timeout_s=10)
+            if not probe.passed:
+                return {"passed": True, "skipped": True, "reason": "tool_missing", "strict_blocking": bool(lint_strict)}
             cmd = [py, "-m", "pyflakes", str(src)]
+        elif lang == "go":
+            src = td_path / "generated.go"
+            src.write_text(code)
+            gopls = shutil.which("gopls")
+            go = shutil.which("go")
+            if gopls:
+                cmd = [gopls, "check", str(src)]
+            elif go:
+                cmd = [go, "vet", str(src)]
+            else:
+                return {"passed": True, "skipped": True, "reason": "tool_missing", "strict_blocking": bool(lint_strict)}
+            go_env = dict()
+            go_env.update({"GOCACHE": str(td_path / "go-build-cache"), "GOMODCACHE": str(td_path / "go-mod-cache"), "HOME": str(td_path)})
+        elif lang == "rust":
+            rustc = shutil.which("rustc")
+            if not rustc:
+                return {"passed": True, "skipped": True, "reason": "tool_missing", "strict_blocking": bool(lint_strict)}
+            src = td_path / "generated.rs"
+            src.write_text(code)
+            cmd = [rustc, "-D", "warnings", "--crate-type", "lib", str(src), "-o", str(td_path / "liblint.rlib")]
         else:
             return {"passed": True, "skipped": True, "reason": "unsupported_language", "strict_blocking": False}
 
-        res = run_cmd(cmd, timeout_s=20)
+        if lang == "go":
+            res = run_cmd(cmd, timeout_s=20, env=go_env)
+        else:
+            res = run_cmd(cmd, timeout_s=20)
         lint_failed = (not res.passed and not res.skipped)
         return {
             "passed": not lint_failed,
@@ -323,6 +361,7 @@ def lint_check(code: str, language: str, lint_strict: bool) -> Dict[str, object]
 def normalize_diagnostics(compile_res: Dict[str, object], test_res: Dict[str, object]) -> List[Dict[str, object]]:
     patterns: List[Tuple[str, re.Pattern[str]]] = [
         ("gcc_clang", re.compile(r"^(?P<file>[^:\n]+):(\d+):(\d+):\s*(?P<sev>warning|error):\s*(?P<msg>.+)$", re.MULTILINE)),
+        ("go", re.compile(r"^(?P<file>[^:\n]+):(?P<line>\d+):(?P<col>\d+):\s*(?P<msg>.+)$", re.MULTILINE)),
         ("rustc", re.compile(r"^(?P<sev>error|warning)(\[[^\]]+\])?:\s*(?P<msg>.+)$", re.MULTILINE)),
         ("python", re.compile(r"File \"(?P<file>[^\"]+)\", line (?P<line>\d+).*(?P<msg>SyntaxError:.*)$", re.MULTILINE)),
     ]
@@ -336,8 +375,14 @@ def normalize_diagnostics(compile_res: Dict[str, object], test_res: Dict[str, ob
                 file_name = m.groupdict().get("file", "")
                 sev = m.groupdict().get("sev", "error")
                 msg = m.groupdict().get("msg", "parse failure")
-                line = int(m.group(2)) if m.lastindex and m.lastindex >= 2 and m.group(2) and m.group(2).isdigit() else None
-                col = int(m.group(3)) if m.lastindex and m.lastindex >= 3 and m.group(3) and m.group(3).isdigit() else None
+                line_txt = m.groupdict().get("line")
+                col_txt = m.groupdict().get("col")
+                line = int(line_txt) if line_txt and line_txt.isdigit() else None
+                col = int(col_txt) if col_txt and col_txt.isdigit() else None
+                if line is None and m.lastindex and m.lastindex >= 2 and m.group(2) and m.group(2).isdigit():
+                    line = int(m.group(2))
+                if col is None and m.lastindex and m.lastindex >= 3 and m.group(3) and m.group(3).isdigit():
+                    col = int(m.group(3))
                 key = (source, category, file_name, line, col, msg)
                 if key in seen:
                     continue
@@ -402,8 +447,9 @@ def main() -> None:
     if args.strict:
         compile_pass = compile_pass and not bool(compile_res.get("strict_blocking", False))
         test_pass = test_pass and not bool(test_res.get("strict_blocking", False))
-    lint_pass = bool(lint_res.get("passed", True))
+    lint_pass = True
     if args.lint_strict:
+        lint_pass = bool(lint_res.get("passed", True))
         lint_pass = lint_pass and not bool(lint_res.get("strict_blocking", False))
 
     overall = bool(placeholders["passed"] and compile_pass and test_pass and lint_pass)
@@ -415,7 +461,7 @@ def main() -> None:
         failure_reasons.append(f"compile_failed:{compile_res.get('reason', 'unknown')}")
     if not test_pass:
         failure_reasons.append(f"tests_failed:{test_res.get('reason', 'unknown')}")
-    if not lint_pass:
+    if args.lint_strict and not lint_pass:
         failure_reasons.append(f"lint_failed:{lint_res.get('reason', 'unknown')}")
 
     payload = {

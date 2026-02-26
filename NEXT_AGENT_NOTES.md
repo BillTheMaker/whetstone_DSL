@@ -1,10 +1,31 @@
 # Next Agent Notes
 
+## Current Canonical State (2026-02-26)
+
+- Read first:
+  - `docs/progress_log_2026-02-26.md`
+  - `docs/generator_readiness_gap_registry_2026-02-26.md`
+  - `docs/stale_log_manifest_2026-02-26.md`
+- Most recent execution trackers:
+  - `docs/sprint217_221_execution_tracker_2026-02-26.md`
+  - `docs/sprint222_224_execution_tracker_2026-02-26.md`
+  - `docs/sprint225_227_execution_tracker_2026-02-26.md`
+- Latest parity closure evidence:
+  - `logs/taskitem_runs/challenging_subset_prod_20260226_r7/summary.json`
+  - `logs/taskitem_runs/challenging_fullstack_multifile_20260226_r7/summary.json`
+
 ## Dated Handoff
 
 Primary file for this handoff:
 
 - `AGENT_NOTES_2026-02-23.md`
+- `docs/generator_readiness_gap_registry_2026-02-26.md` (canonical dated generator readiness gap registry; update `Last reviewed` when touched)
+- `sprint186_plan.md` through `sprint205_plan.md` (active backlog covering all open/partial generator readiness gaps)
+- `docs/sprint186_205_execution_tracker_2026-02-26.md` (execution/evidence log for the full sprint range)
+- `docs/sprint186_205_intent_audit_2026-02-26.md` (strict intent-vs-closeout audit)
+- `docs/deterministic_gap_hunt_2026-02-26.md` (new hard benchmark findings and gap IDs GR-011..GR-015)
+- `sprint206_plan.md` through `sprint211_plan.md` (new backlog for false-green/projection/parity/intent drift gaps)
+- `docs/sprint206_211_execution_tracker_2026-02-26.md` (execution/evidence for sprint206-211 + hard rerun deltas)
 
 Before executing sprint work, follow:
 

@@ -37,6 +37,14 @@ class PriorityQueue:
 OUT_DIR="${OUT_DIR:-$ROOT_DIR/logs/taskitem_runs/ab_test_ast_vs_language_first_$(date +%Y%m%d_%H%M%S)}"
 mkdir -p "$OUT_DIR"
 
+code_ext="txt"
+case "$LANGUAGE" in
+  cpp|c++) code_ext="cpp" ;;
+  python) code_ext="py" ;;
+  go) code_ext="go" ;;
+  rust) code_ext="rs" ;;
+esac
+
 INIT='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ab-test","version":"1.0"}}}'
 
 call_tool() {
@@ -49,43 +57,74 @@ token_json() {
   python3 "$ROOT_DIR/tools/mcp/estimate_tokens.py" --file "$file"
 }
 
+append_lang_contract() {
+  local base_spec="$1"
+  local lang="$2"
+  local contract=""
+  case "$lang" in
+    go)
+      contract=$'Language contract (Go):\n- output valid Go source with explicit package declaration (`package generated` unless main is required)\n- every function parameter must include a type\n- if `fmt.` is used, include `import "fmt"`\n- do not emit Python tokens like `pass`'
+      ;;
+    rust)
+      contract=$'Language contract (Rust):\n- every function parameter must include an explicit type\n- use Rust macros correctly (`print!`/`println!`) with format strings\n- do not emit Python tokens like `pass`'
+      ;;
+    python)
+      contract=$'Language contract (Python):\n- emit syntactically valid Python 3.12+\n- avoid undefined names and placeholder statements'
+      ;;
+    cpp|c++)
+      contract=$'Language contract (C++):\n- include required STL headers for all used std symbols\n- emit concrete, compile-ready declarations without placeholders'
+      ;;
+  esac
+  if [[ -n "$contract" ]]; then
+    printf '%s\n\n%s\n' "$base_spec" "$contract"
+  else
+    printf '%s\n' "$base_spec"
+  fi
+}
+
 strict_arg=()
 if [[ "$STRICT_MODE" == "1" ]]; then
   strict_arg+=(--strict)
 fi
 
 # Path A: whetstone_generate_code
-REQ_A=$(jq -nc --arg spec "$SPEC" '{jsonrpc:"2.0",id:2,method:"tools/call",params:{name:"whetstone_generate_code",arguments:{spec:$spec,preferImports:true}}}')
+SPEC_A="$(append_lang_contract "$SPEC" "$LANGUAGE")"
+REQ_A=$(jq -nc --arg spec "$SPEC_A" '{jsonrpc:"2.0",id:2,method:"tools/call",params:{name:"whetstone_generate_code",arguments:{spec:$spec,preferImports:true}}}')
 printf '%s\n' "$REQ_A" > "$OUT_DIR/path_a_request.json"
 call_tool "$REQ_A" > "$OUT_DIR/path_a_ndjson.txt"
 tail -n1 "$OUT_DIR/path_a_ndjson.txt" > "$OUT_DIR/path_a_raw.json"
 jq -r '.result.content[0].text // "{}"' "$OUT_DIR/path_a_raw.json" | jq '.' > "$OUT_DIR/path_a_payload.json"
-jq -r '.generatedCode // .note // ""' "$OUT_DIR/path_a_payload.json" > "$OUT_DIR/path_a_generated.cpp"
+jq -r '.generatedCode // .note // ""' "$OUT_DIR/path_a_payload.json" > "$OUT_DIR/path_a_generated.$code_ext"
 python3 "$ROOT_DIR/tools/mcp/evaluate_generated_code_gates.py" \
-  --code-file "$OUT_DIR/path_a_generated.cpp" \
+  --code-file "$OUT_DIR/path_a_generated.$code_ext" \
   --language "$LANGUAGE" \
   "${strict_arg[@]}" \
   --out "$OUT_DIR/path_a_gates.json" >/dev/null
 
-# Path B: whetstone_run_pipeline (python->cpp)
-REQ_B=$(jq -nc --arg src "$PY_SRC" '{jsonrpc:"2.0",id:2,method:"tools/call",params:{name:"whetstone_run_pipeline",arguments:{source:$src,sourceLanguage:"python",targetLanguage:"cpp"}}}')
+# Path B: whetstone_run_pipeline (python->target language)
+REQ_B=$(jq -nc --arg src "$PY_SRC" --arg target "$LANGUAGE" '{jsonrpc:"2.0",id:2,method:"tools/call",params:{name:"whetstone_run_pipeline",arguments:{source:$src,sourceLanguage:"python",targetLanguage:$target}}}')
 printf '%s\n' "$REQ_B" > "$OUT_DIR/path_b_request.json"
 call_tool "$REQ_B" > "$OUT_DIR/path_b_ndjson.txt"
 tail -n1 "$OUT_DIR/path_b_ndjson.txt" > "$OUT_DIR/path_b_raw.json"
 jq -r '.result.content[0].text // "{}"' "$OUT_DIR/path_b_raw.json" | jq '.' > "$OUT_DIR/path_b_payload.json"
-jq -r '.generatedCode // ""' "$OUT_DIR/path_b_payload.json" > "$OUT_DIR/path_b_generated.cpp"
+jq -r '.generatedCode // ""' "$OUT_DIR/path_b_payload.json" > "$OUT_DIR/path_b_generated.$code_ext"
+python3 "$ROOT_DIR/tools/mcp/repair_pipeline_codegen.py" \
+  --language "$LANGUAGE" \
+  --in-file "$OUT_DIR/path_b_generated.$code_ext" \
+  --out-file "$OUT_DIR/path_b_generated.$code_ext" \
+  --meta-out "$OUT_DIR/path_b_repair_meta.json"
 python3 "$ROOT_DIR/tools/mcp/evaluate_generated_code_gates.py" \
-  --code-file "$OUT_DIR/path_b_generated.cpp" \
+  --code-file "$OUT_DIR/path_b_generated.$code_ext" \
   --language "$LANGUAGE" \
   "${strict_arg[@]}" \
   --out "$OUT_DIR/path_b_gates.json" >/dev/null
 
 A_REQ_TOKENS=$(token_json "$OUT_DIR/path_a_request.json")
 A_RESP_TOKENS=$(token_json "$OUT_DIR/path_a_raw.json")
-A_CODE_TOKENS=$(token_json "$OUT_DIR/path_a_generated.cpp")
+A_CODE_TOKENS=$(token_json "$OUT_DIR/path_a_generated.$code_ext")
 B_REQ_TOKENS=$(token_json "$OUT_DIR/path_b_request.json")
 B_RESP_TOKENS=$(token_json "$OUT_DIR/path_b_raw.json")
-B_CODE_TOKENS=$(token_json "$OUT_DIR/path_b_generated.cpp")
+B_CODE_TOKENS=$(token_json "$OUT_DIR/path_b_generated.$code_ext")
 
 jq -nc \
   --arg out_dir "$OUT_DIR" \
