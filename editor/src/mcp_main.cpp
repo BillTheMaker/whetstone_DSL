@@ -35,6 +35,12 @@ static bool hasFlag(int argc, char** argv, const std::string& key) {
     return false;
 }
 
+static std::string runtimeVersion() {
+    const char* envVersion = std::getenv("WHETSTONE_MCP_RUNTIME_VERSION");
+    if (envVersion != nullptr && *envVersion != '\0') return envVersion;
+    return "0.8.4";
+}
+
 // -----------------------------------------------------------------------
 //  Signal handling (same pattern as orchestrator_main.cpp)
 // -----------------------------------------------------------------------
@@ -166,7 +172,7 @@ int main(int argc, char** argv) {
     });
 
     // Log startup info to stderr (stdout is the MCP transport)
-    std::cerr << "[whetstone-mcp] Starting MCP server v0.1.0\n";
+    std::cerr << "[whetstone-mcp] Starting MCP server v" << runtimeVersion() << "\n";
     if (!state.workspaceRoot.empty())
         std::cerr << "[whetstone-mcp] Workspace: " << state.workspaceRoot << "\n";
     if (configLoad.found && !configLoad.config.mcpWorkspaceAlias.empty())

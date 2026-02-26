@@ -68,3 +68,28 @@ Observed result:
 Result:
 
 - `overall_ready=true` within iteration budget for PriorityQueue spec.
+
+## MCP versioning/compatibility rollout (2026-02-26)
+
+Implemented baseline compatibility/versioning support for multi-agent MCP usage:
+
+- Added MCP runtime/tool version metadata in protocol responses:
+  - `editor/src/MCPServer.h`
+  - `editor/src/mcp_main.cpp`
+- Added compatibility docs + machine-readable ledger:
+  - `docs/mcp_versioning_and_compatibility.md`
+  - `docs/mcp_compatibility_ledger.json`
+  - `tools/mcp/README.md` (version check flow)
+- Added MCP tool for agents to query compatibility data directly:
+  - `editor/src/mcp/RegisterCompatibilityTools.h`
+  - registered via:
+    - `editor/src/mcp/RegisterOnboardingAndAllTools.h`
+    - `editor/src/MCPServer.h` include
+
+Validation:
+
+- Rebuilt target: `whetstone_mcp`
+- Verified `tools/call`:
+  - `whetstone_get_compatibility_ledger` returns:
+    - runtime header (`runtimeVersion`, `toolSurfaceFingerprint`, etc.)
+    - parsed ledger contents from `docs/mcp_compatibility_ledger.json`

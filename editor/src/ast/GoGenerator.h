@@ -13,7 +13,18 @@ public:
     std::string commentPrefix() const { return "// "; }
 
     std::string generate(const ASTNode* node) override {
-        return dispatchGenerate(this, node, "// Unknown concept: ");
+        std::string code = dispatchGenerate(this, node, "// Unknown concept: ");
+        // When the root node is a bare function, emit a legal Go translation unit.
+        if (node && node->conceptType == "Function") {
+            std::ostringstream wrapped;
+            wrapped << "package generated\n\n";
+            if (code.find("fmt.") != std::string::npos) {
+                wrapped << "import \"fmt\"\n\n";
+            }
+            wrapped << code;
+            return wrapped.str();
+        }
+        return code;
     }
 
     std::string visitModule(const Module* module) override {
@@ -104,6 +115,7 @@ public:
         std::string typeStr;
         auto type = parameter->getChild("type");
         if (type) typeStr = generate(type);
+        if (typeStr.empty()) typeStr = "string";
         oss << parameter->name;
         if (!typeStr.empty()) {
             oss << " " << typeStr;

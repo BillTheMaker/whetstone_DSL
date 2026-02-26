@@ -1,0 +1,26 @@
+{
+  "ledger_version": "2026-02-26",
+  "records": [
+    {
+      "id": "MCP-GORUST-FIRSTPASS-LEGALITY",
+      "title": "Go/Rust first-pass legality normalization",
+      "status": "fixed",
+      "introduced_in": "0.8.1",
+      "fixed_in": "0.8.4",
+      "affected_tools": [
+        "whetstone_generate_code",
+        "whetstone_run_pipeline"
+      ],
+      "symptoms": [
+        "Go outputs missing package/import/type details",
+        "Rust outputs using print/println in non-macro form",
+        "High deterministic fixer hit-rate before ready"
+      ],
+      "verification": [
+        "run_ast_once_vs_direct_matrix: direct_fix_applied_rate approaches 0%",
+        "run_ast_once_vs_direct_matrix: ast_fix_applied_rate approaches 0%"
+      ],
+      "notes": "Deterministic generator/projection defaults were tightened to emit legal Go/Rust first-pass code."
+    }
+  ]
+}

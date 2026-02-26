@@ -36,3 +36,15 @@ Global MCP config is expected at:
 and should point to:
 
 `/home/bill/Documents/CLionProjects/whetstone_DSL/editor/build-native/whetstone_mcp_stable`
+
+## Version and Compatibility Checks
+
+When an agent sees unexpected MCP behavior, check runtime/tool compatibility first:
+
+1. Read `whetstoneVersionHeader` from MCP `initialize`, `ping`, `tools/list`, or `tools/call` response.
+2. Compare against `docs/mcp_compatibility_ledger.json`.
+3. If issue is marked fixed in a newer runtime, upgrade server runtime before deeper debugging.
+
+Reference docs:
+- `docs/mcp_versioning_and_compatibility.md`
+- `docs/mcp_compatibility_ledger.json`

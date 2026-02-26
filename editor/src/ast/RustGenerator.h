@@ -102,6 +102,8 @@ public:
         auto type = parameter->getChild("type");
         if (type) {
             oss << ": " << generate(type);
+        } else {
+            oss << ": &str";
         }
         auto defaultValue = parameter->getChild("defaultValue");
         if (defaultValue) {
@@ -266,8 +268,31 @@ public:
 
     std::string visitFunctionCall(const FunctionCall* call) override {
         std::ostringstream oss;
-        oss << call->functionName << "(";
+        const std::string& rawName = call->functionName;
+        const bool hasMacroBang = !rawName.empty() && rawName.back() == '!';
+        const std::string baseName = hasMacroBang ? rawName.substr(0, rawName.size() - 1) : rawName;
         auto arguments = call->getChildren("arguments");
+        if (baseName == "print" || baseName == "println") {
+            oss << baseName << "!(";
+            if (arguments.empty()) {
+                // print!()/println!() with no args is valid.
+            } else if (arguments.size() == 1) {
+                const std::string arg = generate(arguments[0]);
+                if (isQuotedLiteral(arg)) {
+                    oss << arg;
+                } else {
+                    oss << "\"{}\", " << arg;
+                }
+            } else {
+                for (size_t i = 0; i < arguments.size(); ++i) {
+                    if (i > 0) oss << ", ";
+                    oss << generate(arguments[i]);
+                }
+            }
+            oss << ")";
+            return oss.str();
+        }
+        oss << rawName << "(";
         for (size_t i = 0; i < arguments.size(); ++i) {
             if (i > 0) oss << ", ";
             oss << generate(arguments[i]);

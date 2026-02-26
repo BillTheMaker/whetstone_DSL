@@ -44,6 +44,7 @@ public:
 
         auto* fn = new Function(nextId("fn"), "generated");
         auto* param = new Parameter(nextId("param"), "input");
+        param->setChild("type", new PrimitiveType(nextId("type"), "string"));
         fn->addChild("parameters", param);
 
         auto* call = new FunctionCall();

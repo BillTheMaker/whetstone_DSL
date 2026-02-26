@@ -21,6 +21,7 @@
         registerASTTools();
         registerAnnotationTools();
         registerFileTools();
+        registerCompatibilityTools();
         registerDiagnosticTools();
         registerBatchTools();
         registerProjectTools();
@@ -115,6 +116,17 @@
         registerSprint117Tools();
         registerSprint118Tools();
         registerSprint119Tools();
+        registerSprint120Tools();
+        registerSprint121Tools();
+        registerSprint122Tools();
+        registerSprint123Tools();
+        registerSprint124Tools();
+        registerSprint125Tools();
+        registerSprint126Tools();
+        registerSprint127Tools();
+        registerSprint128Tools();
+        registerSprint129Tools();
+        registerSprint130Tools();
         registerSprint131Tools();
         registerSprint132Tools();
         registerSprint133Tools();
@@ -130,6 +142,16 @@
         registerSprint143Tools();
         registerSprint144Tools();
         registerSprint145Tools();
+        registerSprint146Tools();
+        registerSprint147Tools();
+        registerSprint148Tools();
+        registerSprint149Tools();
+        registerSprint150Tools();
+        registerSprint151Tools();
+        registerSprint152Tools();
+        registerSprint153Tools();
+        registerSprint154Tools();
+        registerSprint155Tools();
         registerOnboardingTools();
     }
 };
