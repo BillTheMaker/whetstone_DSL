@@ -18,6 +18,7 @@
   - `tools/mcp/spec_planning_readiness.py`
   - `tools/mcp/spec_planning_hardener.py`
   - `tools/mcp/run_spec_hardening_gate.sh`
+  - `docs/spec_hardening_batch_report_2026-02-26.md`
 
 ## Dated Handoff
 

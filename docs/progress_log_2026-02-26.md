@@ -67,3 +67,8 @@
 - Demonstrated hard-gate delta on sprint sample:
   - original spec blocked (`rc=7`, score `17`)
   - hardened spec passed (`rc=0`, score `100`)
+- Executed batch hardening on real corpora:
+  - drive specs (7)
+  - example product meta specs (10)
+- Batch report:
+  - `docs/spec_hardening_batch_report_2026-02-26.md`
