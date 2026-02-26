@@ -364,3 +364,15 @@
   - `logs/taskitem_runs/TEST_ONLY_sprint252_closure_ladder_policy_skip2_20260226/closure_ladder_summary.json`
 - Verified forced-skip behavior:
   - attempted modes excluded `raw_only` and started at `single_shot_shape`.
+
+## Sprint 253 Added (Same Day)
+
+- Added closure-ladder batch analytics:
+  - `tools/mcp/analyze_closure_ladder_outcomes.py`
+  - `tools/mcp/run_native_profile_closure_ladder_batch.sh`
+- Dated batch artifact:
+  - `logs/taskitem_runs/TEST_ONLY_sprint253_closure_ladder_batch_20260226/closure_ladder_batch_summary.json`
+- Current batch result (3 specs):
+  - `selected_mode_counts.single_shot_shape=2`
+  - `selected_mode_counts.multishot=1`
+  - `status_counts.ok=3`

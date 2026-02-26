@@ -150,7 +150,7 @@ Parallel planning tranche (active):
   - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 Planning runtime controls (active):
-- `sprint232_plan.md` to `sprint252_plan.md`
+- `sprint232_plan.md` to `sprint253_plan.md`
 - semantic bridge + intake augmentation + requirement injection + expansion gating are wired into:
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
 - current policy default is native-first semantic fallback:
@@ -207,3 +207,6 @@ Planning runtime controls (active):
 - closure ladder can route around historically ineffective raw-only mode:
   - `tools/mcp/analyze_raw_candidate_uplift_history.py`
   - `WSTONE_CLOSURE_LADDER_SKIP_RAW_WHEN_NO_UPLIFT`
+- closure ladder outcomes can be aggregated in batch:
+  - `tools/mcp/run_native_profile_closure_ladder_batch.sh`
+  - `tools/mcp/analyze_closure_ladder_outcomes.py`
