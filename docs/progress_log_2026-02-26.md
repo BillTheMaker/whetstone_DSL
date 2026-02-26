@@ -204,3 +204,17 @@
   - `logs/taskitem_runs/TEST_ONLY_sprint241_impact_gate_20260226_150404/06_native_impact_coverage.json`
   - `logs/taskitem_runs/TEST_ONLY_sprint241_fullstack_impact_20260226_150416/00_summary.json`
   - `logs/taskitem_runs/TEST_ONLY_sprint241_native_impact_aggregate_20260226/native_impact_coverage_aggregate.json`
+
+## Sprint 242 Added (Same Day)
+
+- Added remediation synthesis + rerun tooling for failing impact profiles:
+  - `tools/mcp/synthesize_native_impact_remediation_requirements.py`
+  - `tools/mcp/run_native_impact_remediation_loop.sh`
+- Pipeline now accepts externally supplied extra normalized requirements:
+  - `WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE`
+  - summary packet: `extra_normalized_requirements`
+- Dated remediation loop artifacts:
+  - `logs/taskitem_runs/TEST_ONLY_sprint242_impact_remediation_loop_20260226/remediation_loop_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint242_impact_remediation_loop_20260226/extra_normalized_requirements.json`
+- Current measured loop result on hard fullstack sample:
+  - `failing_profile_count 7 -> 7` (wiring complete, capability uplift still pending)

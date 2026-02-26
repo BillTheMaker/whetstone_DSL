@@ -42,6 +42,7 @@ NATIVE_DECOMP_TARGET_MIN_TASKS="${WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS:-5}"
 NATIVE_IMPACT_COVERAGE_GATE="${WSTONE_NATIVE_IMPACT_COVERAGE_GATE:-0}"
 NATIVE_IMPACT_COVERAGE_ENFORCE="${WSTONE_NATIVE_IMPACT_COVERAGE_ENFORCE:-0}"
 NATIVE_IMPACT_COVERAGE_PROFILES="${WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES:-$ROOT_DIR/tools/mcp/profiles/native_decomposition_impact_profiles.json}"
+EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -97,6 +98,7 @@ NATIVE_DECOMP_GATE_JSON='{}'
 NATIVE_REASON_ENRICHMENT_JSON='{}'
 NATIVE_DECOMP_RETRY_JSON='{}'
 NATIVE_IMPACT_COVERAGE_JSON='{}'
+EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
   python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
     --spec "$INPUT_FILE" \
@@ -285,6 +287,18 @@ if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_REQUIREMENT_INJECTION" ==
   printf '%s\n' "$SEM_REQS" > "$OUT_DIR/01c_semantic_injected_requirements.json"
   NORMALIZED_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson sem "$SEM_REQS" '$base + $sem')"
   SEMANTIC_REQUIREMENT_INJECTION_JSON="$(jq -nc --argjson sem "$SEM_REQS" '{injected_count: ($sem|length), injected_requirements:$sem}')"
+fi
+if [[ -n "$EXTRA_NORMALIZED_REQUIREMENTS_FILE" ]]; then
+  if [[ ! -f "$EXTRA_NORMALIZED_REQUIREMENTS_FILE" ]]; then
+    echo "error: extra normalized requirements file not found: $EXTRA_NORMALIZED_REQUIREMENTS_FILE" >&2
+    exit 13
+  fi
+  if ! jq -e 'type == "array"' "$EXTRA_NORMALIZED_REQUIREMENTS_FILE" >/dev/null 2>&1; then
+    echo "error: extra normalized requirements file must be a JSON array: $EXTRA_NORMALIZED_REQUIREMENTS_FILE" >&2
+    exit 14
+  fi
+  EXTRA_NORMALIZED_REQUIREMENTS_JSON="$(cat "$EXTRA_NORMALIZED_REQUIREMENTS_FILE")"
+  NORMALIZED_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson extra "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" '$base + $extra')"
 fi
 CONFLICTS="$(printf '%s' "$INTAKE_JSON" | jq '.conflicts // []')"
 GEN_ARGS="$(jq -nc --argjson nr "$NORMALIZED_REQS" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
@@ -514,6 +528,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_decomposition_gate "$NATIVE_DECOMP_GATE_JSON" \
   --argjson native_reason_enrichment "$NATIVE_REASON_ENRICHMENT_JSON" \
   --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
+  --argjson extra_normalized_requirements "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" \
   --argjson intake "$INTAKE_JSON" \
   --argjson generated "$GEN_JSON" \
   --argjson queue "$QUEUE_JSON" \
@@ -534,6 +549,7 @@ SUMMARY_JSON="$(jq -nc \
     native_decomposition_gate: $native_decomposition_gate,
     native_reason_enrichment: $native_reason_enrichment,
     native_decomposition_retry: $native_decomposition_retry,
+    extra_normalized_requirements: $extra_normalized_requirements,
     intake: {
       success: ($intake.success // false),
       normalized_requirement_count: (($intake.normalizedRequirements // [])|length),
