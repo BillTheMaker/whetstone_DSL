@@ -123,3 +123,27 @@
   - `logs/taskitem_runs/TEST_ONLY_sprint235_probe_20260226_144846/00_summary.json`
   - `logs/taskitem_runs/TEST_ONLY_sprint235_probe_20260226_144854/00_summary.json`
   - `logs/taskitem_runs/TEST_ONLY_sprint235_richspec_20260226_144902/00_summary.json`
+
+## Sprint 236 Added (Same Day)
+
+- Added semantic fallback gap audit tool:
+  - `tools/mcp/analyze_semantic_fallback_gaps.py`
+- Emits per-run metadata for remediation routing:
+  - `recommended_tools`
+  - `recommended_taskitem_constraints`
+- Generated dated audit bundle:
+  - `logs/taskitem_runs/TEST_ONLY_sprint236_semantic_fallback_audit_20260226/semantic_fallback_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint236_semantic_fallback_audit_20260226/semantic_fallback_tooling_recommendations.json`
+- Current measured signal on sprint 235 sample runs:
+  - `fallback_rate=1.0`
+  - dominant root cause: `native_decomposition_and_semantic_signal_deficit`
+
+## Sprint 237 Added (Same Day)
+
+- Added semantic fallback budget gate:
+  - `tools/mcp/check_semantic_fallback_budget.py`
+- Added single-command audit+gate wrapper:
+  - `tools/mcp/run_semantic_fallback_budget_gate.sh`
+- Dated pass/fail artifacts captured:
+  - fail (strict budget): `logs/taskitem_runs/TEST_ONLY_sprint237_semantic_fallback_gate_fail_20260226/semantic_fallback_budget_gate.json`
+  - pass (relaxed budget): `logs/taskitem_runs/TEST_ONLY_sprint237_semantic_fallback_gate_pass_20260226/semantic_fallback_budget_gate.json`

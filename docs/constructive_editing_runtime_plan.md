@@ -150,8 +150,13 @@ Parallel planning tranche (active):
   - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 Planning runtime controls (active):
-- `sprint232_plan.md` to `sprint235_plan.md`
+- `sprint232_plan.md` to `sprint237_plan.md`
 - semantic bridge + intake augmentation + requirement injection + expansion gating are wired into:
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
 - current policy default is native-first semantic fallback:
   - `WSTONE_SEMANTIC_TASK_EXPANSION_MODE=fallback_only`
+- fallback diagnostics + remediation metadata are emitted by:
+  - `tools/mcp/analyze_semantic_fallback_gaps.py`
+- fallback budget gating is available via:
+  - `tools/mcp/check_semantic_fallback_budget.py`
+  - `tools/mcp/run_semantic_fallback_budget_gate.sh`
