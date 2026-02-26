@@ -25,6 +25,9 @@ SPEC_READINESS_PRECHECK="${WSTONE_SPEC_READINESS_PRECHECK:-1}"
 SPEC_READINESS_HARD_GATE="${WSTONE_SPEC_READINESS_HARD_GATE:-0}"
 SPEC_READINESS_MIN_SCORE="${WSTONE_SPEC_READINESS_MIN_SCORE:-65}"
 SEMANTIC_PLANNING_BRIDGE="${WSTONE_SEMANTIC_PLANNING_BRIDGE:-1}"
+SEMANTIC_INTAKE_AUGMENT="${WSTONE_SEMANTIC_INTAKE_AUGMENT:-1}"
+SEMANTIC_REQUIREMENT_INJECTION="${WSTONE_SEMANTIC_REQUIREMENT_INJECTION:-1}"
+SEMANTIC_TASK_EXPANSION="${WSTONE_SEMANTIC_TASK_EXPANSION:-1}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -72,11 +75,21 @@ if [[ "$SPEC_READINESS_PRECHECK" == "1" ]]; then
 fi
 
 SEMANTIC_PLANNING_JSON='{}'
+SEMANTIC_AUGMENT_JSON='{}'
+SEMANTIC_REQUIREMENT_INJECTION_JSON='{}'
+SEMANTIC_TASK_EXPANSION_JSON='{}'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
   python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
     --spec "$INPUT_FILE" \
     --out "$OUT_DIR/00b_semantic_planning_annotations.json" >/dev/null
   SEMANTIC_PLANNING_JSON="$(cat "$OUT_DIR/00b_semantic_planning_annotations.json")"
+  if [[ "$SEMANTIC_INTAKE_AUGMENT" == "1" ]]; then
+    python3 "$ROOT_DIR/tools/mcp/augment_spec_with_semantic_packet.py" \
+      --spec "$INPUT_FILE" \
+      --packet "$OUT_DIR/00b_semantic_planning_annotations.json" \
+      --out "$OUT_DIR/00c_semantic_augmented_spec.md" > "$OUT_DIR/00c_semantic_augmented_spec_report.json"
+    SEMANTIC_AUGMENT_JSON="$(cat "$OUT_DIR/00c_semantic_augmented_spec_report.json")"
+  fi
 fi
 
 call_tool() {
@@ -179,7 +192,11 @@ build_fallback_intake_spec() {
   rm -f "$tmp_steps" "$tmp_constraints" "$tmp_refs" "$tmp_tools"
 }
 
-MARKDOWN_CONTENT="$(cat "$INPUT_FILE")"
+if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_INTAKE_AUGMENT" == "1" && -f "$OUT_DIR/00c_semantic_augmented_spec.md" ]]; then
+  MARKDOWN_CONTENT="$(cat "$OUT_DIR/00c_semantic_augmented_spec.md")"
+else
+  MARKDOWN_CONTENT="$(cat "$INPUT_FILE")"
+fi
 INTAKE_ARGS="$(jq -nc --arg md "$MARKDOWN_CONTENT" '{markdown:$md}')"
 INTAKE_RESP_RAW="$(call_tool "whetstone_architect_intake" "$INTAKE_ARGS")"
 printf '%s\n' "$INTAKE_RESP_RAW" > "$OUT_DIR/01_intake_raw.ndjson.json"
@@ -189,7 +206,11 @@ EFFECTIVE_INTAKE_JSON_PATH="$OUT_DIR/01_intake.json"
 
 if [[ "$(printf '%s' "$INTAKE_JSON" | jq -r '.success // false')" != "true" ]] &&
    [[ "$(printf '%s' "$INTAKE_JSON" | jq -r '.error // ""')" == "no_requirements_found" ]]; then
-  FALLBACK_SPEC="$(build_fallback_intake_spec "$INPUT_FILE")"
+  FALLBACK_SOURCE_FILE="$INPUT_FILE"
+  if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_INTAKE_AUGMENT" == "1" && -f "$OUT_DIR/00c_semantic_augmented_spec.md" ]]; then
+    FALLBACK_SOURCE_FILE="$OUT_DIR/00c_semantic_augmented_spec.md"
+  fi
+  FALLBACK_SPEC="$(build_fallback_intake_spec "$FALLBACK_SOURCE_FILE")"
   printf '%s\n' "$FALLBACK_SPEC" > "$OUT_DIR/01a_fallback_intake_spec.md"
   INTAKE_ARGS="$(jq -nc --arg md "$FALLBACK_SPEC" '{markdown:$md}')"
   INTAKE_RESP_RAW="$(call_tool "whetstone_architect_intake" "$INTAKE_ARGS")"
@@ -205,6 +226,28 @@ if [[ "$(printf '%s' "$INTAKE_JSON" | jq -r '.success // false')" != "true" ]]; 
 fi
 
 NORMALIZED_REQS="$(printf '%s' "$INTAKE_JSON" | jq '.normalizedRequirements')"
+if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_REQUIREMENT_INJECTION" == "1" && -f "$OUT_DIR/00b_semantic_planning_annotations.json" ]]; then
+  SEM_REQS="$(jq -nc --argjson packet "$(cat "$OUT_DIR/00b_semantic_planning_annotations.json")" '
+    def mk($kind; $text; $id):
+      {requirementId:$id, kind:$kind, normalizedText:$text, anchor:"semantic_packet", sourceLine:0, ambiguous:false};
+    [
+      (if ($packet.annotations[]? | select(.type=="intent") | .fields.summary // "" | length) > 0
+       then mk("goal"; ($packet.annotations[] | select(.type=="intent") | .fields.summary); "semantic-intent-summary")
+       else empty end),
+      (($packet.annotations[]? | select(.type=="complexity") | .fields.markers[]?) as $m
+        | mk("constraint"; ("semantic complexity marker: " + $m); ("semantic-complexity-" + ($m|gsub("[^A-Za-z0-9]+";"_"))))),
+      (($packet.annotations[]? | select(.type=="risk") | .fields.risks[]?) as $r
+        | mk("constraint"; ("semantic risk guardrail: " + $r); ("semantic-risk-" + ($r|gsub("[^A-Za-z0-9]+";"_"))))),
+      (($packet.annotations[]? | select(.type=="contract") | .fields.constraints[]?) as $c
+        | mk("constraint"; ("semantic contract clause: " + $c); ("semantic-contract-" + ($c|gsub("[^A-Za-z0-9]+";"_"))))),
+      (($packet.annotations[]? | select(.type=="capability_requirement") | .fields.capability?) as $cap
+        | mk("dependency"; ("semantic capability requirement: " + $cap); ("semantic-capability-" + ($cap|gsub("[^A-Za-z0-9]+";"_")))))
+    ] | map(select(.normalizedText | length > 0))
+  ')"
+  printf '%s\n' "$SEM_REQS" > "$OUT_DIR/01c_semantic_injected_requirements.json"
+  NORMALIZED_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson sem "$SEM_REQS" '$base + $sem')"
+  SEMANTIC_REQUIREMENT_INJECTION_JSON="$(jq -nc --argjson sem "$SEM_REQS" '{injected_count: ($sem|length), injected_requirements:$sem}')"
+fi
 CONFLICTS="$(printf '%s' "$INTAKE_JSON" | jq '.conflicts // []')"
 GEN_ARGS="$(jq -nc --argjson nr "$NORMALIZED_REQS" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
   '{normalizedRequirements:$nr,conflicts:$cf,strictExecutionContract:($strict == "1")}')"
@@ -218,6 +261,37 @@ if [[ "$(printf '%s' "$GEN_JSON" | jq -r '.success // false')" != "true" ]]; the
 fi
 
 TASKS="$(printf '%s' "$GEN_JSON" | jq '.tasks')"
+if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_REQUIREMENT_INJECTION" == "1" && "$SEMANTIC_TASK_EXPANSION" == "1" && -f "$OUT_DIR/01c_semantic_injected_requirements.json" ]]; then
+  SEMANTIC_EXPANDED_TASKS="$(jq -nc \
+    --argjson base "$TASKS" \
+    --argjson sem "$(cat "$OUT_DIR/01c_semantic_injected_requirements.json")" '
+      def mk_task($idx; $req):
+        {
+          taskId: ("semantic-task-" + ($idx|tostring)),
+          title: ("Semantic Guardrail: " + ($req.normalizedText // "requirement")),
+          prerequisiteOps: ["whetstone_architect_intake","whetstone_generate_taskitems","whetstone_queue_ready","whetstone_validate_taskitem"],
+          reasons: ["semantic_annotation_bridge", ($req.kind // "constraint"), ($req.requirementId // ("semantic-" + ($idx|tostring)))],
+          confidence: 0.92,
+          dependencyTaskIds: ["task-1"],
+          resourceLocks: [],
+          executionContract: {
+            deterministic: true,
+            rollbackRequired: true,
+            replayValidationRequired: true,
+            maxFileTouches: 3,
+            maxContextTokens: 4096,
+            maxExecutionSteps: 6,
+            executionSpecificityScore: 88
+          }
+        };
+      ($sem[:6] | to_entries | map(mk_task(.key; .value))) as $extra
+      | ($base + $extra)
+    ')"
+  TASKS="$SEMANTIC_EXPANDED_TASKS"
+  SEMANTIC_TASK_EXPANSION_JSON="$(jq -nc --argjson sem "$(cat "$OUT_DIR/01c_semantic_injected_requirements.json")" '{enabled:true, expanded_task_count: (($sem[:6])|length)}')"
+else
+  SEMANTIC_TASK_EXPANSION_JSON='{"enabled":false,"expanded_task_count":0}'
+fi
 QUEUE_ARGS="$(jq -nc --argjson t "$TASKS" --argjson nr "$NORMALIZED_REQS" --arg strict "$STRICT_EXECUTION_CONTRACT" --argjson cs "$CAPABILITY_SIGNALS_JSON" \
   '{tasks:$t,normalizedRequirements:$nr,strictExecutionContract:($strict == "1"),capabilitySignals:$cs}')"
 QUEUE_RESP_RAW="$(call_tool "whetstone_queue_ready" "$QUEUE_ARGS")"
@@ -250,6 +324,9 @@ SUMMARY_JSON="$(jq -nc \
   --arg workspace "$WORKSPACE" \
   --argjson planning_readiness "$SPEC_READINESS_JSON" \
   --argjson semantic_planning "$SEMANTIC_PLANNING_JSON" \
+  --argjson semantic_intake_augment "$SEMANTIC_AUGMENT_JSON" \
+  --argjson semantic_requirement_injection "$SEMANTIC_REQUIREMENT_INJECTION_JSON" \
+  --argjson semantic_task_expansion "$SEMANTIC_TASK_EXPANSION_JSON" \
   --argjson intake "$INTAKE_JSON" \
   --argjson generated "$GEN_JSON" \
   --argjson queue "$QUEUE_JSON" \
@@ -263,6 +340,9 @@ SUMMARY_JSON="$(jq -nc \
     output_dir: $outDir,
     planning_readiness: $planning_readiness,
     semantic_planning_annotations: $semantic_planning,
+    semantic_intake_augment: $semantic_intake_augment,
+    semantic_requirement_injection: $semantic_requirement_injection,
+    semantic_task_expansion: $semantic_task_expansion,
     intake: {
       success: ($intake.success // false),
       normalized_requirement_count: (($intake.normalizedRequirements // [])|length),

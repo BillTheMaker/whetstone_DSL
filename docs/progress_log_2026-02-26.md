@@ -84,4 +84,16 @@
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
   - env toggle: `WSTONE_SEMANTIC_PLANNING_BRIDGE` (default `1`)
   - emits `00b_semantic_planning_annotations.json`
-  - summary now includes `semantic_planning_annotations`
+- summary now includes `semantic_planning_annotations`
+
+## Sprint 233 Added (Same Day)
+
+- Added semantic-bridge decomposition tooling:
+  - `tools/mcp/augment_spec_with_semantic_packet.py`
+- Pipeline now supports:
+  - semantic intake augmentation
+  - semantic requirement injection
+  - semantic task expansion
+- A/B run shows measurable decomposition delta (TEST_ONLY artifacts):
+  - validation taskitems `2 -> 8`
+  - avg execution specificity `75.0 -> 84.75`

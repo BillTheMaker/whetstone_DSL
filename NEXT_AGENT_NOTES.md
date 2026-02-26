@@ -21,10 +21,12 @@
 - First-class planning tranche (new):
   - `docs/sprint228_231_execution_tracker_2026-02-26.md`
   - `docs/sprint232_execution_tracker_2026-02-26.md`
+  - `docs/sprint233_execution_tracker_2026-02-26.md`
   - `tools/mcp/spec_planning_readiness.py`
   - `tools/mcp/spec_planning_hardener.py`
   - `tools/mcp/run_spec_hardening_gate.sh`
   - `tools/mcp/markdown_to_semantic_annotations.py`
+  - `tools/mcp/augment_spec_with_semantic_packet.py`
   - `docs/spec_hardening_batch_report_2026-02-26.md`
 
 ## Dated Handoff
