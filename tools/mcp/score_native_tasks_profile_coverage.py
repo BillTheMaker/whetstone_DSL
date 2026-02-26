@@ -2,7 +2,7 @@
 import argparse
 import json
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 
 def load_json(path: Path):
@@ -33,6 +33,55 @@ def collect_task_unions(tasks: List[Dict]):
         if isinstance(ec, dict):
             contracts.append(ec)
     return reasons, prereq_ops, contracts
+
+
+def parse_missing_signal(signal: str) -> Tuple[str, str]:
+    if ":" not in signal:
+        return signal, ""
+    k, v = signal.split(":", 1)
+    return k, v
+
+
+def signal_present(signal: str, tasks: List[Dict]) -> bool:
+    if signal.startswith("native_task_count<"):
+        try:
+            min_count = int(signal.split("<", 1)[1])
+        except (ValueError, IndexError):
+            return False
+        return len(tasks) >= min_count
+
+    kind, value = parse_missing_signal(signal)
+    reasons, prereq_ops, contracts = collect_task_unions(tasks)
+
+    if kind == "missing_prerequisite_op":
+        return value in set(prereq_ops)
+    if kind == "missing_execution_contract":
+        for ec in contracts:
+            if isinstance(ec.get(value), bool):
+                if ec.get(value):
+                    return True
+            elif value in ec:
+                return True
+        return False
+    if kind == "missing_reason_keyword":
+        v = value.lower()
+        return any(v in r for r in reasons)
+    return False
+
+
+def load_top_gap_items(path: Optional[Path]) -> List[Dict]:
+    if path is None or not path.exists():
+        return []
+    data = load_json(path)
+    rows = list(data.get("prioritized_missing") or [])
+    out: List[Dict] = []
+    for row in rows:
+        signal = str(row.get("missing", ""))
+        if not signal:
+            continue
+        weight = int(row.get("count", 1) or 1)
+        out.append({"missing": signal, "weight": weight})
+    return out
 
 
 def check_profile(profile: Dict, tasks: List[Dict]) -> Dict:
@@ -74,6 +123,7 @@ def main() -> int:
     p.add_argument("--profiles", required=True)
     p.add_argument("--tasks", required=True)
     p.add_argument("--out", required=True)
+    p.add_argument("--top-gaps", default="", help="Optional raw gap backlog JSON with prioritized_missing.")
     args = p.parse_args()
 
     spec_text = Path(args.spec).read_text(encoding="utf-8", errors="ignore")
@@ -87,19 +137,45 @@ def main() -> int:
 
     checks = [check_profile(pf, tasks) for pf in active]
     failing = [c for c in checks if not c.get("passed", False)]
+    top_gap_items = load_top_gap_items(Path(args.top_gaps) if args.top_gaps else None)
+    top_gap_signal_hits = 0
+    top_gap_score = 0
+    top_gap_signal_weight_total = 0
+    for item in top_gap_items:
+        sig = str(item.get("missing", ""))
+        w = int(item.get("weight", 1) or 1)
+        top_gap_signal_weight_total += w
+        if signal_present(sig, tasks):
+            top_gap_signal_hits += 1
+            top_gap_score += w
 
     result = {
         "status": "ok" if not failing else "fail",
         "task_count": len(tasks),
         "active_profile_count": len(active),
         "failing_profile_count": len(failing),
+        "top_gap_signal_count": len(top_gap_items),
+        "top_gap_signal_hits": top_gap_signal_hits,
+        "top_gap_signal_weight_total": top_gap_signal_weight_total,
+        "top_gap_score": top_gap_score,
         "checks": checks,
     }
     with Path(args.out).open("w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, sort_keys=True)
         f.write("\n")
 
-    print(json.dumps({"status": result["status"], "task_count": result["task_count"], "failing_profile_count": result["failing_profile_count"], "out": args.out}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": result["status"],
+                "task_count": result["task_count"],
+                "failing_profile_count": result["failing_profile_count"],
+                "top_gap_score": result["top_gap_score"],
+                "out": args.out,
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 

@@ -216,3 +216,7 @@ Planning runtime controls (active):
   - `tools/mcp/harden_native_tasks_top_gaps.py`
   - `WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS`
   - `native_raw_hardening`
+- raw candidate selection can be weighted by historical gap priorities:
+  - `WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT`
+  - `WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE`
+  - scorer `--top-gaps` telemetry (`top_gap_score`)

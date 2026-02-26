@@ -409,3 +409,21 @@
 - Current measured result on hard fullstack sample:
   - `failing_profile_count 7 -> 0`
   - `effective_task_count 2 -> 6`
+
+## Sprint 256 Added (Same Day)
+
+- Added top-gap weighted raw candidate scoring/selection:
+  - scorer: `tools/mcp/score_native_tasks_profile_coverage.py --top-gaps`
+  - pipeline controls:
+    - `WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT`
+    - `WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE`
+- Raw search summary now includes:
+  - `baseline_top_gap_score`
+  - `best_top_gap_score`
+  - weighted-select metadata
+- Dated A/B artifacts (weighted select OFF/ON):
+  - `logs/taskitem_runs/01a_fallback_intake_spec_20260226_162422/00_summary.json`
+  - `logs/taskitem_runs/01a_fallback_intake_spec_20260226_162423/00_summary.json`
+- Current measured result on hard sample:
+  - no intrinsic raw uplift yet (`selected_variant=0`, `best_failing_profile_count=1`)
+  - scorer top-gap telemetry emitted and usable for ranking policy.

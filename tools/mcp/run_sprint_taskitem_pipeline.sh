@@ -53,6 +53,8 @@ NATIVE_RAW_CANDIDATE_SEARCH="${WSTONE_NATIVE_RAW_CANDIDATE_SEARCH:-0}"
 NATIVE_RAW_CANDIDATE_MAX_VARIANTS="${WSTONE_NATIVE_RAW_CANDIDATE_MAX_VARIANTS:-8}"
 NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT:-0}"
 NATIVE_RAW_HARDEN_TOP_GAPS="${WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS:-0}"
+NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT="${WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT:-0}"
+NATIVE_RAW_TOP_GAP_BACKLOG_FILE="${WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE:-}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -392,6 +394,12 @@ else
     '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, target_min_task_count:$target_min_task_count}')"
 fi
 if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
+  top_gap_score_args=()
+  use_top_gap_weighted_select=false
+  if [[ "$NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT" == "1" && -n "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" && -f "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" ]]; then
+    top_gap_score_args=(--top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE")
+    use_top_gap_weighted_select=true
+  fi
   python3 "$ROOT_DIR/tools/mcp/synthesize_raw_candidate_requirement_variants.py" \
     --spec "$INPUT_FILE" \
     --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
@@ -404,12 +412,15 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
     --spec "$INPUT_FILE" \
     --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
     --tasks "$OUT_DIR/02ae_candidate_0_tasks.json" \
+    "${top_gap_score_args[@]}" \
     --out "$OUT_DIR/02ae_candidate_0_score.json" >/dev/null
   best_variant="0"
   best_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02ae_candidate_0_score.json")"
   best_task_count="$(jq '.task_count // 0' "$OUT_DIR/02ae_candidate_0_score.json")"
+  best_top_gap_score="$(jq '.top_gap_score // 0' "$OUT_DIR/02ae_candidate_0_score.json")"
   baseline_fail="$best_fail"
   baseline_task_count="$best_task_count"
+  baseline_top_gap_score="$best_top_gap_score"
   attempted=1
   successful=1
 
@@ -434,13 +445,28 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
         --spec "$INPUT_FILE" \
         --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
         --tasks "$OUT_DIR/02ae_candidate_${variant}_tasks.json" \
+        "${top_gap_score_args[@]}" \
         --out "$OUT_DIR/02ae_candidate_${variant}_score.json" >/dev/null
       cand_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02ae_candidate_${variant}_score.json")"
       cand_task_count="$(jq '.task_count // 0' "$OUT_DIR/02ae_candidate_${variant}_score.json")"
-      if [[ "$cand_fail" -lt "$best_fail" || ( "$cand_fail" -eq "$best_fail" && "$cand_task_count" -gt "$best_task_count" ) ]]; then
+      cand_top_gap_score="$(jq '.top_gap_score // 0' "$OUT_DIR/02ae_candidate_${variant}_score.json")"
+      should_select=false
+      if [[ "$cand_fail" -lt "$best_fail" ]]; then
+        should_select=true
+      elif [[ "$cand_fail" -eq "$best_fail" ]]; then
+        if [[ "$use_top_gap_weighted_select" == true && "$cand_top_gap_score" -gt "$best_top_gap_score" ]]; then
+          should_select=true
+        elif [[ "$cand_top_gap_score" -eq "$best_top_gap_score" && "$cand_task_count" -gt "$best_task_count" ]]; then
+          should_select=true
+        elif [[ "$use_top_gap_weighted_select" != true && "$cand_task_count" -gt "$best_task_count" ]]; then
+          should_select=true
+        fi
+      fi
+      if [[ "$should_select" == true ]]; then
         best_variant="$variant"
         best_fail="$cand_fail"
         best_task_count="$cand_task_count"
+        best_top_gap_score="$cand_top_gap_score"
         TASKS="$cand_tasks"
       fi
       successful=$((successful + 1))
@@ -456,10 +482,14 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
     --arg best_variant "$best_variant" \
     --argjson baseline_failing_profile_count "$baseline_fail" \
     --argjson baseline_task_count "$baseline_task_count" \
+    --argjson baseline_top_gap_score "$baseline_top_gap_score" \
     --argjson best_failing_profile_count "$best_fail" \
     --argjson best_task_count "$best_task_count" \
+    --argjson best_top_gap_score "$best_top_gap_score" \
     --argjson available_variants "$variant_total" \
-    '{enabled:$enabled, attempted_variants:$attempted, successful_variants:$successful, available_variants:$available_variants, selected_variant:$best_variant, baseline_failing_profile_count:$baseline_failing_profile_count, baseline_task_count:$baseline_task_count, best_failing_profile_count:$best_failing_profile_count, best_task_count:$best_task_count}')"
+    --argjson top_gap_weighted_select "$use_top_gap_weighted_select" \
+    --arg top_gap_backlog_file "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+    '{enabled:$enabled, attempted_variants:$attempted, successful_variants:$successful, available_variants:$available_variants, selected_variant:$best_variant, baseline_failing_profile_count:$baseline_failing_profile_count, baseline_task_count:$baseline_task_count, baseline_top_gap_score:$baseline_top_gap_score, best_failing_profile_count:$best_failing_profile_count, best_task_count:$best_task_count, best_top_gap_score:$best_top_gap_score, top_gap_weighted_select:$top_gap_weighted_select, top_gap_backlog_file:$top_gap_backlog_file}')"
   printf '%s\n' "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" > "$OUT_DIR/02ae_raw_candidate_search.json"
   if [[ "$NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT" == "1" && "$best_fail" -ge "$baseline_fail" ]]; then
     echo "error: raw candidate search did not improve failing profile count" >&2
