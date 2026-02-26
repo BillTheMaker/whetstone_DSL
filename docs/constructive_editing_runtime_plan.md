@@ -237,3 +237,8 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_RAW_SIGNAL_TARGETED_VARIANTS`
   - `WSTONE_NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS`
   - `native_raw_signal_targeted_variants`
+- raw candidate generation can inject intrinsic prompt-pack constraints from gap signals:
+  - `tools/mcp/synthesize_raw_intrinsic_prompt_pack.py`
+  - `WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_PACK`
+  - `WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_MAX_SIGNALS`
+  - `native_raw_intrinsic_prompt_pack`

@@ -490,3 +490,20 @@
 - Current measured result on hard sample:
   - search breadth increased (`available_variants 2 -> 8`)
   - intrinsic outcome unchanged (`selected_variant=0`, `best_top_gap_score=0`, `failing_profile_count=1`).
+
+## Sprint 261 Added (Same Day)
+
+- Added intrinsic prompt-pack intervention:
+  - `tools/mcp/synthesize_raw_intrinsic_prompt_pack.py`
+  - pipeline controls:
+    - `WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_PACK`
+    - `WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_MAX_SIGNALS`
+  - summary packet:
+    - `native_raw_intrinsic_prompt_pack`
+- Dated A/B artifacts:
+  - OFF: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163844/00_summary.json`
+  - ON: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163855/00_summary.json`
+  - report: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163855/01f_raw_intrinsic_prompt_pack_report.json`
+- Current measured result on hard sample:
+  - prompt pack injected (`selected_signal_count=8`)
+  - intrinsic outcome unchanged (`selected_variant=0`, `best_top_gap_score=0`, `failing_profile_count=1`).
