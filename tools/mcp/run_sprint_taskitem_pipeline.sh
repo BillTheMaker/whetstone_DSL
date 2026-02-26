@@ -39,6 +39,9 @@ NATIVE_SEMANTIC_SIGNAL_MIN="${WSTONE_NATIVE_SEMANTIC_SIGNAL_MIN:-0}"
 NATIVE_REASON_ENRICHMENT="${WSTONE_NATIVE_REASON_ENRICHMENT:-1}"
 NATIVE_DECOMP_RETRY="${WSTONE_NATIVE_DECOMP_RETRY:-1}"
 NATIVE_DECOMP_TARGET_MIN_TASKS="${WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS:-5}"
+NATIVE_IMPACT_COVERAGE_GATE="${WSTONE_NATIVE_IMPACT_COVERAGE_GATE:-0}"
+NATIVE_IMPACT_COVERAGE_ENFORCE="${WSTONE_NATIVE_IMPACT_COVERAGE_ENFORCE:-0}"
+NATIVE_IMPACT_COVERAGE_PROFILES="${WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES:-$ROOT_DIR/tools/mcp/profiles/native_decomposition_impact_profiles.json}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -93,6 +96,7 @@ SEMANTIC_GATE_JSON='{}'
 NATIVE_DECOMP_GATE_JSON='{}'
 NATIVE_REASON_ENRICHMENT_JSON='{}'
 NATIVE_DECOMP_RETRY_JSON='{}'
+NATIVE_IMPACT_COVERAGE_JSON='{}'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
   python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
     --spec "$INPUT_FILE" \
@@ -570,6 +574,26 @@ SUMMARY_JSON="$(jq -nc \
       promotion_packet: ($validate.report.promotion_packet // {})
     }
   }')"
+
+if [[ "$NATIVE_IMPACT_COVERAGE_GATE" == "1" ]]; then
+  # Emit a provisional summary so coverage checker can read run metadata.
+  printf '%s\n' "$SUMMARY_JSON" > "$OUT_DIR/00_summary.json"
+  if python3 "$ROOT_DIR/tools/mcp/check_native_decomposition_impact_coverage.py" \
+    --run-dir "$OUT_DIR" \
+    --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+    --out "$OUT_DIR/06_native_impact_coverage.json" \
+    $([[ "$NATIVE_IMPACT_COVERAGE_ENFORCE" == "1" ]] && echo --enforce) >/dev/null; then
+    NATIVE_IMPACT_COVERAGE_JSON="$(cat "$OUT_DIR/06_native_impact_coverage.json")"
+  else
+    NATIVE_IMPACT_COVERAGE_JSON="$(cat "$OUT_DIR/06_native_impact_coverage.json")"
+    SUMMARY_JSON="$(printf '%s' "$SUMMARY_JSON" | jq --argjson nic "$NATIVE_IMPACT_COVERAGE_JSON" '.native_impact_coverage = $nic')"
+    printf '%s\n' "$SUMMARY_JSON" > "$OUT_DIR/00_summary.json"
+    echo "error: native impact coverage gate failed" >&2
+    echo "error: see $OUT_DIR/06_native_impact_coverage.json" >&2
+    exit 11
+  fi
+  SUMMARY_JSON="$(printf '%s' "$SUMMARY_JSON" | jq --argjson nic "$NATIVE_IMPACT_COVERAGE_JSON" '.native_impact_coverage = $nic')"
+fi
 
 if [[ "$CALIBRATE_AFTER_RUN" == "1" ]]; then
   CALIBRATION_OUT_DIR="$OUT_DIR/calibration"

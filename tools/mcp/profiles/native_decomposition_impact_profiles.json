@@ -1,0 +1,113 @@
+{
+  "schema": "native_decomposition_impact_profiles_v1",
+  "profiles": [
+    {
+      "id": "impact_api_contract_evolution",
+      "description": "API/schema evolution with compatibility obligations.",
+      "trigger_keywords": ["api", "openapi", "schema", "contract", "compatibility", "version"],
+      "min_native_task_count": 5,
+      "required_reason_keywords": ["contract", "compatibility"],
+      "required_prerequisite_ops": ["whetstone_generate_taskitems", "whetstone_validate_taskitem", "whetstone_queue_ready"],
+      "required_execution_contract": ["deterministic", "rollbackRequired", "replayValidationRequired"]
+    },
+    {
+      "id": "impact_state_migration_rollback",
+      "description": "State/data migrations that require rollback and data safety choreography.",
+      "trigger_keywords": ["migration", "rollback", "backfill", "data loss", "compatibility window"],
+      "min_native_task_count": 6,
+      "required_reason_keywords": ["migration", "risk"],
+      "required_prerequisite_ops": ["whetstone_generate_taskitems", "whetstone_validate_taskitem", "whetstone_queue_ready"],
+      "required_execution_contract": ["deterministic", "rollbackRequired", "replayValidationRequired"]
+    },
+    {
+      "id": "impact_security_policy_propagation",
+      "description": "Cross-layer security policy propagation and deny-by-default handling.",
+      "trigger_keywords": ["security", "auth", "permission", "deny-by-default", "threat"],
+      "min_native_task_count": 5,
+      "required_reason_keywords": ["security", "risk"],
+      "required_prerequisite_ops": ["whetstone_validate_taskitem", "whetstone_queue_ready"],
+      "required_execution_contract": ["deterministic", "rollbackRequired"]
+    },
+    {
+      "id": "impact_slo_latency_budget",
+      "description": "Performance/SLO constrained changes.",
+      "trigger_keywords": ["latency", "slo", "p95", "throughput", "budget"],
+      "min_native_task_count": 4,
+      "required_reason_keywords": ["performance", "risk"],
+      "required_prerequisite_ops": ["whetstone_validate_taskitem"],
+      "required_execution_contract": ["deterministic", "replayValidationRequired"]
+    },
+    {
+      "id": "impact_rollout_choreography",
+      "description": "Feature flags, staged rollout, and abort choreography.",
+      "trigger_keywords": ["rollout", "stage", "feature flag", "canary", "abort"],
+      "min_native_task_count": 5,
+      "required_reason_keywords": ["rollout", "risk"],
+      "required_prerequisite_ops": ["whetstone_queue_ready", "whetstone_validate_taskitem"],
+      "required_execution_contract": ["deterministic", "rollbackRequired"]
+    },
+    {
+      "id": "impact_multifile_transactional_edit",
+      "description": "Cross-file transactional edits where partial updates are unsafe.",
+      "trigger_keywords": ["multi-file", "cross-file", "transaction", "refactor", "across files"],
+      "min_native_task_count": 6,
+      "required_reason_keywords": ["transaction", "contract"],
+      "required_prerequisite_ops": ["whetstone_queue_ready", "whetstone_validate_taskitem"],
+      "required_execution_contract": ["deterministic", "rollbackRequired", "replayValidationRequired"]
+    },
+    {
+      "id": "impact_concurrency_locking",
+      "description": "Threading, locking, races, and scheduling semantics.",
+      "trigger_keywords": ["concurrency", "thread", "mutex", "lock", "race", "deadlock"],
+      "min_native_task_count": 5,
+      "required_reason_keywords": ["concurrency", "risk"],
+      "required_prerequisite_ops": ["whetstone_validate_taskitem", "whetstone_queue_ready"],
+      "required_execution_contract": ["deterministic", "replayValidationRequired"]
+    },
+    {
+      "id": "impact_projection_environment_constraints",
+      "description": "Target projection/environment constraints (embedded/mobile/serverless/hardware limits).",
+      "trigger_keywords": ["arduino", "embedded", "mobile", "ios", "android", "serverless", "memory limit", "hardware"],
+      "min_native_task_count": 4,
+      "required_reason_keywords": ["capability", "constraint"],
+      "required_prerequisite_ops": ["whetstone_architect_intake", "whetstone_validate_taskitem"],
+      "required_execution_contract": ["deterministic"]
+    },
+    {
+      "id": "impact_polyglot_boundary_changes",
+      "description": "Cross-language boundary and API client/server regeneration work.",
+      "trigger_keywords": ["polyglot", "cross-language", "sdk", "client", "backend", "frontend"],
+      "min_native_task_count": 5,
+      "required_reason_keywords": ["compatibility", "contract"],
+      "required_prerequisite_ops": ["whetstone_generate_taskitems", "whetstone_validate_taskitem"],
+      "required_execution_contract": ["deterministic", "replayValidationRequired"]
+    },
+    {
+      "id": "impact_observability_telemetry_integrity",
+      "description": "Logging/metrics/tracing changes requiring consistent telemetry semantics.",
+      "trigger_keywords": ["observability", "telemetry", "metrics", "tracing", "logging"],
+      "min_native_task_count": 4,
+      "required_reason_keywords": ["semantic", "contract"],
+      "required_prerequisite_ops": ["whetstone_validate_taskitem"],
+      "required_execution_contract": ["deterministic"]
+    },
+    {
+      "id": "impact_data_integrity_precision",
+      "description": "Financial/scientific precision and data-integrity sensitive changes.",
+      "trigger_keywords": ["financial", "precision", "scientific", "numerical", "rounding"],
+      "min_native_task_count": 5,
+      "required_reason_keywords": ["risk", "contract"],
+      "required_prerequisite_ops": ["whetstone_validate_taskitem"],
+      "required_execution_contract": ["deterministic", "replayValidationRequired"]
+    },
+    {
+      "id": "impact_disaster_recovery_replay",
+      "description": "Recovery/replay/rollback critical workflows.",
+      "trigger_keywords": ["recovery", "replay", "rollback", "incident", "failover"],
+      "min_native_task_count": 5,
+      "required_reason_keywords": ["risk", "replay"],
+      "required_prerequisite_ops": ["whetstone_validate_taskitem", "whetstone_queue_ready"],
+      "required_execution_contract": ["deterministic", "rollbackRequired", "replayValidationRequired"]
+    }
+  ]
+}

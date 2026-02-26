@@ -150,7 +150,7 @@ Parallel planning tranche (active):
   - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 Planning runtime controls (active):
-- `sprint232_plan.md` to `sprint240_plan.md`
+- `sprint232_plan.md` to `sprint241_plan.md`
 - semantic bridge + intake augmentation + requirement injection + expansion gating are wired into:
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
 - current policy default is native-first semantic fallback:
@@ -169,3 +169,8 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_DECOMP_RETRY`
   - `WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS`
   - `native_decomposition_retry`
+- impact-specific native decomposition coverage can be enforced:
+  - `WSTONE_NATIVE_IMPACT_COVERAGE_GATE`
+  - `WSTONE_NATIVE_IMPACT_COVERAGE_ENFORCE`
+  - `WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES`
+  - `native_impact_coverage`

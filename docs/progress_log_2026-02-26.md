@@ -185,3 +185,22 @@
   - `logs/taskitem_runs/TEST_ONLY_sprint240_retry_20260226_145632/00_summary.json`
 - Current measured result:
   - retry attempted but not applied (`2 -> 2` tasks), confirming remaining native decomposition depth gap.
+
+## Sprint 241 Added (Same Day)
+
+- Added complete dated impact list for shallow native decomposition:
+  - `docs/native_decomposition_impact_list_2026-02-26.md`
+- Added one-by-one profile tooling:
+  - `tools/mcp/profiles/native_decomposition_impact_profiles.json`
+  - `tools/mcp/check_native_decomposition_impact_coverage.py`
+  - `tools/mcp/run_native_impact_coverage_gate.sh`
+  - `tools/mcp/analyze_native_impact_coverage.py`
+- Integrated impact-coverage gate into pipeline with optional enforcement:
+  - `WSTONE_NATIVE_IMPACT_COVERAGE_GATE`
+  - `WSTONE_NATIVE_IMPACT_COVERAGE_ENFORCE`
+  - `WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES`
+- Dated artifacts:
+  - `logs/taskitem_runs/TEST_ONLY_sprint241_impact_gate_20260226_150403/00_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint241_impact_gate_20260226_150404/06_native_impact_coverage.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint241_fullstack_impact_20260226_150416/00_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint241_native_impact_aggregate_20260226/native_impact_coverage_aggregate.json`
