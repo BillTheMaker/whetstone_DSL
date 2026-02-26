@@ -53,6 +53,8 @@ NATIVE_RAW_CANDIDATE_SEARCH="${WSTONE_NATIVE_RAW_CANDIDATE_SEARCH:-0}"
 NATIVE_RAW_CANDIDATE_MAX_VARIANTS="${WSTONE_NATIVE_RAW_CANDIDATE_MAX_VARIANTS:-8}"
 NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT:-0}"
 NATIVE_RAW_HARDEN_TOP_GAPS="${WSTONE_NATIVE_RAW_HARDEN_TOP_GAPS:-0}"
+NATIVE_RAW_SIGNAL_TARGETED_VARIANTS="${WSTONE_NATIVE_RAW_SIGNAL_TARGETED_VARIANTS:-0}"
+NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS="${WSTONE_NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS:-6}"
 NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT="${WSTONE_NATIVE_RAW_TOP_GAP_WEIGHTED_SELECT:-0}"
 NATIVE_RAW_TOP_GAP_BACKLOG_FILE="${WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE:-}"
 NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT:-0}"
@@ -123,6 +125,7 @@ NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON='{}'
 NATIVE_MULTISHOT_JSON='{}'
 NATIVE_RAW_CANDIDATE_SEARCH_JSON='{}'
 NATIVE_RAW_HARDENING_JSON='{}'
+NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON='{}'
 NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON='{}'
 NATIVE_RAW_ADAPTIVE_RETRY_JSON='{}'
 INTRINSIC_REQS_JSON='[]'
@@ -429,6 +432,24 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
     --max-variants "$NATIVE_RAW_CANDIDATE_MAX_VARIANTS" \
     --out "$OUT_DIR/02ae_raw_candidate_variants.json" >/dev/null
   VARIANTS_JSON="$(cat "$OUT_DIR/02ae_raw_candidate_variants.json")"
+  if [[ "$NATIVE_RAW_SIGNAL_TARGETED_VARIANTS" == "1" && -n "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" && -f "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" ]]; then
+    python3 "$ROOT_DIR/tools/mcp/synthesize_raw_signal_targeted_variants.py" \
+      --top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+      --max-variants "$NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS" \
+      --out "$OUT_DIR/02ae_raw_signal_targeted_variants.json" >/dev/null
+    signal_variants_count="$(jq '.variant_count // 0' "$OUT_DIR/02ae_raw_signal_targeted_variants.json")"
+    VARIANTS_JSON="$(jq -nc \
+      --argjson base "$VARIANTS_JSON" \
+      --argjson sig "$(cat "$OUT_DIR/02ae_raw_signal_targeted_variants.json")" \
+      '{status:"ok", active_profile_count:($base.active_profile_count // 0), variant_count:(((($base.variants // [])|length) + (($sig.variants // [])|length))), variants:(($base.variants // []) + ($sig.variants // []))}')"
+    NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON="$(jq -nc \
+      --argjson enabled true \
+      --arg backlog_file "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+      --argjson variant_count "$signal_variants_count" \
+      '{enabled:$enabled, backlog_file:$backlog_file, variant_count:$variant_count}')"
+  else
+    NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON='{"enabled":false}'
+  fi
 
   printf '%s\n' "$TASKS" > "$OUT_DIR/02ae_candidate_0_tasks.json"
   python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
@@ -589,6 +610,7 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
   fi
 else
   NATIVE_RAW_CANDIDATE_SEARCH_JSON='{"enabled":false}'
+  NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON='{"enabled":false}'
 fi
 if [[ "$NATIVE_RAW_HARDEN_TOP_GAPS" == "1" ]]; then
   printf '%s\n' "$TASKS" > "$OUT_DIR/02af_raw_hardening_input_tasks.json"
@@ -934,6 +956,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
   --argjson native_raw_top_gap_requirements "$NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON" \
+  --argjson native_raw_signal_targeted_variants "$NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON" \
   --argjson native_raw_candidate_search "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" \
   --argjson native_raw_adaptive_retry "$NATIVE_RAW_ADAPTIVE_RETRY_JSON" \
   --argjson native_raw_hardening "$NATIVE_RAW_HARDENING_JSON" \
@@ -965,6 +988,7 @@ SUMMARY_JSON="$(jq -nc \
     native_profile_autofill: $native_profile_autofill,
     native_intrinsic_boost: $native_intrinsic_boost,
     native_raw_top_gap_requirements: $native_raw_top_gap_requirements,
+    native_raw_signal_targeted_variants: $native_raw_signal_targeted_variants,
     native_raw_candidate_search: $native_raw_candidate_search,
     native_raw_adaptive_retry: $native_raw_adaptive_retry,
     native_raw_hardening: $native_raw_hardening,

@@ -232,3 +232,8 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY`
   - `WSTONE_NATIVE_RAW_TOP_GAP_RETRY_SIGNALS`
   - `native_raw_adaptive_retry`
+- raw candidate search can expand intrinsic exploration with signal-targeted variants:
+  - `tools/mcp/synthesize_raw_signal_targeted_variants.py`
+  - `WSTONE_NATIVE_RAW_SIGNAL_TARGETED_VARIANTS`
+  - `WSTONE_NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS`
+  - `native_raw_signal_targeted_variants`

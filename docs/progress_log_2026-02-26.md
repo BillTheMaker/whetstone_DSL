@@ -474,3 +474,19 @@
 - Current measured result on hard sample:
   - retry attempted and succeeded operationally
   - no intrinsic uplift (`retry_top_gap_score=0`, `retry_fail=1`, `applied=false`).
+
+## Sprint 260 Added (Same Day)
+
+- Added signal-targeted intrinsic variant expansion:
+  - `tools/mcp/synthesize_raw_signal_targeted_variants.py`
+  - pipeline controls:
+    - `WSTONE_NATIVE_RAW_SIGNAL_TARGETED_VARIANTS`
+    - `WSTONE_NATIVE_RAW_SIGNAL_TARGETED_MAX_VARIANTS`
+  - summary packet:
+    - `native_raw_signal_targeted_variants`
+- Dated A/B artifacts:
+  - OFF: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163629/00_summary.json`
+  - ON: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163556/00_summary.json`
+- Current measured result on hard sample:
+  - search breadth increased (`available_variants 2 -> 8`)
+  - intrinsic outcome unchanged (`selected_variant=0`, `best_top_gap_score=0`, `failing_profile_count=1`).
