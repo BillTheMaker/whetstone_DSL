@@ -11,6 +11,12 @@ Planned and started:
 
 - Added planning-readiness tool:
   - `tools/mcp/spec_planning_readiness.py`
+- Integrated planning precheck into taskitem pipeline:
+  - `tools/mcp/run_sprint_taskitem_pipeline.sh`
+  - new env controls:
+    - `WSTONE_SPEC_READINESS_PRECHECK` (default `1`)
+    - `WSTONE_SPEC_READINESS_HARD_GATE` (default `0`)
+    - `WSTONE_SPEC_READINESS_MIN_SCORE` (default `65`)
 - Tool outputs:
   - readiness score (`section_score`, `keyword_score`, `total`)
   - verdict (`execution_ready` or `needs_spec_hardening`)
@@ -28,13 +34,13 @@ Observed baseline:
 
 ## Explicit Completion Signal
 
-- Sprint 228: `PARTIAL` (tool implemented and baseline executed)
+- Sprint 228: `PARTIAL` (tool implemented, baseline executed, pipeline precheck integrated)
 - Sprint 229: `PARTIAL` (constraint synthesis mapping implemented in tool)
 - Sprint 230: `PARTIAL` (acceptance readiness checks implemented in tool)
 - Sprint 231: `PARTIAL` (environment/projection checks implemented in tool)
 
 ## Next Closure Work
 
-- Bind readiness tool into pre-taskitem pipeline gate.
+- Enable hard-gate mode for selected sprint ranges and capture pass/fail deltas.
 - Add structured spec hardening pass that applies template scaffolds to candidate specs.
 - Re-run benchmarks using hardened specs and measure downstream readiness deltas.

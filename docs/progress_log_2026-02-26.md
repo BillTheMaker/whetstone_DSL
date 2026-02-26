@@ -51,3 +51,12 @@
 
 - Current path-B repair closure is pattern-driven around recurring queue-shaped transpile failures.
 - Next required tranche: broaden to non-queue semantics and first-class spec-to-execution-ready planning.
+
+## Added After Commit `55876d3` (Same Day Continuation)
+
+- Wired first-class planning precheck into `tools/mcp/run_sprint_taskitem_pipeline.sh`.
+- Added environment controls:
+  - `WSTONE_SPEC_READINESS_PRECHECK`
+  - `WSTONE_SPEC_READINESS_HARD_GATE`
+  - `WSTONE_SPEC_READINESS_MIN_SCORE`
+- Spec readiness is now available in pipeline `00_summary.json` as `planning_readiness`.
