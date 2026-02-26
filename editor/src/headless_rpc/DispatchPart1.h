@@ -118,6 +118,10 @@
             {"foldCount", pr.foldResult.nodesModified},
             {"dceCount", pr.dceResult.nodesModified}
         };
+        auto q = GenerationQualityGates::evaluate(pr.generatedCode, tgtLang, "");
+        json qj = GenerationQualityGates::toJson(q);
+        result["quality"] = qj["quality"];
+        result["gates"] = qj["gates"];
         if (pr.ast) result["ast"] = toJson(pr.ast.get());
         return headlessRpcResult(id, result);
     }
@@ -180,13 +184,22 @@
             state.active()->language, preferImports);
         if (!genRes.node)
             return headlessRpcError(id, -32020, "Code generation failed");
+        Pipeline pipeline;
+        std::string generatedCode = pipeline.generate(genRes.node, state.active()->language);
+        auto q = GenerationQualityGates::evaluate(
+            generatedCode, state.active()->language, genRes.note);
+        json qj = GenerationQualityGates::toJson(q);
         json nodeJson = toJson(genRes.node);
         deleteTree(genRes.node);
-        return headlessRpcResult(id, {
+        json out = {
             {"node", nodeJson}, {"note", genRes.note},
             {"usedSymbols", genRes.usedSymbols},
-            {"language", state.active()->language}
-        });
+            {"language", state.active()->language},
+            {"generatedCode", generatedCode}
+        };
+        out["quality"] = qj["quality"];
+        out["gates"] = qj["gates"];
+        return headlessRpcResult(id, out);
     }
 
     // --- applyMutation ---

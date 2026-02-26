@@ -1,0 +1,238 @@
+{
+  "conflictSignals": {
+    "ambiguousRequirementCount": 0,
+    "conflictCount": 2,
+    "hasConflicts": true
+  },
+  "conflicts": [
+    {
+      "conflictType": "constraint_contradiction",
+      "detail": "overlap_tokens=1",
+      "leftRequirementId": "constraint-1",
+      "rightRequirementId": "constraint-2"
+    },
+    {
+      "conflictType": "constraint_contradiction",
+      "detail": "overlap_tokens=2",
+      "leftRequirementId": "constraint-1",
+      "rightRequirementId": "constraint-3"
+    }
+  ],
+  "normalizedRequirements": [
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1884 gate driven remediation planner 10 tests",
+      "requirementId": "goal-1",
+      "sourceLine": 2
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1885 closed loop execution engine for production completion 12 tests",
+      "requirementId": "goal-2",
+      "sourceLine": 3
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1886 taskitem pipeline integration overall ready semantics 8 tests",
+      "requirementId": "goal-3",
+      "sourceLine": 4
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1887 benchmark validation priorityqueue secondary workload 10 tests",
+      "requirementId": "goal-4",
+      "sourceLine": 5
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1888 sprint 168 integration summary 8 tests",
+      "requirementId": "goal-5",
+      "sourceLine": 6
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "completion state must be gate derived never text heuristic only",
+      "requirementId": "constraint-1",
+      "sourceLine": 9
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "every failed run must preserve actionable trace evidence",
+      "requirementId": "constraint-2",
+      "sourceLine": 10
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "benchmark outputs must be reproducible and auditable from saved artifacts",
+      "requirementId": "constraint-3",
+      "sourceLine": 11
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "existing editor src modules and mcp toolchain",
+      "requirementId": "dependency-1",
+      "sourceLine": 14
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "whetstone mcp stable binary and workspace config",
+      "requirementId": "dependency-2",
+      "sourceLine": 15
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "all sprint step tests pass",
+      "requirementId": "acceptance-1",
+      "sourceLine": 18
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "no regression in existing mcp tool behavior",
+      "requirementId": "acceptance-2",
+      "sourceLine": 19
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "generated task queue is ready or blockers are explicit",
+      "requirementId": "acceptance-3",
+      "sourceLine": 20
+    }
+  ],
+  "parsedSpec": {
+    "acceptanceCriteria": [
+      {
+        "anchor": "acceptance-criteria",
+        "line": 18,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "All sprint step tests pass"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 19,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "No regression in existing MCP tool behavior"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 20,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "Generated task queue is ready or blockers are explicit"
+      }
+    ],
+    "constraints": [
+      {
+        "anchor": "constraints",
+        "line": 9,
+        "sectionTitle": "Constraints",
+        "text": "Completion state must be gate-derived, never text-heuristic-only"
+      },
+      {
+        "anchor": "constraints",
+        "line": 10,
+        "sectionTitle": "Constraints",
+        "text": "Every failed run must preserve actionable trace/evidence"
+      },
+      {
+        "anchor": "constraints",
+        "line": 11,
+        "sectionTitle": "Constraints",
+        "text": "Benchmark outputs must be reproducible and auditable from saved artifacts"
+      }
+    ],
+    "dependencies": [
+      {
+        "anchor": "dependencies",
+        "line": 14,
+        "sectionTitle": "Dependencies",
+        "text": "Existing editor/src modules and MCP toolchain"
+      },
+      {
+        "anchor": "dependencies",
+        "line": 15,
+        "sectionTitle": "Dependencies",
+        "text": "whetstone_mcp stable binary and workspace config"
+      }
+    ],
+    "goals": [
+      {
+        "anchor": "goals",
+        "line": 2,
+        "sectionTitle": "Goals",
+        "text": "Step 1884: Gate-driven remediation planner (10 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 3,
+        "sectionTitle": "Goals",
+        "text": "Step 1885: Closed-loop execution engine for production completion (12 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 4,
+        "sectionTitle": "Goals",
+        "text": "Step 1886: Taskitem pipeline integration (`overall_ready` semantics) (8 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 5,
+        "sectionTitle": "Goals",
+        "text": "Step 1887: Benchmark validation (PriorityQueue + secondary workload) (10 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 6,
+        "sectionTitle": "Goals",
+        "text": "Step 1888: Sprint 168 Integration Summary (8 tests)"
+      }
+    ],
+    "sections": [
+      {
+        "anchor": "goals",
+        "headingLine": 1,
+        "title": "Goals"
+      },
+      {
+        "anchor": "constraints",
+        "headingLine": 8,
+        "title": "Constraints"
+      },
+      {
+        "anchor": "dependencies",
+        "headingLine": 13,
+        "title": "Dependencies"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "headingLine": 17,
+        "title": "Acceptance Criteria"
+      }
+    ]
+  },
+  "success": true
+}

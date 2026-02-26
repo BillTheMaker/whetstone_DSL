@@ -7,6 +7,7 @@
 
 struct HeadlessEditorState;
 #include "HeadlessOrchestratorRPC.h"
+#include "GenerationQualityGates.h"
 
 static inline json headlessRpcError(const json& id, int code,
                                     const std::string& msg) {

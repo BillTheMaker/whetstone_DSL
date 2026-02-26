@@ -1,0 +1,1 @@
+{"out_dir":"/home/bill/Documents/CLionProjects/whetstone_DSL/logs/taskitem_runs/production_loop_20260225_180220","spec":"Implement a C++ PriorityQueue class with WorkItem fields job_id, priority, payload and methods enqueue, dequeue, peek, size, empty","max_iters":3,"overall_ready":true}

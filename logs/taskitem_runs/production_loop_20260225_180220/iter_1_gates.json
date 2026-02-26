@@ -1,0 +1,22 @@
+{
+  "gates": {
+    "compile": {
+      "passed": true,
+      "return_code": 0,
+      "skipped": false,
+      "stderr": "/tmp/whetstone_gate_3qgpbo2d/generated.cpp:1:9: warning: #pragma once in main file\n    1 | #pragma once\n      |         ^~~~\n",
+      "stdout": ""
+    },
+    "overall_ready": true,
+    "placeholder": {
+      "count": 0,
+      "findings": [],
+      "passed": true
+    },
+    "tests": {
+      "missing": [],
+      "passed": true
+    }
+  },
+  "language": "cpp"
+}
