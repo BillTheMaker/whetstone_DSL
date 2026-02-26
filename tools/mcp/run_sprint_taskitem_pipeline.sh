@@ -49,6 +49,9 @@ NATIVE_SINGLESHOT_PROFILE_SHAPE="${WSTONE_NATIVE_SINGLESHOT_PROFILE_SHAPE:-0}"
 NATIVE_MULTISHOT_DECOMP="${WSTONE_NATIVE_MULTISHOT_DECOMP:-0}"
 NATIVE_MULTISHOT_MAX_PROFILES="${WSTONE_NATIVE_MULTISHOT_MAX_PROFILES:-12}"
 NATIVE_MULTISHOT_APPLY_MODE="${WSTONE_NATIVE_MULTISHOT_APPLY_MODE:-if_improves}"
+NATIVE_RAW_CANDIDATE_SEARCH="${WSTONE_NATIVE_RAW_CANDIDATE_SEARCH:-0}"
+NATIVE_RAW_CANDIDATE_MAX_VARIANTS="${WSTONE_NATIVE_RAW_CANDIDATE_MAX_VARIANTS:-8}"
+NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT:-0}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -110,6 +113,7 @@ NATIVE_PROFILE_AUTOFILL_JSON='{}'
 NATIVE_INTRINSIC_BOOST_JSON='{}'
 NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON='{}'
 NATIVE_MULTISHOT_JSON='{}'
+NATIVE_RAW_CANDIDATE_SEARCH_JSON='{}'
 INTRINSIC_REQS_JSON='[]'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 EXTRA_TASKS_JSON='[]'
@@ -384,6 +388,84 @@ else
     --argjson initial_task_count "$native_task_count_initial" \
     --argjson target_min_task_count "$NATIVE_DECOMP_TARGET_MIN_TASKS" \
     '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, target_min_task_count:$target_min_task_count}')"
+fi
+if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
+  if [[ "$(printf '%s' "$INTRINSIC_REQS_JSON" | jq 'length')" -eq 0 ]]; then
+    python3 "$ROOT_DIR/tools/mcp/synthesize_native_intrinsic_boost_requirements.py" \
+      --spec "$INPUT_FILE" \
+      --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+      --out "$OUT_DIR/02ae_raw_candidate_requirements.json" >/dev/null
+    INTRINSIC_REQS_JSON="$(cat "$OUT_DIR/02ae_raw_candidate_requirements.json")"
+  fi
+
+  printf '%s\n' "$TASKS" > "$OUT_DIR/02ae_candidate_0_tasks.json"
+  python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
+    --spec "$INPUT_FILE" \
+    --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+    --tasks "$OUT_DIR/02ae_candidate_0_tasks.json" \
+    --out "$OUT_DIR/02ae_candidate_0_score.json" >/dev/null
+  best_variant="0"
+  best_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02ae_candidate_0_score.json")"
+  best_task_count="$(jq '.task_count // 0' "$OUT_DIR/02ae_candidate_0_score.json")"
+  baseline_fail="$best_fail"
+  baseline_task_count="$best_task_count"
+  attempted=1
+  successful=1
+
+  req_total="$(printf '%s' "$INTRINSIC_REQS_JSON" | jq 'length')"
+  max_variants="$NATIVE_RAW_CANDIDATE_MAX_VARIANTS"
+  idx=0
+  variant=1
+  while [[ "$variant" -lt "$max_variants" && "$idx" -lt "$req_total" ]]; do
+    req_i="$(printf '%s' "$INTRINSIC_REQS_JSON" | jq ".[$idx]")"
+    cand_reqs="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson req "$req_i" '$base + [$req]')"
+    cand_args="$(jq -nc --argjson nr "$cand_reqs" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
+      '{normalizedRequirements:$nr,conflicts:$cf,strictExecutionContract:($strict == "1")}')"
+    cand_raw="$(call_tool "whetstone_generate_taskitems" "$cand_args")"
+    printf '%s\n' "$cand_raw" > "$OUT_DIR/02ae_candidate_${variant}_raw.ndjson.json"
+    cand_json="$(extract_tool_text_json "$cand_raw")"
+    printf '%s\n' "$cand_json" > "$OUT_DIR/02ae_candidate_${variant}.json"
+    attempted=$((attempted + 1))
+    if [[ "$(printf '%s' "$cand_json" | jq -r '.success // false')" == "true" ]]; then
+      cand_tasks="$(printf '%s' "$cand_json" | jq '.tasks // []')"
+      printf '%s\n' "$cand_tasks" > "$OUT_DIR/02ae_candidate_${variant}_tasks.json"
+      python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
+        --spec "$INPUT_FILE" \
+        --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+        --tasks "$OUT_DIR/02ae_candidate_${variant}_tasks.json" \
+        --out "$OUT_DIR/02ae_candidate_${variant}_score.json" >/dev/null
+      cand_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02ae_candidate_${variant}_score.json")"
+      cand_task_count="$(jq '.task_count // 0' "$OUT_DIR/02ae_candidate_${variant}_score.json")"
+      if [[ "$cand_fail" -lt "$best_fail" || ( "$cand_fail" -eq "$best_fail" && "$cand_task_count" -gt "$best_task_count" ) ]]; then
+        best_variant="$variant"
+        best_fail="$cand_fail"
+        best_task_count="$cand_task_count"
+        TASKS="$cand_tasks"
+      fi
+      successful=$((successful + 1))
+    fi
+    idx=$((idx + 1))
+    variant=$((variant + 1))
+  done
+
+  NATIVE_RAW_CANDIDATE_SEARCH_JSON="$(jq -nc \
+    --argjson enabled true \
+    --argjson attempted "$attempted" \
+    --argjson successful "$successful" \
+    --arg best_variant "$best_variant" \
+    --argjson baseline_failing_profile_count "$baseline_fail" \
+    --argjson baseline_task_count "$baseline_task_count" \
+    --argjson best_failing_profile_count "$best_fail" \
+    --argjson best_task_count "$best_task_count" \
+    '{enabled:$enabled, attempted_variants:$attempted, successful_variants:$successful, selected_variant:$best_variant, baseline_failing_profile_count:$baseline_failing_profile_count, baseline_task_count:$baseline_task_count, best_failing_profile_count:$best_failing_profile_count, best_task_count:$best_task_count}')"
+  printf '%s\n' "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" > "$OUT_DIR/02ae_raw_candidate_search.json"
+  if [[ "$NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT" == "1" && "$best_fail" -ge "$baseline_fail" ]]; then
+    echo "error: raw candidate search did not improve failing profile count" >&2
+    echo "error: see $OUT_DIR/02ae_raw_candidate_search.json" >&2
+    exit 17
+  fi
+else
+  NATIVE_RAW_CANDIDATE_SEARCH_JSON='{"enabled":false}'
 fi
 if [[ "$NATIVE_SINGLESHOT_PROFILE_SHAPE" == "1" ]]; then
   printf '%s\n' "$TASKS" > "$OUT_DIR/02ad_single_shot_base_tasks.json"
@@ -704,6 +786,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
   --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
+  --argjson native_raw_candidate_search "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" \
   --argjson native_single_shot_profile_shape "$NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON" \
   --argjson native_multishot "$NATIVE_MULTISHOT_JSON" \
   --argjson extra_normalized_requirements "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" \
@@ -731,6 +814,7 @@ SUMMARY_JSON="$(jq -nc \
     native_decomposition_retry: $native_decomposition_retry,
     native_profile_autofill: $native_profile_autofill,
     native_intrinsic_boost: $native_intrinsic_boost,
+    native_raw_candidate_search: $native_raw_candidate_search,
     native_single_shot_profile_shape: $native_single_shot_profile_shape,
     native_multishot: $native_multishot,
     extra_normalized_requirements: $extra_normalized_requirements,

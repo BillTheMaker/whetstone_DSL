@@ -150,7 +150,7 @@ Parallel planning tranche (active):
   - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 Planning runtime controls (active):
-- `sprint232_plan.md` to `sprint247_plan.md`
+- `sprint232_plan.md` to `sprint249_plan.md`
 - semantic bridge + intake augmentation + requirement injection + expansion gating are wired into:
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
 - current policy default is native-first semantic fallback:
@@ -197,3 +197,8 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_SINGLESHOT_PROFILE_SHAPE`
   - `tools/mcp/synthesize_single_shot_profile_shape_tasks.py`
   - `native_single_shot_profile_shape`
+- raw-only candidate search (no overlays) can benchmark intrinsic generator variants:
+  - `WSTONE_NATIVE_RAW_CANDIDATE_SEARCH`
+  - `WSTONE_NATIVE_RAW_CANDIDATE_MAX_VARIANTS`
+  - `WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT`
+  - `tools/mcp/score_native_tasks_profile_coverage.py`

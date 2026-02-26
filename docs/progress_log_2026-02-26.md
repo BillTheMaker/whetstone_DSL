@@ -295,3 +295,31 @@
 - Enforced gate verification:
   - pass ON: `logs/taskitem_runs/TEST_ONLY_sprint247_singleshot_enforce_20260226_153241/00_summary.json`
   - fail OFF: `logs/taskitem_runs/TEST_ONLY_sprint247_singleshot_enforce_20260226_153242/06_native_impact_coverage.json`
+
+## Sprint 248 Added (Same Day)
+
+- Added raw generator candidate search path (no shaping/autofill/multishot overlays):
+  - `tools/mcp/score_native_tasks_profile_coverage.py`
+  - `WSTONE_NATIVE_RAW_CANDIDATE_SEARCH`
+  - `WSTONE_NATIVE_RAW_CANDIDATE_MAX_VARIANTS`
+  - summary packet: `native_raw_candidate_search`
+- A/B artifacts:
+  - OFF: `logs/taskitem_runs/TEST_ONLY_sprint248_rawsearch_20260226_153902/00_summary.json`
+  - ON: `logs/taskitem_runs/TEST_ONLY_sprint248_rawsearch_20260226_153903/00_summary.json`
+- Current measured result:
+  - `attempted_variants=8`, `selected_variant=0`
+  - `failing_profile_count 7 -> 7`
+  - no raw-only uplift on this hard sample.
+
+## Sprint 249 Added (Same Day)
+
+- Added raw candidate no-uplift guardrail:
+  - `WSTONE_NATIVE_RAW_CANDIDATE_REQUIRE_UPLIFT`
+  - artifact: `02ae_raw_candidate_search.json`
+  - hard fail code: `17` when uplift is required but absent
+- Dated artifacts:
+  - guard OFF: `logs/taskitem_runs/TEST_ONLY_sprint249_rawguard_20260226_154026/00_summary.json`
+  - guard ON (expected fail): `logs/taskitem_runs/TEST_ONLY_sprint249_rawguard_20260226_154028/02ae_raw_candidate_search.json`
+- Current measured result:
+  - baseline `7`, best `7` failing profiles
+  - run blocked correctly under require-uplift mode.
