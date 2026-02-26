@@ -1,3 +1,30 @@
+# Progress Log (Historical + Current Snapshot)
+
+## Current Snapshot (2026-02-26)
+
+This file is a historical step log. The latest completed work in this workspace is:
+
+- Sprint 161 (steps 1849-1853): `whetstone_architect_intake` requirements extraction fix
+- Sprint 162 (steps 1854-1858): class emission fix across all language generators
+- Sprint 163-165 (steps 1859-1873): strict MCP grammar completion pipeline
+  (schema normalization, recursive grammar generation, strictness policy gate,
+  manifest/lock verification, strict runtime preflight checks)
+
+Artifacts and logs:
+- `docs/sprint161_162_taskitem_execution_log_2026-02-25.md`
+- `docs/sprint163_165_taskitem_execution_log_2026-02-26.md`
+- `tools/mcp/grammars/dispatch.gbnf`
+- `tools/mcp/grammars/dispatch_schema.json`
+- `tools/mcp/grammars/per_tool_schemas.json`
+- `tools/mcp/grammars/strictness_report.json`
+
+Current coverage:
+- 347 tool schemas
+- 347 per-tool grammars
+- 347 dispatch schema branches
+
+---
+
 # Sprint 9 Progress — Agent-First Tooling
 
 ## Phase 9a: Standalone MCP Server
@@ -14157,3 +14184,26 @@ Resolved remaining `whetstone_mcp` build warning:
 
 **Verification run:**
 - `cmake --build editor/build-native --target whetstone_mcp` - PASS
+
+## Sprint 169 Implementation (Production `run_pipeline` Tightening)
+**Status:** PASS
+
+Implemented Sprint 169 runtime upgrades for cross-language pipeline generation quality:
+- Removed receiver placeholder leakage from Python class methods (`self`/`cls`) via parser normalization.
+- Added Python type extraction for typed params/returns and text fallback parsing for method signatures.
+- Materialized class fields from `__init__` assignments (e.g., WorkItem fields) with inferred concrete types.
+- Added list literal parsing and field type propagation to avoid placeholder field declarations.
+- Hardened C++ method typing heuristics for queue-family methods and parameter inference.
+- Added language-side body fallback scaffolding in Rust/Go/Java method emitters.
+- Expanded quality gate payload with per-gate reasons and `failure_reasons`.
+- Added `editor/src/Sprint169IntegrationSummary.h`.
+
+**Verification run:**
+- `cmake --build editor/build-native --target whetstone_mcp` - PASS
+- MCP probe (`whetstone_run_pipeline`, Python->C++ full PriorityQueue sample) - PASS
+  - placeholders/todos: `0`
+  - `gates.overall_ready: true`
+- `WSTONE_MCP_BIN=editor/build-native/whetstone_mcp ./tools/mcp/run_production_completion_loop.sh "Generate WorkItem and PriorityQueue classes with enqueue, dequeue, peek, size, empty"` - PASS
+  - output: `logs/taskitem_runs/production_loop_20260225_181948`
+- `./tools/mcp/run_sprint_taskitem_pipeline.sh sprint169_plan.md` - PASS
+  - output: `logs/taskitem_runs/sprint169_plan_20260225_181953`

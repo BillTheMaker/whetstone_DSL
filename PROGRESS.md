@@ -16,13 +16,26 @@ Whetstone is a semantic annotation DSL (SemAnno) and structured editor for cross
 
 ## Current State
 
-**Step 858 / Sprint 62 — COMPLETE**
+**Updated: 2026-02-26**
 
-Last recorded: Sprint 62 (Step 858). 30/30 sprint 60-62 tests passing.
-Sprints 46-62 complete (steps 689-858). Sprints 63-120 in progress.
-Sprints 121-130 pre-built (steps 1449-1548, debug workflow tooling).
-MCP tool count: **90+ tools**. Architecture gate: all headers ≤ 600 lines.
-`whetstone_mcp` binary: `editor/build-native/whetstone_mcp_stable`
+Latest completed work includes:
+- Sprint 161 (steps 1849-1853): intake requirements extraction repair
+- Sprint 162 (steps 1854-1858): class emission repair across language generators
+- Sprint 163-165 (steps 1859-1873): strict MCP grammar pipeline, schema normalization,
+  policy gates, manifest drift checks, runtime strict preflight checks
+
+Current MCP grammar/tooling status:
+- Tool schema coverage: **347 tools**
+- Per-tool grammar files: **347**
+- Dispatch schema branches: **347**
+- Strict grammar CI pipeline: `tools/mcp/run_grammar_ci_checks.sh` (passing)
+
+Current stable MCP binary:
+- `editor/build-native/whetstone_mcp_stable`
+
+Recent sprint execution logs:
+- `docs/sprint161_162_taskitem_execution_log_2026-02-25.md`
+- `docs/sprint163_165_taskitem_execution_log_2026-02-26.md`
 
 ---
 
@@ -859,3 +872,4 @@ for use by Claude Code sessions in the `/home/bill/Documents` workspace.
 | 2026-02-23 | Codex | Data quality metadata upgrade: `tools/mcp/reclassify_tool_execution_quality.sh` now writes `tool_call_success`, `failure_class`, `recovery_pattern`, `failure_terminality`, `quality_schema_version=2`; loop now reclassifies each cycle and emits UTC heartbeat telemetry. Session ended with churn intentionally stopped on user request. |
 | 2026-02-24 | Codex | Sprints 93–117 implemented in one pass: added step coverage 1159–1407 (models, MCP tool registrations, integration summaries, and tests), wired CMake targets, and validated representative build/run set (`step1159_test`, `step1165_test`, `step1208_test`, `step1248_test`, `step1308_test`, `step1348_test`, `step1358_test`, `step1368_test`, `step1378_test`, `step1388_test`, `step1398_test`, `step1407_test`) all passing. |
 | 2026-02-24 | Codex | Sprints 118–119 complete: added steps 1419–1438 (distributed failure evidence capture + deterministic cross-node triage), wired MCP registrations, added tests/CMake targets, and validated representative targets (`step1419_test`, `step1423_test`, `step1428_test`, `step1429_test`, `step1433_test`, `step1438_test`) all passing. |
+| 2026-02-26 | Codex | Sprint 169 implemented for production `run_pipeline` output: Python method receiver normalization (`self`/`cls` stripping), typed parameter/return extraction with text fallback, `__init__` field materialization, list literal handling, stronger C++ queue method typing, Rust/Go/Java method fallback scaffolding, and gate payload hardening (`reason` + `failure_reasons`). Rebuilt `whetstone_mcp` target and validated Python->C++ PriorityQueue sample with `overall_ready=true` plus production loop artifact at `logs/taskitem_runs/production_loop_20260225_181948`. |

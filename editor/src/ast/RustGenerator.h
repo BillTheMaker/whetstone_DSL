@@ -5,6 +5,8 @@
 #include "GenericType.h"
 #include "AsyncNodes.h"
 #include "../SemannoAnnotationImpl.h"
+#include <algorithm>
+#include <cctype>
 
 class RustGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<RustGenerator> {
 public:
@@ -33,6 +35,14 @@ public:
         for (size_t i = 0; i < functions.size(); ++i) {
             if (i > 0) oss << "\n";
             oss << visitFunction(static_cast<const Function*>(functions[i]));
+        }
+
+        auto classes = module->getChildren("classes");
+        if (!classes.empty() && !functions.empty()) oss << "\n";
+        for (const auto* cls : classes) {
+            std::string classCode = generate(cls);
+            oss << classCode;
+            if (classCode.empty() || classCode.back() != '\n') oss << "\n";
         }
         return oss.str();
     }
@@ -465,15 +475,33 @@ public:
         if (!meth->isStatic) oss << "&self";
         auto params = meth->getChildren("parameters");
         for (size_t i = 0; i < params.size(); ++i) {
-            if (!meth->isStatic || i > 0) oss << ", ";
-            oss << visitParameter(static_cast<const Parameter*>(params[i]));
+            auto* p = static_cast<const Parameter*>(params[i]);
+            if (!p) continue;
+            if (p->name == "self" || p->name == "cls") continue;
+            oss << ", " << visitParameter(p);
         }
         oss << ")";
         auto retType = meth->getChild("returnType");
         if (retType) oss << " -> " << generate(retType);
         auto body = meth->getChildren("body");
         if (body.empty()) {
-            oss << " {}\n";
+            oss << " {\n";
+            std::string lower = meth->name;
+            std::transform(lower.begin(), lower.end(), lower.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            if (lower.find("empty") != std::string::npos) {
+                oss << "        false\n";
+            } else if (lower.find("size") != std::string::npos) {
+                oss << "        0\n";
+            } else if (retType) {
+                std::string ret = generate(retType);
+                if (ret == "bool") oss << "        false\n";
+                else if (ret == "i32" || ret == "i64" || ret == "usize") oss << "        0\n";
+                else if (ret == "String") oss << "        String::new()\n";
+                else if (ret.find("Option<") == 0) oss << "        None\n";
+                else if (ret != "()") oss << "        panic!(\"unimplemented\")\n";
+            }
+            oss << "    }\n";
         } else {
             oss << " {\n";
             emitBody(oss, body, "        ");

@@ -115,6 +115,9 @@ inline GenerationQualitySummary evaluate(const std::string& code,
 }
 
 inline nlohmann::json toJson(const GenerationQualitySummary& q) {
+    auto compileReason = q.compilableEstimate ? "ok" : "code_missing_structure_or_fallback";
+    auto testReason = q.testsPassedEstimate ? "ok" : "queue_behavior_signals_missing";
+    auto placeholderReason = q.placeholderPassed ? "ok" : "placeholder_or_todo_tokens_present";
     return {
         {"quality", {
             {"compilable_estimate", q.compilableEstimate},
@@ -124,9 +127,13 @@ inline nlohmann::json toJson(const GenerationQualitySummary& q) {
             {"warnings", q.warnings}
         }},
         {"gates", {
-            {"compile", {{"passed", q.compilableEstimate}}},
-            {"tests", {{"passed", q.testsPassedEstimate}}},
-            {"placeholder", {{"passed", q.placeholderPassed}}},
+            {"compile", {{"passed", q.compilableEstimate},
+                         {"reason", compileReason}}},
+            {"tests", {{"passed", q.testsPassedEstimate},
+                       {"reason", testReason}}},
+            {"placeholder", {{"passed", q.placeholderPassed},
+                             {"reason", placeholderReason}}},
+            {"failure_reasons", q.warnings},
             {"overall_ready", q.overallReady}
         }}
     };

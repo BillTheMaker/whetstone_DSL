@@ -5,6 +5,8 @@
 #include "GenericType.h"
 #include "AsyncNodes.h"
 #include "../SemannoAnnotationImpl.h"
+#include <algorithm>
+#include <cctype>
 
 class GoGenerator : public ProjectionGenerator, public SemannoAnnotationImpl<GoGenerator> {
 public:
@@ -40,6 +42,14 @@ public:
         for (size_t i = 0; i < functions.size(); ++i) {
             if (i > 0) oss << "\n";
             oss << visitFunction(static_cast<const Function*>(functions[i]));
+        }
+
+        auto classes = module->getChildren("classes");
+        if (!classes.empty() && !functions.empty()) oss << "\n";
+        for (const auto* cls : classes) {
+            std::string classCode = generate(cls);
+            oss << classCode;
+            if (classCode.empty() || classCode.back() != '\n') oss << "\n";
         }
         return oss.str();
     }
@@ -447,12 +457,38 @@ public:
             oss << "(" << receiverVar(meth->className) << " *" << meth->className << ") ";
         }
         oss << meth->name << "(";
-        emitParameters(oss, meth->getChildren("parameters"));
+        auto params = meth->getChildren("parameters");
+        bool first = true;
+        for (const auto* pNode : params) {
+            auto* p = static_cast<const Parameter*>(pNode);
+            if (!p) continue;
+            if (p->name == "self" || p->name == "cls") continue;
+            if (!first) oss << ", ";
+            first = false;
+            oss << visitParameter(p);
+        }
         oss << ")";
         auto retType = meth->getChild("returnType");
         if (retType) oss << " " << generate(retType);
         oss << " {\n";
-        emitBody(oss, meth->getChildren("body"), "    ");
+        auto body = meth->getChildren("body");
+        if (body.empty()) {
+            std::string lower = meth->name;
+            std::transform(lower.begin(), lower.end(), lower.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            if (lower.find("empty") != std::string::npos) {
+                oss << "    return false\n";
+            } else if (lower.find("size") != std::string::npos) {
+                oss << "    return 0\n";
+            } else if (retType) {
+                std::string ret = generate(retType);
+                if (ret == "bool") oss << "    return false\n";
+                else if (ret == "int" || ret == "int32" || ret == "int64") oss << "    return 0\n";
+                else if (ret == "string") oss << "    return \"\"\n";
+            }
+        } else {
+            emitBody(oss, body, "    ");
+        }
         oss << "}\n";
         return oss.str();
     }

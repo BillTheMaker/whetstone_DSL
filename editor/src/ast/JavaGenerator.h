@@ -26,57 +26,22 @@ public:
         }
         if (!imports.empty()) oss << "\n";
 
-        // Group functions and variables by class prefix.
-        std::map<std::string, std::vector<const Function*>> classMethods;
-        std::map<std::string, std::vector<const Variable*>> classFields;
-        std::vector<const Function*> topLevelMethods;
-        std::vector<const Variable*> topLevelFields;
+        auto variables = module->getChildren("variables");
+        for (const auto* var : variables) {
+            oss << "Object " << static_cast<const Variable*>(var)->name << ";\n";
+        }
+        if (!variables.empty()) oss << "\n";
 
         auto functions = module->getChildren("functions");
-        for (const auto* fnNode : functions) {
-            if (fnNode->conceptType != "Function") continue;
-            const Function* fn = static_cast<const Function*>(fnNode);
-            auto pos = fn->name.find('.');
-            if (pos != std::string::npos && pos > 0 && pos + 1 < fn->name.size()) {
-                std::string className = fn->name.substr(0, pos);
-                classMethods[className].push_back(fn);
-            } else {
-                topLevelMethods.push_back(fn);
-            }
+        for (size_t i = 0; i < functions.size(); ++i) {
+            if (i > 0) oss << "\n";
+            oss << visitFunction(static_cast<const Function*>(functions[i]));
         }
 
-        auto variables = module->getChildren("variables");
-        for (const auto* varNode : variables) {
-            if (varNode->conceptType != "Variable") continue;
-            const Variable* var = static_cast<const Variable*>(varNode);
-            auto pos = var->name.find('.');
-            if (pos != std::string::npos && pos > 0 && pos + 1 < var->name.size()) {
-                std::string className = var->name.substr(0, pos);
-                classFields[className].push_back(var);
-            } else {
-                topLevelFields.push_back(var);
-            }
-        }
-
-        std::string moduleClass = module->name.empty() ? "Main" : module->name;
-        if (!topLevelMethods.empty() || !topLevelFields.empty()) {
-            emitClass(oss, moduleClass, topLevelFields, topLevelMethods);
-            if (!classMethods.empty() || !classFields.empty()) oss << "\n";
-        }
-
-        for (const auto& [className, methods] : classMethods) {
-            std::vector<const Variable*> fields;
-            auto it = classFields.find(className);
-            if (it != classFields.end()) fields = it->second;
-            emitClass(oss, className, fields, methods);
-            oss << "\n";
-        }
-
-        if (!classFields.empty() && classMethods.empty()) {
-            for (const auto& [className, fields] : classFields) {
-                emitClass(oss, className, fields, {});
-                oss << "\n";
-            }
+        auto classes = module->getChildren("classes");
+        if (!classes.empty() && !functions.empty()) oss << "\n";
+        for (const auto* cls : classes) {
+            oss << generate(cls) << "\n";
         }
 
         return oss.str();
@@ -507,12 +472,32 @@ public:
         auto retType = meth->getChild("returnType");
         if (retType) returnType = generate(retType);
         oss << returnType << " " << meth->name << "(";
-        emitParameters(oss, meth->getChildren("parameters"));
+        auto params = meth->getChildren("parameters");
+        bool first = true;
+        for (const auto* pNode : params) {
+            auto* p = static_cast<const Parameter*>(pNode);
+            if (!p) continue;
+            if (p->name == "self" || p->name == "cls") continue;
+            if (!first) oss << ", ";
+            first = false;
+            oss << visitParameter(p);
+        }
         oss << ")";
         if (meth->isOverride) oss << " /* @Override */";
         auto body = meth->getChildren("body");
         if (body.empty()) {
-            oss << " {}\n";
+            oss << " {\n";
+            if (returnType == "boolean") {
+                oss << "        return false;\n";
+            } else if (returnType == "int" || returnType == "long" || returnType == "double" ||
+                       returnType == "float" || returnType == "short") {
+                oss << "        return 0;\n";
+            } else if (returnType == "String") {
+                oss << "        return \"\";\n";
+            } else if (returnType != "void") {
+                oss << "        return null;\n";
+            }
+            oss << "    }\n";
         } else {
             oss << " {\n";
             emitBody(oss, body, "        ");

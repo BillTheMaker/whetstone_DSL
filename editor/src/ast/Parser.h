@@ -19,6 +19,8 @@
 #include <vector>
 #include <atomic>
 #include <cstring>
+#include <algorithm>
+#include <cctype>
 
 #include <tree_sitter/api.h>
 

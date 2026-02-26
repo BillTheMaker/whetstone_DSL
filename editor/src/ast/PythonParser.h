@@ -94,6 +94,7 @@ private:
         if (!ts_node_is_null(paramsNode)) {
             convertPythonParameters(paramsNode, source, fn);
         }
+        attachPythonReturnType(node, source, fn);
 
         // Body
         TSNode bodyNode = childByFieldName(node, "body");
@@ -133,7 +134,10 @@ private:
                 std::string type = nodeType(child);
                 if (type == "function_definition") {
                     auto* meth = convertPythonMethodDecl(child, source, cls->name);
-                    if (meth) cls->addChild("methods", meth);
+                    if (meth) {
+                        cls->addChild("methods", meth);
+                        maybeMaterializeClassFieldsFromInit(cls, meth);
+                    }
                 } else if (type == "decorated_definition") {
                     TSNode defNode = childByFieldName(child, "definition");
                     if (!ts_node_is_null(defNode) && nodeType(defNode) == "function_definition") {
@@ -145,10 +149,17 @@ private:
                                 TSNode dChild = ts_node_named_child(child, j);
                                 if (nodeType(dChild) == "decorator") {
                                     auto* dec = convertPythonDecoratorNode(dChild, source);
-                                    if (dec) meth->addChild("annotations", dec);
+                                    if (dec) {
+                                        if (dec->name == "staticmethod" ||
+                                            dec->name == "classmethod") {
+                                            meth->isStatic = true;
+                                        }
+                                        meth->addChild("annotations", dec);
+                                    }
                                 }
                             }
                             cls->addChild("methods", meth);
+                            maybeMaterializeClassFieldsFromInit(cls, meth);
                         }
                     }
                 }
@@ -172,6 +183,8 @@ private:
         if (!ts_node_is_null(paramsNode)) {
             convertPythonParameters(paramsNode, source, meth);
         }
+        attachPythonReturnType(node, source, meth);
+        dropPythonReceiverParameter(meth);
 
         // Body
         TSNode bodyNode = childByFieldName(node, "body");
@@ -259,8 +272,27 @@ private:
                     }
                     fn->addChild("parameters", param);
                 }
+            } else if (type == "typed_parameter" || type == "typed_default_parameter") {
+                TSNode nameN = childByFieldName(child, "name");
+                if (ts_node_is_null(nameN)) nameN = childByFieldName(child, "parameter");
+                TSNode typeN = childByFieldName(child, "type");
+                TSNode valueN = childByFieldName(child, "value");
+                if (!ts_node_is_null(nameN)) {
+                    auto* param = new Parameter(IdGenerator::next("param"), nodeText(nameN, source));
+                    applySpan(param, child);
+                    if (!ts_node_is_null(typeN)) {
+                        ASTNode* parsedType = parsePythonTypeNode(typeN, source);
+                        if (parsedType) param->setChild("type", parsedType);
+                    }
+                    if (!ts_node_is_null(valueN)) {
+                        ASTNode* defVal = convertPythonExpression(valueN, source);
+                        if (defVal) param->setChild("defaultValue", defVal);
+                    }
+                    fn->addChild("parameters", param);
+                }
             }
         }
+        convertPythonParametersFromText(paramsNode, source, fn);
     }
 
     static void convertPythonBody(TSNode bodyNode, const std::string& source, Function* fn) {
@@ -373,6 +405,22 @@ private:
             auto* ref = new VariableReference(IdGenerator::next("var"), nodeText(node, source));
             applySpan(ref, node);
             return ref;
+        } else if (type == "attribute") {
+            auto* acc = new MemberAccess();
+            acc->id = IdGenerator::next("member");
+            applySpan(acc, node);
+            TSNode objectNode = childByFieldName(node, "object");
+            TSNode attributeNode = childByFieldName(node, "attribute");
+            if (!ts_node_is_null(attributeNode)) {
+                acc->memberName = nodeText(attributeNode, source);
+            } else {
+                acc->memberName = nodeText(node, source);
+            }
+            if (!ts_node_is_null(objectNode)) {
+                ASTNode* target = convertPythonExpression(objectNode, source);
+                if (target) acc->setChild("target", target);
+            }
+            return acc;
         } else if (type == "integer") {
             std::string text = nodeText(node, source);
             int val = 0;
@@ -424,6 +472,16 @@ private:
                 }
             }
             return call;
+        } else if (type == "list") {
+            auto* list = new ListLiteral();
+            list->id = IdGenerator::next("list");
+            applySpan(list, node);
+            uint32_t count = ts_node_named_child_count(node);
+            for (uint32_t i = 0; i < count; ++i) {
+                ASTNode* elem = convertPythonExpression(ts_node_named_child(node, i), source);
+                if (elem) list->addChild("elements", elem);
+            }
+            return list;
         } else if (type == "assignment") {
             auto* assign = new Assignment();
             assign->id = IdGenerator::next("assign");
@@ -500,6 +558,308 @@ private:
             return ref;
         }
         return nullptr;
+    }
+
+    static bool isPythonSelfName(const std::string& name) {
+        return name == "self" || name == "cls";
+    }
+
+    static void dropPythonReceiverParameter(MethodDeclaration* meth) {
+        if (!meth || meth->isStatic) return;
+        const auto& params = meth->getChildren("parameters");
+        if (params.empty()) return;
+        auto* first = static_cast<Parameter*>(params.front());
+        if (!first || !isPythonSelfName(first->name)) return;
+        // Remove synthetic receiver from method parameter list for target languages.
+        meth->removeChild(first);
+        delete first;
+    }
+
+    static ASTNode* parsePythonTypeNode(TSNode typeNode, const std::string& source) {
+        if (ts_node_is_null(typeNode)) return nullptr;
+        std::string raw = nodeText(typeNode, source);
+        if (raw.empty()) return nullptr;
+        std::string lower = raw;
+        std::transform(lower.begin(), lower.end(), lower.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (lower == "str" || lower == "string") return new PrimitiveType(IdGenerator::next("type"), "string");
+        if (lower == "int" || lower == "integer") return new PrimitiveType(IdGenerator::next("type"), "int");
+        if (lower == "float" || lower == "double") return new PrimitiveType(IdGenerator::next("type"), "double");
+        if (lower == "bool" || lower == "boolean") return new PrimitiveType(IdGenerator::next("type"), "bool");
+        if (lower == "none" || lower == "void") return new PrimitiveType(IdGenerator::next("type"), "void");
+        if (lower == "list") {
+            auto* list = new ListType();
+            list->id = IdGenerator::next("type");
+            return list;
+        }
+        if (lower.rfind("list[", 0) == 0 && lower.back() == ']') {
+            auto* list = new ListType();
+            list->id = IdGenerator::next("type");
+            std::string elemRaw = raw.substr(5, raw.size() - 6);
+            std::string elemLower = elemRaw;
+            std::transform(elemLower.begin(), elemLower.end(), elemLower.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            ASTNode* elemType = nullptr;
+            if (elemLower == "str" || elemLower == "string") {
+                elemType = new PrimitiveType(IdGenerator::next("type"), "string");
+            } else if (elemLower == "int" || elemLower == "integer") {
+                elemType = new PrimitiveType(IdGenerator::next("type"), "int");
+            } else if (elemLower == "float" || elemLower == "double") {
+                elemType = new PrimitiveType(IdGenerator::next("type"), "double");
+            } else if (elemLower == "bool" || elemLower == "boolean") {
+                elemType = new PrimitiveType(IdGenerator::next("type"), "bool");
+            } else {
+                elemType = new CustomType(IdGenerator::next("type"), elemRaw);
+            }
+            list->setChild("elementType", elemType);
+            return list;
+        }
+        return new CustomType(IdGenerator::next("type"), raw);
+    }
+
+    static ASTNode* parsePythonTypeText(const std::string& rawIn) {
+        std::string raw = trimCopy(rawIn);
+        if (raw.empty()) return nullptr;
+        std::string lower = raw;
+        std::transform(lower.begin(), lower.end(), lower.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (lower == "str" || lower == "string") return new PrimitiveType(IdGenerator::next("type"), "string");
+        if (lower == "int" || lower == "integer") return new PrimitiveType(IdGenerator::next("type"), "int");
+        if (lower == "float" || lower == "double") return new PrimitiveType(IdGenerator::next("type"), "double");
+        if (lower == "bool" || lower == "boolean") return new PrimitiveType(IdGenerator::next("type"), "bool");
+        if (lower == "none" || lower == "void") return new PrimitiveType(IdGenerator::next("type"), "void");
+        if (lower == "list") {
+            auto* list = new ListType();
+            list->id = IdGenerator::next("type");
+            return list;
+        }
+        if (lower.rfind("list[", 0) == 0 && lower.back() == ']') {
+            auto* list = new ListType();
+            list->id = IdGenerator::next("type");
+            std::string elemRaw = raw.substr(5, raw.size() - 6);
+            ASTNode* elemType = parsePythonTypeText(elemRaw);
+            if (elemType) list->setChild("elementType", elemType);
+            return list;
+        }
+        return new CustomType(IdGenerator::next("type"), raw);
+    }
+
+    static ASTNode* cloneTypeNode(const ASTNode* typeNode) {
+        if (!typeNode) return nullptr;
+        if (typeNode->conceptType == "PrimitiveType") {
+            auto* t = static_cast<const PrimitiveType*>(typeNode);
+            return new PrimitiveType(IdGenerator::next("type"), t->kind);
+        }
+        if (typeNode->conceptType == "CustomType") {
+            auto* t = static_cast<const CustomType*>(typeNode);
+            return new CustomType(IdGenerator::next("type"), t->typeName);
+        }
+        if (typeNode->conceptType == "ListType") {
+            auto* out = new ListType();
+            out->id = IdGenerator::next("type");
+            auto* elem = typeNode->getChild("elementType");
+            if (elem) {
+                ASTNode* c = cloneTypeNode(elem);
+                if (c) out->setChild("elementType", c);
+            }
+            return out;
+        }
+        return nullptr;
+    }
+
+    static void attachPythonReturnType(TSNode node, const std::string& source, Function* fn) {
+        if (!fn) return;
+        TSNode returnType = childByFieldName(node, "return_type");
+        ASTNode* parsedType = nullptr;
+        if (!ts_node_is_null(returnType)) {
+            parsedType = parsePythonTypeNode(returnType, source);
+        }
+        if (!parsedType) {
+            std::string signature = nodeText(node, source);
+            size_t arrowPos = signature.find("->");
+            if (arrowPos != std::string::npos) {
+                size_t start = arrowPos + 2;
+                size_t end = signature.find(':', start);
+                if (end != std::string::npos && end > start) {
+                    parsedType = parsePythonTypeText(signature.substr(start, end - start));
+                }
+            }
+        }
+        if (parsedType) fn->setChild("returnType", parsedType);
+    }
+
+    static std::string inferSelfFieldName(const ASTNode* target) {
+        if (!target) return "";
+        if (target->conceptType == "MemberAccess") {
+            auto* access = static_cast<const MemberAccess*>(target);
+            auto* base = access->getChild("target");
+            if (base && base->conceptType == "VariableReference" &&
+                static_cast<const VariableReference*>(base)->variableName == "self") {
+                return access->memberName;
+            }
+        }
+        if (target->conceptType == "VariableReference") {
+            std::string name = static_cast<const VariableReference*>(target)->variableName;
+            if (name.rfind("self.", 0) == 0 && name.size() > 5) {
+                return name.substr(5);
+            }
+        }
+        return "";
+    }
+
+    static ASTNode* inferFieldTypeFromValue(const ASTNode* value, const MethodDeclaration* initMethod) {
+        if (!value) return nullptr;
+        if (value->conceptType == "IntegerLiteral") return new PrimitiveType(IdGenerator::next("type"), "int");
+        if (value->conceptType == "StringLiteral") return new PrimitiveType(IdGenerator::next("type"), "string");
+        if (value->conceptType == "FloatLiteral") return new PrimitiveType(IdGenerator::next("type"), "double");
+        if (value->conceptType == "BooleanLiteral") return new PrimitiveType(IdGenerator::next("type"), "bool");
+        if (value->conceptType == "VariableReference" && initMethod) {
+            std::string rhs = static_cast<const VariableReference*>(value)->variableName;
+            for (auto* pNode : initMethod->getChildren("parameters")) {
+                auto* p = static_cast<const Parameter*>(pNode);
+                if (p && p->name == rhs) {
+                    ASTNode* cloned = cloneTypeNode(p->getChild("type"));
+                    if (cloned) return cloned;
+                }
+            }
+        }
+        if (value->conceptType == "ListLiteral") {
+            auto* listType = new ListType();
+            listType->id = IdGenerator::next("type");
+            return listType;
+        }
+        return nullptr;
+    }
+
+    static bool classHasField(const ClassDeclaration* cls, const std::string& name) {
+        if (!cls) return false;
+        for (auto* fieldNode : cls->getChildren("fields")) {
+            if (fieldNode->conceptType != "Variable") continue;
+            auto* field = static_cast<const Variable*>(fieldNode);
+            if (field->name == name) return true;
+        }
+        return false;
+    }
+
+    static std::string trimCopy(const std::string& in) {
+        size_t start = 0;
+        size_t end = in.size();
+        while (start < end && std::isspace(static_cast<unsigned char>(in[start]))) ++start;
+        while (end > start && std::isspace(static_cast<unsigned char>(in[end - 1]))) --end;
+        return in.substr(start, end - start);
+    }
+
+    static ASTNode* parseSimpleDefaultValue(const std::string& rawValue) {
+        std::string v = trimCopy(rawValue);
+        if (v.empty()) return nullptr;
+        if ((v.front() == '\'' && v.back() == '\'') || (v.front() == '"' && v.back() == '"')) {
+            return new StringLiteral(IdGenerator::next("str"), v);
+        }
+        if (v == "True") return new BooleanLiteral(IdGenerator::next("bool"), true);
+        if (v == "False") return new BooleanLiteral(IdGenerator::next("bool"), false);
+        bool isInt = !v.empty();
+        for (char c : v) {
+            if (!(c == '-' || (c >= '0' && c <= '9'))) {
+                isInt = false;
+                break;
+            }
+        }
+        if (isInt) {
+            int val = 0;
+            try { val = std::stoi(v); } catch (...) {}
+            return new IntegerLiteral(IdGenerator::next("int"), val);
+        }
+        return nullptr;
+    }
+
+    static std::vector<std::string> splitPythonParameterList(const std::string& body) {
+        std::vector<std::string> out;
+        std::string cur;
+        int bracketDepth = 0;
+        for (char c : body) {
+            if (c == '[' || c == '(' || c == '{') ++bracketDepth;
+            if (c == ']' || c == ')' || c == '}') --bracketDepth;
+            if (c == ',' && bracketDepth == 0) {
+                out.push_back(trimCopy(cur));
+                cur.clear();
+            } else {
+                cur.push_back(c);
+            }
+        }
+        if (!trimCopy(cur).empty()) out.push_back(trimCopy(cur));
+        return out;
+    }
+
+    static void convertPythonParametersFromText(TSNode paramsNode,
+                                                const std::string& source,
+                                                Function* fn) {
+        if (!fn) return;
+        std::string text = trimCopy(nodeText(paramsNode, source));
+        if (text.size() < 2 || text.front() != '(' || text.back() != ')') return;
+        text = text.substr(1, text.size() - 2);
+        auto tokens = splitPythonParameterList(text);
+        for (const auto& rawToken : tokens) {
+            std::string token = trimCopy(rawToken);
+            if (token.empty() || token == "/" || token == "*") continue;
+            if (token.rfind("**", 0) == 0 || token.rfind("*", 0) == 0) continue;
+
+            std::string namePart = token;
+            std::string typePart;
+            std::string defaultPart;
+
+            size_t eqPos = token.find('=');
+            if (eqPos != std::string::npos) {
+                namePart = trimCopy(token.substr(0, eqPos));
+                defaultPart = trimCopy(token.substr(eqPos + 1));
+            }
+            size_t colonPos = namePart.find(':');
+            if (colonPos != std::string::npos) {
+                typePart = trimCopy(namePart.substr(colonPos + 1));
+                namePart = trimCopy(namePart.substr(0, colonPos));
+            }
+            if (namePart.empty()) continue;
+            bool alreadyPresent = false;
+            for (auto* existingNode : fn->getChildren("parameters")) {
+                auto* existing = static_cast<const Parameter*>(existingNode);
+                if (existing && existing->name == namePart) {
+                    alreadyPresent = true;
+                    break;
+                }
+            }
+            if (alreadyPresent) continue;
+
+            auto* param = new Parameter(IdGenerator::next("param"), namePart);
+            ASTNode* parsedType = parsePythonTypeText(typePart);
+            if (parsedType) param->setChild("type", parsedType);
+            ASTNode* defVal = parseSimpleDefaultValue(defaultPart);
+            if (defVal) param->setChild("defaultValue", defVal);
+            fn->addChild("parameters", param);
+        }
+    }
+
+    static void maybeMaterializeClassFieldsFromInit(ClassDeclaration* cls,
+                                                    const MethodDeclaration* method) {
+        if (!cls || !method) return;
+        if (method->name != "__init__" && method->name != "constructor") return;
+
+        for (auto* stmtNode : method->getChildren("body")) {
+            const ASTNode* assignmentNode = nullptr;
+            if (stmtNode->conceptType == "Assignment") {
+                assignmentNode = stmtNode;
+            } else if (stmtNode->conceptType == "ExpressionStatement") {
+                assignmentNode = stmtNode->getChild("expression");
+            }
+            if (!assignmentNode || assignmentNode->conceptType != "Assignment") continue;
+
+            auto* assign = static_cast<const Assignment*>(assignmentNode);
+            std::string fieldName = inferSelfFieldName(assign->getChild("target"));
+            if (fieldName.empty() || classHasField(cls, fieldName)) continue;
+
+            auto* field = new Variable(IdGenerator::next("field"), fieldName);
+            ASTNode* inferredType = inferFieldTypeFromValue(assign->getChild("value"), method);
+            if (inferredType) field->setChild("type", inferredType);
+            cls->addChild("fields", field);
+        }
     }
 
     // ---------------------------------------------------------------

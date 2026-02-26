@@ -129,7 +129,10 @@
                 }
             }
         }
-        oss << "class " << cls->name;
+        auto methods = cls->getChildren("methods");
+        const bool useStruct = methods.empty();
+
+        oss << (useStruct ? "struct " : "class ") << cls->name;
         auto bases = cls->getBases();
         if (!bases.empty()) {
             oss << " : ";
@@ -140,14 +143,168 @@
                 oss << " " << bases[i].name;
             }
         }
-        oss << " {\npublic:\n";
+        oss << " {\n";
+        if (!useStruct) oss << "public:\n";
         auto fields = cls->getChildren("fields");
-        for (const auto* f : fields)
-            oss << "    " << generate(f) << ";\n";
-        auto methods = cls->getChildren("methods");
-        for (const auto* m : methods) oss << generate(m);
+        for (const auto* f : fields) {
+            auto* var = static_cast<const Variable*>(f);
+            oss << "    " << inferFieldType(var) << " " << var->name << ";\n";
+        }
+
+        if (!methods.empty() && !fields.empty()) oss << "\n";
+        for (const auto* m : methods) {
+            auto* meth = static_cast<const MethodDeclaration*>(m);
+            oss << "    ";
+            if (meth->isStatic) oss << "static ";
+
+            std::string methodName = meth->name;
+            auto dot = methodName.find_last_of('.');
+            if (dot != std::string::npos && dot + 1 < methodName.size()) {
+                methodName = methodName.substr(dot + 1);
+            }
+            const bool isCtor = (methodName == "__init__" || methodName == "constructor" || methodName == cls->name);
+
+            if (isCtor) {
+                oss << cls->name;
+            } else {
+                oss << inferReturnType(meth) << " " << methodName;
+            }
+
+            oss << "(";
+            auto params = meth->getChildren("parameters");
+            bool firstParam = true;
+            for (size_t i = 0; i < params.size(); ++i) {
+                auto* param = static_cast<const Parameter*>(params[i]);
+                if (!param) continue;
+                if (param->name == "self" || param->name == "cls") continue;
+                if (!firstParam) oss << ", ";
+                firstParam = false;
+                oss << inferParameterType(param, meth) << " " << param->name;
+            }
+            oss << ");\n";
+        }
         oss << "};\n";
         return oss.str();
+    }
+
+    static std::string mapScalarTypeName(const std::string& rawType) {
+        std::string kind = rawType;
+        std::transform(kind.begin(), kind.end(), kind.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (kind == "string" || kind == "str") return "std::string";
+        if (kind == "int" || kind == "integer") return "int";
+        if (kind == "bool" || kind == "boolean") return "bool";
+        if (kind == "float" || kind == "double") return "double";
+        return rawType;
+    }
+
+    static std::string inferFieldType(const Variable* var) {
+        if (!var) return "auto /* TODO: specify type */";
+        auto* type = var->getChild("type");
+        if (type && type->conceptType == "PrimitiveType") {
+            return mapScalarTypeName(static_cast<const PrimitiveType*>(type)->kind);
+        }
+        if (type && type->conceptType == "CustomType") {
+            return mapScalarTypeName(static_cast<const CustomType*>(type)->typeName);
+        }
+        if (type && type->conceptType == "ListType") {
+            auto* elem = type->getChild("elementType");
+            if (!elem) return "std::vector<std::string>";
+            if (elem->conceptType == "PrimitiveType") {
+                return "std::vector<" + mapScalarTypeName(static_cast<const PrimitiveType*>(elem)->kind) + ">";
+            }
+            if (elem->conceptType == "CustomType") {
+                return "std::vector<" + mapScalarTypeName(static_cast<const CustomType*>(elem)->typeName) + ">";
+            }
+            return "std::vector<std::string>";
+        }
+        auto* init = var->getChild("initializer");
+        if (init) {
+            if (init->conceptType == "StringLiteral") return "std::string";
+            if (init->conceptType == "IntegerLiteral") return "int";
+            if (init->conceptType == "BooleanLiteral") return "bool";
+            if (init->conceptType == "FloatLiteral") return "double";
+        }
+
+        std::string lower = var->name;
+        std::transform(lower.begin(), lower.end(), lower.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (lower.find("name") != std::string::npos ||
+            lower.find("id") != std::string::npos ||
+            lower.find("payload") != std::string::npos) {
+            return "std::string";
+        }
+        if (lower.find("priority") != std::string::npos ||
+            lower.find("count") != std::string::npos ||
+            lower.find("size") != std::string::npos ||
+            lower.find("index") != std::string::npos) {
+            return "int";
+        }
+        return "auto /* TODO: specify type */";
+    }
+
+    static std::string inferReturnType(const MethodDeclaration* meth) {
+        if (!meth) return "auto";
+        auto* ret = meth->getChild("returnType");
+        if (!ret) {
+            std::string lower = meth->name;
+            std::transform(lower.begin(), lower.end(), lower.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            if (lower.find("enqueue") != std::string::npos || lower.find("push") != std::string::npos) {
+                return "void";
+            }
+            if (lower.find("dequeue") != std::string::npos || lower.find("peek") != std::string::npos ||
+                lower.find("pop") != std::string::npos) {
+                return "std::string";
+            }
+            if (lower.find("size") != std::string::npos) return "int";
+            if (lower.find("empty") != std::string::npos) return "bool";
+            return "void";
+        }
+        if (ret->conceptType == "PrimitiveType") {
+            return mapScalarTypeName(static_cast<const PrimitiveType*>(ret)->kind);
+        }
+        if (ret->conceptType == "CustomType") {
+            return mapScalarTypeName(static_cast<const CustomType*>(ret)->typeName);
+        }
+        return "auto";
+    }
+
+    static std::string inferParameterType(const Parameter* param,
+                                          const MethodDeclaration* method = nullptr) {
+        if (!param) return "auto";
+        auto* type = param->getChild("type");
+        if (type && type->conceptType == "PrimitiveType") {
+            return mapScalarTypeName(static_cast<const PrimitiveType*>(type)->kind);
+        }
+        if (type && type->conceptType == "CustomType") {
+            return mapScalarTypeName(static_cast<const CustomType*>(type)->typeName);
+        }
+
+        std::string lower = param->name;
+        std::transform(lower.begin(), lower.end(), lower.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (lower.find("name") != std::string::npos ||
+            lower.find("id") != std::string::npos ||
+            lower.find("payload") != std::string::npos) {
+            return "std::string";
+        }
+        if (lower.find("priority") != std::string::npos ||
+            lower.find("count") != std::string::npos ||
+            lower.find("size") != std::string::npos ||
+            lower.find("index") != std::string::npos) {
+            return "int";
+        }
+        if (method) {
+            std::string m = method->name;
+            std::transform(m.begin(), m.end(), m.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            if ((m.find("enqueue") != std::string::npos ||
+                 m.find("push") != std::string::npos) && lower == "item") {
+                return "WorkItem";
+            }
+        }
+        return "auto";
     }
 
     std::string visitInterfaceDeclaration(const ASTNode* node) override {
@@ -168,11 +325,16 @@
         oss << "    ";
         if (meth->isStatic) oss << "static ";
         if (meth->isVirtual) oss << "virtual ";
-        oss << "void " << meth->name << "(";
+        oss << inferReturnType(meth) << " " << meth->name << "(";
         auto params = meth->getChildren("parameters");
+        bool firstParam = true;
         for (size_t i = 0; i < params.size(); ++i) {
-            if (i > 0) oss << ", ";
-            oss << visitParameter(static_cast<const Parameter*>(params[i]));
+            auto* param = static_cast<const Parameter*>(params[i]);
+            if (!param) continue;
+            if (param->name == "self" || param->name == "cls") continue;
+            if (!firstParam) oss << ", ";
+            firstParam = false;
+            oss << inferParameterType(param, meth) << " " << param->name;
         }
         oss << ")";
         if (meth->isOverride) oss << " override";
