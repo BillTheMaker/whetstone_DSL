@@ -33,6 +33,9 @@ SEMANTIC_COVERAGE_GATE="${WSTONE_SEMANTIC_COVERAGE_GATE:-0}"
 SEMANTIC_MIN_COVERAGE="${WSTONE_SEMANTIC_MIN_COVERAGE:-0.9}"
 SEMANTIC_REQUIRE_CAPS_FOR_COMPLEX="${WSTONE_SEMANTIC_REQUIRE_CAPS_FOR_COMPLEX:-1}"
 SEMANTIC_MIN_COMPLEXITY_SCORE="${WSTONE_SEMANTIC_MIN_COMPLEXITY_SCORE:-2}"
+NATIVE_DECOMP_HARD_GATE="${WSTONE_NATIVE_DECOMP_HARD_GATE:-0}"
+NATIVE_TASK_MIN_COUNT="${WSTONE_NATIVE_TASK_MIN_COUNT:-0}"
+NATIVE_SEMANTIC_SIGNAL_MIN="${WSTONE_NATIVE_SEMANTIC_SIGNAL_MIN:-0}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -84,6 +87,7 @@ SEMANTIC_AUGMENT_JSON='{}'
 SEMANTIC_REQUIREMENT_INJECTION_JSON='{}'
 SEMANTIC_TASK_EXPANSION_JSON='{}'
 SEMANTIC_GATE_JSON='{}'
+NATIVE_DECOMP_GATE_JSON='{}'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
   python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
     --spec "$INPUT_FILE" \
@@ -288,6 +292,40 @@ fi
 TASKS="$(printf '%s' "$GEN_JSON" | jq '.tasks')"
 native_task_count="$(printf '%s' "$TASKS" | jq 'length')"
 native_semantic_signal_count="$(printf '%s' "$TASKS" | jq '[.[] | ((.reasons // [])[]? | tostring) | select(test("semantic|risk|contract|capability"; "i"))] | length')"
+native_task_count_ok="true"
+native_semantic_signal_ok="true"
+if [[ "$native_task_count" -lt "$NATIVE_TASK_MIN_COUNT" ]]; then
+  native_task_count_ok="false"
+fi
+if [[ "$native_semantic_signal_count" -lt "$NATIVE_SEMANTIC_SIGNAL_MIN" ]]; then
+  native_semantic_signal_ok="false"
+fi
+native_gate_passed="true"
+if [[ "$native_task_count_ok" != "true" || "$native_semantic_signal_ok" != "true" ]]; then
+  native_gate_passed="false"
+fi
+NATIVE_DECOMP_GATE_JSON="$(jq -nc \
+  --argjson enabled "$([[ "$NATIVE_DECOMP_HARD_GATE" == "1" ]] && echo true || echo false)" \
+  --argjson passed "$([[ "$native_gate_passed" == "true" ]] && echo true || echo false)" \
+  --argjson native_task_count "$native_task_count" \
+  --argjson native_semantic_signal_count "$native_semantic_signal_count" \
+  --argjson min_task_count "$NATIVE_TASK_MIN_COUNT" \
+  --argjson min_semantic_signal_count "$NATIVE_SEMANTIC_SIGNAL_MIN" \
+  '{
+    enabled:$enabled,
+    passed:$passed,
+    native_task_count:$native_task_count,
+    native_semantic_signal_count:$native_semantic_signal_count,
+    min_task_count:$min_task_count,
+    min_semantic_signal_count:$min_semantic_signal_count
+  }')"
+printf '%s\n' "$NATIVE_DECOMP_GATE_JSON" > "$OUT_DIR/02b_native_decomposition_gate.json"
+if [[ "$NATIVE_DECOMP_HARD_GATE" == "1" && "$native_gate_passed" != "true" ]]; then
+  echo "error: native decomposition gate failed" >&2
+  echo "error: see $OUT_DIR/02b_native_decomposition_gate.json" >&2
+  exit 10
+fi
+
 semantic_fallback_needed="false"
 if [[ "$SEMANTIC_TASK_EXPANSION_MODE" == "always" ]]; then
   semantic_fallback_needed="true"
@@ -383,6 +421,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson semantic_intake_augment "$SEMANTIC_AUGMENT_JSON" \
   --argjson semantic_requirement_injection "$SEMANTIC_REQUIREMENT_INJECTION_JSON" \
   --argjson semantic_task_expansion "$SEMANTIC_TASK_EXPANSION_JSON" \
+  --argjson native_decomposition_gate "$NATIVE_DECOMP_GATE_JSON" \
   --argjson intake "$INTAKE_JSON" \
   --argjson generated "$GEN_JSON" \
   --argjson queue "$QUEUE_JSON" \
@@ -400,6 +439,7 @@ SUMMARY_JSON="$(jq -nc \
     semantic_intake_augment: $semantic_intake_augment,
     semantic_requirement_injection: $semantic_requirement_injection,
     semantic_task_expansion: $semantic_task_expansion,
+    native_decomposition_gate: $native_decomposition_gate,
     intake: {
       success: ($intake.success // false),
       normalized_requirement_count: (($intake.normalizedRequirements // [])|length),

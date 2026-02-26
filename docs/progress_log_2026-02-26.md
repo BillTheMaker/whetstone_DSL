@@ -147,3 +147,16 @@
 - Dated pass/fail artifacts captured:
   - fail (strict budget): `logs/taskitem_runs/TEST_ONLY_sprint237_semantic_fallback_gate_fail_20260226/semantic_fallback_budget_gate.json`
   - pass (relaxed budget): `logs/taskitem_runs/TEST_ONLY_sprint237_semantic_fallback_gate_pass_20260226/semantic_fallback_budget_gate.json`
+
+## Sprint 238 Added (Same Day)
+
+- Added native decomposition quality gate directly in pipeline:
+  - `WSTONE_NATIVE_DECOMP_HARD_GATE`
+  - `WSTONE_NATIVE_TASK_MIN_COUNT`
+  - `WSTONE_NATIVE_SEMANTIC_SIGNAL_MIN`
+- Added run artifact and summary packet:
+  - `02b_native_decomposition_gate.json`
+  - `native_decomposition_gate`
+- Dated gate verification artifacts:
+  - fail packet: `logs/taskitem_runs/TEST_ONLY_sprint238_native_gate_fail_20260226.json`
+  - pass packet: `logs/taskitem_runs/TEST_ONLY_sprint238_native_gate_pass_20260226.json`
