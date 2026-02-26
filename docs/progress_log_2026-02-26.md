@@ -234,3 +234,17 @@
   - `logs/taskitem_runs/TEST_ONLY_sprint243_impact_remediation_tasks_loop_20260226_r2/remediation_loop_summary.json`
 - Current measured loop result on hard fullstack sample:
   - `failing_profile_count 7 -> 0`
+
+## Sprint 244 Added (Same Day)
+
+- Added first-pass profile autofill in main pipeline:
+  - `tools/mcp/synthesize_native_profile_autofill_tasks.py`
+  - `WSTONE_NATIVE_PROFILE_AUTOFILL`
+  - `WSTONE_NATIVE_PROFILE_AUTOFILL_MAX_TASKS`
+  - summary packet: `native_profile_autofill`
+- Autofill now closes impact coverage inside first-pass generation on hard fullstack sample:
+  - ON: `failing_profile_count=0`
+  - OFF: `failing_profile_count=7`
+- Enforced gate behavior verified:
+  - pass with autofill ON: `logs/taskitem_runs/TEST_ONLY_sprint244_autofill_enforce_20260226_151709/00_summary.json`
+  - fail with autofill OFF: `logs/taskitem_runs/TEST_ONLY_sprint244_autofill_enforce_20260226_151710/06_native_impact_coverage.json`

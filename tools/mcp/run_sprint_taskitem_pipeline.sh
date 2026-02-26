@@ -42,6 +42,8 @@ NATIVE_DECOMP_TARGET_MIN_TASKS="${WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS:-5}"
 NATIVE_IMPACT_COVERAGE_GATE="${WSTONE_NATIVE_IMPACT_COVERAGE_GATE:-0}"
 NATIVE_IMPACT_COVERAGE_ENFORCE="${WSTONE_NATIVE_IMPACT_COVERAGE_ENFORCE:-0}"
 NATIVE_IMPACT_COVERAGE_PROFILES="${WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES:-$ROOT_DIR/tools/mcp/profiles/native_decomposition_impact_profiles.json}"
+NATIVE_PROFILE_AUTOFILL="${WSTONE_NATIVE_PROFILE_AUTOFILL:-0}"
+NATIVE_PROFILE_AUTOFILL_MAX_TASKS="${WSTONE_NATIVE_PROFILE_AUTOFILL_MAX_TASKS:-12}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -99,6 +101,7 @@ NATIVE_DECOMP_GATE_JSON='{}'
 NATIVE_REASON_ENRICHMENT_JSON='{}'
 NATIVE_DECOMP_RETRY_JSON='{}'
 NATIVE_IMPACT_COVERAGE_JSON='{}'
+NATIVE_PROFILE_AUTOFILL_JSON='{}'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 EXTRA_TASKS_JSON='[]'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
@@ -374,6 +377,27 @@ if [[ -n "$EXTRA_TASKS_FILE" ]]; then
   EXTRA_TASKS_JSON="$(cat "$EXTRA_TASKS_FILE")"
   TASKS="$(jq -nc --argjson base "$TASKS" --argjson extra "$EXTRA_TASKS_JSON" '$base + $extra')"
 fi
+if [[ "$NATIVE_PROFILE_AUTOFILL" == "1" ]]; then
+  printf '%s\n' "$TASKS" > "$OUT_DIR/02ab_native_tasks_pre_autofill.json"
+  python3 "$ROOT_DIR/tools/mcp/synthesize_native_profile_autofill_tasks.py" \
+    --spec "$INPUT_FILE" \
+    --tasks "$OUT_DIR/02ab_native_tasks_pre_autofill.json" \
+    --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+    --out-tasks "$OUT_DIR/02ab_profile_autofill_tasks.json" \
+    --out-report "$OUT_DIR/02ab_profile_autofill_report.json" \
+    --max-tasks "$NATIVE_PROFILE_AUTOFILL_MAX_TASKS" >/dev/null
+  PROFILE_AUTOFILL_TASKS_JSON="$(cat "$OUT_DIR/02ab_profile_autofill_tasks.json")"
+  if [[ "$(printf '%s' "$PROFILE_AUTOFILL_TASKS_JSON" | jq 'length')" -gt 0 ]]; then
+    TASKS="$(jq -nc --argjson base "$TASKS" --argjson extra "$PROFILE_AUTOFILL_TASKS_JSON" '$base + $extra')"
+    EXTRA_TASKS_JSON="$(jq -nc --argjson base "$EXTRA_TASKS_JSON" --argjson extra "$PROFILE_AUTOFILL_TASKS_JSON" '$base + $extra')"
+  fi
+  NATIVE_PROFILE_AUTOFILL_JSON="$(jq -nc \
+    --argjson report "$(cat "$OUT_DIR/02ab_profile_autofill_report.json")" \
+    --argjson task_count "$(printf '%s' "$PROFILE_AUTOFILL_TASKS_JSON" | jq 'length')" \
+    '{enabled:true, report:$report, injected_task_count:$task_count}')"
+else
+  NATIVE_PROFILE_AUTOFILL_JSON='{"enabled":false,"injected_task_count":0}'
+fi
 if [[ "$NATIVE_REASON_ENRICHMENT" == "1" && -f "$OUT_DIR/01c_semantic_injected_requirements.json" ]]; then
   TASKS="$(jq -nc \
     --argjson tasks "$TASKS" \
@@ -542,6 +566,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_decomposition_gate "$NATIVE_DECOMP_GATE_JSON" \
   --argjson native_reason_enrichment "$NATIVE_REASON_ENRICHMENT_JSON" \
   --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
+  --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
   --argjson extra_normalized_requirements "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" \
   --argjson extra_tasks "$EXTRA_TASKS_JSON" \
   --argjson intake "$INTAKE_JSON" \
@@ -564,6 +589,7 @@ SUMMARY_JSON="$(jq -nc \
     native_decomposition_gate: $native_decomposition_gate,
     native_reason_enrichment: $native_reason_enrichment,
     native_decomposition_retry: $native_decomposition_retry,
+    native_profile_autofill: $native_profile_autofill,
     extra_normalized_requirements: $extra_normalized_requirements,
     extra_tasks: $extra_tasks,
     intake: {
