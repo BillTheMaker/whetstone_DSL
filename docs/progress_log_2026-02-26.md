@@ -458,3 +458,19 @@
 - Current measured result on hard sample:
   - injection selected `5` top signals from `20`
   - intrinsic raw outcome unchanged (`selected_variant=0`, `best_top_gap_score=0`, `failing_profile_count=1`).
+
+## Sprint 259 Added (Same Day)
+
+- Added adaptive raw top-gap retry loop:
+  - `WSTONE_NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY`
+  - `WSTONE_NATIVE_RAW_TOP_GAP_RETRY_SIGNALS`
+  - summary packet:
+    - `native_raw_adaptive_retry`
+- Retry executes when weighted top-gap score has no uplift, then applies only if better.
+- Dated A/B artifacts:
+  - OFF: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163143/00_summary.json`
+  - ON: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163148/00_summary.json`
+  - retry detail: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_163148/02af_raw_adaptive_retry_score.json`
+- Current measured result on hard sample:
+  - retry attempted and succeeded operationally
+  - no intrinsic uplift (`retry_top_gap_score=0`, `retry_fail=1`, `applied=false`).

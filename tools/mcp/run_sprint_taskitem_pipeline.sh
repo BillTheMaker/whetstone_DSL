@@ -58,6 +58,8 @@ NATIVE_RAW_TOP_GAP_BACKLOG_FILE="${WSTONE_NATIVE_RAW_TOP_GAP_BACKLOG_FILE:-}"
 NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIRE_UPLIFT:-0}"
 NATIVE_RAW_TOP_GAP_REQUIREMENTS="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIREMENTS:-0}"
 NATIVE_RAW_TOP_GAP_MAX_SIGNALS="${WSTONE_NATIVE_RAW_TOP_GAP_MAX_SIGNALS:-5}"
+NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY="${WSTONE_NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY:-0}"
+NATIVE_RAW_TOP_GAP_RETRY_SIGNALS="${WSTONE_NATIVE_RAW_TOP_GAP_RETRY_SIGNALS:-10}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -122,6 +124,7 @@ NATIVE_MULTISHOT_JSON='{}'
 NATIVE_RAW_CANDIDATE_SEARCH_JSON='{}'
 NATIVE_RAW_HARDENING_JSON='{}'
 NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON='{}'
+NATIVE_RAW_ADAPTIVE_RETRY_JSON='{}'
 INTRINSIC_REQS_JSON='[]'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 EXTRA_TASKS_JSON='[]'
@@ -494,6 +497,61 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
     idx=$((idx + 1))
     variant=$((variant + 1))
   done
+
+  if [[ "$NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY" == "1" && "$use_top_gap_weighted_select" == true && "$best_top_gap_score" -le "$baseline_top_gap_score" ]]; then
+    python3 "$ROOT_DIR/tools/mcp/synthesize_raw_top_gap_requirements.py" \
+      --top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+      --max-signals "$NATIVE_RAW_TOP_GAP_RETRY_SIGNALS" \
+      --out "$OUT_DIR/02af_raw_adaptive_retry_requirements.json" \
+      --out-report "$OUT_DIR/02af_raw_adaptive_retry_requirements_report.json" >/dev/null
+    retry_top_gap_reqs="$(cat "$OUT_DIR/02af_raw_adaptive_retry_requirements.json")"
+    retry_cand_reqs="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson extra "$retry_top_gap_reqs" '$base + $extra')"
+    retry_cand_args="$(jq -nc --argjson nr "$retry_cand_reqs" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
+      '{normalizedRequirements:$nr,conflicts:$cf,strictExecutionContract:($strict == "1")}')"
+    retry_raw="$(call_tool "whetstone_generate_taskitems" "$retry_cand_args")"
+    printf '%s\n' "$retry_raw" > "$OUT_DIR/02af_raw_adaptive_retry_raw.ndjson.json"
+    retry_json="$(extract_tool_text_json "$retry_raw")"
+    printf '%s\n' "$retry_json" > "$OUT_DIR/02af_raw_adaptive_retry.json"
+    retry_applied=false
+    retry_success=false
+    retry_fail=999
+    retry_task_count=0
+    retry_top_gap_score=0
+    if [[ "$(printf '%s' "$retry_json" | jq -r '.success // false')" == "true" ]]; then
+      retry_success=true
+      retry_tasks="$(printf '%s' "$retry_json" | jq '.tasks // []')"
+      printf '%s\n' "$retry_tasks" > "$OUT_DIR/02af_raw_adaptive_retry_tasks.json"
+      python3 "$ROOT_DIR/tools/mcp/score_native_tasks_profile_coverage.py" \
+        --spec "$INPUT_FILE" \
+        --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+        --tasks "$OUT_DIR/02af_raw_adaptive_retry_tasks.json" \
+        "${top_gap_score_args[@]}" \
+        --out "$OUT_DIR/02af_raw_adaptive_retry_score.json" >/dev/null
+      retry_fail="$(jq '.failing_profile_count // 999' "$OUT_DIR/02af_raw_adaptive_retry_score.json")"
+      retry_task_count="$(jq '.task_count // 0' "$OUT_DIR/02af_raw_adaptive_retry_score.json")"
+      retry_top_gap_score="$(jq '.top_gap_score // 0' "$OUT_DIR/02af_raw_adaptive_retry_score.json")"
+      if [[ "$retry_fail" -lt "$best_fail" || ( "$retry_fail" -eq "$best_fail" && "$retry_top_gap_score" -gt "$best_top_gap_score" ) || ( "$retry_fail" -eq "$best_fail" && "$retry_top_gap_score" -eq "$best_top_gap_score" && "$retry_task_count" -gt "$best_task_count" ) ]]; then
+        best_variant="adaptive_retry"
+        best_fail="$retry_fail"
+        best_task_count="$retry_task_count"
+        best_top_gap_score="$retry_top_gap_score"
+        TASKS="$retry_tasks"
+        retry_applied=true
+      fi
+    fi
+    NATIVE_RAW_ADAPTIVE_RETRY_JSON="$(jq -nc \
+      --argjson enabled true \
+      --argjson attempted true \
+      --argjson applied "$retry_applied" \
+      --argjson success "$retry_success" \
+      --argjson retry_fail "$retry_fail" \
+      --argjson retry_task_count "$retry_task_count" \
+      --argjson retry_top_gap_score "$retry_top_gap_score" \
+      --argjson retry_signal_count "$NATIVE_RAW_TOP_GAP_RETRY_SIGNALS" \
+      '{enabled:$enabled, attempted:$attempted, applied:$applied, success:$success, retry_signal_count:$retry_signal_count, retry_fail:$retry_fail, retry_task_count:$retry_task_count, retry_top_gap_score:$retry_top_gap_score}')"
+  else
+    NATIVE_RAW_ADAPTIVE_RETRY_JSON='{"enabled":false}'
+  fi
 
   NATIVE_RAW_CANDIDATE_SEARCH_JSON="$(jq -nc \
     --argjson enabled true \
@@ -877,6 +935,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
   --argjson native_raw_top_gap_requirements "$NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON" \
   --argjson native_raw_candidate_search "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" \
+  --argjson native_raw_adaptive_retry "$NATIVE_RAW_ADAPTIVE_RETRY_JSON" \
   --argjson native_raw_hardening "$NATIVE_RAW_HARDENING_JSON" \
   --argjson native_single_shot_profile_shape "$NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON" \
   --argjson native_multishot "$NATIVE_MULTISHOT_JSON" \
@@ -907,6 +966,7 @@ SUMMARY_JSON="$(jq -nc \
     native_intrinsic_boost: $native_intrinsic_boost,
     native_raw_top_gap_requirements: $native_raw_top_gap_requirements,
     native_raw_candidate_search: $native_raw_candidate_search,
+    native_raw_adaptive_retry: $native_raw_adaptive_retry,
     native_raw_hardening: $native_raw_hardening,
     native_single_shot_profile_shape: $native_single_shot_profile_shape,
     native_multishot: $native_multishot,

@@ -228,3 +228,7 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_RAW_TOP_GAP_REQUIREMENTS`
   - `WSTONE_NATIVE_RAW_TOP_GAP_MAX_SIGNALS`
   - `native_raw_top_gap_requirements`
+- raw candidate search can run adaptive retry with expanded top-gap requirements:
+  - `WSTONE_NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY`
+  - `WSTONE_NATIVE_RAW_TOP_GAP_RETRY_SIGNALS`
+  - `native_raw_adaptive_retry`
