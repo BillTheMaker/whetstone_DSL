@@ -21,6 +21,8 @@ def classify(gates: Dict[str, object]) -> Dict[str, object]:
     reasons = list(g.get("failure_reasons", [])) if isinstance(g, dict) else []
     compile_reason = str((g.get("compile") or {}).get("reason", ""))
     tests_reason = str((g.get("tests") or {}).get("reason", ""))
+    diagnostics = gates.get("diagnostics", []) if isinstance(gates, dict) else []
+    diag_text = "\\n".join(str(d.get("message", "")) + "\\n" + str(d.get("raw_excerpt", "")) for d in diagnostics if isinstance(d, dict)).lower()
 
     actions: List[Dict[str, object]] = []
 
@@ -53,6 +55,16 @@ def classify(gates: Dict[str, object]) -> Dict[str, object]:
         )
 
     if any(r.startswith("compile_failed") for r in reasons):
+        if "defined in header" in diag_text or "did you forget to '#include" in diag_text:
+            actions.append(
+                {
+                    "action": "fix_cpp_includes",
+                    "tool": "apply_cpp_diagnostic_fixes",
+                    "hint": "Apply deterministic include insertion from compiler diagnostics before re-running gates.",
+                    "confidence": 0.98,
+                    "priority": 95,
+                }
+            )
         actions.append(
             {
                 "action": "diagnose_pipeline",

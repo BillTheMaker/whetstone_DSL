@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"whetstone_generate_code","arguments":{"spec":"Generate WorkItem and PriorityQueue classes with enqueue, dequeue, peek, size, empty","preferImports":true}}}

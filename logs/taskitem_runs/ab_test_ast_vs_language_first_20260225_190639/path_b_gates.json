@@ -1,0 +1,98 @@
+{
+  "diagnostics": [
+    {
+      "category": "compile",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp",
+      "line": 1,
+      "message": "#pragma once in main file",
+      "raw_excerpt": "/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp:1:9: warning: #pragma once in main file",
+      "severity": "warning",
+      "source": "compile"
+    },
+    {
+      "category": "compile",
+      "column": 10,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp",
+      "line": 16,
+      "message": "\u2018vector\u2019 in namespace \u2018std\u2019 does not name a template type",
+      "raw_excerpt": "/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp:16:10: error: \u2018vector\u2019 in namespace \u2018std\u2019 does not name a template type",
+      "severity": "error",
+      "source": "compile"
+    },
+    {
+      "category": "tests",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp",
+      "line": 1,
+      "message": "#pragma once in main file",
+      "raw_excerpt": "/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp:1:9: warning: #pragma once in main file",
+      "severity": "warning",
+      "source": "tests"
+    },
+    {
+      "category": "tests",
+      "column": 10,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp",
+      "line": 16,
+      "message": "\u2018vector\u2019 in namespace \u2018std\u2019 does not name a template type",
+      "raw_excerpt": "/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp:16:10: error: \u2018vector\u2019 in namespace \u2018std\u2019 does not name a template type",
+      "severity": "error",
+      "source": "tests"
+    }
+  ],
+  "gates": {
+    "compile": {
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-fsyntax-only",
+        "/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp"
+      ],
+      "passed": false,
+      "reason": "non_zero_exit",
+      "return_code": 1,
+      "skipped": false,
+      "stderr": "/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp:1:9: warning: #pragma once in main file\n    1 | #pragma once\n      |         ^~~~\n/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp:16:10: error: \u2018vector\u2019 in namespace \u2018std\u2019 does not name a template type\n   16 |     std::vector<std::string> items;\n      |          ^~~~~~\n/tmp/whetstone_gate_compile_nm_ql0t1/generated.cpp:3:1: note: \u2018std::vector\u2019 is defined in header \u2018<vector>\u2019; did you forget to \u2018#include <vector>\u2019?\n    2 | #include <string>\n  +++ |+#include <vector>\n    3 | \n",
+      "stdout": "",
+      "strict_blocking": true
+    },
+    "failure_reasons": [
+      "compile_failed:non_zero_exit",
+      "tests_failed:non_zero_exit"
+    ],
+    "lint": {
+      "passed": true,
+      "reason": "tool_missing",
+      "skipped": true,
+      "strict_blocking": false
+    },
+    "overall_ready": false,
+    "placeholder": {
+      "count": 0,
+      "findings": [],
+      "passed": true
+    },
+    "tests": {
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-fsyntax-only",
+        "/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp"
+      ],
+      "passed": false,
+      "reason": "non_zero_exit",
+      "return_code": 1,
+      "skipped": false,
+      "stderr": "/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp:1:9: warning: #pragma once in main file\n    1 | #pragma once\n      |         ^~~~\n/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp:16:10: error: \u2018vector\u2019 in namespace \u2018std\u2019 does not name a template type\n   16 |     std::vector<std::string> items;\n      |          ^~~~~~\n/tmp/whetstone_gate_test_2_9hwgmr/harness.cpp:3:1: note: \u2018std::vector\u2019 is defined in header \u2018<vector>\u2019; did you forget to \u2018#include <vector>\u2019?\n    2 | #include <string>\n  +++ |+#include <vector>\n    3 | \n",
+      "stdout": "",
+      "strict_blocking": true
+    }
+  },
+  "language": "cpp",
+  "strict_mode": true
+}

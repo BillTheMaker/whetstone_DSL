@@ -1,0 +1,50 @@
+{
+  "report": {
+    "average_score": 87.5,
+    "failing_count": 0,
+    "results": [
+      {
+        "issues": [
+          "reasons has fewer than 3 entries"
+        ],
+        "score": 90,
+        "self_contained": true,
+        "task_id": "task-1"
+      },
+      {
+        "issues": [
+          "reasons has fewer than 3 entries"
+        ],
+        "score": 90,
+        "self_contained": true,
+        "task_id": "task-2"
+      },
+      {
+        "issues": [
+          "reasons has fewer than 3 entries",
+          "dependencyTaskIds not empty"
+        ],
+        "score": 85,
+        "self_contained": true,
+        "task_id": "task-3"
+      },
+      {
+        "issues": [
+          "reasons has fewer than 3 entries",
+          "dependencyTaskIds not empty"
+        ],
+        "score": 85,
+        "self_contained": true,
+        "task_id": "task-4"
+      }
+    ],
+    "self_contained_count": 4,
+    "top_issues": [
+      "reasons has fewer than 3 entries",
+      "dependencyTaskIds not empty"
+    ],
+    "total_taskitems": 4,
+    "warning_count": 0
+  },
+  "success": true
+}

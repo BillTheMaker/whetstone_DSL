@@ -1,0 +1,86 @@
+{
+  "ambiguousRequirementCount": 0,
+  "conflictCount": 1,
+  "escalateCount": 0,
+  "planSummary": {
+    "milestoneCount": 2,
+    "overallUncertainty": 27
+  },
+  "success": true,
+  "tasks": [
+    {
+      "ambiguityCount": 0,
+      "confidence": 77,
+      "dependencyTaskIds": [],
+      "escalate": false,
+      "milestoneId": "milestone-1",
+      "prerequisiteOps": [
+        "validate-intake"
+      ],
+      "queueReady": true,
+      "reasons": [
+        "conflicts_detected:1"
+      ],
+      "taskId": "task-1",
+      "title": "Intake Foundation Primary"
+    },
+    {
+      "ambiguityCount": 0,
+      "confidence": 72,
+      "dependencyTaskIds": [],
+      "escalate": false,
+      "milestoneId": "milestone-1",
+      "prerequisiteOps": [
+        "validate-intake",
+        "architect-review",
+        "manual-approval"
+      ],
+      "queueReady": true,
+      "reasons": [
+        "conflicts_detected:1"
+      ],
+      "taskId": "task-2",
+      "title": "Architect Review"
+    },
+    {
+      "ambiguityCount": 0,
+      "confidence": 73,
+      "dependencyTaskIds": [
+        "task-2"
+      ],
+      "escalate": false,
+      "milestoneId": "milestone-2",
+      "prerequisiteOps": [
+        "validate-intake",
+        "resolve-dependencies"
+      ],
+      "queueReady": true,
+      "reasons": [
+        "conflicts_detected:1",
+        "depends_on_prior_tasks"
+      ],
+      "taskId": "task-3",
+      "title": "Execution Readiness Primary"
+    },
+    {
+      "ambiguityCount": 0,
+      "confidence": 73,
+      "dependencyTaskIds": [
+        "task-3"
+      ],
+      "escalate": false,
+      "milestoneId": "milestone-2",
+      "prerequisiteOps": [
+        "validate-intake",
+        "manual-approval"
+      ],
+      "queueReady": true,
+      "reasons": [
+        "conflicts_detected:1",
+        "depends_on_prior_tasks"
+      ],
+      "taskId": "task-4",
+      "title": "Architect Review"
+    }
+  ]
+}

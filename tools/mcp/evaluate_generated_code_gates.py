@@ -107,7 +107,7 @@ def language_tools(language: str) -> Dict[str, str]:
 
 
 def detect_cpp_namespace_prefix(code: str) -> str:
-    m = re.search(r"namespace\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*\\{", code)
+    m = re.search(r"namespace\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{", code)
     if m:
         return m.group(1) + "::"
     q = re.search(r"([A-Za-z_][A-Za-z0-9_]*)::PriorityQueue", code)
@@ -230,6 +230,18 @@ def test_check(code: str, language: str, strict: bool) -> Dict[str, object]:
             "strict_blocking": bool(strict),
         }
 
+    required = ["enqueue", "dequeue", "peek", "size", "empty", "workitem"]
+    text = code.lower()
+    missing = [r for r in required if r not in text]
+    if missing:
+        return {
+            "passed": False,
+            "skipped": False,
+            "reason": "missing_required_queue_members",
+            "missing": missing,
+            "strict_blocking": bool(strict),
+        }
+
     with tempfile.TemporaryDirectory(prefix="whetstone_gate_test_") as td:
         td_path = Path(td)
         if lang in ("cpp", "c++"):
@@ -270,6 +282,41 @@ def test_check(code: str, language: str, strict: bool) -> Dict[str, object]:
             "stdout": res.stdout,
             "stderr": res.stderr,
             "strict_blocking": bool(strict and (res.skipped or not res.passed)),
+        }
+
+
+def lint_check(code: str, language: str, lint_strict: bool) -> Dict[str, object]:
+    lang = language.lower()
+    with tempfile.TemporaryDirectory(prefix="whetstone_gate_lint_") as td:
+        td_path = Path(td)
+        if lang in ("cpp", "c++"):
+            src = td_path / "generated.cpp"
+            src.write_text(code)
+            lint = shutil.which("cppcheck")
+            if not lint:
+                return {"passed": True, "skipped": True, "reason": "tool_missing", "strict_blocking": bool(lint_strict)}
+            cmd = [lint, "--enable=warning,style", "--quiet", str(src)]
+        elif lang == "python":
+            src = td_path / "generated.py"
+            src.write_text(code)
+            py = shutil.which("python3") or shutil.which("python")
+            if not py:
+                return {"passed": True, "skipped": True, "reason": "tool_missing", "strict_blocking": bool(lint_strict)}
+            cmd = [py, "-m", "pyflakes", str(src)]
+        else:
+            return {"passed": True, "skipped": True, "reason": "unsupported_language", "strict_blocking": False}
+
+        res = run_cmd(cmd, timeout_s=20)
+        lint_failed = (not res.passed and not res.skipped)
+        return {
+            "passed": not lint_failed,
+            "skipped": res.skipped,
+            "reason": res.reason,
+            "return_code": res.return_code,
+            "command": res.command,
+            "stdout": res.stdout,
+            "stderr": res.stderr,
+            "strict_blocking": bool(lint_strict and lint_failed),
         }
 
 
@@ -334,6 +381,7 @@ def main() -> None:
     ap.add_argument("--code", help="Inline generated code", default="")
     ap.add_argument("--language", required=True)
     ap.add_argument("--strict", action="store_true", help="Strict mode: missing tools/skips are blocking")
+    ap.add_argument("--lint-strict", action="store_true", help="Fail gate on lint violations")
     ap.add_argument("--out", default="")
     args = ap.parse_args()
 
@@ -344,15 +392,21 @@ def main() -> None:
     placeholders = detect_placeholders(code)
     compile_res = compile_check(code, args.language, strict=args.strict)
     test_res = test_check(code, args.language, strict=args.strict)
+    lint_res = lint_check(code, args.language, lint_strict=args.lint_strict)
     diagnostics = normalize_diagnostics(compile_res, test_res)
+    diagnostics.extend(normalize_diagnostics({"stderr": lint_res.get("stderr", ""), "passed": lint_res.get("passed", True)},
+                                             {"stderr": "", "passed": True}))
 
     compile_pass = bool(compile_res.get("passed", False))
     test_pass = bool(test_res.get("passed", False))
     if args.strict:
         compile_pass = compile_pass and not bool(compile_res.get("strict_blocking", False))
         test_pass = test_pass and not bool(test_res.get("strict_blocking", False))
+    lint_pass = bool(lint_res.get("passed", True))
+    if args.lint_strict:
+        lint_pass = lint_pass and not bool(lint_res.get("strict_blocking", False))
 
-    overall = bool(placeholders["passed"] and compile_pass and test_pass)
+    overall = bool(placeholders["passed"] and compile_pass and test_pass and lint_pass)
 
     failure_reasons: List[str] = []
     if not placeholders["passed"]:
@@ -361,6 +415,8 @@ def main() -> None:
         failure_reasons.append(f"compile_failed:{compile_res.get('reason', 'unknown')}")
     if not test_pass:
         failure_reasons.append(f"tests_failed:{test_res.get('reason', 'unknown')}")
+    if not lint_pass:
+        failure_reasons.append(f"lint_failed:{lint_res.get('reason', 'unknown')}")
 
     payload = {
         "language": args.language,
@@ -369,6 +425,7 @@ def main() -> None:
         "gates": {
             "compile": compile_res,
             "tests": test_res,
+            "lint": lint_res,
             "placeholder": placeholders,
             "failure_reasons": failure_reasons,
             "overall_ready": overall,

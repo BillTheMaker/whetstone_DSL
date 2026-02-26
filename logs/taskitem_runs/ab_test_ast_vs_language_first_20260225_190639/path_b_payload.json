@@ -1,0 +1,1238 @@
+{
+  "ast": {
+    "children": {
+      "annotations": [
+        {
+          "children": {},
+          "concept": "ReclaimAnnotation",
+          "id": "inferred_mod_0",
+          "properties": {}
+        }
+      ],
+      "classes": [
+        {
+          "children": {
+            "fields": [
+              {
+                "children": {
+                  "type": [
+                    {
+                      "children": {},
+                      "concept": "PrimitiveType",
+                      "id": "type_26",
+                      "properties": {
+                        "kind": "string"
+                      }
+                    }
+                  ]
+                },
+                "concept": "Variable",
+                "id": "field_25",
+                "properties": {
+                  "name": "job_id"
+                }
+              },
+              {
+                "children": {
+                  "type": [
+                    {
+                      "children": {},
+                      "concept": "PrimitiveType",
+                      "id": "type_28",
+                      "properties": {
+                        "kind": "int"
+                      }
+                    }
+                  ]
+                },
+                "concept": "Variable",
+                "id": "field_27",
+                "properties": {
+                  "name": "priority"
+                }
+              },
+              {
+                "children": {
+                  "type": [
+                    {
+                      "children": {},
+                      "concept": "PrimitiveType",
+                      "id": "type_30",
+                      "properties": {
+                        "kind": "string"
+                      }
+                    }
+                  ]
+                },
+                "concept": "Variable",
+                "id": "field_29",
+                "properties": {
+                  "name": "payload"
+                }
+              }
+            ],
+            "methods": [
+              {
+                "children": {
+                  "body": [
+                    {
+                      "children": {
+                        "expression": [
+                          {
+                            "children": {
+                              "target": [
+                                {
+                                  "children": {
+                                    "target": [
+                                      {
+                                        "children": {},
+                                        "concept": "VariableReference",
+                                        "id": "var_13",
+                                        "properties": {
+                                          "variableName": "self"
+                                        },
+                                        "span": {
+                                          "end": {
+                                            "col": 12,
+                                            "line": 2
+                                          },
+                                          "start": {
+                                            "col": 8,
+                                            "line": 2
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "concept": "MemberAccess",
+                                  "id": "member_12",
+                                  "properties": {
+                                    "memberName": "job_id"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 19,
+                                      "line": 2
+                                    },
+                                    "start": {
+                                      "col": 8,
+                                      "line": 2
+                                    }
+                                  }
+                                }
+                              ],
+                              "value": [
+                                {
+                                  "children": {},
+                                  "concept": "VariableReference",
+                                  "id": "var_14",
+                                  "properties": {
+                                    "variableName": "job_id"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 28,
+                                      "line": 2
+                                    },
+                                    "start": {
+                                      "col": 22,
+                                      "line": 2
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "Assignment",
+                            "id": "assign_11",
+                            "properties": {},
+                            "span": {
+                              "end": {
+                                "col": 28,
+                                "line": 2
+                              },
+                              "start": {
+                                "col": 8,
+                                "line": 2
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "ExpressionStatement",
+                      "id": "exprstmt_10",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 28,
+                          "line": 2
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 2
+                        }
+                      }
+                    },
+                    {
+                      "children": {
+                        "expression": [
+                          {
+                            "children": {
+                              "target": [
+                                {
+                                  "children": {
+                                    "target": [
+                                      {
+                                        "children": {},
+                                        "concept": "VariableReference",
+                                        "id": "var_18",
+                                        "properties": {
+                                          "variableName": "self"
+                                        },
+                                        "span": {
+                                          "end": {
+                                            "col": 12,
+                                            "line": 3
+                                          },
+                                          "start": {
+                                            "col": 8,
+                                            "line": 3
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "concept": "MemberAccess",
+                                  "id": "member_17",
+                                  "properties": {
+                                    "memberName": "priority"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 21,
+                                      "line": 3
+                                    },
+                                    "start": {
+                                      "col": 8,
+                                      "line": 3
+                                    }
+                                  }
+                                }
+                              ],
+                              "value": [
+                                {
+                                  "children": {},
+                                  "concept": "VariableReference",
+                                  "id": "var_19",
+                                  "properties": {
+                                    "variableName": "priority"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 32,
+                                      "line": 3
+                                    },
+                                    "start": {
+                                      "col": 24,
+                                      "line": 3
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "Assignment",
+                            "id": "assign_16",
+                            "properties": {},
+                            "span": {
+                              "end": {
+                                "col": 32,
+                                "line": 3
+                              },
+                              "start": {
+                                "col": 8,
+                                "line": 3
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "ExpressionStatement",
+                      "id": "exprstmt_15",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 32,
+                          "line": 3
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 3
+                        }
+                      }
+                    },
+                    {
+                      "children": {
+                        "expression": [
+                          {
+                            "children": {
+                              "target": [
+                                {
+                                  "children": {
+                                    "target": [
+                                      {
+                                        "children": {},
+                                        "concept": "VariableReference",
+                                        "id": "var_23",
+                                        "properties": {
+                                          "variableName": "self"
+                                        },
+                                        "span": {
+                                          "end": {
+                                            "col": 12,
+                                            "line": 4
+                                          },
+                                          "start": {
+                                            "col": 8,
+                                            "line": 4
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "concept": "MemberAccess",
+                                  "id": "member_22",
+                                  "properties": {
+                                    "memberName": "payload"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 20,
+                                      "line": 4
+                                    },
+                                    "start": {
+                                      "col": 8,
+                                      "line": 4
+                                    }
+                                  }
+                                }
+                              ],
+                              "value": [
+                                {
+                                  "children": {},
+                                  "concept": "VariableReference",
+                                  "id": "var_24",
+                                  "properties": {
+                                    "variableName": "payload"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 30,
+                                      "line": 4
+                                    },
+                                    "start": {
+                                      "col": 23,
+                                      "line": 4
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "Assignment",
+                            "id": "assign_21",
+                            "properties": {},
+                            "span": {
+                              "end": {
+                                "col": 30,
+                                "line": 4
+                              },
+                              "start": {
+                                "col": 8,
+                                "line": 4
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "ExpressionStatement",
+                      "id": "exprstmt_20",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 30,
+                          "line": 4
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 4
+                        }
+                      }
+                    }
+                  ],
+                  "parameters": [
+                    {
+                      "children": {
+                        "type": [
+                          {
+                            "children": {},
+                            "concept": "PrimitiveType",
+                            "id": "type_5",
+                            "properties": {
+                              "kind": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Parameter",
+                      "id": "param_4",
+                      "properties": {
+                        "name": "job_id"
+                      }
+                    },
+                    {
+                      "children": {
+                        "type": [
+                          {
+                            "children": {},
+                            "concept": "PrimitiveType",
+                            "id": "type_7",
+                            "properties": {
+                              "kind": "int"
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Parameter",
+                      "id": "param_6",
+                      "properties": {
+                        "name": "priority"
+                      }
+                    },
+                    {
+                      "children": {
+                        "type": [
+                          {
+                            "children": {},
+                            "concept": "PrimitiveType",
+                            "id": "type_9",
+                            "properties": {
+                              "kind": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Parameter",
+                      "id": "param_8",
+                      "properties": {
+                        "name": "payload"
+                      }
+                    }
+                  ]
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_2",
+                "properties": {
+                  "className": "WorkItem",
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "__init__",
+                  "visibility": "public"
+                },
+                "span": {
+                  "end": {
+                    "col": 30,
+                    "line": 4
+                  },
+                  "start": {
+                    "col": 4,
+                    "line": 1
+                  }
+                }
+              }
+            ]
+          },
+          "concept": "ClassDeclaration",
+          "id": "cls_1",
+          "properties": {
+            "isAbstract": false,
+            "name": "WorkItem"
+          },
+          "span": {
+            "end": {
+              "col": 30,
+              "line": 4
+            },
+            "start": {
+              "col": 0,
+              "line": 0
+            }
+          }
+        },
+        {
+          "children": {
+            "fields": [
+              {
+                "children": {
+                  "type": [
+                    {
+                      "children": {},
+                      "concept": "ListType",
+                      "id": "type_40",
+                      "properties": {}
+                    }
+                  ]
+                },
+                "concept": "Variable",
+                "id": "field_39",
+                "properties": {
+                  "name": "items"
+                }
+              }
+            ],
+            "methods": [
+              {
+                "children": {
+                  "body": [
+                    {
+                      "children": {
+                        "expression": [
+                          {
+                            "children": {
+                              "target": [
+                                {
+                                  "children": {
+                                    "target": [
+                                      {
+                                        "children": {},
+                                        "concept": "VariableReference",
+                                        "id": "var_37",
+                                        "properties": {
+                                          "variableName": "self"
+                                        },
+                                        "span": {
+                                          "end": {
+                                            "col": 12,
+                                            "line": 8
+                                          },
+                                          "start": {
+                                            "col": 8,
+                                            "line": 8
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "concept": "MemberAccess",
+                                  "id": "member_36",
+                                  "properties": {
+                                    "memberName": "items"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 18,
+                                      "line": 8
+                                    },
+                                    "start": {
+                                      "col": 8,
+                                      "line": 8
+                                    }
+                                  }
+                                }
+                              ],
+                              "value": [
+                                {
+                                  "children": {},
+                                  "concept": "ListLiteral",
+                                  "id": "list_38",
+                                  "properties": {},
+                                  "span": {
+                                    "end": {
+                                      "col": 23,
+                                      "line": 8
+                                    },
+                                    "start": {
+                                      "col": 21,
+                                      "line": 8
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "Assignment",
+                            "id": "assign_35",
+                            "properties": {},
+                            "span": {
+                              "end": {
+                                "col": 23,
+                                "line": 8
+                              },
+                              "start": {
+                                "col": 8,
+                                "line": 8
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "ExpressionStatement",
+                      "id": "exprstmt_34",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 23,
+                          "line": 8
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 8
+                        }
+                      }
+                    }
+                  ],
+                  "parameters": []
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_32",
+                "properties": {
+                  "className": "PriorityQueue",
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "__init__",
+                  "visibility": "public"
+                },
+                "span": {
+                  "end": {
+                    "col": 23,
+                    "line": 8
+                  },
+                  "start": {
+                    "col": 4,
+                    "line": 7
+                  }
+                }
+              },
+              {
+                "children": {
+                  "body": [
+                    {
+                      "children": {
+                        "expression": [
+                          {
+                            "children": {
+                              "arguments": [
+                                {
+                                  "children": {},
+                                  "concept": "VariableReference",
+                                  "id": "var_47",
+                                  "properties": {
+                                    "variableName": "item"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 30,
+                                      "line": 11
+                                    },
+                                    "start": {
+                                      "col": 26,
+                                      "line": 11
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "FunctionCall",
+                            "id": "call_46",
+                            "properties": {
+                              "functionName": "self.items.append"
+                            },
+                            "span": {
+                              "end": {
+                                "col": 31,
+                                "line": 11
+                              },
+                              "start": {
+                                "col": 8,
+                                "line": 11
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "ExpressionStatement",
+                      "id": "exprstmt_45",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 31,
+                          "line": 11
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 11
+                        }
+                      }
+                    }
+                  ],
+                  "parameters": [
+                    {
+                      "children": {
+                        "type": [
+                          {
+                            "children": {},
+                            "concept": "CustomType",
+                            "id": "type_44",
+                            "properties": {
+                              "typeName": "WorkItem"
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Parameter",
+                      "id": "param_43",
+                      "properties": {
+                        "name": "item"
+                      }
+                    }
+                  ]
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_41",
+                "properties": {
+                  "className": "PriorityQueue",
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "enqueue",
+                  "visibility": "public"
+                },
+                "span": {
+                  "end": {
+                    "col": 31,
+                    "line": 11
+                  },
+                  "start": {
+                    "col": 4,
+                    "line": 10
+                  }
+                }
+              },
+              {
+                "children": {
+                  "body": [
+                    {
+                      "children": {
+                        "value": [
+                          {
+                            "children": {
+                              "arguments": [
+                                {
+                                  "children": {},
+                                  "concept": "IntegerLiteral",
+                                  "id": "int_53",
+                                  "properties": {
+                                    "value": 0
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 31,
+                                      "line": 14
+                                    },
+                                    "start": {
+                                      "col": 30,
+                                      "line": 14
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "FunctionCall",
+                            "id": "call_52",
+                            "properties": {
+                              "functionName": "self.items.pop"
+                            },
+                            "span": {
+                              "end": {
+                                "col": 32,
+                                "line": 14
+                              },
+                              "start": {
+                                "col": 15,
+                                "line": 14
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Return",
+                      "id": "ret_51",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 32,
+                          "line": 14
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 14
+                        }
+                      }
+                    }
+                  ],
+                  "parameters": [],
+                  "returnType": [
+                    {
+                      "children": {},
+                      "concept": "CustomType",
+                      "id": "type_50",
+                      "properties": {
+                        "typeName": "WorkItem"
+                      }
+                    }
+                  ]
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_48",
+                "properties": {
+                  "className": "PriorityQueue",
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "dequeue",
+                  "visibility": "public"
+                },
+                "span": {
+                  "end": {
+                    "col": 32,
+                    "line": 14
+                  },
+                  "start": {
+                    "col": 4,
+                    "line": 13
+                  }
+                }
+              },
+              {
+                "children": {
+                  "body": [
+                    {
+                      "children": {
+                        "value": [
+                          {
+                            "children": {},
+                            "concept": "VariableReference",
+                            "id": "var_58",
+                            "properties": {
+                              "variableName": "self.items[0]"
+                            },
+                            "span": {
+                              "end": {
+                                "col": 28,
+                                "line": 17
+                              },
+                              "start": {
+                                "col": 15,
+                                "line": 17
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Return",
+                      "id": "ret_57",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 28,
+                          "line": 17
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 17
+                        }
+                      }
+                    }
+                  ],
+                  "parameters": [],
+                  "returnType": [
+                    {
+                      "children": {},
+                      "concept": "CustomType",
+                      "id": "type_56",
+                      "properties": {
+                        "typeName": "WorkItem"
+                      }
+                    }
+                  ]
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_54",
+                "properties": {
+                  "className": "PriorityQueue",
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "peek",
+                  "visibility": "public"
+                },
+                "span": {
+                  "end": {
+                    "col": 28,
+                    "line": 17
+                  },
+                  "start": {
+                    "col": 4,
+                    "line": 16
+                  }
+                }
+              },
+              {
+                "children": {
+                  "body": [
+                    {
+                      "children": {
+                        "value": [
+                          {
+                            "children": {
+                              "arguments": [
+                                {
+                                  "children": {
+                                    "target": [
+                                      {
+                                        "children": {},
+                                        "concept": "VariableReference",
+                                        "id": "var_65",
+                                        "properties": {
+                                          "variableName": "self"
+                                        },
+                                        "span": {
+                                          "end": {
+                                            "col": 23,
+                                            "line": 20
+                                          },
+                                          "start": {
+                                            "col": 19,
+                                            "line": 20
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "concept": "MemberAccess",
+                                  "id": "member_64",
+                                  "properties": {
+                                    "memberName": "items"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 29,
+                                      "line": 20
+                                    },
+                                    "start": {
+                                      "col": 19,
+                                      "line": 20
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "FunctionCall",
+                            "id": "call_63",
+                            "properties": {
+                              "functionName": "len"
+                            },
+                            "span": {
+                              "end": {
+                                "col": 30,
+                                "line": 20
+                              },
+                              "start": {
+                                "col": 15,
+                                "line": 20
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Return",
+                      "id": "ret_62",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 30,
+                          "line": 20
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 20
+                        }
+                      }
+                    }
+                  ],
+                  "parameters": [],
+                  "returnType": [
+                    {
+                      "children": {},
+                      "concept": "PrimitiveType",
+                      "id": "type_61",
+                      "properties": {
+                        "kind": "int"
+                      }
+                    }
+                  ]
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_59",
+                "properties": {
+                  "className": "PriorityQueue",
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "size",
+                  "visibility": "public"
+                },
+                "span": {
+                  "end": {
+                    "col": 30,
+                    "line": 20
+                  },
+                  "start": {
+                    "col": 4,
+                    "line": 19
+                  }
+                }
+              },
+              {
+                "children": {
+                  "body": [
+                    {
+                      "children": {
+                        "value": [
+                          {
+                            "children": {
+                              "left": [
+                                {
+                                  "children": {
+                                    "arguments": [
+                                      {
+                                        "children": {
+                                          "target": [
+                                            {
+                                              "children": {},
+                                              "concept": "VariableReference",
+                                              "id": "var_73",
+                                              "properties": {
+                                                "variableName": "self"
+                                              },
+                                              "span": {
+                                                "end": {
+                                                  "col": 23,
+                                                  "line": 23
+                                                },
+                                                "start": {
+                                                  "col": 19,
+                                                  "line": 23
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        "concept": "MemberAccess",
+                                        "id": "member_72",
+                                        "properties": {
+                                          "memberName": "items"
+                                        },
+                                        "span": {
+                                          "end": {
+                                            "col": 29,
+                                            "line": 23
+                                          },
+                                          "start": {
+                                            "col": 19,
+                                            "line": 23
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "concept": "FunctionCall",
+                                  "id": "call_71",
+                                  "properties": {
+                                    "functionName": "len"
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 30,
+                                      "line": 23
+                                    },
+                                    "start": {
+                                      "col": 15,
+                                      "line": 23
+                                    }
+                                  }
+                                }
+                              ],
+                              "right": [
+                                {
+                                  "children": {},
+                                  "concept": "IntegerLiteral",
+                                  "id": "int_74",
+                                  "properties": {
+                                    "value": 0
+                                  },
+                                  "span": {
+                                    "end": {
+                                      "col": 35,
+                                      "line": 23
+                                    },
+                                    "start": {
+                                      "col": 34,
+                                      "line": 23
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "concept": "BinaryOperation",
+                            "id": "binop_70",
+                            "properties": {
+                              "op": "=="
+                            },
+                            "span": {
+                              "end": {
+                                "col": 35,
+                                "line": 23
+                              },
+                              "start": {
+                                "col": 15,
+                                "line": 23
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "concept": "Return",
+                      "id": "ret_69",
+                      "properties": {},
+                      "span": {
+                        "end": {
+                          "col": 35,
+                          "line": 23
+                        },
+                        "start": {
+                          "col": 8,
+                          "line": 23
+                        }
+                      }
+                    }
+                  ],
+                  "parameters": [],
+                  "returnType": [
+                    {
+                      "children": {},
+                      "concept": "PrimitiveType",
+                      "id": "type_68",
+                      "properties": {
+                        "kind": "bool"
+                      }
+                    }
+                  ]
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_66",
+                "properties": {
+                  "className": "PriorityQueue",
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "empty",
+                  "visibility": "public"
+                },
+                "span": {
+                  "end": {
+                    "col": 35,
+                    "line": 23
+                  },
+                  "start": {
+                    "col": 4,
+                    "line": 22
+                  }
+                }
+              }
+            ]
+          },
+          "concept": "ClassDeclaration",
+          "id": "cls_31",
+          "properties": {
+            "isAbstract": false,
+            "name": "PriorityQueue"
+          },
+          "span": {
+            "end": {
+              "col": 35,
+              "line": 23
+            },
+            "start": {
+              "col": 0,
+              "line": 6
+            }
+          }
+        }
+      ]
+    },
+    "concept": "Module",
+    "id": "mod_0",
+    "properties": {
+      "name": "parsed_python_module",
+      "targetLanguage": "python"
+    },
+    "span": {
+      "end": {
+        "col": 35,
+        "line": 23
+      },
+      "start": {
+        "col": 0,
+        "line": 0
+      }
+    }
+  },
+  "dceCount": 0,
+  "foldCount": 0,
+  "gates": {
+    "compile": {
+      "passed": true,
+      "reason": "ok"
+    },
+    "failure_reasons": [],
+    "overall_ready": true,
+    "placeholder": {
+      "passed": true,
+      "reason": "ok"
+    },
+    "tests": {
+      "passed": true,
+      "reason": "ok"
+    }
+  },
+  "generatedCode": "#pragma once\n#include <string>\n\nnamespace parsed_python_module {\n\nclass WorkItem {\npublic:\n    std::string job_id;\n    int priority;\n    std::string payload;\n\n    WorkItem(std::string job_id, int priority, std::string payload);\n};\nclass PriorityQueue {\npublic:\n    std::vector<std::string> items;\n\n    PriorityQueue();\n    void enqueue(WorkItem item);\n    WorkItem dequeue();\n    WorkItem peek();\n    int size();\n    bool empty();\n};\n\n}  // namespace parsed_python_module\n",
+  "parseDiagnostics": [],
+  "quality": {
+    "compilable_estimate": true,
+    "fallback_used": false,
+    "placeholder_count": 0,
+    "todo_count": 0,
+    "warnings": []
+  },
+  "success": true,
+  "suggestions": [
+    {
+      "annotationType": "ReclaimAnnotation",
+      "confidence": 0.95,
+      "nodeId": "mod_0",
+      "reason": "python uses tracing garbage collection",
+      "strategy": "Tracing"
+    }
+  ],
+  "validationDiagnostics": [],
+  "violations": []
+}

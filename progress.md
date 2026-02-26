@@ -14248,3 +14248,49 @@ Implemented deterministic remediation routing and autonomous loop evidence contr
     - `datastore`: pass_rate `1.0`
 - `./tools/mcp/run_sprint_taskitem_pipeline.sh sprint171_plan.md` - PASS
   - output: `logs/taskitem_runs/sprint171_plan_20260225_185146`
+
+## Sprint 172-174 Execution (Debug-Chain Hardening)
+**Status:** PASS
+
+### Sprint 172 (C++ include auto-fix)
+- Added deterministic diagnostics-based include fixer:
+  - `tools/mcp/apply_cpp_diagnostic_fixes.py`
+- Integrated auto-fix attempt into production loop before blocked decision:
+  - `tools/mcp/run_production_completion_loop.sh`
+- Added integration summary:
+  - `editor/src/Sprint172IntegrationSummary.h`
+- Taskitem execution:
+  - `./tools/mcp/run_sprint_taskitem_pipeline.sh sprint172_plan.md` - PASS
+  - output: `logs/taskitem_runs/sprint172_plan_20260225_190632`
+
+### Sprint 173 (pre-gate lint hook)
+- Extended gate evaluator with lint stage and optional strict lint blocking:
+  - `tools/mcp/evaluate_generated_code_gates.py`
+- Added integration summary:
+  - `editor/src/Sprint173IntegrationSummary.h`
+- Taskitem execution:
+  - `./tools/mcp/run_sprint_taskitem_pipeline.sh sprint173_plan.md` - PASS
+  - output: `logs/taskitem_runs/sprint173_plan_20260225_190632`
+
+### Sprint 174 (debug-chain execution + validation artifacts)
+- Expanded remediation router for compile/include failure classes:
+  - `tools/mcp/remediation_router.py`
+- Added token accounting tooling and A/B runner:
+  - `tools/mcp/estimate_tokens.py`
+  - `tools/mcp/run_ab_test_ast_vs_language_first.sh`
+- Added integration summary:
+  - `editor/src/Sprint174IntegrationSummary.h`
+- Taskitem execution:
+  - `./tools/mcp/run_sprint_taskitem_pipeline.sh sprint174_plan.md` - PASS
+  - output: `logs/taskitem_runs/sprint174_plan_20260225_190639`
+
+### Validation Runs
+- Strict production loop:
+  - `STRICT_MODE=1 WSTONE_MCP_BIN=editor/build-native/whetstone_mcp ./tools/mcp/run_production_completion_loop.sh "Generate WorkItem and PriorityQueue classes with enqueue, dequeue, peek, size, empty"` - PASS
+  - output: `logs/taskitem_runs/production_loop_20260225_190639`
+  - result: `status=green`, `overall_ready=true`
+- Strict A/B with token accounting:
+  - `STRICT_MODE=1 WSTONE_MCP_BIN=editor/build-native/whetstone_mcp ./tools/mcp/run_ab_test_ast_vs_language_first.sh` - PASS
+  - output: `logs/taskitem_runs/ab_test_ast_vs_language_first_20260225_190639`
+  - Path A: `overall_ready=true`, total token estimate `2571`
+  - Path B: `overall_ready=false`, total token estimate `12565` (still failing raw path on compile hygiene)

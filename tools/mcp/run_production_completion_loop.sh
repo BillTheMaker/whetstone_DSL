@@ -90,7 +90,37 @@ for i in $(seq 1 "$MAX_ITERS"); do
     break
   fi
 
+  # Deterministic C++ include repair attempt from diagnostics.
+  if [[ "$LANGUAGE" == "cpp" ]]; then
+    python3 "$ROOT_DIR/tools/mcp/apply_cpp_diagnostic_fixes.py" \
+      --code-file "$OUT_DIR/${iter_id}_generated_code.txt" \
+      --gates-json "$OUT_DIR/${iter_id}_gates.json" \
+      --out-code-file "$OUT_DIR/${iter_id}_generated_code_fixed.cpp" \
+      --out-report "$OUT_DIR/${iter_id}_fix_report.json" >/tmp/production_loop_fix_${i}.json
+
+    if [[ "$(jq -r '.changed' "$OUT_DIR/${iter_id}_fix_report.json")" == "true" ]]; then
+      mv "$OUT_DIR/${iter_id}_generated_code_fixed.cpp" "$OUT_DIR/${iter_id}_generated_code.txt"
+      fixed_gate="$OUT_DIR/${iter_id}_gates_after_fix.json"
+      python3 "$ROOT_DIR/tools/mcp/evaluate_generated_code_gates.py" \
+        --code-file "$OUT_DIR/${iter_id}_generated_code.txt" \
+        --language "$LANGUAGE" \
+        "${strict_arg[@]}" \
+        --out "$fixed_gate" >/tmp/production_loop_gate_fix_${i}.json
+      log_trace "autofix" "$iter_id" "$(cat "$OUT_DIR/${iter_id}_fix_report.json")"
+      log_trace "gates_after_fix" "$iter_id" "$(cat "$fixed_gate")"
+      cp "$fixed_gate" "$OUT_DIR/${iter_id}_gates.json"
+      ready="$(jq -r '.gates.overall_ready' "$OUT_DIR/${iter_id}_gates.json")"
+      if [[ "$ready" == "true" ]]; then
+        status="green"
+        blocked_reason=""
+        final_ready=1
+        break
+      fi
+    fi
+  fi
+
   # Run same-language pipeline for diagnostics when compile/test fail.
+  code="$(cat "$OUT_DIR/${iter_id}_generated_code.txt")"
   pipeline_args="$(jq -nc --arg src "$code" --arg lang "$LANGUAGE" '{source:$src,sourceLanguage:$lang,targetLanguage:$lang}')"
   pipeline_raw="$(call_tool whetstone_run_pipeline "$pipeline_args")"
   printf '%s\n' "$pipeline_raw" > "$OUT_DIR/${iter_id}_pipeline_raw.json"

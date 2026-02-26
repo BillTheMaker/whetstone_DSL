@@ -1,0 +1,183 @@
+{
+  "conflictSignals": {
+    "ambiguousRequirementCount": 0,
+    "conflictCount": 0,
+    "hasConflicts": false
+  },
+  "conflicts": [],
+  "normalizedRequirements": [
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1904 c include fixer from gate diagnostics 10 tests",
+      "requirementId": "goal-1",
+      "sourceLine": 2
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1905 loop integration for auto fix attempt 8 tests",
+      "requirementId": "goal-2",
+      "sourceLine": 3
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1906 sprint 172 integration summary 8 tests",
+      "requirementId": "goal-3",
+      "sourceLine": 4
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "missing stl include should not require manual prompt rewrite",
+      "requirementId": "constraint-1",
+      "sourceLine": 7
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "auto fix must be auditable and idempotent",
+      "requirementId": "constraint-2",
+      "sourceLine": 8
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "existing editor src modules and mcp toolchain",
+      "requirementId": "dependency-1",
+      "sourceLine": 11
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "whetstone mcp stable binary and workspace config",
+      "requirementId": "dependency-2",
+      "sourceLine": 12
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "all sprint step tests pass",
+      "requirementId": "acceptance-1",
+      "sourceLine": 15
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "no regression in existing mcp tool behavior",
+      "requirementId": "acceptance-2",
+      "sourceLine": 16
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "generated task queue is ready or blockers are explicit",
+      "requirementId": "acceptance-3",
+      "sourceLine": 17
+    }
+  ],
+  "parsedSpec": {
+    "acceptanceCriteria": [
+      {
+        "anchor": "acceptance-criteria",
+        "line": 15,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "All sprint step tests pass"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 16,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "No regression in existing MCP tool behavior"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 17,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "Generated task queue is ready or blockers are explicit"
+      }
+    ],
+    "constraints": [
+      {
+        "anchor": "constraints",
+        "line": 7,
+        "sectionTitle": "Constraints",
+        "text": "Missing STL include should not require manual prompt rewrite"
+      },
+      {
+        "anchor": "constraints",
+        "line": 8,
+        "sectionTitle": "Constraints",
+        "text": "Auto-fix must be auditable and idempotent"
+      }
+    ],
+    "dependencies": [
+      {
+        "anchor": "dependencies",
+        "line": 11,
+        "sectionTitle": "Dependencies",
+        "text": "Existing editor/src modules and MCP toolchain"
+      },
+      {
+        "anchor": "dependencies",
+        "line": 12,
+        "sectionTitle": "Dependencies",
+        "text": "whetstone_mcp stable binary and workspace config"
+      }
+    ],
+    "goals": [
+      {
+        "anchor": "goals",
+        "line": 2,
+        "sectionTitle": "Goals",
+        "text": "Step 1904: C++ include fixer from gate diagnostics (10 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 3,
+        "sectionTitle": "Goals",
+        "text": "Step 1905: Loop integration for auto-fix attempt (8 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 4,
+        "sectionTitle": "Goals",
+        "text": "Step 1906: Sprint 172 Integration Summary (8 tests)"
+      }
+    ],
+    "sections": [
+      {
+        "anchor": "goals",
+        "headingLine": 1,
+        "title": "Goals"
+      },
+      {
+        "anchor": "constraints",
+        "headingLine": 6,
+        "title": "Constraints"
+      },
+      {
+        "anchor": "dependencies",
+        "headingLine": 10,
+        "title": "Dependencies"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "headingLine": 14,
+        "title": "Acceptance Criteria"
+      }
+    ]
+  },
+  "success": true
+}

@@ -1,0 +1,73 @@
+{
+  "diagnostics": [
+    {
+      "category": "compile",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_compile_865ghnx5/generated.cpp",
+      "line": 1,
+      "message": "#pragma once in main file",
+      "raw_excerpt": "/tmp/whetstone_gate_compile_865ghnx5/generated.cpp:1:9: warning: #pragma once in main file",
+      "severity": "warning",
+      "source": "compile"
+    },
+    {
+      "category": "tests",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_umtlif5v/harness.cpp",
+      "line": 1,
+      "message": "#pragma once in main file",
+      "raw_excerpt": "/tmp/whetstone_gate_test_umtlif5v/harness.cpp:1:9: warning: #pragma once in main file",
+      "severity": "warning",
+      "source": "tests"
+    }
+  ],
+  "gates": {
+    "compile": {
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-fsyntax-only",
+        "/tmp/whetstone_gate_compile_865ghnx5/generated.cpp"
+      ],
+      "passed": true,
+      "reason": "ok",
+      "return_code": 0,
+      "skipped": false,
+      "stderr": "/tmp/whetstone_gate_compile_865ghnx5/generated.cpp:1:9: warning: #pragma once in main file\n    1 | #pragma once\n      |         ^~~~\n",
+      "stdout": "",
+      "strict_blocking": false
+    },
+    "failure_reasons": [],
+    "lint": {
+      "passed": true,
+      "reason": "tool_missing",
+      "skipped": true,
+      "strict_blocking": false
+    },
+    "overall_ready": true,
+    "placeholder": {
+      "count": 0,
+      "findings": [],
+      "passed": true
+    },
+    "tests": {
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-fsyntax-only",
+        "/tmp/whetstone_gate_test_umtlif5v/harness.cpp"
+      ],
+      "passed": true,
+      "reason": "ok",
+      "return_code": 0,
+      "skipped": false,
+      "stderr": "/tmp/whetstone_gate_test_umtlif5v/harness.cpp:1:9: warning: #pragma once in main file\n    1 | #pragma once\n      |         ^~~~\n",
+      "stdout": "",
+      "strict_blocking": false
+    }
+  },
+  "language": "cpp",
+  "strict_mode": true
+}
