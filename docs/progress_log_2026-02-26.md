@@ -75,3 +75,13 @@
 - Artifact isolation update:
   - moved planning/hardening outputs to `logs/taskitem_runs/TEST_ONLY_*` paths.
   - wrapper default now writes to `TEST_ONLY_spec_hardening_gate_*`.
+
+## Sprint 232 Added (Same Day)
+
+- Added semantic planning bridge:
+  - `tools/mcp/markdown_to_semantic_annotations.py`
+- Integrated into taskitem pipeline:
+  - `tools/mcp/run_sprint_taskitem_pipeline.sh`
+  - env toggle: `WSTONE_SEMANTIC_PLANNING_BRIDGE` (default `1`)
+  - emits `00b_semantic_planning_annotations.json`
+  - summary now includes `semantic_planning_annotations`

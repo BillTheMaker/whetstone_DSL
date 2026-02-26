@@ -24,6 +24,7 @@ RUN_READINESS_SUITE="${WSTONE_RUN_READINESS_SUITE:-1}"
 SPEC_READINESS_PRECHECK="${WSTONE_SPEC_READINESS_PRECHECK:-1}"
 SPEC_READINESS_HARD_GATE="${WSTONE_SPEC_READINESS_HARD_GATE:-0}"
 SPEC_READINESS_MIN_SCORE="${WSTONE_SPEC_READINESS_MIN_SCORE:-65}"
+SEMANTIC_PLANNING_BRIDGE="${WSTONE_SEMANTIC_PLANNING_BRIDGE:-1}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -68,6 +69,14 @@ if [[ "$SPEC_READINESS_PRECHECK" == "1" ]]; then
     echo "error: see $OUT_DIR/00a_spec_readiness.json for missing_actions and recommended_template" >&2
     exit 7
   fi
+fi
+
+SEMANTIC_PLANNING_JSON='{}'
+if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
+  python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
+    --spec "$INPUT_FILE" \
+    --out "$OUT_DIR/00b_semantic_planning_annotations.json" >/dev/null
+  SEMANTIC_PLANNING_JSON="$(cat "$OUT_DIR/00b_semantic_planning_annotations.json")"
 fi
 
 call_tool() {
@@ -240,6 +249,7 @@ SUMMARY_JSON="$(jq -nc \
   --arg bin "$BIN" \
   --arg workspace "$WORKSPACE" \
   --argjson planning_readiness "$SPEC_READINESS_JSON" \
+  --argjson semantic_planning "$SEMANTIC_PLANNING_JSON" \
   --argjson intake "$INTAKE_JSON" \
   --argjson generated "$GEN_JSON" \
   --argjson queue "$QUEUE_JSON" \
@@ -252,6 +262,7 @@ SUMMARY_JSON="$(jq -nc \
     workspace: $workspace,
     output_dir: $outDir,
     planning_readiness: $planning_readiness,
+    semantic_planning_annotations: $semantic_planning,
     intake: {
       success: ($intake.success // false),
       normalized_requirement_count: (($intake.normalizedRequirements // [])|length),
