@@ -150,7 +150,7 @@ Parallel planning tranche (active):
   - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 Planning runtime controls (active):
-- `sprint232_plan.md` to `sprint244_plan.md`
+- `sprint232_plan.md` to `sprint245_plan.md`
 - semantic bridge + intake augmentation + requirement injection + expansion gating are wired into:
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
 - current policy default is native-first semantic fallback:
@@ -185,3 +185,6 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_PROFILE_AUTOFILL`
   - `WSTONE_NATIVE_PROFILE_AUTOFILL_MAX_TASKS`
   - `tools/mcp/synthesize_native_profile_autofill_tasks.py`
+- intrinsic first-pass boost can inject profile-derived decomposition constraints:
+  - `WSTONE_NATIVE_INTRINSIC_BOOST`
+  - `tools/mcp/synthesize_native_intrinsic_boost_requirements.py`

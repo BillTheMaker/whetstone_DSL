@@ -248,3 +248,17 @@
 - Enforced gate behavior verified:
   - pass with autofill ON: `logs/taskitem_runs/TEST_ONLY_sprint244_autofill_enforce_20260226_151709/00_summary.json`
   - fail with autofill OFF: `logs/taskitem_runs/TEST_ONLY_sprint244_autofill_enforce_20260226_151710/06_native_impact_coverage.json`
+
+## Sprint 245 Added (Same Day)
+
+- Added intrinsic first-pass decomposition boost path:
+  - `tools/mcp/synthesize_native_intrinsic_boost_requirements.py`
+  - `WSTONE_NATIVE_INTRINSIC_BOOST`
+  - summary packet: `native_intrinsic_boost`
+- A/B with autofill disabled on hard fullstack sample:
+  - OFF: `logs/taskitem_runs/TEST_ONLY_sprint245_intrinsic_20260226_151834/00_summary.json`
+  - ON: `logs/taskitem_runs/TEST_ONLY_sprint245_intrinsic_20260226_151835/00_summary.json`
+- Current measured result:
+  - `failing_profile_count 7 -> 7`
+  - `task_count 2 -> 2`
+  - no intrinsic uplift on this sample (signal retained for next tranche).

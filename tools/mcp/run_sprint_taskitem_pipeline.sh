@@ -44,6 +44,7 @@ NATIVE_IMPACT_COVERAGE_ENFORCE="${WSTONE_NATIVE_IMPACT_COVERAGE_ENFORCE:-0}"
 NATIVE_IMPACT_COVERAGE_PROFILES="${WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES:-$ROOT_DIR/tools/mcp/profiles/native_decomposition_impact_profiles.json}"
 NATIVE_PROFILE_AUTOFILL="${WSTONE_NATIVE_PROFILE_AUTOFILL:-0}"
 NATIVE_PROFILE_AUTOFILL_MAX_TASKS="${WSTONE_NATIVE_PROFILE_AUTOFILL_MAX_TASKS:-12}"
+NATIVE_INTRINSIC_BOOST="${WSTONE_NATIVE_INTRINSIC_BOOST:-0}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -102,6 +103,7 @@ NATIVE_REASON_ENRICHMENT_JSON='{}'
 NATIVE_DECOMP_RETRY_JSON='{}'
 NATIVE_IMPACT_COVERAGE_JSON='{}'
 NATIVE_PROFILE_AUTOFILL_JSON='{}'
+NATIVE_INTRINSIC_BOOST_JSON='{}'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 EXTRA_TASKS_JSON='[]'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
@@ -304,6 +306,17 @@ if [[ -n "$EXTRA_NORMALIZED_REQUIREMENTS_FILE" ]]; then
   fi
   EXTRA_NORMALIZED_REQUIREMENTS_JSON="$(cat "$EXTRA_NORMALIZED_REQUIREMENTS_FILE")"
   NORMALIZED_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson extra "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" '$base + $extra')"
+fi
+if [[ "$NATIVE_INTRINSIC_BOOST" == "1" ]]; then
+  python3 "$ROOT_DIR/tools/mcp/synthesize_native_intrinsic_boost_requirements.py" \
+    --spec "$INPUT_FILE" \
+    --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+    --out "$OUT_DIR/01d_native_intrinsic_boost_requirements.json" >/dev/null
+  INTRINSIC_REQS_JSON="$(cat "$OUT_DIR/01d_native_intrinsic_boost_requirements.json")"
+  NORMALIZED_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson intrinsic "$INTRINSIC_REQS_JSON" '$base + $intrinsic')"
+  NATIVE_INTRINSIC_BOOST_JSON="$(jq -nc --argjson reqs "$INTRINSIC_REQS_JSON" '{enabled:true, requirement_count:($reqs|length)}')"
+else
+  NATIVE_INTRINSIC_BOOST_JSON='{"enabled":false,"requirement_count":0}'
 fi
 CONFLICTS="$(printf '%s' "$INTAKE_JSON" | jq '.conflicts // []')"
 GEN_ARGS="$(jq -nc --argjson nr "$NORMALIZED_REQS" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
@@ -567,6 +580,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_reason_enrichment "$NATIVE_REASON_ENRICHMENT_JSON" \
   --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
   --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
+  --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
   --argjson extra_normalized_requirements "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" \
   --argjson extra_tasks "$EXTRA_TASKS_JSON" \
   --argjson intake "$INTAKE_JSON" \
@@ -590,6 +604,7 @@ SUMMARY_JSON="$(jq -nc \
     native_reason_enrichment: $native_reason_enrichment,
     native_decomposition_retry: $native_decomposition_retry,
     native_profile_autofill: $native_profile_autofill,
+    native_intrinsic_boost: $native_intrinsic_boost,
     extra_normalized_requirements: $extra_normalized_requirements,
     extra_tasks: $extra_tasks,
     intake: {
