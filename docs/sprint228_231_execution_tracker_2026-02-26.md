@@ -27,10 +27,29 @@ Planned and started:
 
 - `logs/taskitem_runs/spec_planning_baseline_20260226/fullstack_spec_readiness.json`
 - `logs/taskitem_runs/spec_planning_baseline_20260226/deterministic_spec_readiness.json`
+- `logs/taskitem_runs/spec_planning_hardening_20260226/sprint228_before.json`
+- `logs/taskitem_runs/spec_planning_hardening_20260226/sprint228_after.json`
+- `logs/taskitem_runs/spec_planning_hardening_20260226/sprint228_hardened.md`
+- `logs/taskitem_runs/spec_hardening_gate_20260226_s228_r2/report.json`
 
 Observed baseline:
 - both sample docs currently return `needs_spec_hardening`
 - low readiness scores indicate missing first-class sections for constraints/acceptance/environment/security/performance.
+
+Hardening delta (sprint228 plan sample):
+- before: `score=17`, verdict `needs_spec_hardening`, missing actions `10`
+- after auto-hardening scaffold: `score=100`, verdict `execution_ready`, missing actions `0`
+
+Pipeline hard-gate proof:
+- original spec run (hard gate on): `rc=7` with explicit readiness failure
+  - `logs/taskitem_runs/sprint228_plan_20260226_141045/00a_spec_readiness.json`
+- hardened spec run (hard gate on): `rc=0` and full pipeline completion
+  - `logs/taskitem_runs/sprint228_hardened_20260226_141045/00_summary.json`
+
+Reusable flow wrapper:
+- `tools/mcp/run_spec_hardening_gate.sh`
+- example invocation:
+  - `tools/mcp/run_spec_hardening_gate.sh sprint228_plan.md logs/taskitem_runs/spec_hardening_gate_20260226_s228_r2`
 
 ## Explicit Completion Signal
 
@@ -42,5 +61,5 @@ Observed baseline:
 ## Next Closure Work
 
 - Enable hard-gate mode for selected sprint ranges and capture pass/fail deltas.
-- Add structured spec hardening pass that applies template scaffolds to candidate specs.
+- Add reusable wrapper script for readiness->hardening->hard-gate flow across catalogs.
 - Re-run benchmarks using hardened specs and measure downstream readiness deltas.

@@ -16,6 +16,8 @@
 - First-class planning tranche (new):
   - `docs/sprint228_231_execution_tracker_2026-02-26.md`
   - `tools/mcp/spec_planning_readiness.py`
+  - `tools/mcp/spec_planning_hardener.py`
+  - `tools/mcp/run_spec_hardening_gate.sh`
 
 ## Dated Handoff
 

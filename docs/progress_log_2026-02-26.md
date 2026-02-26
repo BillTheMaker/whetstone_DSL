@@ -60,3 +60,10 @@
   - `WSTONE_SPEC_READINESS_HARD_GATE`
   - `WSTONE_SPEC_READINESS_MIN_SCORE`
 - Spec readiness is now available in pipeline `00_summary.json` as `planning_readiness`.
+- Added auto-hardening utility:
+  - `tools/mcp/spec_planning_hardener.py`
+- Added end-to-end hardening gate wrapper:
+  - `tools/mcp/run_spec_hardening_gate.sh`
+- Demonstrated hard-gate delta on sprint sample:
+  - original spec blocked (`rc=7`, score `17`)
+  - hardened spec passed (`rc=0`, score `100`)
