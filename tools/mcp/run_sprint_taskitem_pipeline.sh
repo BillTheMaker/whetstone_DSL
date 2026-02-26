@@ -28,6 +28,10 @@ SEMANTIC_PLANNING_BRIDGE="${WSTONE_SEMANTIC_PLANNING_BRIDGE:-1}"
 SEMANTIC_INTAKE_AUGMENT="${WSTONE_SEMANTIC_INTAKE_AUGMENT:-1}"
 SEMANTIC_REQUIREMENT_INJECTION="${WSTONE_SEMANTIC_REQUIREMENT_INJECTION:-1}"
 SEMANTIC_TASK_EXPANSION="${WSTONE_SEMANTIC_TASK_EXPANSION:-1}"
+SEMANTIC_COVERAGE_GATE="${WSTONE_SEMANTIC_COVERAGE_GATE:-0}"
+SEMANTIC_MIN_COVERAGE="${WSTONE_SEMANTIC_MIN_COVERAGE:-0.9}"
+SEMANTIC_REQUIRE_CAPS_FOR_COMPLEX="${WSTONE_SEMANTIC_REQUIRE_CAPS_FOR_COMPLEX:-1}"
+SEMANTIC_MIN_COMPLEXITY_SCORE="${WSTONE_SEMANTIC_MIN_COMPLEXITY_SCORE:-2}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -78,11 +82,31 @@ SEMANTIC_PLANNING_JSON='{}'
 SEMANTIC_AUGMENT_JSON='{}'
 SEMANTIC_REQUIREMENT_INJECTION_JSON='{}'
 SEMANTIC_TASK_EXPANSION_JSON='{}'
+SEMANTIC_GATE_JSON='{}'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
   python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
     --spec "$INPUT_FILE" \
     --out "$OUT_DIR/00b_semantic_planning_annotations.json" >/dev/null
   SEMANTIC_PLANNING_JSON="$(cat "$OUT_DIR/00b_semantic_planning_annotations.json")"
+  if [[ "$SEMANTIC_COVERAGE_GATE" == "1" ]]; then
+    gate_flags=()
+    if [[ "$SEMANTIC_REQUIRE_CAPS_FOR_COMPLEX" == "1" ]]; then
+      gate_flags+=(--require-caps-for-complex)
+    fi
+    if python3 "$ROOT_DIR/tools/mcp/check_semantic_planning_gate.py" \
+      --packet "$OUT_DIR/00b_semantic_planning_annotations.json" \
+      --out "$OUT_DIR/00bb_semantic_planning_gate.json" \
+      --min-coverage "$SEMANTIC_MIN_COVERAGE" \
+      --min-complexity-score "$SEMANTIC_MIN_COMPLEXITY_SCORE" \
+      "${gate_flags[@]}" >/dev/null; then
+      SEMANTIC_GATE_JSON="$(cat "$OUT_DIR/00bb_semantic_planning_gate.json")"
+    else
+      SEMANTIC_GATE_JSON="$(cat "$OUT_DIR/00bb_semantic_planning_gate.json")"
+      echo "error: semantic planning gate failed" >&2
+      echo "error: see $OUT_DIR/00bb_semantic_planning_gate.json" >&2
+      exit 8
+    fi
+  fi
   if [[ "$SEMANTIC_INTAKE_AUGMENT" == "1" ]]; then
     python3 "$ROOT_DIR/tools/mcp/augment_spec_with_semantic_packet.py" \
       --spec "$INPUT_FILE" \
@@ -324,6 +348,7 @@ SUMMARY_JSON="$(jq -nc \
   --arg workspace "$WORKSPACE" \
   --argjson planning_readiness "$SPEC_READINESS_JSON" \
   --argjson semantic_planning "$SEMANTIC_PLANNING_JSON" \
+  --argjson semantic_gate "$SEMANTIC_GATE_JSON" \
   --argjson semantic_intake_augment "$SEMANTIC_AUGMENT_JSON" \
   --argjson semantic_requirement_injection "$SEMANTIC_REQUIREMENT_INJECTION_JSON" \
   --argjson semantic_task_expansion "$SEMANTIC_TASK_EXPANSION_JSON" \
@@ -340,6 +365,7 @@ SUMMARY_JSON="$(jq -nc \
     output_dir: $outDir,
     planning_readiness: $planning_readiness,
     semantic_planning_annotations: $semantic_planning,
+    semantic_planning_gate: $semantic_gate,
     semantic_intake_augment: $semantic_intake_augment,
     semantic_requirement_injection: $semantic_requirement_injection,
     semantic_task_expansion: $semantic_task_expansion,

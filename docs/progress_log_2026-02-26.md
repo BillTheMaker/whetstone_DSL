@@ -97,3 +97,11 @@
 - A/B run shows measurable decomposition delta (TEST_ONLY artifacts):
   - validation taskitems `2 -> 8`
   - avg execution specificity `75.0 -> 84.75`
+
+## Sprint 234 Added (Same Day)
+
+- Added semantic quality gate tooling:
+  - `tools/mcp/check_semantic_planning_gate.py`
+- Integrated optional semantic gate into pipeline with hard-fail behavior.
+- Smoke-verified gate-enabled run (TEST_ONLY):
+  - `logs/taskitem_runs/TEST_ONLY_sprint234_semantic_gate_smoke_20260226/00_summary.json`
