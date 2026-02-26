@@ -262,3 +262,21 @@
   - `failing_profile_count 7 -> 7`
   - `task_count 2 -> 2`
   - no intrinsic uplift on this sample (signal retained for next tranche).
+
+## Sprint 246 Added (Same Day)
+
+- Added intrinsic multishot generator decomposition path:
+  - `WSTONE_NATIVE_MULTISHOT_DECOMP`
+  - `WSTONE_NATIVE_MULTISHOT_MAX_PROFILES` (default `12`)
+  - `WSTONE_NATIVE_MULTISHOT_APPLY_MODE`
+  - summary packet: `native_multishot`
+  - summary field: `taskitems.effective_task_count`
+- A/B with autofill disabled, intrinsic boost enabled:
+  - OFF: `logs/taskitem_runs/TEST_ONLY_sprint246_multishot_20260226_152956/00_summary.json`
+  - ON: `logs/taskitem_runs/TEST_ONLY_sprint246_multishot_20260226_153033/00_summary.json`
+- Current measured result:
+  - `failing_profile_count 7 -> 0`
+  - `effective_task_count 2 -> 16`
+- Enforced gate verification:
+  - pass ON: `logs/taskitem_runs/TEST_ONLY_sprint246_multishot_enforce_20260226_153045/00_summary.json`
+  - fail OFF: `logs/taskitem_runs/TEST_ONLY_sprint246_multishot_enforce_20260226_153047/06_native_impact_coverage.json`

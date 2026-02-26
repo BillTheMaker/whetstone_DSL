@@ -45,6 +45,9 @@ NATIVE_IMPACT_COVERAGE_PROFILES="${WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES:-$ROOT
 NATIVE_PROFILE_AUTOFILL="${WSTONE_NATIVE_PROFILE_AUTOFILL:-0}"
 NATIVE_PROFILE_AUTOFILL_MAX_TASKS="${WSTONE_NATIVE_PROFILE_AUTOFILL_MAX_TASKS:-12}"
 NATIVE_INTRINSIC_BOOST="${WSTONE_NATIVE_INTRINSIC_BOOST:-0}"
+NATIVE_MULTISHOT_DECOMP="${WSTONE_NATIVE_MULTISHOT_DECOMP:-0}"
+NATIVE_MULTISHOT_MAX_PROFILES="${WSTONE_NATIVE_MULTISHOT_MAX_PROFILES:-12}"
+NATIVE_MULTISHOT_APPLY_MODE="${WSTONE_NATIVE_MULTISHOT_APPLY_MODE:-if_improves}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
 EXTRA_TASKS_FILE="${WSTONE_EXTRA_TASKS_FILE:-}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
@@ -104,6 +107,8 @@ NATIVE_DECOMP_RETRY_JSON='{}'
 NATIVE_IMPACT_COVERAGE_JSON='{}'
 NATIVE_PROFILE_AUTOFILL_JSON='{}'
 NATIVE_INTRINSIC_BOOST_JSON='{}'
+NATIVE_MULTISHOT_JSON='{}'
+INTRINSIC_REQS_JSON='[]'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
 EXTRA_TASKS_JSON='[]'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
@@ -378,6 +383,98 @@ else
     --argjson target_min_task_count "$NATIVE_DECOMP_TARGET_MIN_TASKS" \
     '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, target_min_task_count:$target_min_task_count}')"
 fi
+if [[ "$NATIVE_MULTISHOT_DECOMP" == "1" ]]; then
+  if [[ "$(printf '%s' "$INTRINSIC_REQS_JSON" | jq 'length')" -eq 0 ]]; then
+    python3 "$ROOT_DIR/tools/mcp/synthesize_native_intrinsic_boost_requirements.py" \
+      --spec "$INPUT_FILE" \
+      --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+      --out "$OUT_DIR/01e_native_multishot_requirements.json" >/dev/null
+    INTRINSIC_REQS_JSON="$(cat "$OUT_DIR/01e_native_multishot_requirements.json")"
+  fi
+  base_multishot_count="$(printf '%s' "$TASKS" | jq 'length')"
+  shot_extra='[]'
+  shot_attempted=0
+  shot_success=0
+  req_total="$(printf '%s' "$INTRINSIC_REQS_JSON" | jq 'length')"
+  max_profiles="$NATIVE_MULTISHOT_MAX_PROFILES"
+  if [[ "$max_profiles" -gt "$req_total" ]]; then
+    max_profiles="$req_total"
+  fi
+  i=0
+  while [[ "$i" -lt "$max_profiles" ]]; do
+    req_i="$(printf '%s' "$INTRINSIC_REQS_JSON" | jq ".[$i]")"
+    req_id="$(printf '%s' "$req_i" | jq -r '.requirementId // empty')"
+    if [[ -z "$req_id" || "$req_id" == "null" ]]; then
+      req_id="intrinsic-boost-profile-$i"
+    fi
+    profile_id="$(printf '%s' "$req_id" | sed 's/^intrinsic-boost-//')"
+    req_ops_json="$(jq -nc --arg pid "$profile_id" --argjson prof "$(cat "$NATIVE_IMPACT_COVERAGE_PROFILES")" \
+      '[($prof.profiles[]? | select(.id == $pid) | .required_prerequisite_ops[]?) // empty]')"
+    req_reason_json="$(jq -nc --arg pid "$profile_id" --argjson prof "$(cat "$NATIVE_IMPACT_COVERAGE_PROFILES")" \
+      '[($prof.profiles[]? | select(.id == $pid) | .required_reason_keywords[]?) // empty]')"
+    req_contract_json="$(jq -nc --arg pid "$profile_id" --argjson prof "$(cat "$NATIVE_IMPACT_COVERAGE_PROFILES")" \
+      '[($prof.profiles[]? | select(.id == $pid) | .required_execution_contract[]?) // empty]')"
+
+    shot_reqs="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson req "$req_i" '$base + [$req]')"
+    shot_args="$(jq -nc --argjson nr "$shot_reqs" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
+      '{normalizedRequirements:$nr,conflicts:$cf,strictExecutionContract:($strict == "1")}')"
+    shot_raw="$(call_tool "whetstone_generate_taskitems" "$shot_args")"
+    printf '%s\n' "$shot_raw" > "$OUT_DIR/02ac_generate_taskitems_multishot_${i}_raw.ndjson.json"
+    shot_json="$(extract_tool_text_json "$shot_raw")"
+    printf '%s\n' "$shot_json" > "$OUT_DIR/02ac_generate_taskitems_multishot_${i}.json"
+    shot_attempted=$((shot_attempted + 1))
+    if [[ "$(printf '%s' "$shot_json" | jq -r '.success // false')" == "true" ]]; then
+      shot_tasks="$(printf '%s' "$shot_json" | jq '.tasks // []')"
+      shot_tasks_enriched="$(jq -nc \
+        --argjson tasks "$shot_tasks" \
+        --argjson req_ops "$req_ops_json" \
+        --argjson req_reason "$req_reason_json" \
+        --argjson req_contract "$req_contract_json" \
+        --arg profile "$profile_id" '
+          ($tasks | to_entries | map(
+            . as $e
+            | ($e.value.executionContract // {}) as $ec
+            | (reduce $req_contract[]? as $f ($ec; .[$f] = true)) as $ec2
+            | ($e.value + {
+                taskId: (($e.value.taskId // ("task-" + (($e.key + 1)|tostring))) + "-ms-" + ($profile|gsub("[^A-Za-z0-9]+";"_")) + "-" + (($e.key + 1)|tostring)),
+                prerequisiteOps: ((($e.value.prerequisiteOps // []) + $req_ops) | unique),
+                reasons: ((($e.value.reasons // []) + $req_reason + ["native_multishot_profile", $profile]) | unique),
+                executionContract: ($ec2 + {
+                  deterministic: true,
+                  rollbackRequired: ($ec2.rollbackRequired // true),
+                  replayValidationRequired: ($ec2.replayValidationRequired // true)
+                })
+              })
+          ))')"
+      shot_extra="$(jq -nc --argjson base "$shot_extra" --argjson extra "$shot_tasks_enriched" '$base + $extra')"
+      shot_success=$((shot_success + 1))
+    fi
+    i=$((i + 1))
+  done
+  candidate_tasks="$(jq -nc --argjson base "$TASKS" --argjson extra "$shot_extra" '$base + $extra')"
+  candidate_count="$(printf '%s' "$candidate_tasks" | jq 'length')"
+  multishot_applied="false"
+  if [[ "$NATIVE_MULTISHOT_APPLY_MODE" == "always" ]]; then
+    TASKS="$candidate_tasks"
+    EXTRA_TASKS_JSON="$(jq -nc --argjson base "$EXTRA_TASKS_JSON" --argjson extra "$shot_extra" '$base + $extra')"
+    multishot_applied="true"
+  elif [[ "$candidate_count" -gt "$base_multishot_count" ]]; then
+    TASKS="$candidate_tasks"
+    EXTRA_TASKS_JSON="$(jq -nc --argjson base "$EXTRA_TASKS_JSON" --argjson extra "$shot_extra" '$base + $extra')"
+    multishot_applied="true"
+  fi
+  NATIVE_MULTISHOT_JSON="$(jq -nc \
+    --arg mode "$NATIVE_MULTISHOT_APPLY_MODE" \
+    --argjson attempted "$shot_attempted" \
+    --argjson successful "$shot_success" \
+    --argjson generated_extra_count "$(printf '%s' "$shot_extra" | jq 'length')" \
+    --argjson base_task_count "$base_multishot_count" \
+    --argjson candidate_task_count "$candidate_count" \
+    --argjson applied "$([[ "$multishot_applied" == "true" ]] && echo true || echo false)" \
+    '{enabled:true, mode:$mode, attempted_profiles:$attempted, successful_profiles:$successful, generated_extra_task_count:$generated_extra_count, base_task_count:$base_task_count, candidate_task_count:$candidate_task_count, applied:$applied}')"
+else
+  NATIVE_MULTISHOT_JSON='{"enabled":false,"applied":false}'
+fi
 if [[ -n "$EXTRA_TASKS_FILE" ]]; then
   if [[ ! -f "$EXTRA_TASKS_FILE" ]]; then
     echo "error: extra tasks file not found: $EXTRA_TASKS_FILE" >&2
@@ -581,10 +678,12 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
   --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
+  --argjson native_multishot "$NATIVE_MULTISHOT_JSON" \
   --argjson extra_normalized_requirements "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" \
   --argjson extra_tasks "$EXTRA_TASKS_JSON" \
   --argjson intake "$INTAKE_JSON" \
   --argjson generated "$GEN_JSON" \
+  --argjson effective_task_count "$(printf '%s' "$TASKS" | jq 'length')" \
   --argjson queue "$QUEUE_JSON" \
   --argjson validate "$VALIDATE_JSON" \
   '{
@@ -605,6 +704,7 @@ SUMMARY_JSON="$(jq -nc \
     native_decomposition_retry: $native_decomposition_retry,
     native_profile_autofill: $native_profile_autofill,
     native_intrinsic_boost: $native_intrinsic_boost,
+    native_multishot: $native_multishot,
     extra_normalized_requirements: $extra_normalized_requirements,
     extra_tasks: $extra_tasks,
     intake: {
@@ -616,6 +716,7 @@ SUMMARY_JSON="$(jq -nc \
     taskitems: {
       success: ($generated.success // false),
       task_count: (($generated.tasks // [])|length),
+      effective_task_count: $effective_task_count,
       escalate_count: ($generated.escalateCount // 0),
       strict_execution_contract: ($generated.strictExecutionContract // false),
       missing_execution_contract_count: ($generated.missingExecutionContractCount // 0)
