@@ -13,6 +13,9 @@
 - Latest parity closure evidence:
   - `logs/taskitem_runs/challenging_subset_prod_20260226_r7/summary.json`
   - `logs/taskitem_runs/challenging_fullstack_multifile_20260226_r7/summary.json`
+- First-class planning tranche (new):
+  - `docs/sprint228_231_execution_tracker_2026-02-26.md`
+  - `tools/mcp/spec_planning_readiness.py`
 
 ## Dated Handoff
 
