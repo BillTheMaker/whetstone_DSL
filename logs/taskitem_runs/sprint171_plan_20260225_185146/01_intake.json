@@ -1,0 +1,32 @@
+{
+  "error": "no_requirements_found",
+  "parsedSpec": {
+    "acceptanceCriteria": [],
+    "constraints": [],
+    "dependencies": [],
+    "goals": [],
+    "sections": [
+      {
+        "anchor": "context",
+        "headingLine": 3,
+        "title": "Context"
+      },
+      {
+        "anchor": "goals",
+        "headingLine": 14,
+        "title": "Goals"
+      },
+      {
+        "anchor": "steps",
+        "headingLine": 23,
+        "title": "Steps"
+      },
+      {
+        "anchor": "architecture-gate",
+        "headingLine": 84,
+        "title": "Architecture Gate"
+      }
+    ]
+  },
+  "success": false
+}

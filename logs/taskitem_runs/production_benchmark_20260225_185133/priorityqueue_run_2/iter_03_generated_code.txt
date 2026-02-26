@@ -1,0 +1,23 @@
+#pragma once
+#include <string>
+
+namespace generated_module {
+
+struct WorkItem {
+    std::string job_id;
+    int priority;
+    std::string payload;
+};
+class PriorityQueue {
+public:
+    std::string items;
+
+    PriorityQueue();
+    void enqueue(std::string item);
+    std::string dequeue();
+    std::string peek();
+    int size();
+    bool empty();
+};
+
+}  // namespace generated_module

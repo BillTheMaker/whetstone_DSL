@@ -1,0 +1,113 @@
+{
+  "diagnostics": [
+    {
+      "category": "compile",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_compile_6ctxeox5/generated.cpp",
+      "line": 1,
+      "message": "#pragma once in main file",
+      "raw_excerpt": "/tmp/whetstone_gate_compile_6ctxeox5/generated.cpp:1:9: warning: #pragma once in main file",
+      "severity": "warning",
+      "source": "compile"
+    },
+    {
+      "category": "tests",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp",
+      "line": 1,
+      "message": "#pragma once in main file",
+      "raw_excerpt": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp:1:9: warning: #pragma once in main file",
+      "severity": "warning",
+      "source": "tests"
+    },
+    {
+      "category": "tests",
+      "column": 3,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp",
+      "line": 26,
+      "message": "\u2018PriorityQueue\u2019 was not declared in this scope; did you mean \u2018generated_module::PriorityQueue\u2019?",
+      "raw_excerpt": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp:26:3: error: \u2018PriorityQueue\u2019 was not declared in this scope; did you mean \u2018generated_module::PriorityQueue\u2019?",
+      "severity": "error",
+      "source": "tests"
+    },
+    {
+      "category": "tests",
+      "column": 3,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp",
+      "line": 27,
+      "message": "\u2018WorkItem\u2019 was not declared in this scope; did you mean \u2018generated_module::WorkItem\u2019?",
+      "raw_excerpt": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp:27:3: error: \u2018WorkItem\u2019 was not declared in this scope; did you mean \u2018generated_module::WorkItem\u2019?",
+      "severity": "error",
+      "source": "tests"
+    },
+    {
+      "category": "tests",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp",
+      "line": 28,
+      "message": "\u2018q\u2019 was not declared in this scope",
+      "raw_excerpt": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp:28:9: error: \u2018q\u2019 was not declared in this scope",
+      "severity": "error",
+      "source": "tests"
+    },
+    {
+      "category": "tests",
+      "column": 9,
+      "family": "gcc_clang",
+      "file": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp",
+      "line": 29,
+      "message": "\u2018w\u2019 was not declared in this scope",
+      "raw_excerpt": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp:29:9: error: \u2018w\u2019 was not declared in this scope",
+      "severity": "error",
+      "source": "tests"
+    }
+  ],
+  "gates": {
+    "compile": {
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-fsyntax-only",
+        "/tmp/whetstone_gate_compile_6ctxeox5/generated.cpp"
+      ],
+      "passed": true,
+      "reason": "ok",
+      "return_code": 0,
+      "skipped": false,
+      "stderr": "/tmp/whetstone_gate_compile_6ctxeox5/generated.cpp:1:9: warning: #pragma once in main file\n    1 | #pragma once\n      |         ^~~~\n",
+      "stdout": "",
+      "strict_blocking": false
+    },
+    "failure_reasons": [
+      "tests_failed:non_zero_exit"
+    ],
+    "overall_ready": false,
+    "placeholder": {
+      "count": 0,
+      "findings": [],
+      "passed": true
+    },
+    "tests": {
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-fsyntax-only",
+        "/tmp/whetstone_gate_test_5mwui06z/harness.cpp"
+      ],
+      "passed": false,
+      "reason": "non_zero_exit",
+      "return_code": 1,
+      "skipped": false,
+      "stderr": "/tmp/whetstone_gate_test_5mwui06z/harness.cpp:1:9: warning: #pragma once in main file\n    1 | #pragma once\n      |         ^~~~\n/tmp/whetstone_gate_test_5mwui06z/harness.cpp: In function \u2018int main()\u2019:\n/tmp/whetstone_gate_test_5mwui06z/harness.cpp:26:3: error: \u2018PriorityQueue\u2019 was not declared in this scope; did you mean \u2018generated_module::PriorityQueue\u2019?\n   26 |   PriorityQueue q;\n      |   ^~~~~~~~~~~~~\n      |   generated_module::PriorityQueue\n/tmp/whetstone_gate_test_5mwui06z/harness.cpp:11:7: note: \u2018generated_module::PriorityQueue\u2019 declared here\n   11 | class PriorityQueue {\n      |       ^~~~~~~~~~~~~\n/tmp/whetstone_gate_test_5mwui06z/harness.cpp:27:3: error: \u2018WorkItem\u2019 was not declared in this scope; did you mean \u2018generated_module::WorkItem\u2019?\n   27 |   WorkItem w(\"job\", 1, \"payload\");\n      |   ^~~~~~~~\n      |   generated_module::WorkItem\n/tmp/whetstone_gate_test_5mwui06z/harness.cpp:6:8: note: \u2018generated_module::WorkItem\u2019 declared here\n    6 | struct WorkItem {\n      |        ^~~~~~~~\n/tmp/whetstone_gate_test_5mwui06z/harness.cpp:28:9: error: \u2018q\u2019 was not declared in this scope\n   28 |   (void)q;\n      |         ^\n/tmp/whetstone_gate_test_5mwui06z/harness.cpp:29:9: error: \u2018w\u2019 was not declared in this scope\n   29 |   (void)w;\n      |         ^\n",
+      "stdout": "",
+      "strict_blocking": true
+    }
+  },
+  "language": "cpp",
+  "strict_mode": true
+}

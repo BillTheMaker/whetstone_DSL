@@ -1,0 +1,17 @@
+{
+  "actions": [
+    {
+      "action": "strengthen_spec",
+      "confidence": 0.9,
+      "hint": "Implement queue behaviors: enqueue/dequeue/peek/size/empty with deterministic semantics.",
+      "priority": 75,
+      "tool": "whetstone_generate_code"
+    }
+  ],
+  "blocked": false,
+  "blocked_reason": "",
+  "input_failure_reasons": [
+    "tests_failed:non_zero_exit"
+  ],
+  "router_version": "1"
+}

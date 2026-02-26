@@ -1,0 +1,11 @@
+#pragma once
+#include <string>
+
+namespace generated_module {
+
+class GeneratedClass {
+public:
+    void run();
+};
+
+}  // namespace generated_module

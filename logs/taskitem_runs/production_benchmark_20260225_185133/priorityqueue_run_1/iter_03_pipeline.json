@@ -1,0 +1,357 @@
+{
+  "ast": {
+    "children": {
+      "annotations": [
+        {
+          "children": {},
+          "concept": "LifetimeAnnotation",
+          "id": "inferred_mod_0",
+          "properties": {}
+        }
+      ],
+      "statements": [
+        {
+          "children": {},
+          "concept": "PragmaDirective",
+          "id": "prag_1",
+          "properties": {
+            "directive": "once"
+          },
+          "span": {
+            "end": {
+              "col": 0,
+              "line": 1
+            },
+            "start": {
+              "col": 0,
+              "line": 0
+            }
+          }
+        },
+        {
+          "children": {},
+          "concept": "IncludeDirective",
+          "id": "inc_2",
+          "properties": {
+            "isSystem": true,
+            "path": "string"
+          },
+          "span": {
+            "end": {
+              "col": 0,
+              "line": 2
+            },
+            "start": {
+              "col": 0,
+              "line": 1
+            }
+          }
+        },
+        {
+          "children": {
+            "body": [
+              {
+                "children": {
+                  "fields": [
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_5",
+                      "properties": {
+                        "name": "job_id"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 23,
+                          "line": 6
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 6
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_6",
+                      "properties": {
+                        "name": "priority"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 17,
+                          "line": 7
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 7
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_7",
+                      "properties": {
+                        "name": "payload"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 24,
+                          "line": 8
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 8
+                        }
+                      }
+                    }
+                  ]
+                },
+                "concept": "ClassDeclaration",
+                "id": "cls_4",
+                "properties": {
+                  "isAbstract": false,
+                  "name": "WorkItem"
+                },
+                "span": {
+                  "end": {
+                    "col": 1,
+                    "line": 9
+                  },
+                  "start": {
+                    "col": 0,
+                    "line": 5
+                  }
+                }
+              },
+              {
+                "children": {
+                  "fields": [
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_9",
+                      "properties": {
+                        "name": "items"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 22,
+                          "line": 12
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 12
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_10",
+                      "properties": {
+                        "name": "PriorityQueue()"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 20,
+                          "line": 14
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 14
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_11",
+                      "properties": {
+                        "name": "enqueue(std::string item)"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 35,
+                          "line": 15
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 15
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_12",
+                      "properties": {
+                        "name": "dequeue()"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 26,
+                          "line": 16
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 16
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_13",
+                      "properties": {
+                        "name": "peek()"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 23,
+                          "line": 17
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 17
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_14",
+                      "properties": {
+                        "name": "size()"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 15,
+                          "line": 18
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 18
+                        }
+                      }
+                    },
+                    {
+                      "children": {},
+                      "concept": "Variable",
+                      "id": "var_15",
+                      "properties": {
+                        "name": "empty()"
+                      },
+                      "span": {
+                        "end": {
+                          "col": 17,
+                          "line": 19
+                        },
+                        "start": {
+                          "col": 4,
+                          "line": 19
+                        }
+                      }
+                    }
+                  ]
+                },
+                "concept": "ClassDeclaration",
+                "id": "cls_8",
+                "properties": {
+                  "isAbstract": false,
+                  "name": "PriorityQueue"
+                },
+                "span": {
+                  "end": {
+                    "col": 1,
+                    "line": 20
+                  },
+                  "start": {
+                    "col": 0,
+                    "line": 10
+                  }
+                }
+              }
+            ]
+          },
+          "concept": "NamespaceDeclaration",
+          "id": "ns_3",
+          "properties": {
+            "name": "generated_module"
+          },
+          "span": {
+            "end": {
+              "col": 1,
+              "line": 22
+            },
+            "start": {
+              "col": 0,
+              "line": 3
+            }
+          }
+        }
+      ]
+    },
+    "concept": "Module",
+    "id": "mod_0",
+    "properties": {
+      "name": "parsed_cpp_module",
+      "targetLanguage": "cpp"
+    },
+    "span": {
+      "end": {
+        "col": 32,
+        "line": 22
+      },
+      "start": {
+        "col": 0,
+        "line": 0
+      }
+    }
+  },
+  "dceCount": 0,
+  "foldCount": 0,
+  "gates": {
+    "compile": {
+      "passed": false,
+      "reason": "code_missing_structure_or_fallback"
+    },
+    "failure_reasons": [
+      "compile_estimate_failed"
+    ],
+    "overall_ready": false,
+    "placeholder": {
+      "passed": true,
+      "reason": "ok"
+    },
+    "tests": {
+      "passed": true,
+      "reason": "ok"
+    }
+  },
+  "generatedCode": "#pragma once\n#include <string>\n\nnamespace parsed_cpp_module {\n\n\n}  // namespace parsed_cpp_module\n",
+  "parseDiagnostics": [],
+  "quality": {
+    "compilable_estimate": false,
+    "fallback_used": false,
+    "placeholder_count": 0,
+    "todo_count": 0,
+    "warnings": [
+      "compile_estimate_failed"
+    ]
+  },
+  "success": true,
+  "suggestions": [
+    {
+      "annotationType": "LifetimeAnnotation",
+      "confidence": 0.7,
+      "nodeId": "mod_0",
+      "reason": "C++ idiom: RAII with scope-based cleanup",
+      "strategy": "RAII"
+    }
+  ],
+  "validationDiagnostics": [],
+  "violations": []
+}

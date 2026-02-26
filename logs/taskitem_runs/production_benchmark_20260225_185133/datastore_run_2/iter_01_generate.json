@@ -1,0 +1,76 @@
+{
+  "gates": {
+    "compile": {
+      "passed": true,
+      "reason": "ok"
+    },
+    "failure_reasons": [],
+    "overall_ready": true,
+    "placeholder": {
+      "passed": true,
+      "reason": "ok"
+    },
+    "tests": {
+      "passed": true,
+      "reason": "ok"
+    }
+  },
+  "generatedCode": "#pragma once\n#include <string>\n\nnamespace generated_module {\n\nclass GeneratedClass {\npublic:\n    void run();\n};\n\n}  // namespace generated_module\n",
+  "language": "cpp",
+  "node": {
+    "children": {
+      "classes": [
+        {
+          "children": {
+            "methods": [
+              {
+                "children": {
+                  "returnType": [
+                    {
+                      "children": {},
+                      "concept": "PrimitiveType",
+                      "id": "type_3",
+                      "properties": {
+                        "kind": "void"
+                      }
+                    }
+                  ]
+                },
+                "concept": "MethodDeclaration",
+                "id": "meth_2",
+                "properties": {
+                  "isOverride": false,
+                  "isStatic": false,
+                  "isVirtual": false,
+                  "name": "run",
+                  "visibility": "public"
+                }
+              }
+            ]
+          },
+          "concept": "ClassDeclaration",
+          "id": "cls_1",
+          "properties": {
+            "isAbstract": false,
+            "name": "GeneratedClass"
+          }
+        }
+      ]
+    },
+    "concept": "Module",
+    "id": "mod_0",
+    "properties": {
+      "name": "generated_module",
+      "targetLanguage": "cpp"
+    }
+  },
+  "note": "Generated class/module structure from specification.",
+  "quality": {
+    "compilable_estimate": true,
+    "fallback_used": false,
+    "placeholder_count": 0,
+    "todo_count": 0,
+    "warnings": []
+  },
+  "usedSymbols": []
+}

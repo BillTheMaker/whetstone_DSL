@@ -1,0 +1,225 @@
+{
+  "conflictSignals": {
+    "ambiguousRequirementCount": 0,
+    "conflictCount": 0,
+    "hasConflicts": false
+  },
+  "conflicts": [],
+  "normalizedRequirements": [
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1899 remediation router from gate diagnostics to tool actions 10 tests",
+      "requirementId": "goal-1",
+      "sourceLine": 2
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1900 debug tool integration path for failed generations 10 tests",
+      "requirementId": "goal-2",
+      "sourceLine": 3
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1901 autonomous loop controller with green or explicit blocked contract 12 tests",
+      "requirementId": "goal-3",
+      "sourceLine": 4
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1902 benchmark suite for production capability claim 8 tests",
+      "requirementId": "goal-4",
+      "sourceLine": 5
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1903 sprint 171 integration summary 8 tests",
+      "requirementId": "goal-5",
+      "sourceLine": 6
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "no silent success without green gates",
+      "requirementId": "constraint-1",
+      "sourceLine": 9
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "non green exits must include explicit blocked reason full evidence trail",
+      "requirementId": "constraint-2",
+      "sourceLine": 10
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "remediation routing must stay deterministic and auditable",
+      "requirementId": "constraint-3",
+      "sourceLine": 11
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "existing editor src modules and mcp toolchain",
+      "requirementId": "dependency-1",
+      "sourceLine": 14
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "whetstone mcp stable binary and workspace config",
+      "requirementId": "dependency-2",
+      "sourceLine": 15
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "all sprint step tests pass",
+      "requirementId": "acceptance-1",
+      "sourceLine": 18
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "no regression in existing mcp tool behavior",
+      "requirementId": "acceptance-2",
+      "sourceLine": 19
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "generated task queue is ready or blockers are explicit",
+      "requirementId": "acceptance-3",
+      "sourceLine": 20
+    }
+  ],
+  "parsedSpec": {
+    "acceptanceCriteria": [
+      {
+        "anchor": "acceptance-criteria",
+        "line": 18,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "All sprint step tests pass"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 19,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "No regression in existing MCP tool behavior"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 20,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "Generated task queue is ready or blockers are explicit"
+      }
+    ],
+    "constraints": [
+      {
+        "anchor": "constraints",
+        "line": 9,
+        "sectionTitle": "Constraints",
+        "text": "No silent “success” without green gates"
+      },
+      {
+        "anchor": "constraints",
+        "line": 10,
+        "sectionTitle": "Constraints",
+        "text": "Non-green exits must include explicit blocked reason + full evidence trail"
+      },
+      {
+        "anchor": "constraints",
+        "line": 11,
+        "sectionTitle": "Constraints",
+        "text": "Remediation routing must stay deterministic and auditable"
+      }
+    ],
+    "dependencies": [
+      {
+        "anchor": "dependencies",
+        "line": 14,
+        "sectionTitle": "Dependencies",
+        "text": "Existing editor/src modules and MCP toolchain"
+      },
+      {
+        "anchor": "dependencies",
+        "line": 15,
+        "sectionTitle": "Dependencies",
+        "text": "whetstone_mcp stable binary and workspace config"
+      }
+    ],
+    "goals": [
+      {
+        "anchor": "goals",
+        "line": 2,
+        "sectionTitle": "Goals",
+        "text": "Step 1899: Remediation router from gate diagnostics to tool actions (10 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 3,
+        "sectionTitle": "Goals",
+        "text": "Step 1900: Debug tool integration path for failed generations (10 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 4,
+        "sectionTitle": "Goals",
+        "text": "Step 1901: Autonomous loop controller with “green or explicit blocked” contract (12 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 5,
+        "sectionTitle": "Goals",
+        "text": "Step 1902: Benchmark suite for production capability claim (8 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 6,
+        "sectionTitle": "Goals",
+        "text": "Step 1903: Sprint 171 Integration Summary (8 tests)"
+      }
+    ],
+    "sections": [
+      {
+        "anchor": "goals",
+        "headingLine": 1,
+        "title": "Goals"
+      },
+      {
+        "anchor": "constraints",
+        "headingLine": 8,
+        "title": "Constraints"
+      },
+      {
+        "anchor": "dependencies",
+        "headingLine": 13,
+        "title": "Dependencies"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "headingLine": 17,
+        "title": "Acceptance Criteria"
+      }
+    ]
+  },
+  "success": true
+}
