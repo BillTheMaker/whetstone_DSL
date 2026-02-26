@@ -45,6 +45,7 @@ NATIVE_IMPACT_COVERAGE_PROFILES="${WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES:-$ROOT
 NATIVE_PROFILE_AUTOFILL="${WSTONE_NATIVE_PROFILE_AUTOFILL:-0}"
 NATIVE_PROFILE_AUTOFILL_MAX_TASKS="${WSTONE_NATIVE_PROFILE_AUTOFILL_MAX_TASKS:-12}"
 NATIVE_INTRINSIC_BOOST="${WSTONE_NATIVE_INTRINSIC_BOOST:-0}"
+NATIVE_SINGLESHOT_PROFILE_SHAPE="${WSTONE_NATIVE_SINGLESHOT_PROFILE_SHAPE:-0}"
 NATIVE_MULTISHOT_DECOMP="${WSTONE_NATIVE_MULTISHOT_DECOMP:-0}"
 NATIVE_MULTISHOT_MAX_PROFILES="${WSTONE_NATIVE_MULTISHOT_MAX_PROFILES:-12}"
 NATIVE_MULTISHOT_APPLY_MODE="${WSTONE_NATIVE_MULTISHOT_APPLY_MODE:-if_improves}"
@@ -107,6 +108,7 @@ NATIVE_DECOMP_RETRY_JSON='{}'
 NATIVE_IMPACT_COVERAGE_JSON='{}'
 NATIVE_PROFILE_AUTOFILL_JSON='{}'
 NATIVE_INTRINSIC_BOOST_JSON='{}'
+NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON='{}'
 NATIVE_MULTISHOT_JSON='{}'
 INTRINSIC_REQS_JSON='[]'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
@@ -382,6 +384,30 @@ else
     --argjson initial_task_count "$native_task_count_initial" \
     --argjson target_min_task_count "$NATIVE_DECOMP_TARGET_MIN_TASKS" \
     '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, target_min_task_count:$target_min_task_count}')"
+fi
+if [[ "$NATIVE_SINGLESHOT_PROFILE_SHAPE" == "1" ]]; then
+  printf '%s\n' "$TASKS" > "$OUT_DIR/02ad_single_shot_base_tasks.json"
+  python3 "$ROOT_DIR/tools/mcp/synthesize_single_shot_profile_shape_tasks.py" \
+    --spec "$INPUT_FILE" \
+    --profiles "$NATIVE_IMPACT_COVERAGE_PROFILES" \
+    --tasks "$OUT_DIR/02ad_single_shot_base_tasks.json" \
+    --out "$OUT_DIR/02ad_single_shot_shaped_tasks.json" \
+    --out-report "$OUT_DIR/02ad_single_shot_shape_report.json" >/dev/null
+  shaped_tasks_json="$(cat "$OUT_DIR/02ad_single_shot_shaped_tasks.json")"
+  base_count_ss="$(printf '%s' "$TASKS" | jq 'length')"
+  shaped_count_ss="$(printf '%s' "$shaped_tasks_json" | jq 'length')"
+  if [[ "$shaped_count_ss" -gt "$base_count_ss" ]]; then
+    added_shape_tasks="$(jq -nc --argjson shaped "$shaped_tasks_json" --argjson n "$base_count_ss" '$shaped[$n:]')"
+    EXTRA_TASKS_JSON="$(jq -nc --argjson base "$EXTRA_TASKS_JSON" --argjson extra "$added_shape_tasks" '$base + $extra')"
+    TASKS="$shaped_tasks_json"
+  fi
+  NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON="$(jq -nc \
+    --argjson rep "$(cat "$OUT_DIR/02ad_single_shot_shape_report.json")" \
+    --argjson base_count "$base_count_ss" \
+    --argjson shaped_count "$shaped_count_ss" \
+    '{enabled:true, base_task_count:$base_count, shaped_task_count:$shaped_count, report:$rep}')"
+else
+  NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON='{"enabled":false}'
 fi
 if [[ "$NATIVE_MULTISHOT_DECOMP" == "1" ]]; then
   if [[ "$(printf '%s' "$INTRINSIC_REQS_JSON" | jq 'length')" -eq 0 ]]; then
@@ -678,6 +704,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
   --argjson native_profile_autofill "$NATIVE_PROFILE_AUTOFILL_JSON" \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
+  --argjson native_single_shot_profile_shape "$NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON" \
   --argjson native_multishot "$NATIVE_MULTISHOT_JSON" \
   --argjson extra_normalized_requirements "$EXTRA_NORMALIZED_REQUIREMENTS_JSON" \
   --argjson extra_tasks "$EXTRA_TASKS_JSON" \
@@ -704,6 +731,7 @@ SUMMARY_JSON="$(jq -nc \
     native_decomposition_retry: $native_decomposition_retry,
     native_profile_autofill: $native_profile_autofill,
     native_intrinsic_boost: $native_intrinsic_boost,
+    native_single_shot_profile_shape: $native_single_shot_profile_shape,
     native_multishot: $native_multishot,
     extra_normalized_requirements: $extra_normalized_requirements,
     extra_tasks: $extra_tasks,

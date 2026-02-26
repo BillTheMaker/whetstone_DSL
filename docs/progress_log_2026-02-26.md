@@ -280,3 +280,18 @@
 - Enforced gate verification:
   - pass ON: `logs/taskitem_runs/TEST_ONLY_sprint246_multishot_enforce_20260226_153045/00_summary.json`
   - fail OFF: `logs/taskitem_runs/TEST_ONLY_sprint246_multishot_enforce_20260226_153047/06_native_impact_coverage.json`
+
+## Sprint 247 Added (Same Day)
+
+- Added single-shot profile shaping path:
+  - `tools/mcp/synthesize_single_shot_profile_shape_tasks.py`
+  - `WSTONE_NATIVE_SINGLESHOT_PROFILE_SHAPE`
+  - summary packet: `native_single_shot_profile_shape`
+- A/B with autofill OFF and multishot OFF (intrinsic boost ON):
+  - OFF: `logs/taskitem_runs/TEST_ONLY_sprint247_singleshot_20260226_153229/00_summary.json`
+  - ON: `logs/taskitem_runs/TEST_ONLY_sprint247_singleshot_20260226_153230/00_summary.json`
+- Current measured result:
+  - `failing_profile_count 7 -> 0`
+- Enforced gate verification:
+  - pass ON: `logs/taskitem_runs/TEST_ONLY_sprint247_singleshot_enforce_20260226_153241/00_summary.json`
+  - fail OFF: `logs/taskitem_runs/TEST_ONLY_sprint247_singleshot_enforce_20260226_153242/06_native_impact_coverage.json`
