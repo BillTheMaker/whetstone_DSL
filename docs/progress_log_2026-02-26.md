@@ -105,3 +105,21 @@
 - Integrated optional semantic gate into pipeline with hard-fail behavior.
 - Smoke-verified gate-enabled run (TEST_ONLY):
   - `logs/taskitem_runs/TEST_ONLY_sprint234_semantic_gate_smoke_20260226/00_summary.json`
+
+## Sprint 235 Added (Same Day)
+
+- Added native-first semantic expansion policy in pipeline:
+  - `WSTONE_SEMANTIC_TASK_EXPANSION_MODE` (`fallback_only` or `always`)
+- Added native decomposition telemetry:
+  - `native_task_count`
+  - `native_semantic_signal_count`
+- Added explicit `semantic_task_expansion` summary states:
+  - enabled + fallback applied
+  - enabled + skipped (native sufficient)
+  - disabled by configuration
+- Smoke-verified TEST_ONLY runs:
+  - `logs/taskitem_runs/TEST_ONLY_sprint235_policy_20260226_145007/00_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint235_policy_20260226_145008/00_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint235_probe_20260226_144846/00_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint235_probe_20260226_144854/00_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint235_richspec_20260226_144902/00_summary.json`

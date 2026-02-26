@@ -28,6 +28,7 @@ SEMANTIC_PLANNING_BRIDGE="${WSTONE_SEMANTIC_PLANNING_BRIDGE:-1}"
 SEMANTIC_INTAKE_AUGMENT="${WSTONE_SEMANTIC_INTAKE_AUGMENT:-1}"
 SEMANTIC_REQUIREMENT_INJECTION="${WSTONE_SEMANTIC_REQUIREMENT_INJECTION:-1}"
 SEMANTIC_TASK_EXPANSION="${WSTONE_SEMANTIC_TASK_EXPANSION:-1}"
+SEMANTIC_TASK_EXPANSION_MODE="${WSTONE_SEMANTIC_TASK_EXPANSION_MODE:-fallback_only}"
 SEMANTIC_COVERAGE_GATE="${WSTONE_SEMANTIC_COVERAGE_GATE:-0}"
 SEMANTIC_MIN_COVERAGE="${WSTONE_SEMANTIC_MIN_COVERAGE:-0.9}"
 SEMANTIC_REQUIRE_CAPS_FOR_COMPLEX="${WSTONE_SEMANTIC_REQUIRE_CAPS_FOR_COMPLEX:-1}"
@@ -285,7 +286,20 @@ if [[ "$(printf '%s' "$GEN_JSON" | jq -r '.success // false')" != "true" ]]; the
 fi
 
 TASKS="$(printf '%s' "$GEN_JSON" | jq '.tasks')"
-if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_REQUIREMENT_INJECTION" == "1" && "$SEMANTIC_TASK_EXPANSION" == "1" && -f "$OUT_DIR/01c_semantic_injected_requirements.json" ]]; then
+native_task_count="$(printf '%s' "$TASKS" | jq 'length')"
+native_semantic_signal_count="$(printf '%s' "$TASKS" | jq '[.[] | ((.reasons // [])[]? | tostring) | select(test("semantic|risk|contract|capability"; "i"))] | length')"
+semantic_fallback_needed="false"
+if [[ "$SEMANTIC_TASK_EXPANSION_MODE" == "always" ]]; then
+  semantic_fallback_needed="true"
+elif [[ "$SEMANTIC_TASK_EXPANSION_MODE" == "fallback_only" ]]; then
+  if [[ "$native_task_count" -le 2 ]]; then
+    semantic_fallback_needed="true"
+  elif [[ "$native_task_count" -le 4 && "$native_semantic_signal_count" -eq 0 ]]; then
+    semantic_fallback_needed="true"
+  fi
+fi
+
+if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_REQUIREMENT_INJECTION" == "1" && "$SEMANTIC_TASK_EXPANSION" == "1" && "$semantic_fallback_needed" == "true" && -f "$OUT_DIR/01c_semantic_injected_requirements.json" ]]; then
   SEMANTIC_EXPANDED_TASKS="$(jq -nc \
     --argjson base "$TASKS" \
     --argjson sem "$(cat "$OUT_DIR/01c_semantic_injected_requirements.json")" '
@@ -312,9 +326,26 @@ if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_REQUIREMENT_INJECTION" ==
       | ($base + $extra)
     ')"
   TASKS="$SEMANTIC_EXPANDED_TASKS"
-  SEMANTIC_TASK_EXPANSION_JSON="$(jq -nc --argjson sem "$(cat "$OUT_DIR/01c_semantic_injected_requirements.json")" '{enabled:true, expanded_task_count: (($sem[:6])|length)}')"
+  SEMANTIC_TASK_EXPANSION_JSON="$(jq -nc \
+    --argjson sem "$(cat "$OUT_DIR/01c_semantic_injected_requirements.json")" \
+    --arg mode "$SEMANTIC_TASK_EXPANSION_MODE" \
+    --argjson native_task_count "$native_task_count" \
+    --argjson native_semantic_signal_count "$native_semantic_signal_count" \
+    '{enabled:true, mode:$mode, fallback_applied:true, expanded_task_count: (($sem[:6])|length), native_task_count:$native_task_count, native_semantic_signal_count:$native_semantic_signal_count}')"
 else
-  SEMANTIC_TASK_EXPANSION_JSON='{"enabled":false,"expanded_task_count":0}'
+  if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" && "$SEMANTIC_REQUIREMENT_INJECTION" == "1" && "$SEMANTIC_TASK_EXPANSION" == "1" ]]; then
+    SEMANTIC_TASK_EXPANSION_JSON="$(jq -nc \
+      --arg mode "$SEMANTIC_TASK_EXPANSION_MODE" \
+      --argjson native_task_count "$native_task_count" \
+      --argjson native_semantic_signal_count "$native_semantic_signal_count" \
+      '{enabled:true, mode:$mode, fallback_applied:false, expanded_task_count:0, native_task_count:$native_task_count, native_semantic_signal_count:$native_semantic_signal_count, skipped_reason:"native_sufficient_or_missing_semantic_requirements"}')"
+  else
+    SEMANTIC_TASK_EXPANSION_JSON="$(jq -nc \
+      --arg mode "$SEMANTIC_TASK_EXPANSION_MODE" \
+      --argjson native_task_count "$native_task_count" \
+      --argjson native_semantic_signal_count "$native_semantic_signal_count" \
+      '{enabled:false, mode:$mode, fallback_applied:false, expanded_task_count:0, native_task_count:$native_task_count, native_semantic_signal_count:$native_semantic_signal_count, skipped_reason:"semantic_expansion_disabled"}')"
+  fi
 fi
 QUEUE_ARGS="$(jq -nc --argjson t "$TASKS" --argjson nr "$NORMALIZED_REQS" --arg strict "$STRICT_EXECUTION_CONTRACT" --argjson cs "$CAPABILITY_SIGNALS_JSON" \
   '{tasks:$t,normalizedRequirements:$nr,strictExecutionContract:($strict == "1"),capabilitySignals:$cs}')"
