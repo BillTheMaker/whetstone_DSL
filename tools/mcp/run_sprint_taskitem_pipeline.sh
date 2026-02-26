@@ -36,6 +36,7 @@ SEMANTIC_MIN_COMPLEXITY_SCORE="${WSTONE_SEMANTIC_MIN_COMPLEXITY_SCORE:-2}"
 NATIVE_DECOMP_HARD_GATE="${WSTONE_NATIVE_DECOMP_HARD_GATE:-0}"
 NATIVE_TASK_MIN_COUNT="${WSTONE_NATIVE_TASK_MIN_COUNT:-0}"
 NATIVE_SEMANTIC_SIGNAL_MIN="${WSTONE_NATIVE_SEMANTIC_SIGNAL_MIN:-0}"
+NATIVE_REASON_ENRICHMENT="${WSTONE_NATIVE_REASON_ENRICHMENT:-1}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -88,6 +89,7 @@ SEMANTIC_REQUIREMENT_INJECTION_JSON='{}'
 SEMANTIC_TASK_EXPANSION_JSON='{}'
 SEMANTIC_GATE_JSON='{}'
 NATIVE_DECOMP_GATE_JSON='{}'
+NATIVE_REASON_ENRICHMENT_JSON='{}'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
   python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
     --spec "$INPUT_FILE" \
@@ -290,6 +292,40 @@ if [[ "$(printf '%s' "$GEN_JSON" | jq -r '.success // false')" != "true" ]]; the
 fi
 
 TASKS="$(printf '%s' "$GEN_JSON" | jq '.tasks')"
+if [[ "$NATIVE_REASON_ENRICHMENT" == "1" && -f "$OUT_DIR/01c_semantic_injected_requirements.json" ]]; then
+  TASKS="$(jq -nc \
+    --argjson tasks "$TASKS" \
+    --argjson sem "$(cat "$OUT_DIR/01c_semantic_injected_requirements.json")" '
+    ($sem
+      | map(.kind // "")
+      | map(
+          if . == "constraint" then "semantic_risk_contract_constraint"
+          elif . == "dependency" then "semantic_capability_requirement"
+          elif . == "goal" then "semantic_goal_alignment"
+          else empty end
+        )
+      | unique) as $tags
+    | ($tasks | to_entries | map(
+        .value.reasons = (((.value.reasons // []) + $tags) | unique)
+        | .value
+      ))')"
+  NATIVE_REASON_ENRICHMENT_JSON="$(jq -nc \
+    --argjson tags "$(jq -nc --argjson sem "$(cat "$OUT_DIR/01c_semantic_injected_requirements.json")" '
+      ($sem
+      | map(.kind // "")
+      | map(
+          if . == "constraint" then "semantic_risk_contract_constraint"
+          elif . == "dependency" then "semantic_capability_requirement"
+          elif . == "goal" then "semantic_goal_alignment"
+          else empty end
+        )
+      | unique)
+    ')" \
+    --argjson enriched_task_count "$(printf '%s' "$TASKS" | jq 'length')" \
+    '{enabled:true, enriched_task_count:$enriched_task_count, tags:$tags}')"
+else
+  NATIVE_REASON_ENRICHMENT_JSON='{"enabled":false,"enriched_task_count":0,"tags":[]}'
+fi
 native_task_count="$(printf '%s' "$TASKS" | jq 'length')"
 native_semantic_signal_count="$(printf '%s' "$TASKS" | jq '[.[] | ((.reasons // [])[]? | tostring) | select(test("semantic|risk|contract|capability"; "i"))] | length')"
 native_task_count_ok="true"
@@ -422,6 +458,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson semantic_requirement_injection "$SEMANTIC_REQUIREMENT_INJECTION_JSON" \
   --argjson semantic_task_expansion "$SEMANTIC_TASK_EXPANSION_JSON" \
   --argjson native_decomposition_gate "$NATIVE_DECOMP_GATE_JSON" \
+  --argjson native_reason_enrichment "$NATIVE_REASON_ENRICHMENT_JSON" \
   --argjson intake "$INTAKE_JSON" \
   --argjson generated "$GEN_JSON" \
   --argjson queue "$QUEUE_JSON" \
@@ -440,6 +477,7 @@ SUMMARY_JSON="$(jq -nc \
     semantic_requirement_injection: $semantic_requirement_injection,
     semantic_task_expansion: $semantic_task_expansion,
     native_decomposition_gate: $native_decomposition_gate,
+    native_reason_enrichment: $native_reason_enrichment,
     intake: {
       success: ($intake.success // false),
       normalized_requirement_count: (($intake.normalizedRequirements // [])|length),

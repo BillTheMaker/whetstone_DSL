@@ -160,3 +160,16 @@
 - Dated gate verification artifacts:
   - fail packet: `logs/taskitem_runs/TEST_ONLY_sprint238_native_gate_fail_20260226.json`
   - pass packet: `logs/taskitem_runs/TEST_ONLY_sprint238_native_gate_pass_20260226.json`
+
+## Sprint 239 Added (Same Day)
+
+- Added native semantic reason enrichment:
+  - `WSTONE_NATIVE_REASON_ENRICHMENT`
+  - summary packet: `native_reason_enrichment`
+- A/B smoke result:
+  - `native_semantic_signal_count: 0 -> 6`
+  - artifacts:
+    - `logs/taskitem_runs/TEST_ONLY_sprint239_reason_enrich_20260226_145442/00_summary.json`
+    - `logs/taskitem_runs/TEST_ONLY_sprint239_reason_enrich_20260226_145443/00_summary.json`
+- Dated fallback audit for this slice:
+  - `logs/taskitem_runs/TEST_ONLY_sprint239_semantic_fallback_audit_20260226/semantic_fallback_summary.json`

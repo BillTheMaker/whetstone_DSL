@@ -150,7 +150,7 @@ Parallel planning tranche (active):
   - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 Planning runtime controls (active):
-- `sprint232_plan.md` to `sprint238_plan.md`
+- `sprint232_plan.md` to `sprint239_plan.md`
 - semantic bridge + intake augmentation + requirement injection + expansion gating are wired into:
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
 - current policy default is native-first semantic fallback:
@@ -162,3 +162,6 @@ Planning runtime controls (active):
   - `tools/mcp/run_semantic_fallback_budget_gate.sh`
 - native decomposition quality gate is available in pipeline summary/hard-fail path:
   - `native_decomposition_gate`
+- native reason enrichment can inject semantic tags into native task reasons:
+  - `WSTONE_NATIVE_REASON_ENRICHMENT`
+  - `native_reason_enrichment`
