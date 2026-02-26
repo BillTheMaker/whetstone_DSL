@@ -62,6 +62,8 @@ NATIVE_RAW_TOP_GAP_REQUIREMENTS="${WSTONE_NATIVE_RAW_TOP_GAP_REQUIREMENTS:-0}"
 NATIVE_RAW_TOP_GAP_MAX_SIGNALS="${WSTONE_NATIVE_RAW_TOP_GAP_MAX_SIGNALS:-5}"
 NATIVE_RAW_INTRINSIC_PROMPT_PACK="${WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_PACK:-0}"
 NATIVE_RAW_INTRINSIC_PROMPT_MAX_SIGNALS="${WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_MAX_SIGNALS:-8}"
+NATIVE_RAW_TEMPLATE_CONTROL_PACK="${WSTONE_NATIVE_RAW_TEMPLATE_CONTROL_PACK:-0}"
+NATIVE_RAW_TEMPLATE_CONTROL_MAX_SIGNALS="${WSTONE_NATIVE_RAW_TEMPLATE_CONTROL_MAX_SIGNALS:-8}"
 NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY="${WSTONE_NATIVE_RAW_TOP_GAP_ADAPTIVE_RETRY:-0}"
 NATIVE_RAW_TOP_GAP_RETRY_SIGNALS="${WSTONE_NATIVE_RAW_TOP_GAP_RETRY_SIGNALS:-10}"
 EXTRA_NORMALIZED_REQUIREMENTS_FILE="${WSTONE_EXTRA_NORMALIZED_REQUIREMENTS_FILE:-}"
@@ -130,6 +132,7 @@ NATIVE_RAW_HARDENING_JSON='{}'
 NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON='{}'
 NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON='{}'
 NATIVE_RAW_INTRINSIC_PROMPT_PACK_JSON='{}'
+NATIVE_RAW_TEMPLATE_CONTROL_PACK_JSON='{}'
 NATIVE_RAW_ADAPTIVE_RETRY_JSON='{}'
 INTRINSIC_REQS_JSON='[]'
 EXTRA_NORMALIZED_REQUIREMENTS_JSON='[]'
@@ -377,6 +380,22 @@ if [[ "$NATIVE_RAW_INTRINSIC_PROMPT_PACK" == "1" && -n "$NATIVE_RAW_TOP_GAP_BACK
     '{enabled:$enabled, backlog_file:$backlog_file, report:$report}')"
 else
   NATIVE_RAW_INTRINSIC_PROMPT_PACK_JSON='{"enabled":false}'
+fi
+if [[ "$NATIVE_RAW_TEMPLATE_CONTROL_PACK" == "1" && -n "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" && -f "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" ]]; then
+  python3 "$ROOT_DIR/tools/mcp/synthesize_raw_template_control_pack.py" \
+    --top-gaps "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+    --max-signals "$NATIVE_RAW_TEMPLATE_CONTROL_MAX_SIGNALS" \
+    --out "$OUT_DIR/01g_raw_template_control_pack_requirements.json" \
+    --out-report "$OUT_DIR/01g_raw_template_control_pack_report.json" >/dev/null
+  RAW_TEMPLATE_CONTROL_REQS_JSON="$(cat "$OUT_DIR/01g_raw_template_control_pack_requirements.json")"
+  NORMALIZED_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --argjson extra "$RAW_TEMPLATE_CONTROL_REQS_JSON" '$base + $extra')"
+  NATIVE_RAW_TEMPLATE_CONTROL_PACK_JSON="$(jq -nc \
+    --argjson enabled true \
+    --arg backlog_file "$NATIVE_RAW_TOP_GAP_BACKLOG_FILE" \
+    --argjson report "$(cat "$OUT_DIR/01g_raw_template_control_pack_report.json")" \
+    '{enabled:$enabled, backlog_file:$backlog_file, report:$report}')"
+else
+  NATIVE_RAW_TEMPLATE_CONTROL_PACK_JSON='{"enabled":false}'
 fi
 CONFLICTS="$(printf '%s' "$INTAKE_JSON" | jq '.conflicts // []')"
 GEN_ARGS="$(jq -nc --argjson nr "$NORMALIZED_REQS" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
@@ -976,6 +995,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson native_intrinsic_boost "$NATIVE_INTRINSIC_BOOST_JSON" \
   --argjson native_raw_top_gap_requirements "$NATIVE_RAW_TOP_GAP_REQUIREMENTS_JSON" \
   --argjson native_raw_intrinsic_prompt_pack "$NATIVE_RAW_INTRINSIC_PROMPT_PACK_JSON" \
+  --argjson native_raw_template_control_pack "$NATIVE_RAW_TEMPLATE_CONTROL_PACK_JSON" \
   --argjson native_raw_signal_targeted_variants "$NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON" \
   --argjson native_raw_candidate_search "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" \
   --argjson native_raw_adaptive_retry "$NATIVE_RAW_ADAPTIVE_RETRY_JSON" \
@@ -1009,6 +1029,7 @@ SUMMARY_JSON="$(jq -nc \
     native_intrinsic_boost: $native_intrinsic_boost,
     native_raw_top_gap_requirements: $native_raw_top_gap_requirements,
     native_raw_intrinsic_prompt_pack: $native_raw_intrinsic_prompt_pack,
+    native_raw_template_control_pack: $native_raw_template_control_pack,
     native_raw_signal_targeted_variants: $native_raw_signal_targeted_variants,
     native_raw_candidate_search: $native_raw_candidate_search,
     native_raw_adaptive_retry: $native_raw_adaptive_retry,

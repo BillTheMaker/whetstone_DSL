@@ -242,3 +242,8 @@ Planning runtime controls (active):
   - `WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_PACK`
   - `WSTONE_NATIVE_RAW_INTRINSIC_PROMPT_MAX_SIGNALS`
   - `native_raw_intrinsic_prompt_pack`
+- raw candidate generation can inject explicit output-shape template controls:
+  - `tools/mcp/synthesize_raw_template_control_pack.py`
+  - `WSTONE_NATIVE_RAW_TEMPLATE_CONTROL_PACK`
+  - `WSTONE_NATIVE_RAW_TEMPLATE_CONTROL_MAX_SIGNALS`
+  - `native_raw_template_control_pack`
