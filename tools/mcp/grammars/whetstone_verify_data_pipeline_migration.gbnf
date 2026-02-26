@@ -1,0 +1,24 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_verify_data_pipeline_migration ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_verify_data_pipeline_migration\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-verify-data-pipeline-migration-args-obj-13 ws "}"
+
+whetstone-verify-data-pipeline-migration-args-added_fields-1-arr-3 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-verify-data-pipeline-migration-args-added_fields-pair-4 ::= "\"added_fields\"" ws ":" ws whetstone-verify-data-pipeline-migration-args-added_fields-1-arr-3
+whetstone-verify-data-pipeline-migration-args-obj-13 ::= "{" ws whetstone-verify-data-pipeline-migration-args-pipeline_id-pair-6 (ws "," ws whetstone-verify-data-pipeline-migration-args-opt-14)* ws "}"
+whetstone-verify-data-pipeline-migration-args-opt-14 ::= whetstone-verify-data-pipeline-migration-args-added_fields-pair-4 | whetstone-verify-data-pipeline-migration-args-removed_fields-pair-10 | whetstone-verify-data-pipeline-migration-args-strict_mode-pair-12
+whetstone-verify-data-pipeline-migration-args-pipeline_id-pair-6 ::= "\"pipeline_id\"" ws ":" ws string
+whetstone-verify-data-pipeline-migration-args-removed_fields-7-arr-9 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-verify-data-pipeline-migration-args-removed_fields-pair-10 ::= "\"removed_fields\"" ws ":" ws whetstone-verify-data-pipeline-migration-args-removed_fields-7-arr-9
+whetstone-verify-data-pipeline-migration-args-strict_mode-pair-12 ::= "\"strict_mode\"" ws ":" ws boolean

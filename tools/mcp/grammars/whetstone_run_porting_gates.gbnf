@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_run_porting_gates ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_run_porting_gates\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-run-porting-gates-args-obj-20 ws "}"
+
+whetstone-run-porting-gates-args-benchmarks-1-arr-3 ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+whetstone-run-porting-gates-args-benchmarks-pair-4 ::= "\"benchmarks\"" ws ":" ws whetstone-run-porting-gates-args-benchmarks-1-arr-3
+whetstone-run-porting-gates-args-dependencies-5-arr-7 ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+whetstone-run-porting-gates-args-dependencies-pair-8 ::= "\"dependencies\"" ws ":" ws whetstone-run-porting-gates-args-dependencies-5-arr-7
+whetstone-run-porting-gates-args-obj-20 ::= "{" ws (whetstone-run-porting-gates-args-opt-19 (ws "," ws whetstone-run-porting-gates-args-opt-19)*)? ws "}"
+whetstone-run-porting-gates-args-opt-19 ::= whetstone-run-porting-gates-args-benchmarks-pair-4 | whetstone-run-porting-gates-args-dependencies-pair-8 | whetstone-run-porting-gates-args-sanitizer-pair-10 | whetstone-run-porting-gates-args-security_findings-pair-14 | whetstone-run-porting-gates-args-thresholds-pair-16 | whetstone-run-porting-gates-args-waivers-pair-18
+whetstone-run-porting-gates-args-sanitizer-pair-10 ::= "\"sanitizer\"" ws ":" ws any-object
+whetstone-run-porting-gates-args-security_findings-11-arr-13 ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+whetstone-run-porting-gates-args-security_findings-pair-14 ::= "\"security_findings\"" ws ":" ws whetstone-run-porting-gates-args-security_findings-11-arr-13
+whetstone-run-porting-gates-args-thresholds-pair-16 ::= "\"thresholds\"" ws ":" ws any-object
+whetstone-run-porting-gates-args-waivers-pair-18 ::= "\"waivers\"" ws ":" ws any-object

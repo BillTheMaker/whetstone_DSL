@@ -1,0 +1,23 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_get_transpilation_slo_status ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_get_transpilation_slo_status\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-get-transpilation-slo-status-args-obj-11 ws "}"
+
+whetstone-get-transpilation-slo-status-args-availability-pair-2 ::= "\"availability\"" ws ":" ws number
+whetstone-get-transpilation-slo-status-args-latency_p95_ms-pair-4 ::= "\"latency_p95_ms\"" ws ":" ws integer
+whetstone-get-transpilation-slo-status-args-obj-11 ::= "{" ws whetstone-get-transpilation-slo-status-args-pair_id-pair-6 (ws "," ws whetstone-get-transpilation-slo-status-args-opt-12)* ws "}"
+whetstone-get-transpilation-slo-status-args-opt-12 ::= whetstone-get-transpilation-slo-status-args-availability-pair-2 | whetstone-get-transpilation-slo-status-args-latency_p95_ms-pair-4 | whetstone-get-transpilation-slo-status-args-quality-pair-8 | whetstone-get-transpilation-slo-status-args-repeated_breach-pair-10
+whetstone-get-transpilation-slo-status-args-pair_id-pair-6 ::= "\"pair_id\"" ws ":" ws string
+whetstone-get-transpilation-slo-status-args-quality-pair-8 ::= "\"quality\"" ws ":" ws number
+whetstone-get-transpilation-slo-status-args-repeated_breach-pair-10 ::= "\"repeated_breach\"" ws ":" ws boolean

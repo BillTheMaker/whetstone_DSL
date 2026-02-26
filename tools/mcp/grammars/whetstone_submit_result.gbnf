@@ -1,0 +1,29 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_submit_result ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_submit_result\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-submit-result-args-obj-23 ws "}"
+
+whetstone-submit-result-args-itemId-pair-2 ::= "\"itemId\"" ws ":" ws string
+whetstone-submit-result-args-obj-23 ::= "{" ws whetstone-submit-result-args-itemId-pair-2 ws "," ws whetstone-submit-result-args-result-pair-22 ws "}"
+whetstone-submit-result-args-result-3-astJson-pair-5 ::= "\"astJson\"" ws ":" ws any-object
+whetstone-submit-result-args-result-3-confidence-pair-7 ::= "\"confidence\"" ws ":" ws number
+whetstone-submit-result-args-result-3-diagnostics-8-arr-10 ::= "[" ws (any-object (ws "," ws any-object)*)? ws "]"
+whetstone-submit-result-args-result-3-diagnostics-pair-11 ::= "\"diagnostics\"" ws ":" ws whetstone-submit-result-args-result-3-diagnostics-8-arr-10
+whetstone-submit-result-args-result-3-generatedCode-pair-13 ::= "\"generatedCode\"" ws ":" ws string
+whetstone-submit-result-args-result-3-obj-21 ::= "{" ws (whetstone-submit-result-args-result-3-opt-20 (ws "," ws whetstone-submit-result-args-result-3-opt-20)*)? ws "}"
+whetstone-submit-result-args-result-3-opt-20 ::= whetstone-submit-result-args-result-3-astJson-pair-5 | whetstone-submit-result-args-result-3-confidence-pair-7 | whetstone-submit-result-args-result-3-diagnostics-pair-11 | whetstone-submit-result-args-result-3-generatedCode-pair-13 | whetstone-submit-result-args-result-3-reasoning-pair-15 | whetstone-submit-result-args-result-3-tokensBudget-pair-17 | whetstone-submit-result-args-result-3-tokensGenerated-pair-19
+whetstone-submit-result-args-result-3-reasoning-pair-15 ::= "\"reasoning\"" ws ":" ws string
+whetstone-submit-result-args-result-3-tokensBudget-pair-17 ::= "\"tokensBudget\"" ws ":" ws integer
+whetstone-submit-result-args-result-3-tokensGenerated-pair-19 ::= "\"tokensGenerated\"" ws ":" ws integer
+whetstone-submit-result-args-result-pair-22 ::= "\"result\"" ws ":" ws whetstone-submit-result-args-result-3-obj-21

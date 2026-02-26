@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_assemble_context ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_assemble_context\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-assemble-context-args-obj-17 ws "}"
+
+whetstone-assemble-context-args-files-1-arr-13 ::= "[" ws (whetstone-assemble-context-args-files-1-item-2-obj-11 (ws "," ws whetstone-assemble-context-args-files-1-item-2-obj-11)*)? ws "]"
+whetstone-assemble-context-args-files-1-item-2-head_lines-pair-4 ::= "\"head_lines\"" ws ":" ws integer
+whetstone-assemble-context-args-files-1-item-2-line_hint-pair-6 ::= "\"line_hint\"" ws ":" ws integer
+whetstone-assemble-context-args-files-1-item-2-obj-11 ::= "{" ws whetstone-assemble-context-args-files-1-item-2-path-pair-8 (ws "," ws whetstone-assemble-context-args-files-1-item-2-opt-12)* ws "}"
+whetstone-assemble-context-args-files-1-item-2-opt-12 ::= whetstone-assemble-context-args-files-1-item-2-head_lines-pair-4 | whetstone-assemble-context-args-files-1-item-2-line_hint-pair-6 | whetstone-assemble-context-args-files-1-item-2-symbol-pair-10
+whetstone-assemble-context-args-files-1-item-2-path-pair-8 ::= "\"path\"" ws ":" ws string
+whetstone-assemble-context-args-files-1-item-2-symbol-pair-10 ::= "\"symbol\"" ws ":" ws string
+whetstone-assemble-context-args-files-pair-14 ::= "\"files\"" ws ":" ws whetstone-assemble-context-args-files-1-arr-13
+whetstone-assemble-context-args-max_tokens-pair-16 ::= "\"max_tokens\"" ws ":" ws integer
+whetstone-assemble-context-args-obj-17 ::= "{" ws whetstone-assemble-context-args-files-pair-14 (ws "," ws whetstone-assemble-context-args-opt-18)* ws "}"
+whetstone-assemble-context-args-opt-18 ::= whetstone-assemble-context-args-max_tokens-pair-16

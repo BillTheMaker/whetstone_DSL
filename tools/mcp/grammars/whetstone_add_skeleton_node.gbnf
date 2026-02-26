@@ -1,0 +1,29 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_add_skeleton_node ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_add_skeleton_node\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-add-skeleton-node-args-obj-23 ws "}"
+
+whetstone-add-skeleton-node-args-automatability-pair-2 ::= "\"automatability\"" ws ":" ws "\"deterministic\"" | "\"template\"" | "\"slm\"" | "\"llm\"" | "\"human\""
+whetstone-add-skeleton-node-args-blockedBy-3-arr-5 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-add-skeleton-node-args-blockedBy-pair-6 ::= "\"blockedBy\"" ws ":" ws whetstone-add-skeleton-node-args-blockedBy-3-arr-5
+whetstone-add-skeleton-node-args-contextWidth-pair-8 ::= "\"contextWidth\"" ws ":" ws "\"local\"" | "\"file\"" | "\"project\"" | "\"cross-project\""
+whetstone-add-skeleton-node-args-methods-9-arr-11 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-add-skeleton-node-args-methods-pair-12 ::= "\"methods\"" ws ":" ws whetstone-add-skeleton-node-args-methods-9-arr-11
+whetstone-add-skeleton-node-args-name-pair-14 ::= "\"name\"" ws ":" ws string
+whetstone-add-skeleton-node-args-nodeType-pair-16 ::= "\"nodeType\"" ws ":" ws "\"function\"" | "\"class\""
+whetstone-add-skeleton-node-args-obj-23 ::= "{" ws whetstone-add-skeleton-node-args-name-pair-14 (ws "," ws whetstone-add-skeleton-node-args-opt-24)* ws "}"
+whetstone-add-skeleton-node-args-opt-24 ::= whetstone-add-skeleton-node-args-automatability-pair-2 | whetstone-add-skeleton-node-args-blockedBy-pair-6 | whetstone-add-skeleton-node-args-contextWidth-pair-8 | whetstone-add-skeleton-node-args-methods-pair-12 | whetstone-add-skeleton-node-args-nodeType-pair-16 | whetstone-add-skeleton-node-args-parameters-pair-20 | whetstone-add-skeleton-node-args-priority-pair-22
+whetstone-add-skeleton-node-args-parameters-17-arr-19 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-add-skeleton-node-args-parameters-pair-20 ::= "\"parameters\"" ws ":" ws whetstone-add-skeleton-node-args-parameters-17-arr-19
+whetstone-add-skeleton-node-args-priority-pair-22 ::= "\"priority\"" ws ":" ws "\"critical\"" | "\"high\"" | "\"medium\"" | "\"low\""

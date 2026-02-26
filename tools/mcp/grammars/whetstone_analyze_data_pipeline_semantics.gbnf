@@ -1,0 +1,25 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_analyze_data_pipeline_semantics ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_analyze_data_pipeline_semantics\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-analyze-data-pipeline-semantics-args-obj-15 ws "}"
+
+whetstone-analyze-data-pipeline-semantics-args-obj-15 ::= "{" ws whetstone-analyze-data-pipeline-semantics-args-pipeline_id-pair-2 (ws "," ws whetstone-analyze-data-pipeline-semantics-args-opt-16)* ws "}"
+whetstone-analyze-data-pipeline-semantics-args-opt-16 ::= whetstone-analyze-data-pipeline-semantics-args-sinks-pair-6 | whetstone-analyze-data-pipeline-semantics-args-sources-pair-10 | whetstone-analyze-data-pipeline-semantics-args-transforms-pair-14
+whetstone-analyze-data-pipeline-semantics-args-pipeline_id-pair-2 ::= "\"pipeline_id\"" ws ":" ws string
+whetstone-analyze-data-pipeline-semantics-args-sinks-3-arr-5 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-analyze-data-pipeline-semantics-args-sinks-pair-6 ::= "\"sinks\"" ws ":" ws whetstone-analyze-data-pipeline-semantics-args-sinks-3-arr-5
+whetstone-analyze-data-pipeline-semantics-args-sources-7-arr-9 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-analyze-data-pipeline-semantics-args-sources-pair-10 ::= "\"sources\"" ws ":" ws whetstone-analyze-data-pipeline-semantics-args-sources-7-arr-9
+whetstone-analyze-data-pipeline-semantics-args-transforms-11-arr-13 ::= "[" ws (string (ws "," ws string)*)? ws "]"
+whetstone-analyze-data-pipeline-semantics-args-transforms-pair-14 ::= "\"transforms\"" ws ":" ws whetstone-analyze-data-pipeline-semantics-args-transforms-11-arr-13

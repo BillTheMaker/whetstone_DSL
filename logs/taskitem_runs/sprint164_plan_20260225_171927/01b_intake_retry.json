@@ -1,0 +1,239 @@
+{
+  "conflictSignals": {
+    "ambiguousRequirementCount": 0,
+    "conflictCount": 0,
+    "hasConflicts": false
+  },
+  "conflicts": [],
+  "normalizedRequirements": [
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1864 recursive object array rule generator 12 tests",
+      "requirementId": "goal-1",
+      "sourceLine": 2
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1865 union support oneof anyof allof 10 tests",
+      "requirementId": "goal-2",
+      "sourceLine": 3
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1866 constraint encoding and strict scalar handling 10 tests",
+      "requirementId": "goal-3",
+      "sourceLine": 4
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1867 strictness regression suite 8 tests",
+      "requirementId": "goal-4",
+      "sourceLine": 5
+    },
+    {
+      "ambiguous": false,
+      "anchor": "goals",
+      "kind": "goal",
+      "normalizedText": "step 1868 sprint 164 integration summary 8 tests",
+      "requirementId": "goal-5",
+      "sourceLine": 6
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "keep generator output deterministic",
+      "requirementId": "constraint-1",
+      "sourceLine": 9
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "no removal of existing tools or contract fields",
+      "requirementId": "constraint-2",
+      "sourceLine": 10
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "unsupported json schema constructs must be explicitly reported never silently",
+      "requirementId": "constraint-3",
+      "sourceLine": 11
+    },
+    {
+      "ambiguous": false,
+      "anchor": "constraints",
+      "kind": "constraint",
+      "normalizedText": "grammar generation runtime remains practical for 347 tools",
+      "requirementId": "constraint-4",
+      "sourceLine": 12
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "existing editor src modules and mcp toolchain",
+      "requirementId": "dependency-1",
+      "sourceLine": 15
+    },
+    {
+      "ambiguous": false,
+      "anchor": "dependencies",
+      "kind": "dependency",
+      "normalizedText": "whetstone mcp stable binary and workspace config",
+      "requirementId": "dependency-2",
+      "sourceLine": 16
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "all sprint step tests pass",
+      "requirementId": "acceptance-1",
+      "sourceLine": 19
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "no regression in existing mcp tool behavior",
+      "requirementId": "acceptance-2",
+      "sourceLine": 20
+    },
+    {
+      "ambiguous": false,
+      "anchor": "acceptance-criteria",
+      "kind": "acceptance",
+      "normalizedText": "generated task queue is ready or blockers are explicit",
+      "requirementId": "acceptance-3",
+      "sourceLine": 21
+    }
+  ],
+  "parsedSpec": {
+    "acceptanceCriteria": [
+      {
+        "anchor": "acceptance-criteria",
+        "line": 19,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "All sprint step tests pass"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 20,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "No regression in existing MCP tool behavior"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "line": 21,
+        "sectionTitle": "Acceptance Criteria",
+        "text": "Generated task queue is ready or blockers are explicit"
+      }
+    ],
+    "constraints": [
+      {
+        "anchor": "constraints",
+        "line": 9,
+        "sectionTitle": "Constraints",
+        "text": "Keep generator output deterministic"
+      },
+      {
+        "anchor": "constraints",
+        "line": 10,
+        "sectionTitle": "Constraints",
+        "text": "No removal of existing tools or contract fields"
+      },
+      {
+        "anchor": "constraints",
+        "line": 11,
+        "sectionTitle": "Constraints",
+        "text": "Unsupported JSON Schema constructs must be explicitly reported, never silently"
+      },
+      {
+        "anchor": "constraints",
+        "line": 12,
+        "sectionTitle": "Constraints",
+        "text": "Grammar generation runtime remains practical for 347 tools"
+      }
+    ],
+    "dependencies": [
+      {
+        "anchor": "dependencies",
+        "line": 15,
+        "sectionTitle": "Dependencies",
+        "text": "Existing editor/src modules and MCP toolchain"
+      },
+      {
+        "anchor": "dependencies",
+        "line": 16,
+        "sectionTitle": "Dependencies",
+        "text": "whetstone_mcp stable binary and workspace config"
+      }
+    ],
+    "goals": [
+      {
+        "anchor": "goals",
+        "line": 2,
+        "sectionTitle": "Goals",
+        "text": "Step 1864: Recursive object/array rule generator (12 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 3,
+        "sectionTitle": "Goals",
+        "text": "Step 1865: Union support (`oneOf`/`anyOf`/`allOf`) (10 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 4,
+        "sectionTitle": "Goals",
+        "text": "Step 1866: Constraint encoding and strict scalar handling (10 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 5,
+        "sectionTitle": "Goals",
+        "text": "Step 1867: Strictness regression suite (8 tests)"
+      },
+      {
+        "anchor": "goals",
+        "line": 6,
+        "sectionTitle": "Goals",
+        "text": "Step 1868: Sprint 164 Integration Summary (8 tests)"
+      }
+    ],
+    "sections": [
+      {
+        "anchor": "goals",
+        "headingLine": 1,
+        "title": "Goals"
+      },
+      {
+        "anchor": "constraints",
+        "headingLine": 8,
+        "title": "Constraints"
+      },
+      {
+        "anchor": "dependencies",
+        "headingLine": 14,
+        "title": "Dependencies"
+      },
+      {
+        "anchor": "acceptance-criteria",
+        "headingLine": 18,
+        "title": "Acceptance Criteria"
+      }
+    ]
+  },
+  "success": true
+}

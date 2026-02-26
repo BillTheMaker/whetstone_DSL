@@ -1,0 +1,25 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_mutate ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_mutate\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-mutate-args-obj-15 ws "}"
+
+whetstone-mutate-args-node-pair-2 ::= "\"node\"" ws ":" ws any-object
+whetstone-mutate-args-nodeId-pair-4 ::= "\"nodeId\"" ws ":" ws string
+whetstone-mutate-args-obj-15 ::= "{" ws whetstone-mutate-args-type-pair-12 (ws "," ws whetstone-mutate-args-opt-16)* ws "}"
+whetstone-mutate-args-opt-16 ::= whetstone-mutate-args-node-pair-2 | whetstone-mutate-args-nodeId-pair-4 | whetstone-mutate-args-parentId-pair-6 | whetstone-mutate-args-property-pair-8 | whetstone-mutate-args-role-pair-10 | whetstone-mutate-args-value-pair-14
+whetstone-mutate-args-parentId-pair-6 ::= "\"parentId\"" ws ":" ws string
+whetstone-mutate-args-property-pair-8 ::= "\"property\"" ws ":" ws string
+whetstone-mutate-args-role-pair-10 ::= "\"role\"" ws ":" ws string
+whetstone-mutate-args-type-pair-12 ::= "\"type\"" ws ":" ws "\"setProperty\"" | "\"updateNode\"" | "\"deleteNode\"" | "\"insertNode\""
+whetstone-mutate-args-value-pair-14 ::= "\"value\"" ws ":" ws string

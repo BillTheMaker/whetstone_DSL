@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_get_lowering_hints ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_get_lowering_hints\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-get-lowering-hints-args-obj-4 ws "}"
+
+whetstone-get-lowering-hints-args-nodeId-pair-2 ::= "\"nodeId\"" ws ":" ws string
+whetstone-get-lowering-hints-args-obj-4 ::= "{" ws (whetstone-get-lowering-hints-args-opt-3 (ws "," ws whetstone-get-lowering-hints-args-opt-3)*)? ws "}"
+whetstone-get-lowering-hints-args-opt-3 ::= whetstone-get-lowering-hints-args-nodeId-pair-2

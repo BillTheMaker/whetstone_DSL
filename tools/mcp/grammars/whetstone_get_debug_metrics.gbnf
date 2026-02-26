@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_get_debug_metrics ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_get_debug_metrics\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-get-debug-metrics-args-obj-21 ws "}"
+
+whetstone-get-debug-metrics-args-accepted_patches-pair-2 ::= "\"accepted_patches\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-duration_ms-pair-4 ::= "\"duration_ms\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-iterations-pair-6 ::= "\"iterations\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-obj-21 ::= "{" ws whetstone-get-debug-metrics-args-session_id-pair-14 (ws "," ws whetstone-get-debug-metrics-args-opt-22)* ws "}"
+whetstone-get-debug-metrics-args-opt-22 ::= whetstone-get-debug-metrics-args-accepted_patches-pair-2 | whetstone-get-debug-metrics-args-duration_ms-pair-4 | whetstone-get-debug-metrics-args-iterations-pair-6 | whetstone-get-debug-metrics-args-proposed_patches-pair-8 | whetstone-get-debug-metrics-args-regressions-pair-10 | whetstone-get-debug-metrics-args-root_cause_count-pair-12 | whetstone-get-debug-metrics-args-symptom_count-pair-16 | whetstone-get-debug-metrics-args-token_cost-pair-18 | whetstone-get-debug-metrics-args-total_runs-pair-20
+whetstone-get-debug-metrics-args-proposed_patches-pair-8 ::= "\"proposed_patches\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-regressions-pair-10 ::= "\"regressions\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-root_cause_count-pair-12 ::= "\"root_cause_count\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-session_id-pair-14 ::= "\"session_id\"" ws ":" ws string
+whetstone-get-debug-metrics-args-symptom_count-pair-16 ::= "\"symptom_count\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-token_cost-pair-18 ::= "\"token_cost\"" ws ":" ws integer
+whetstone-get-debug-metrics-args-total_runs-pair-20 ::= "\"total_runs\"" ws ":" ws integer

@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_score_failure_triage ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_score_failure_triage\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-score-failure-triage-args-obj-9 ws "}"
+
+whetstone-score-failure-triage-args-blast_radius-pair-2 ::= "\"blast_radius\"" ws ":" ws integer
+whetstone-score-failure-triage-args-failure_class-pair-4 ::= "\"failure_class\"" ws ":" ws string
+whetstone-score-failure-triage-args-obj-9 ::= "{" ws whetstone-score-failure-triage-args-failure_class-pair-4 (ws "," ws whetstone-score-failure-triage-args-opt-10)* ws "}"
+whetstone-score-failure-triage-args-opt-10 ::= whetstone-score-failure-triage-args-blast_radius-pair-2 | whetstone-score-failure-triage-args-reproducibility-pair-6 | whetstone-score-failure-triage-args-severity-pair-8
+whetstone-score-failure-triage-args-reproducibility-pair-6 ::= "\"reproducibility\"" ws ":" ws integer
+whetstone-score-failure-triage-args-severity-pair-8 ::= "\"severity\"" ws ":" ws integer

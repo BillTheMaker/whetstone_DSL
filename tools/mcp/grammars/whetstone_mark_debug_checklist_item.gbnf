@@ -1,0 +1,21 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_mark_debug_checklist_item ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_mark_debug_checklist_item\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-mark-debug-checklist-item-args-obj-7 ws "}"
+
+whetstone-mark-debug-checklist-item-args-done-pair-2 ::= "\"done\"" ws ":" ws boolean
+whetstone-mark-debug-checklist-item-args-index-pair-4 ::= "\"index\"" ws ":" ws integer
+whetstone-mark-debug-checklist-item-args-obj-7 ::= "{" ws whetstone-mark-debug-checklist-item-args-index-pair-4 ws "," ws whetstone-mark-debug-checklist-item-args-session_id-pair-6 (ws "," ws whetstone-mark-debug-checklist-item-args-opt-8)* ws "}"
+whetstone-mark-debug-checklist-item-args-opt-8 ::= whetstone-mark-debug-checklist-item-args-done-pair-2
+whetstone-mark-debug-checklist-item-args-session_id-pair-6 ::= "\"session_id\"" ws ":" ws string

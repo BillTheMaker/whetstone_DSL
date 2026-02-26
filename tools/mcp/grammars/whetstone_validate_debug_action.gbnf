@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_validate_debug_action ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_validate_debug_action\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-validate-debug-action-args-obj-9 ws "}"
+
+whetstone-validate-debug-action-args-action-pair-2 ::= "\"action\"" ws ":" ws string
+whetstone-validate-debug-action-args-bypasses_tests-pair-4 ::= "\"bypasses_tests\"" ws ":" ws boolean
+whetstone-validate-debug-action-args-changes_many_files-pair-6 ::= "\"changes_many_files\"" ws ":" ws boolean
+whetstone-validate-debug-action-args-obj-9 ::= "{" ws whetstone-validate-debug-action-args-action-pair-2 (ws "," ws whetstone-validate-debug-action-args-opt-10)* ws "}"
+whetstone-validate-debug-action-args-opt-10 ::= whetstone-validate-debug-action-args-bypasses_tests-pair-4 | whetstone-validate-debug-action-args-changes_many_files-pair-6 | whetstone-validate-debug-action-args-touches_forbidden_path-pair-8
+whetstone-validate-debug-action-args-touches_forbidden_path-pair-8 ::= "\"touches_forbidden_path\"" ws ":" ws boolean

@@ -1,0 +1,21 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_suggest_annotations ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_suggest_annotations\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-suggest-annotations-args-obj-8 ws "}"
+
+whetstone-suggest-annotations-args-col-pair-2 ::= "\"col\"" ws ":" ws integer
+whetstone-suggest-annotations-args-line-pair-4 ::= "\"line\"" ws ":" ws integer
+whetstone-suggest-annotations-args-nodeId-pair-6 ::= "\"nodeId\"" ws ":" ws string
+whetstone-suggest-annotations-args-obj-8 ::= "{" ws (whetstone-suggest-annotations-args-opt-7 (ws "," ws whetstone-suggest-annotations-args-opt-7)*)? ws "}"
+whetstone-suggest-annotations-args-opt-7 ::= whetstone-suggest-annotations-args-col-pair-2 | whetstone-suggest-annotations-args-line-pair-4 | whetstone-suggest-annotations-args-nodeId-pair-6

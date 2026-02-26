@@ -1,0 +1,21 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_capture_failure_packet ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_capture_failure_packet\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-capture-failure-packet-args-obj-7 ws "}"
+
+whetstone-capture-failure-packet-args-command-pair-2 ::= "\"command\"" ws ":" ws string
+whetstone-capture-failure-packet-args-cwd-pair-4 ::= "\"cwd\"" ws ":" ws string
+whetstone-capture-failure-packet-args-obj-7 ::= "{" ws whetstone-capture-failure-packet-args-command-pair-2 (ws "," ws whetstone-capture-failure-packet-args-opt-8)* ws "}"
+whetstone-capture-failure-packet-args-opt-8 ::= whetstone-capture-failure-packet-args-cwd-pair-4 | whetstone-capture-failure-packet-args-target-pair-6
+whetstone-capture-failure-packet-args-target-pair-6 ::= "\"target\"" ws ":" ws string

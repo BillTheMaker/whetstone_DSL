@@ -1,0 +1,48 @@
+{
+  "ambiguousRequirementCount": 0,
+  "conflictCount": 0,
+  "escalateCount": 0,
+  "planSummary": {
+    "milestoneCount": 2,
+    "overallUncertainty": 27
+  },
+  "success": true,
+  "tasks": [
+    {
+      "ambiguityCount": 0,
+      "confidence": 85,
+      "dependencyTaskIds": [],
+      "escalate": false,
+      "milestoneId": "milestone-1",
+      "prerequisiteOps": [
+        "validate-intake",
+        "architect-review"
+      ],
+      "queueReady": true,
+      "reasons": [
+        "high_confidence_clear_path"
+      ],
+      "taskId": "task-1",
+      "title": "Intake Foundation Primary"
+    },
+    {
+      "ambiguityCount": 0,
+      "confidence": 81,
+      "dependencyTaskIds": [
+        "task-1"
+      ],
+      "escalate": false,
+      "milestoneId": "milestone-2",
+      "prerequisiteOps": [
+        "validate-intake",
+        "resolve-dependencies"
+      ],
+      "queueReady": true,
+      "reasons": [
+        "depends_on_prior_tasks"
+      ],
+      "taskId": "task-2",
+      "title": "Execution Readiness Primary"
+    }
+  ]
+}

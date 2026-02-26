@@ -1,0 +1,63 @@
+{
+  "blockers": [],
+  "escalateCount": 0,
+  "queueJson": [
+    {
+      "checks": [
+        {
+          "checkId": "task-1::acceptance-1",
+          "testSkeleton": "test_task_1_all_sprint_step_tests_pass",
+          "text": "all sprint step tests pass"
+        },
+        {
+          "checkId": "task-1::acceptance-2",
+          "testSkeleton": "test_task_1_no_regression_in_existing_mcp_tool_behavior",
+          "text": "no regression in existing mcp tool behavior"
+        },
+        {
+          "checkId": "task-1::acceptance-3",
+          "testSkeleton": "test_task_1_generated_task_queue_is_ready_or_blockers_are_explicit",
+          "text": "generated task queue is ready or blockers are explicit"
+        }
+      ],
+      "hasCoverage": true,
+      "task": {
+        "escalate": false,
+        "milestoneId": "milestone-1",
+        "queueReady": true,
+        "taskId": "task-1",
+        "title": "Intake Foundation Primary"
+      }
+    },
+    {
+      "checks": [
+        {
+          "checkId": "task-2::acceptance-1",
+          "testSkeleton": "test_task_2_all_sprint_step_tests_pass",
+          "text": "all sprint step tests pass"
+        },
+        {
+          "checkId": "task-2::acceptance-2",
+          "testSkeleton": "test_task_2_no_regression_in_existing_mcp_tool_behavior",
+          "text": "no regression in existing mcp tool behavior"
+        },
+        {
+          "checkId": "task-2::acceptance-3",
+          "testSkeleton": "test_task_2_generated_task_queue_is_ready_or_blockers_are_explicit",
+          "text": "generated task queue is ready or blockers are explicit"
+        }
+      ],
+      "hasCoverage": true,
+      "task": {
+        "escalate": false,
+        "milestoneId": "milestone-2",
+        "queueReady": true,
+        "taskId": "task-2",
+        "title": "Execution Readiness Primary"
+      }
+    }
+  ],
+  "ready": true,
+  "readyCount": 2,
+  "success": true
+}

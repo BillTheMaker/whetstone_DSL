@@ -1,0 +1,24 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_execute_rollout_or_rollback ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_execute_rollout_or_rollback\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-execute-rollout-or-rollback-args-obj-13 ws "}"
+
+whetstone-execute-rollout-or-rollback-args-execute_rollback-pair-2 ::= "\"execute_rollback\"" ws ":" ws boolean
+whetstone-execute-rollout-or-rollback-args-incident_count-pair-4 ::= "\"incident_count\"" ws ":" ws integer
+whetstone-execute-rollout-or-rollback-args-obj-13 ::= "{" ws whetstone-execute-rollout-or-rollback-args-rollout_id-pair-10 (ws "," ws whetstone-execute-rollout-or-rollback-args-opt-14)* ws "}"
+whetstone-execute-rollout-or-rollback-args-observed_rollback_minutes-pair-6 ::= "\"observed_rollback_minutes\"" ws ":" ws integer
+whetstone-execute-rollout-or-rollback-args-opt-14 ::= whetstone-execute-rollout-or-rollback-args-execute_rollback-pair-2 | whetstone-execute-rollout-or-rollback-args-incident_count-pair-4 | whetstone-execute-rollout-or-rollback-args-observed_rollback_minutes-pair-6 | whetstone-execute-rollout-or-rollback-args-rollback_count-pair-8 | whetstone-execute-rollout-or-rollback-args-success_rate-pair-12
+whetstone-execute-rollout-or-rollback-args-rollback_count-pair-8 ::= "\"rollback_count\"" ws ":" ws integer
+whetstone-execute-rollout-or-rollback-args-rollout_id-pair-10 ::= "\"rollout_id\"" ws ":" ws string
+whetstone-execute-rollout-or-rollback-args-success_rate-pair-12 ::= "\"success_rate\"" ws ":" ws integer

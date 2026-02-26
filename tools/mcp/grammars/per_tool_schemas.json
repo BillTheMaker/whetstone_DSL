@@ -1,0 +1,8758 @@
+{
+  "whetstone_add_skeleton_node": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "automatability": {
+            "description": "What kind of worker should handle this",
+            "enum": [
+              "deterministic",
+              "template",
+              "slm",
+              "llm",
+              "human"
+            ],
+            "type": "string"
+          },
+          "blockedBy": {
+            "description": "Task names this depends on",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "contextWidth": {
+            "description": "How much context needed",
+            "enum": [
+              "local",
+              "file",
+              "project",
+              "cross-project"
+            ],
+            "type": "string"
+          },
+          "methods": {
+            "description": "Method names (for classes)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "description": "Function or class name",
+            "type": "string"
+          },
+          "nodeType": {
+            "description": "Type of skeleton node",
+            "enum": [
+              "function",
+              "class"
+            ],
+            "type": "string"
+          },
+          "parameters": {
+            "description": "Parameter names (for functions)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "priority": {
+            "description": "Task priority",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_add_skeleton_node",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_analyze_data_pipeline_semantics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pipeline_id": {
+            "type": "string"
+          },
+          "sinks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "transforms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "pipeline_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_analyze_data_pipeline_semantics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_analyze_rust_semantics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "source": {
+            "description": "Rust source code to analyze.",
+            "type": "string"
+          },
+          "strict": {
+            "description": "Fail closed on unsupported macro boundaries.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_analyze_rust_semantics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_apply_annotation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "annotationType": {
+            "description": "e.g., ReclaimAnnotation, OwnerAnnotation",
+            "type": "string"
+          },
+          "confidence": {
+            "description": "Confidence score 0-1",
+            "type": "number"
+          },
+          "nodeId": {
+            "description": "Target node ID",
+            "type": "string"
+          },
+          "reason": {
+            "description": "Why this annotation",
+            "type": "string"
+          },
+          "strategy": {
+            "description": "e.g., Tracing, Single, RAII",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeId",
+          "annotationType",
+          "strategy"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_apply_annotation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_apply_best_practice_pack": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "high_severity_findings": {
+            "type": "integer"
+          },
+          "pack_id": {
+            "type": "string"
+          },
+          "target_tenant": {
+            "type": "string"
+          },
+          "unresolved_findings": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pack_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_apply_best_practice_pack",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_apply_patch_packet": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "diff": {
+            "type": "string"
+          },
+          "proposal_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "diff"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_apply_patch_packet",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_apply_quick_fix": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "diagCode": {
+            "description": "Diagnostic error code (e.g. E0200)",
+            "type": "string"
+          },
+          "nodeId": {
+            "description": "Target node ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "diagCode",
+          "nodeId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_apply_quick_fix",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_apply_text_ast_merge": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_apply_text_ast_merge",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_apply_verified_pattern": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_apply_verified_pattern",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_approve_item": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "feedback": {
+            "description": "Optional reviewer note",
+            "type": "string"
+          },
+          "itemId": {
+            "description": "Review item ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_approve_item",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_architect_intake": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "markdown": {
+            "description": "Markdown specification text.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "markdown"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_architect_intake",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_assemble_context": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "files": {
+            "description": "List of slice requests.",
+            "items": {
+              "properties": {
+                "head_lines": {
+                  "description": "Head fallback line count (default 40).",
+                  "type": "integer"
+                },
+                "line_hint": {
+                  "description": "Line number hint (optional).",
+                  "type": "integer"
+                },
+                "path": {
+                  "description": "File path relative to workspace.",
+                  "type": "string"
+                },
+                "symbol": {
+                  "description": "Symbol name to extract (optional).",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "max_tokens": {
+            "description": "Token budget (default 8000).",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_assemble_context",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_assemble_fix_context": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "slices": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "slices"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_assemble_fix_context",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_assign_task": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "assignee": {
+            "description": "Worker identifier",
+            "type": "string"
+          },
+          "itemId": {
+            "description": "Work item ID to assign",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_assign_task",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_attach_multimodal_evidence": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_attach_multimodal_evidence",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_batch_mutate": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "mutations": {
+            "description": "Array of mutation objects",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "mutations"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_batch_mutate",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_batch_query": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "queries": {
+            "items": {
+              "properties": {
+                "method": {
+                  "type": "string"
+                },
+                "params": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "method"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "queries"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_batch_query",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_begin_constructive_transaction": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_begin_constructive_transaction",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_build_debug_handoff": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "next_actions": {
+            "type": "array"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_build_debug_handoff",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_capture_distributed_failure": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_capture_distributed_failure",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_capture_failure_packet": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_capture_failure_packet",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_capture_handoff_packet": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_capture_handoff_packet",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_capture_mcp_execution_trace": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_capture_mcp_execution_trace",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_check_runtime_freshness": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_check_runtime_freshness",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_check_tool_compatibility": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_check_tool_compatibility",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_classify_debug_stop_reason": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "budget_exceeded": {
+            "type": "boolean"
+          },
+          "patch_rejected": {
+            "type": "boolean"
+          },
+          "policy_violation": {
+            "type": "boolean"
+          },
+          "tests_failing": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_classify_debug_stop_reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_close_file": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "Path of the buffer to close",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_close_file",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_cluster_distributed_failures": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_cluster_distributed_failures",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_cluster_failures": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "packets": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "packets"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_cluster_failures",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_compare_constructive_replays": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_compare_constructive_replays",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_compare_mcp_replays": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_compare_mcp_replays",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_compare_tool_surfaces": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_compare_tool_surfaces",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_complete_task": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Work item ID to complete",
+            "type": "string"
+          },
+          "result": {
+            "properties": {
+              "confidence": {
+                "description": "Confidence score 0.0-1.0",
+                "type": "number"
+              },
+              "generatedCode": {
+                "description": "Generated code output",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "Explanation of decisions",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_complete_task",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_configure_hivemind": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_configure_hivemind",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_create_skeleton": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "language": {
+            "description": "Target language (python, cpp, rust, etc.)",
+            "type": "string"
+          },
+          "name": {
+            "description": "Module name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "language"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_create_skeleton",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_create_workflow": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "projectName": {
+            "description": "Name for the workflow project",
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectName"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_create_workflow",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_debug_until_green": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "apply_patches": {
+            "type": "boolean"
+          },
+          "command": {
+            "type": "string"
+          },
+          "context_budget": {
+            "type": "string"
+          },
+          "max_iterations": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_debug_until_green",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_derive_requirements": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_derive_requirements",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_detect_text_ast_conflicts": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_detect_text_ast_conflicts",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_diff_environments": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_diff_environments",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_dry_run_patch": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "diff": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "diff"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_dry_run_patch",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_enqueue_pair_upgrade": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "entry_id": {
+            "type": "string"
+          },
+          "pair_id": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id",
+          "priority"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_enqueue_pair_upgrade",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_estimate_debug_budget": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "complexity": {
+            "type": "integer"
+          },
+          "failing_targets": {
+            "type": "integer"
+          },
+          "profile": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_estimate_debug_budget",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_estimate_porting_cost": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "ambiguity_score": {
+            "type": "number"
+          },
+          "lines_of_code": {
+            "type": "integer"
+          },
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_estimate_porting_cost",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_execute_rollout_or_rollback": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "execute_rollback": {
+            "type": "boolean"
+          },
+          "incident_count": {
+            "type": "integer"
+          },
+          "observed_rollback_minutes": {
+            "type": "integer"
+          },
+          "rollback_count": {
+            "type": "integer"
+          },
+          "rollout_id": {
+            "type": "string"
+          },
+          "success_rate": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rollout_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_execute_rollout_or_rollback",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_execute_task": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Work item ID to execute",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_execute_task",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_explain_transpilation_decision": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "policy": {
+            "type": "string"
+          },
+          "trace_id": {
+            "type": "string"
+          },
+          "uncertainty": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "trace_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_explain_transpilation_decision",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_export_debug_campaign_bundle": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "campaign_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_export_debug_campaign_bundle",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_export_mcp_replay_pack": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_export_mcp_replay_pack",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_export_repro_jsonl": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "packets": {
+            "type": "array"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "packets"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_export_repro_jsonl",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_export_tool_contracts": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_export_tool_contracts",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_export_tool_manifest": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_export_tool_manifest",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_export_training_data": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "format": {
+            "description": "Export format: 'huggingface' or 'pairs' (default: 'huggingface')",
+            "type": "string"
+          },
+          "languages": {
+            "description": "Languages to include (default: all available)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_export_training_data",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_extract_api_abi_contract": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_extract_api_abi_contract",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_file_create": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "language": {
+            "description": "Language (python, cpp, rust, go, java, javascript, typescript)",
+            "type": "string"
+          },
+          "path": {
+            "description": "File path (relative to workspace)",
+            "type": "string"
+          },
+          "template": {
+            "description": "Template name (module, empty) or empty for blank file",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_file_create",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_file_diff": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "File path (optional, defaults to active buffer)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_file_diff",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_file_read": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "endLine": {
+            "description": "End line (1-based, optional)",
+            "type": "integer"
+          },
+          "path": {
+            "description": "File path (relative to workspace)",
+            "type": "string"
+          },
+          "startLine": {
+            "description": "Start line (1-based, optional)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_file_read",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_file_write": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "content": {
+            "description": "Content to write",
+            "type": "string"
+          },
+          "path": {
+            "description": "File path (relative to workspace)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_file_write",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_code": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "preferImports": {
+            "description": "Prefer imported library symbols (default true)",
+            "type": "boolean"
+          },
+          "spec": {
+            "description": "Natural language description of code to generate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_code",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_cpp_from_ir": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "ir": {
+            "description": "SemanticCoreIR packet.",
+            "type": "object"
+          },
+          "profile": {
+            "description": "safe-first|perf-first|interop-first",
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ir"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_cpp_from_ir",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_debug_hints": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "context": {
+            "type": "array"
+          },
+          "failure_class": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "failure_class"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_debug_hints",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_dispatch_table": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "entries": {
+            "description": "Array of job dispatch entries.",
+            "items": {
+              "properties": {
+                "executor": {
+                  "description": "C++ callable expression, e.g. 'handleCudaTask'",
+                  "type": "string"
+                },
+                "job_type": {
+                  "type": "string"
+                },
+                "payload_type": {
+                  "type": "string"
+                },
+                "required_caps": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "job_type",
+                "executor"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_dispatch_table",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_examples": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "language": {
+            "description": "Programming language (python, cpp, rust, etc.)",
+            "type": "string"
+          },
+          "source": {
+            "description": "Source code to annotate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "language"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_examples",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_inference_job": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "bounty": {
+            "type": "string"
+          },
+          "entropy_score": {
+            "type": "integer"
+          },
+          "files": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "goal": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "goal",
+          "entropy_score",
+          "files"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_inference_job",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_localized_migration_report": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "report_id": {
+            "type": "string"
+          },
+          "source_region": {
+            "type": "string"
+          },
+          "target_region": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_localized_migration_report",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_patch_candidates": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_patch_candidates",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_project": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "dependencies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "description": "Short project description.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Project name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_project",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_safety_case": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "claim_count": {
+            "type": "integer"
+          },
+          "evidence_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "case_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_safety_case",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_setup_script": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_setup_script",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_generate_taskitems": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "conflicts": {
+            "description": "Optional requirement conflicts from whetstone_architect_intake.",
+            "type": "array"
+          },
+          "normalizedRequirements": {
+            "description": "Normalized requirements from whetstone_architect_intake.",
+            "type": "array"
+          }
+        },
+        "required": [
+          "normalizedRequirements"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_generate_taskitems",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_adapter_hints": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "features": {
+            "type": "array"
+          },
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_adapter_hints",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_api_semantics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "api_id": {
+            "type": "string"
+          },
+          "framework": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "api_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_api_semantics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_artifact_trust_report": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_artifact_trust_report",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_ast": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "compact": {
+            "description": "Compact mode: flat list with minimal fields (default false)",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_ast",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_ast_diff": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "sinceVersion": {
+            "description": "Version number to diff against (from previous response)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sinceVersion"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_ast_diff",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_ast_subtree": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "nodeId": {
+            "description": "Root node ID for the subtree",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_ast_subtree",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_authoring_mode": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_authoring_mode",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_blockers": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_blockers",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_call_hierarchy": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "functionId": {
+            "description": "Function node ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "functionId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_call_hierarchy",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_century_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_century_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_certification_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pair_id": {
+            "description": "Optional pair ID filter",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_certification_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_compliance_evidence": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "observed_events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "required_events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_compliance_evidence",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_constructive_rollout_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_constructive_rollout_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_constructive_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_constructive_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_cpp_constructive_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_cpp_constructive_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debt_inventory": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debt_inventory",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debug_campaign_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "campaign_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debug_campaign_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debug_checklist": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "failure_class": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debug_checklist",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debug_constraints": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "mode": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debug_constraints",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debug_evidence_index": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debug_evidence_index",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debug_metrics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "accepted_patches": {
+            "type": "integer"
+          },
+          "duration_ms": {
+            "type": "integer"
+          },
+          "iterations": {
+            "type": "integer"
+          },
+          "proposed_patches": {
+            "type": "integer"
+          },
+          "regressions": {
+            "type": "integer"
+          },
+          "root_cause_count": {
+            "type": "integer"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "symptom_count": {
+            "type": "integer"
+          },
+          "token_cost": {
+            "type": "integer"
+          },
+          "total_runs": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debug_metrics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debug_recipe": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "failure_class": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "failure_class"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debug_recipe",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_debug_trace": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "trace_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_debug_trace",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_determinism_gate_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_determinism_gate_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_determinism_risks": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "cross_platform_targets": {
+            "type": "boolean"
+          },
+          "mixed_precision": {
+            "type": "boolean"
+          },
+          "uses_fast_math": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_determinism_risks",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_diagnostics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "severity": {
+            "description": "Maximum severity level to include",
+            "enum": [
+              "error",
+              "warning",
+              "info",
+              "hint"
+            ],
+            "type": "string"
+          },
+          "source": {
+            "description": "Filter by diagnostic source",
+            "enum": [
+              "parser",
+              "annotation",
+              "strategy"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_diagnostics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_diagnostics_delta": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "sinceVersion": {
+            "description": "Version number from a previous diagnostics response",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sinceVersion"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_diagnostics_delta",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_distributed_failure_bundle": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_distributed_failure_bundle",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_distributed_triage_queue": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_distributed_triage_queue",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_environment": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_environment",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_epoch_block_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_epoch_block_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_epoch_workstreams": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_epoch_workstreams",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_event_stream": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "sinceVersion": {
+            "description": "Return events with version > sinceVersion",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_event_stream",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_execution_attestation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_execution_attestation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_failure_trends": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_failure_trends",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_federated_verification_report": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "bundle_id": {
+            "type": "string"
+          },
+          "confidence_score": {
+            "type": "integer"
+          },
+          "evidence_count": {
+            "type": "integer"
+          },
+          "verifier_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bundle_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_federated_verification_report",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_governance_state": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "refresh_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_governance_state",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_hybrid_language_readiness": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_hybrid_language_readiness",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_hybrid_qualification_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_hybrid_qualification_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_hybrid_rollout_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_hybrid_rollout_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_language_contract": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_language_contract",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_language_matrix": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "language": {
+            "description": "Optional single-language filter.",
+            "type": "string"
+          },
+          "strict": {
+            "description": "Validate required capability fields strictly.",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_language_matrix",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_learning_progress": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "baseline": {
+            "type": "integer"
+          },
+          "current": {
+            "type": "integer"
+          },
+          "learner_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "learner_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_learning_progress",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_lowering_hints": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "nodeId": {
+            "description": "Node ID (optional, defaults to module root)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_lowering_hints",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_lts_support_matrix": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "cert_pass_rate": {
+            "type": "integer"
+          },
+          "governance_compliant": {
+            "type": "boolean"
+          },
+          "pair_id": {
+            "type": "string"
+          },
+          "regression_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_lts_support_matrix",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_mcp_closure_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_mcp_closure_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_mcp_remediation_plan": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_mcp_remediation_plan",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_metrics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "baseline": {
+            "description": "Optional baseline SessionRecord JSON.",
+            "type": "object"
+          },
+          "baseline_quality": {
+            "description": "Baseline quality rating if baseline is provided.",
+            "type": "integer"
+          },
+          "quality_rating": {
+            "description": "Quality rating (0-100) for this session.",
+            "type": "integer"
+          },
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_metrics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_mode_capabilities": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_mode_capabilities",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_numerical_risk_report": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "mixed_precision": {
+            "type": "boolean"
+          },
+          "non_deterministic_math": {
+            "type": "boolean"
+          },
+          "unstable_reduction": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_numerical_risk_report",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_pair_scorecard": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_pair_scorecard",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_pair_stability_forecast": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "horizon_days": {
+            "type": "integer"
+          },
+          "instability_score": {
+            "type": "integer"
+          },
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_pair_stability_forecast",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_polyglot_cutover_readiness": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_polyglot_cutover_readiness",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_portfolio_economics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_portfolio_economics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_porting_contract": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "overrides": {
+            "type": "object"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceLanguage",
+          "targetLanguage"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_porting_contract",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_program_kpis": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "kpi_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kpi_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_program_kpis",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_progress": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_progress",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_project_diagnostics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "fileGlob": {
+            "description": "File pattern filter (e.g. *.py, utils.py)",
+            "type": "string"
+          },
+          "severity": {
+            "description": "Maximum severity level to include",
+            "enum": [
+              "error",
+              "warning",
+              "info",
+              "hint"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_project_diagnostics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_project_model": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_project_model",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_quick_fixes": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "nodeId": {
+            "description": "Node ID to get fixes for (omit for all fixes)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_quick_fixes",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_ready_tasks": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_ready_tasks",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_realtime_constraints": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "deadline_ms": {
+            "type": "number"
+          },
+          "jitter_ms": {
+            "type": "number"
+          },
+          "period_ms": {
+            "type": "number"
+          },
+          "target_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_realtime_constraints",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_recent_events": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "count": {
+            "description": "How many most-recent events to return (default 20)",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_recent_events",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_recovery_advice": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "stop_reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stop_reason"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_recovery_advice",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_recovery_readiness": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_recovery_readiness",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_reference_conformance_report": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "manifest_id": {
+            "type": "string"
+          },
+          "vendor_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_reference_conformance_report",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_regeneration_decisions": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_regeneration_decisions",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_region_policy_profile": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "base_policy": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "region"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_region_policy_profile",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_related_migration_patterns": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_related_migration_patterns",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_residual_risks": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "high_risks": {
+            "type": "integer"
+          },
+          "medium_risks": {
+            "type": "integer"
+          },
+          "model_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_residual_risks",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_review_context": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Review item ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_review_context",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_review_load_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_review_load_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_review_policy": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_review_policy",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_review_queue": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_review_queue",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_route_integrity": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_route_integrity",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_routing_explanation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Work item ID to explain",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_routing_explanation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_runtime_assumptions": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "patterns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "runtime_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_runtime_assumptions",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_runtime_fingerprint": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_runtime_fingerprint",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_safety_profile_requirements": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_safety_profile_requirements",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_scope": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "nodeId": {
+            "description": "Node ID to query scope from",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_scope",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_semantic_annotations": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "nodeId": {
+            "description": "Node ID (optional, omit for all annotated nodes)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_semantic_annotations",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_semantic_diff": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "added": {
+            "type": "integer"
+          },
+          "diff_id": {
+            "type": "string"
+          },
+          "modified": {
+            "type": "integer"
+          },
+          "removed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "diff_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_semantic_diff",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_semantic_hash_lock": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "nodeId": {
+            "description": "AST node ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_semantic_hash_lock",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_semantic_hash_table": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "Buffer path to read semantic hash table for",
+            "type": "string"
+          },
+          "refresh": {
+            "description": "Recompute hash table from AST before read",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_semantic_hash_table",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_session_state": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_session_state",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_slm_debug_readiness": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "metrics": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "metrics"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_slm_debug_readiness",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_spec_versions": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "requested_version": {
+            "type": "string"
+          },
+          "spec_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "spec_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_spec_versions",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_swarm_maintenance_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_swarm_maintenance_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_sync_diagnostics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_sync_diagnostics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_sync_identity_report": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_sync_identity_report",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_tenant_support_matrix": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_tenant_support_matrix",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_tool_deprecations": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_tool_deprecations",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_tool_permissions": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_tool_permissions",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_top_adapter_gaps": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "tier": {
+            "type": "string"
+          },
+          "top_n": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_top_adapter_gaps",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_transpilation_slo_status": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "availability": {
+            "type": "number"
+          },
+          "latency_p95_ms": {
+            "type": "integer"
+          },
+          "pair_id": {
+            "type": "string"
+          },
+          "quality": {
+            "type": "number"
+          },
+          "repeated_breach": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_transpilation_slo_status",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_transpile_support_matrix": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "tier": {
+            "description": "Filter by tier: stable, beta, experimental, or all (default)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_transpile_support_matrix",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_unannotated_nodes": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "type": {
+            "description": "Filter: nodes missing this annotation type (optional)",
+            "enum": [
+              "intent",
+              "complexity",
+              "risk",
+              "contract",
+              "tags"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_unannotated_nodes",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_upgrade_queue": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "limit": {
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_upgrade_queue",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_work_item": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Work item ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_work_item",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_get_workflow_state": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_get_workflow_state",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_index_workspace": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "root": {
+            "description": "Workspace root (optional, uses --workspace default)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_index_workspace",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_infer_annotations": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_infer_annotations",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_ingest_legacy_to_ir": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "api": {
+            "type": "string"
+          },
+          "files": [
+            [
+              "type",
+              "array",
+              "items",
+              [
+                "type",
+                "string"
+              ]
+            ]
+          ],
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_ingest_legacy_to_ir",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_install_or_disable_plugin": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "certified": {
+            "type": "boolean"
+          },
+          "plugin_id": {
+            "type": "string"
+          },
+          "signed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "plugin_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_install_or_disable_plugin",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_label_patch_risk": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "adds_unsafe_pattern": {
+            "type": "boolean"
+          },
+          "core_path_touched": {
+            "type": "boolean"
+          },
+          "files_touched": {
+            "type": "integer"
+          },
+          "line_changes": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_label_patch_risk",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_annotated_files": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_annotated_files",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_best_practice_packs": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "include_quarantined": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_best_practice_packs",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_buffers": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_buffers",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_campaign_checkpoints": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "campaign_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_campaign_checkpoints",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_distributed_failures": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_distributed_failures",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_handoff_divergences": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_handoff_divergences",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_hybrid_language_profiles": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_hybrid_language_profiles",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_language_capabilities": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_language_capabilities",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_mcp_runtimes": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_mcp_runtimes",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_migration_templates": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_migration_templates",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_plugins": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "include_disabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_plugins",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_semantic_hash_tables": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_semantic_hash_tables",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_toolchain_providers": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_toolchain_providers",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_list_verified_patterns": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_list_verified_patterns",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_load_annotated_ast": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "Buffer path to load annotations for",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_load_annotated_ast",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_mark_debug_checklist_item": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "done": {
+            "type": "boolean"
+          },
+          "index": {
+            "type": "integer"
+          },
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "index"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_mark_debug_checklist_item",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_marketplace_search": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "catalog_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "catalog_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_marketplace_search",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_mutate": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "node": {
+            "description": "Node to insert (for insertNode)",
+            "type": "object"
+          },
+          "nodeId": {
+            "description": "Target node ID (for setProperty, updateNode, deleteNode)",
+            "type": "string"
+          },
+          "parentId": {
+            "description": "Parent node ID (for insertNode)",
+            "type": "string"
+          },
+          "property": {
+            "description": "Property name (for setProperty)",
+            "type": "string"
+          },
+          "role": {
+            "description": "Child role (for insertNode)",
+            "type": "string"
+          },
+          "type": {
+            "description": "Mutation type",
+            "enum": [
+              "setProperty",
+              "updateNode",
+              "deleteNode",
+              "insertNode"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "description": "New value (for setProperty)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_mutate",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_normalize_diagnostics": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_normalize_diagnostics",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_onboard_workspace": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "maxFiles": {
+            "description": "Max key files to process (default 8, max 20)",
+            "type": "integer"
+          },
+          "root": {
+            "description": "Workspace root override (optional)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_onboard_workspace",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_open_file": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "content": {
+            "description": "File content (optional, reads from disk if omitted)",
+            "type": "string"
+          },
+          "language": {
+            "description": "Language (optional, auto-detected from extension)",
+            "type": "string"
+          },
+          "path": {
+            "description": "File path (relative to workspace or absolute)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_open_file",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_optimize_review_queue": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_optimize_review_queue",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_orchestrate_advance": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_orchestrate_advance",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_orchestrate_run_deterministic": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_orchestrate_run_deterministic",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_orchestrate_step": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_orchestrate_step",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_parse_build_output": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_parse_build_output",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_parse_test_output": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_parse_test_output",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_budget_allocation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_budget_allocation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_debt_burndown": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_debt_burndown",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_deprecation_or_upgrade": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "obsolete": {
+            "type": "boolean"
+          },
+          "open_high_risks": {
+            "type": "integer"
+          },
+          "pair_id": {
+            "type": "string"
+          },
+          "unstable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_deprecation_or_upgrade",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_migration_path": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pair_id": {
+            "type": "string"
+          },
+          "risk_score": {
+            "type": "number"
+          },
+          "source_runtime": {
+            "type": "string"
+          },
+          "target_runtime": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id",
+          "source_runtime",
+          "target_runtime"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_migration_path",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_polyglot_migration": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_polyglot_migration",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_preventive_maintenance": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pair_id": {
+            "type": "string"
+          },
+          "risk_score": {
+            "type": "integer"
+          },
+          "trigger_met": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_preventive_maintenance",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_rollout_stage": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "criticality": {
+            "type": "string"
+          },
+          "impacted_users_pct": {
+            "type": "integer"
+          },
+          "provided_approvals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "rollout_id": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rollout_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_rollout_stage",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_swarm_maintenance": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_swarm_maintenance",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_tool_migrations": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_tool_migrations",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_plan_transpilation_run": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "ambiguity_score": {
+            "type": "number"
+          },
+          "budget_limit": {
+            "type": "number"
+          },
+          "lines_of_code": {
+            "type": "integer"
+          },
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_plan_transpilation_run",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_poll_iteration_job": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_poll_iteration_job",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_preview_regenerated_diff": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_preview_regenerated_diff",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_preview_text_ast_merge": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_preview_text_ast_merge",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_probe_mcp_runtime_health": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_probe_mcp_runtime_health",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_probe_tool_reachability": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_probe_tool_reachability",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_probe_toolchain_provider": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_probe_toolchain_provider",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_project_language": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "targetLanguage": {
+            "description": "Target language to project to",
+            "type": "string"
+          }
+        },
+        "required": [
+          "targetLanguage"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_project_language",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_propose_adapter_improvements": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "failure_trends": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_propose_adapter_improvements",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_propose_patch_for_failure": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "cluster": {
+            "type": "object"
+          },
+          "context": {
+            "type": "object"
+          },
+          "test_target": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cluster",
+          "context"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_propose_patch_for_failure",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_propose_policy_tuning": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_propose_policy_tuning",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_publish_next_block_plan": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_publish_next_block_plan",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_publish_next_epoch_plan": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_publish_next_epoch_plan",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_publish_roadmap_epoch": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "epoch": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "epoch"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_publish_roadmap_epoch",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_query_transpile_graph": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_query_transpile_graph",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_queue_ready": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "normalizedRequirements": {
+            "description": "Normalized requirements (needed for acceptance-coverage binding).",
+            "type": "array"
+          },
+          "tasks": {
+            "description": "Annotated taskitems from whetstone_generate_taskitems.",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_queue_ready",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_rank_failure_triage_actions": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_rank_failure_triage_actions",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_record_attempt": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_record_attempt",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_record_debug_trace": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "index": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "trace_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id",
+          "index",
+          "action",
+          "status"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_record_debug_trace",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_redo": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_redo",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_reduce_repro_command": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "removable_flags": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_reduce_repro_command",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_regenerate_text_from_ast": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_regenerate_text_from_ast",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_register_external_verifier": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "base_trust": {
+            "type": "integer"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "recency_weight": {
+            "type": "integer"
+          },
+          "reliability_weight": {
+            "type": "integer"
+          },
+          "verifier_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "verifier_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_register_external_verifier",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_regression_guard": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "failing_target": {
+            "type": "string"
+          },
+          "step_id": {
+            "type": "integer"
+          },
+          "touched_files": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "step_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_regression_guard",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_reject_item": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "feedback": {
+            "description": "Required rejection feedback",
+            "type": "string"
+          },
+          "itemId": {
+            "description": "Review item ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId",
+          "feedback"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_reject_item",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_reject_task": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Work item ID to reject",
+            "type": "string"
+          },
+          "reason": {
+            "description": "Rejection reason/feedback",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_reject_task",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_remove_semantic_annotation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "nodeId": {
+            "description": "Target node ID",
+            "type": "string"
+          },
+          "type": {
+            "description": "Annotation type to remove",
+            "enum": [
+              "intent",
+              "complexity",
+              "risk",
+              "contract",
+              "tags"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeId",
+          "type"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_remove_semantic_annotation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_rename_symbol": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "newName": {
+            "description": "New symbol name",
+            "type": "string"
+          },
+          "oldName": {
+            "description": "Current symbol name",
+            "type": "string"
+          },
+          "preview": {
+            "description": "Preview changes without applying (default false)",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "oldName",
+          "newName"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_rename_symbol",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_replay_hybrid_session": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_replay_hybrid_session",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_replay_repro_packet": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "current_packet": {
+            "type": "object"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "current_packet"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_replay_repro_packet",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_restore_hybrid_checkpoint": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_restore_hybrid_checkpoint",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_resume_constructive_transaction": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_resume_constructive_transaction",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_resume_debug_campaign": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "campaign_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_resume_debug_campaign",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_review_porting_decision": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "decision": {
+            "type": "string"
+          },
+          "issue_id": {
+            "type": "string"
+          },
+          "policy_pack": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "reviewer": {
+            "type": "string"
+          },
+          "waiver_scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "issue_id",
+          "reviewer",
+          "decision",
+          "rationale"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_review_porting_decision",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_rollback_constructive_transaction": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_rollback_constructive_transaction",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_rollback_last_patch": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "ledger_path": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_rollback_last_patch",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_route_all_ready": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_route_all_ready",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_route_task": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Work item ID to route",
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_route_task",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_bisect_debug": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "proposal_ids": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "proposal_ids"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_bisect_debug",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_build_iteration": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_build_iteration",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_certification_cycle": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "cycle_id": {
+            "description": "Cycle identifier (required)",
+            "type": "string"
+          },
+          "pairs": {
+            "description": "Optional list of pair IDs",
+            "type": "array"
+          },
+          "strategy": {
+            "description": "Selection strategy (default: hot_pairs)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cycle_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_certification_cycle",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_constructive_ga_gate": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_constructive_ga_gate",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_constructive_loop": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_constructive_loop",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_constructive_replay_suite": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_constructive_replay_suite",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_constructive_step": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_constructive_step",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_continuity_drill": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_continuity_drill",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_cpp_constructive_loop": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_cpp_constructive_loop",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_cpp_constructive_step": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_cpp_constructive_step",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_feedback_loop": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_feedback_loop",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_hybrid_determinism_suite": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_hybrid_determinism_suite",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_hybrid_ga_gate": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_hybrid_ga_gate",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_hybrid_performance_bench": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_hybrid_performance_bench",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_improvement_trial": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "human_approved": {
+            "type": "boolean"
+          },
+          "proposal_id": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "stable_path": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "proposal_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_improvement_trial",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_interop_testbed": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "manifest_id": {
+            "type": "string"
+          },
+          "vendor_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "manifest_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_interop_testbed",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_mcp_closure_gate": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_mcp_closure_gate",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_meta_evaluation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "evaluation_id": {
+            "type": "string"
+          },
+          "team_a_score": {
+            "type": "integer"
+          },
+          "team_b_score": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "evaluation_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_meta_evaluation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_pair_benchmark": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pair_id": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_pair_benchmark",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_pipeline": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "source": {
+            "description": "Source code to process",
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "description": "Source language (python, cpp, rust, go, java, javascript, typescript, elisp)",
+            "type": "string"
+          },
+          "targetLanguage": {
+            "description": "Target language for code generation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "sourceLanguage",
+          "targetLanguage"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_pipeline",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_porting_gates": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "benchmarks": {
+            "type": "array"
+          },
+          "dependencies": {
+            "type": "array"
+          },
+          "sanitizer": {
+            "type": "object"
+          },
+          "security_findings": {
+            "type": "array"
+          },
+          "thresholds": {
+            "type": "object"
+          },
+          "waivers": {
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_porting_gates",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_spec_conformance": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "failed": {
+            "type": "integer"
+          },
+          "suite_id": {
+            "type": "string"
+          },
+          "test_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "suite_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_spec_conformance",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_run_test_iteration": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_run_test_iteration",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_all_buffers": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_all_buffers",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_annotated_ast": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "Buffer path to save annotations for",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_annotated_ast",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_buffer": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "Buffer path to save (optional, defaults to active)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_buffer",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_campaign_checkpoint": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "campaign_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "sequence"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_campaign_checkpoint",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_hybrid_checkpoint": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_hybrid_checkpoint",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_repro_packet": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "packet": {
+            "type": "object"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "packet"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_repro_packet",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_semantic_hash_table": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "Buffer path to save semantic hash table for",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_semantic_hash_table",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_save_workflow": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_save_workflow",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_schema_to_cpp": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "header_name": {
+            "description": "Output header filename, e.g. 'EnergyContext.h'.",
+            "type": "string"
+          },
+          "schema": {
+            "description": "JSON Schema with 'title' and 'properties'.",
+            "type": "object"
+          },
+          "target_name": {
+            "description": "CMake INTERFACE target name, e.g. 'energy_context_types'.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema",
+          "header_name",
+          "target_name"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_schema_to_cpp",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_score_failure_triage": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "blast_radius": {
+            "type": "integer"
+          },
+          "failure_class": {
+            "type": "string"
+          },
+          "reproducibility": {
+            "type": "integer"
+          },
+          "severity": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "failure_class"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_score_failure_triage",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_search_project": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "name": {
+            "description": "Symbol name to search for",
+            "type": "string"
+          },
+          "nodeId": {
+            "description": "Node ID to resolve name from (alternative to name)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_search_project",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_select_mcp_runtime": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_select_mcp_runtime",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_active_buffer": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path": {
+            "description": "Path of the buffer to activate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_active_buffer",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_authoring_mode": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_authoring_mode",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_environment": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "capabilities": {
+            "description": "Available capabilities (io.fs, io.net, threads, etc.)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "constraints": {
+            "description": "Environment constraints (no_jit, no_threads, etc.)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "envId": {
+            "description": "Environment identifier (e.g. posix_process, browser, jvm)",
+            "type": "string"
+          },
+          "exceptions": {
+            "description": "Exception handling model",
+            "enum": [
+              "unwind",
+              "checked",
+              "typed",
+              "untyped"
+            ],
+            "type": "string"
+          },
+          "ffi": {
+            "description": "Foreign function interface style",
+            "enum": [
+              "c_abi",
+              "dynamic_linking",
+              "none"
+            ],
+            "type": "string"
+          },
+          "memory": {
+            "description": "Memory management model",
+            "enum": [
+              "manual",
+              "raii",
+              "refcount",
+              "tracing_gc",
+              "region"
+            ],
+            "type": "string"
+          },
+          "scheduler": {
+            "description": "Scheduling model",
+            "enum": [
+              "event_loop",
+              "threads",
+              "fibers",
+              "coroutines",
+              "single_thread"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "envId"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_environment",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_hint_policy": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pair_id": {
+            "type": "string"
+          },
+          "policy": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_hint_policy",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_hybrid_language_profile": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_hybrid_language_profile",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_hybrid_rollout_stage": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_hybrid_rollout_stage",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_language_rollout_tier": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_language_rollout_tier",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_review_policy": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "policy": {
+            "properties": {
+              "autoApproveRules": {
+                "items": {
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "defaultAction": {
+                "enum": [
+                  "require-review",
+                  "auto-approve"
+                ],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_review_policy",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_runtime_profile": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "pair_id": {
+            "type": "string"
+          },
+          "runtime_id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id",
+          "runtime_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_runtime_profile",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_semantic_annotation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "fields": {
+            "description": "Annotation-specific fields",
+            "type": "object"
+          },
+          "nodeId": {
+            "description": "Target node ID",
+            "type": "string"
+          },
+          "type": {
+            "description": "Annotation type",
+            "enum": [
+              "intent",
+              "complexity",
+              "risk",
+              "contract",
+              "tags"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeId",
+          "type",
+          "fields"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_semantic_annotation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_semantic_hash_lock": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "locked": {
+            "description": "true=locked, false=unlocked",
+            "type": "boolean"
+          },
+          "nodeId": {
+            "description": "AST node ID",
+            "type": "string"
+          },
+          "reason": {
+            "description": "Optional lock rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeId",
+          "locked"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_semantic_hash_lock",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_tenant_policy": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "enabled_gates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "risk_tier": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_tenant_policy",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_workspace": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "language": {
+            "description": "Default language for new operations.",
+            "type": "string"
+          },
+          "workspace": {
+            "description": "Workspace root path.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "language"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_workspace",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_workstream_capacity": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_workstream_capacity",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_set_zero_trust_policy": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_set_zero_trust_policy",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_snapshot_environment": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_snapshot_environment",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_start_debug_campaign": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "apply_patches": {
+            "type": "boolean"
+          },
+          "budget_mode": {
+            "type": "string"
+          },
+          "max_iterations_per_target": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "targets": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "targets"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_start_debug_campaign",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_start_feedback_loop": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_start_feedback_loop",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_start_guided_migration": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_start_guided_migration",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_start_iteration_session": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_start_iteration_session",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_start_onboarding_path": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "path_id": {
+            "type": "string"
+          },
+          "required_modules": {
+            "type": "integer"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_start_onboarding_path",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_start_recording": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "session_id": {
+            "description": "Unique session identifier.",
+            "type": "string"
+          },
+          "task_description": {
+            "description": "Task being executed in this session.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "task_description"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_start_recording",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_step_debug_campaign": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "campaign_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_step_debug_campaign",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_step_feedback_loop": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_step_feedback_loop",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_stop_debug_campaign": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "campaign_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_stop_debug_campaign",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_submit_iteration_job": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_submit_iteration_job",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_submit_result": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "itemId": {
+            "description": "Workflow item ID receiving external output",
+            "type": "string"
+          },
+          "result": {
+            "properties": {
+              "astJson": {
+                "type": "object"
+              },
+              "confidence": {
+                "type": "number"
+              },
+              "diagnostics": {
+                "items": {
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "generatedCode": {
+                "type": "string"
+              },
+              "reasoning": {
+                "type": "string"
+              },
+              "tokensBudget": {
+                "type": "integer"
+              },
+              "tokensGenerated": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "itemId",
+          "result"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_submit_result",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_suggest_annotations": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "col": {
+            "description": "Column number (0-based, alternative to nodeId)",
+            "type": "integer"
+          },
+          "line": {
+            "description": "Line number (0-based, alternative to nodeId)",
+            "type": "integer"
+          },
+          "nodeId": {
+            "description": "Node ID to suggest annotations for",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_suggest_annotations",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_suggest_build_fix": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_suggest_build_fix",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_suggest_test_fix": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_suggest_test_fix",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_sync_text_to_ast": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_sync_text_to_ast",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_track_migration_progress": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "pair_id": {
+            "type": "string"
+          },
+          "total_steps": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pair_id",
+          "action"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_track_migration_progress",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_transpile_ast_native_family": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "source_language": {
+            "type": "string"
+          },
+          "target_language": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_language",
+          "target_language",
+          "source"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_transpile_ast_native_family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_transpile_dynamic_family": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "source_language": {
+            "type": "string"
+          },
+          "strictness": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_language",
+          "source"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_transpile_dynamic_family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_transpile_logic_actor_family": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "source_language": {
+            "type": "string"
+          },
+          "target_language": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_language",
+          "target_language",
+          "source"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_transpile_logic_actor_family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_transpile_low_level_family": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "source_language": {
+            "type": "string"
+          },
+          "target_language": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_language",
+          "source",
+          "target_language"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_transpile_low_level_family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_transpile_managed_family": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "source_language": {
+            "type": "string"
+          },
+          "target_language": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_language",
+          "target_language",
+          "source"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_transpile_managed_family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_transpile_query_family": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "source_dialect": {
+            "type": "string"
+          },
+          "target_dialect": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_dialect",
+          "target_dialect",
+          "query"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_transpile_query_family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_transpile_systems_family": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "source_language": {
+            "type": "string"
+          },
+          "target_language": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_language",
+          "target_language",
+          "source"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_transpile_systems_family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_trigger_porting_incident_drill": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "drill_passed": {
+            "type": "boolean"
+          },
+          "mttr_minutes": {
+            "type": "integer"
+          },
+          "pair_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pair_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_trigger_porting_incident_drill",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_undo": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_undo",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_debug_action": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "bypasses_tests": {
+            "type": "boolean"
+          },
+          "changes_many_files": {
+            "type": "boolean"
+          },
+          "touches_forbidden_path": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_debug_action",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_environment": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_environment",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_language_operation": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_language_operation",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_patch_candidate": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_patch_candidate",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_patch_proposal": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "allowed_files": {
+            "type": "array"
+          },
+          "proposal": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "proposal",
+          "allowed_files"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_patch_proposal",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_policy_tuning": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_policy_tuning",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_taskitem": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "taskitems": {
+            "description": "One or more taskitems to validate.",
+            "items": {
+              "properties": {
+                "confidence": {
+                  "type": "integer"
+                },
+                "dependency_task_ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "prerequisite_ops": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "reasons": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "task_id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "task_id"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "workspace": {
+            "description": "Workspace root path for file resolution.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskitems"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_taskitem",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_tool_contracts": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_tool_contracts",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_validate_tool_permissions": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_validate_tool_permissions",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_api_abi_compat": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_api_abi_compat",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_api_compatibility": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "added_endpoints": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "api_id": {
+            "type": "string"
+          },
+          "removed_endpoints": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "strict_mode": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "api_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_api_compatibility",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_architecture_consistency": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_architecture_consistency",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_data_pipeline_migration": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "added_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "pipeline_id": {
+            "type": "string"
+          },
+          "removed_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "strict_mode": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pipeline_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_data_pipeline_migration",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_embedded_port": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "baseline_ms": {
+            "type": "number"
+          },
+          "binary_size_kb": {
+            "type": "integer"
+          },
+          "candidate_ms": {
+            "type": "number"
+          },
+          "max_binary_size_kb": {
+            "type": "integer"
+          },
+          "max_timing_delta_ms": {
+            "type": "number"
+          },
+          "target_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_embedded_port",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_executable_equivalence": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "fuzz_seeds": {
+            "type": "array"
+          },
+          "property_trials": {
+            "type": "integer"
+          },
+          "vectors": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "vectors"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_executable_equivalence",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_financial_migration": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "available_policies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "required_policies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_financial_migration",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_handoff_integrity": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_handoff_integrity",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_requirements": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_requirements",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_safety_profile_compliance": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_safety_profile_compliance",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_scientific_migration": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "baseline_values": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "candidate_values": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "max_error_delta": {
+            "type": "number"
+          },
+          "seed_locked": {
+            "type": "boolean"
+          },
+          "workload_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_scientific_migration",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_verify_simulation_port": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "loop_id": {
+            "type": "string"
+          },
+          "strict_mode": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "loop_id"
+        ],
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_verify_simulation_port",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  },
+  "whetstone_workspace_list": {
+    "additionalProperties": false,
+    "properties": {
+      "arguments": {
+        "properties": {
+          "glob": {
+            "description": "Glob pattern (default: *). E.g. *.py, *.cpp",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "tool": {
+        "const": "whetstone_workspace_list",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool",
+      "arguments"
+    ],
+    "type": "object"
+  }
+}

@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# JSON primitives
+# ---------------------------------------------------------------------------
+ws        ::= [ \t\n\r]*
+string    ::= "\"" ([^"\\\x7F\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\""
+number    ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+integer   ::= "-"? ([0-9] | [1-9] [0-9]*)
+boolean   ::= "true" | "false"
+null      ::= "null"
+any-value ::= string | number | boolean | null | any-object | any-array
+any-object ::= "{" ws (string ws ":" ws any-value (ws "," ws string ws ":" ws any-value)*)? ws "}"
+any-array  ::= "[" ws (any-value (ws "," ws any-value)*)? ws "]"
+
+# --- whetstone_get_metrics ---
+root ::= "{" ws "\"tool\"" ws ":" ws "\"whetstone_get_metrics\"" ws "," ws "\"arguments\"" ws ":" ws whetstone-get-metrics-args-obj-9 ws "}"
+
+whetstone-get-metrics-args-baseline-pair-2 ::= "\"baseline\"" ws ":" ws any-object
+whetstone-get-metrics-args-baseline_quality-pair-4 ::= "\"baseline_quality\"" ws ":" ws integer
+whetstone-get-metrics-args-obj-9 ::= "{" ws whetstone-get-metrics-args-session_id-pair-8 (ws "," ws whetstone-get-metrics-args-opt-10)* ws "}"
+whetstone-get-metrics-args-opt-10 ::= whetstone-get-metrics-args-baseline-pair-2 | whetstone-get-metrics-args-baseline_quality-pair-4 | whetstone-get-metrics-args-quality_rating-pair-6
+whetstone-get-metrics-args-quality_rating-pair-6 ::= "\"quality_rating\"" ws ":" ws integer
+whetstone-get-metrics-args-session_id-pair-8 ::= "\"session_id\"" ws ":" ws string

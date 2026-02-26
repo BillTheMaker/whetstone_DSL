@@ -1,0 +1,7 @@
+{
+  "min_tool_coverage": 347,
+  "max_missing_gbnf": 0,
+  "max_missing_per_tool_schema": 0,
+  "max_unwaived_fallback_count": 390,
+  "max_unsupported_schema_entries": 1
+}

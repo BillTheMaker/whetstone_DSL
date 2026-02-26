@@ -1,0 +1,2791 @@
+{
+  "summary": {
+    "fallback_token_count": 390,
+    "gbnf_count": 347,
+    "missing_gbnf_count": 0,
+    "missing_per_tool_schema_count": 0,
+    "per_tool_schema_count": 347,
+    "tool_count": 347,
+    "unsupported_schema_entry_count": 1,
+    "unwaived_fallback_count": 390,
+    "waived_fallback_count": 0
+  },
+  "tools": {
+    "whetstone_add_skeleton_node": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_analyze_data_pipeline_semantics": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_analyze_rust_semantics": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_apply_annotation": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_apply_best_practice_pack": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_apply_patch_packet": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_apply_quick_fix": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_apply_text_ast_merge": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_apply_verified_pattern": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_approve_item": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_architect_intake": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_assemble_context": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_assemble_fix_context": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_assign_task": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_attach_multimodal_evidence": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_batch_mutate": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_batch_query": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_begin_constructive_transaction": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_build_debug_handoff": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_capture_distributed_failure": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_capture_failure_packet": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_capture_handoff_packet": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_capture_mcp_execution_trace": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_check_runtime_freshness": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_check_tool_compatibility": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_classify_debug_stop_reason": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_close_file": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_cluster_distributed_failures": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_cluster_failures": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_compare_constructive_replays": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_compare_mcp_replays": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_compare_tool_surfaces": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_complete_task": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_configure_hivemind": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_create_skeleton": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_create_workflow": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_debug_until_green": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_derive_requirements": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_detect_text_ast_conflicts": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_diff_environments": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_dry_run_patch": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_enqueue_pair_upgrade": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_estimate_debug_budget": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_estimate_porting_cost": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_execute_rollout_or_rollback": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_execute_task": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_explain_transpilation_decision": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_export_debug_campaign_bundle": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_export_mcp_replay_pack": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_export_repro_jsonl": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_export_tool_contracts": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_export_tool_manifest": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_export_training_data": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_extract_api_abi_contract": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_file_create": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_file_diff": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_file_read": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_file_write": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_code": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_cpp_from_ir": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_debug_hints": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_dispatch_table": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_examples": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_inference_job": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_localized_migration_report": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_patch_candidates": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_project": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_safety_case": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_setup_script": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_generate_taskitems": {
+      "allow_broad": false,
+      "fallback_token_count": 4,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_adapter_hints": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_api_semantics": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_artifact_trust_report": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_ast": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_ast_diff": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_ast_subtree": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_authoring_mode": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_blockers": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_call_hierarchy": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_century_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_certification_status": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_compliance_evidence": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_constructive_rollout_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_constructive_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_cpp_constructive_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debt_inventory": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debug_campaign_status": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debug_checklist": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debug_constraints": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debug_evidence_index": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debug_metrics": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debug_recipe": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_debug_trace": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_determinism_gate_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_determinism_risks": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_diagnostics": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_diagnostics_delta": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_distributed_failure_bundle": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_distributed_triage_queue": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_environment": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_epoch_block_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_epoch_workstreams": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_event_stream": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_execution_attestation": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_failure_trends": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_federated_verification_report": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_governance_state": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_hybrid_language_readiness": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_hybrid_qualification_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_hybrid_rollout_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_language_contract": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_language_matrix": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_learning_progress": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_lowering_hints": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_lts_support_matrix": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_mcp_closure_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_mcp_remediation_plan": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_metrics": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_mode_capabilities": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_numerical_risk_report": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_pair_scorecard": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_pair_stability_forecast": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_polyglot_cutover_readiness": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_portfolio_economics": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_porting_contract": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_program_kpis": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_progress": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_project_diagnostics": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_project_model": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_quick_fixes": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_ready_tasks": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_realtime_constraints": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_recent_events": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_recovery_advice": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_recovery_readiness": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_reference_conformance_report": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_regeneration_decisions": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_region_policy_profile": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_related_migration_patterns": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_residual_risks": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_review_context": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_review_load_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_review_policy": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_review_queue": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_route_integrity": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_routing_explanation": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_runtime_assumptions": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_runtime_fingerprint": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_safety_profile_requirements": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_scope": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_semantic_annotations": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_semantic_diff": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_semantic_hash_lock": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_semantic_hash_table": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_session_state": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_slm_debug_readiness": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_spec_versions": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_swarm_maintenance_status": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_sync_diagnostics": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_sync_identity_report": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_tenant_support_matrix": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_tool_deprecations": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_tool_permissions": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_top_adapter_gaps": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_transpilation_slo_status": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_transpile_support_matrix": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_unannotated_nodes": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_upgrade_queue": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_work_item": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_get_workflow_state": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_index_workspace": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_infer_annotations": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_ingest_legacy_to_ir": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 1,
+      "waived_fallback_count": 0
+    },
+    "whetstone_install_or_disable_plugin": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_label_patch_risk": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_annotated_files": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_best_practice_packs": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_buffers": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_campaign_checkpoints": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_distributed_failures": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_handoff_divergences": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_hybrid_language_profiles": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_language_capabilities": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_mcp_runtimes": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_migration_templates": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_plugins": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_semantic_hash_tables": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_toolchain_providers": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_list_verified_patterns": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_load_annotated_ast": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_mark_debug_checklist_item": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_marketplace_search": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_mutate": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_normalize_diagnostics": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_onboard_workspace": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_open_file": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_optimize_review_queue": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_orchestrate_advance": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_orchestrate_run_deterministic": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_orchestrate_step": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_parse_build_output": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_parse_test_output": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_budget_allocation": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_debt_burndown": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_deprecation_or_upgrade": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_migration_path": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_polyglot_migration": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_preventive_maintenance": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_rollout_stage": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_swarm_maintenance": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_tool_migrations": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_plan_transpilation_run": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_poll_iteration_job": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_preview_regenerated_diff": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_preview_text_ast_merge": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_probe_mcp_runtime_health": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_probe_tool_reachability": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_probe_toolchain_provider": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_project_language": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_propose_adapter_improvements": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_propose_patch_for_failure": {
+      "allow_broad": false,
+      "fallback_token_count": 4,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_propose_policy_tuning": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_publish_next_block_plan": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_publish_next_epoch_plan": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_publish_roadmap_epoch": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_query_transpile_graph": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_queue_ready": {
+      "allow_broad": false,
+      "fallback_token_count": 4,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_rank_failure_triage_actions": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_record_attempt": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_record_debug_trace": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_redo": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_reduce_repro_command": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_regenerate_text_from_ast": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_register_external_verifier": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_regression_guard": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_reject_item": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_reject_task": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_remove_semantic_annotation": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_rename_symbol": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_replay_hybrid_session": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_replay_repro_packet": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_restore_hybrid_checkpoint": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_resume_constructive_transaction": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_resume_debug_campaign": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_review_porting_decision": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_rollback_constructive_transaction": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_rollback_last_patch": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_route_all_ready": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_route_task": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_bisect_debug": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_build_iteration": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_certification_cycle": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_constructive_ga_gate": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_constructive_loop": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_constructive_replay_suite": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_constructive_step": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_continuity_drill": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_cpp_constructive_loop": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_cpp_constructive_step": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_feedback_loop": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_hybrid_determinism_suite": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_hybrid_ga_gate": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_hybrid_performance_bench": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_improvement_trial": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_interop_testbed": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_mcp_closure_gate": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_meta_evaluation": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_pair_benchmark": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_pipeline": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_porting_gates": {
+      "allow_broad": false,
+      "fallback_token_count": 12,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_spec_conformance": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_run_test_iteration": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_all_buffers": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_annotated_ast": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_buffer": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_campaign_checkpoint": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_hybrid_checkpoint": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_repro_packet": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_semantic_hash_table": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_save_workflow": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_schema_to_cpp": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_score_failure_triage": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_search_project": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_select_mcp_runtime": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_active_buffer": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_authoring_mode": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_environment": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_hint_policy": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_hybrid_language_profile": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_hybrid_rollout_stage": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_language_rollout_tier": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_review_policy": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_runtime_profile": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_semantic_annotation": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_semantic_hash_lock": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_tenant_policy": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_workspace": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_workstream_capacity": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_set_zero_trust_policy": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_snapshot_environment": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_start_debug_campaign": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_start_feedback_loop": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_start_guided_migration": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_start_iteration_session": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_start_onboarding_path": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_start_recording": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_step_debug_campaign": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_step_feedback_loop": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_stop_debug_campaign": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_submit_iteration_job": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_submit_result": {
+      "allow_broad": false,
+      "fallback_token_count": 4,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_suggest_annotations": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_suggest_build_fix": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_suggest_test_fix": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_sync_text_to_ast": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_track_migration_progress": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_transpile_ast_native_family": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_transpile_dynamic_family": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_transpile_logic_actor_family": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_transpile_low_level_family": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_transpile_managed_family": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_transpile_query_family": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_transpile_systems_family": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_trigger_porting_incident_drill": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_undo": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_debug_action": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_environment": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_language_operation": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_patch_candidate": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_patch_proposal": {
+      "allow_broad": false,
+      "fallback_token_count": 4,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_policy_tuning": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_taskitem": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_tool_contracts": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_validate_tool_permissions": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_api_abi_compat": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_api_compatibility": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_architecture_consistency": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_data_pipeline_migration": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_embedded_port": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_executable_equivalence": {
+      "allow_broad": false,
+      "fallback_token_count": 4,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_financial_migration": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_handoff_integrity": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_requirements": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_safety_profile_compliance": {
+      "allow_broad": false,
+      "fallback_token_count": 2,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_scientific_migration": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_verify_simulation_port": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    },
+    "whetstone_workspace_list": {
+      "allow_broad": false,
+      "fallback_token_count": 0,
+      "has_gbnf": true,
+      "has_per_tool_schema": true,
+      "unsupported_schema_entries": 0,
+      "waived_fallback_count": 0
+    }
+  }
+}
