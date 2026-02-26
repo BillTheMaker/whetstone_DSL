@@ -173,3 +173,15 @@
     - `logs/taskitem_runs/TEST_ONLY_sprint239_reason_enrich_20260226_145443/00_summary.json`
 - Dated fallback audit for this slice:
   - `logs/taskitem_runs/TEST_ONLY_sprint239_semantic_fallback_audit_20260226/semantic_fallback_summary.json`
+
+## Sprint 240 Added (Same Day)
+
+- Added native decomposition retry path:
+  - `WSTONE_NATIVE_DECOMP_RETRY`
+  - `WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS`
+  - summary packet: `native_decomposition_retry`
+- A/B smoke artifacts:
+  - `logs/taskitem_runs/TEST_ONLY_sprint240_retry_20260226_145631/00_summary.json`
+  - `logs/taskitem_runs/TEST_ONLY_sprint240_retry_20260226_145632/00_summary.json`
+- Current measured result:
+  - retry attempted but not applied (`2 -> 2` tasks), confirming remaining native decomposition depth gap.

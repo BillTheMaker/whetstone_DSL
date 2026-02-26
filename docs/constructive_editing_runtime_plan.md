@@ -150,7 +150,7 @@ Parallel planning tranche (active):
   - `logs/taskitem_runs/TEST_ONLY_spec_planning_baseline_20260226/deterministic_spec_readiness.json`
 
 Planning runtime controls (active):
-- `sprint232_plan.md` to `sprint239_plan.md`
+- `sprint232_plan.md` to `sprint240_plan.md`
 - semantic bridge + intake augmentation + requirement injection + expansion gating are wired into:
   - `tools/mcp/run_sprint_taskitem_pipeline.sh`
 - current policy default is native-first semantic fallback:
@@ -165,3 +165,7 @@ Planning runtime controls (active):
 - native reason enrichment can inject semantic tags into native task reasons:
   - `WSTONE_NATIVE_REASON_ENRICHMENT`
   - `native_reason_enrichment`
+- native decomposition retry path can run second-pass task generation:
+  - `WSTONE_NATIVE_DECOMP_RETRY`
+  - `WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS`
+  - `native_decomposition_retry`

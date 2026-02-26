@@ -37,6 +37,8 @@ NATIVE_DECOMP_HARD_GATE="${WSTONE_NATIVE_DECOMP_HARD_GATE:-0}"
 NATIVE_TASK_MIN_COUNT="${WSTONE_NATIVE_TASK_MIN_COUNT:-0}"
 NATIVE_SEMANTIC_SIGNAL_MIN="${WSTONE_NATIVE_SEMANTIC_SIGNAL_MIN:-0}"
 NATIVE_REASON_ENRICHMENT="${WSTONE_NATIVE_REASON_ENRICHMENT:-1}"
+NATIVE_DECOMP_RETRY="${WSTONE_NATIVE_DECOMP_RETRY:-1}"
+NATIVE_DECOMP_TARGET_MIN_TASKS="${WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS:-5}"
 CAPABILITY_SIGNALS_JSON="${WSTONE_CAPABILITY_SIGNALS_JSON:-}"
 if [[ -z "$CAPABILITY_SIGNALS_JSON" ]]; then
   CAPABILITY_SIGNALS_JSON='{}'
@@ -90,6 +92,7 @@ SEMANTIC_TASK_EXPANSION_JSON='{}'
 SEMANTIC_GATE_JSON='{}'
 NATIVE_DECOMP_GATE_JSON='{}'
 NATIVE_REASON_ENRICHMENT_JSON='{}'
+NATIVE_DECOMP_RETRY_JSON='{}'
 if [[ "$SEMANTIC_PLANNING_BRIDGE" == "1" ]]; then
   python3 "$ROOT_DIR/tools/mcp/markdown_to_semantic_annotations.py" \
     --spec "$INPUT_FILE" \
@@ -292,6 +295,53 @@ if [[ "$(printf '%s' "$GEN_JSON" | jq -r '.success // false')" != "true" ]]; the
 fi
 
 TASKS="$(printf '%s' "$GEN_JSON" | jq '.tasks')"
+native_task_count_initial="$(printf '%s' "$TASKS" | jq 'length')"
+if [[ "$NATIVE_DECOMP_RETRY" == "1" && "$native_task_count_initial" -lt "$NATIVE_DECOMP_TARGET_MIN_TASKS" ]]; then
+  RETRY_REQS="$(jq -nc --argjson base "$NORMALIZED_REQS" --arg min "$NATIVE_DECOMP_TARGET_MIN_TASKS" '
+    $base + [{
+      requirementId: "native-decomp-min-task-count",
+      kind: "constraint",
+      normalizedText: ("native decomposition policy: produce at least " + $min + " concrete taskitems with deterministic execution contracts"),
+      anchor: "pipeline_native_retry",
+      sourceLine: 0,
+      ambiguous: false
+    }]
+  ')"
+  RETRY_GEN_ARGS="$(jq -nc --argjson nr "$RETRY_REQS" --argjson cf "$CONFLICTS" --arg strict "$STRICT_EXECUTION_CONTRACT" \
+    '{normalizedRequirements:$nr,conflicts:$cf,strictExecutionContract:($strict == "1")}')"
+  RETRY_GEN_RESP_RAW="$(call_tool "whetstone_generate_taskitems" "$RETRY_GEN_ARGS")"
+  printf '%s\n' "$RETRY_GEN_RESP_RAW" > "$OUT_DIR/02aa_generate_taskitems_retry_raw.ndjson.json"
+  RETRY_GEN_JSON="$(extract_tool_text_json "$RETRY_GEN_RESP_RAW")"
+  printf '%s\n' "$RETRY_GEN_JSON" > "$OUT_DIR/02aa_generate_taskitems_retry.json"
+  retry_success="$(printf '%s' "$RETRY_GEN_JSON" | jq -r '.success // false')"
+  retry_task_count="$(printf '%s' "$RETRY_GEN_JSON" | jq '.tasks | length')"
+  if [[ "$retry_success" == "true" && "$retry_task_count" -gt "$native_task_count_initial" ]]; then
+    GEN_JSON="$RETRY_GEN_JSON"
+    TASKS="$(printf '%s' "$GEN_JSON" | jq '.tasks')"
+    NATIVE_DECOMP_RETRY_JSON="$(jq -nc \
+      --argjson attempted true \
+      --argjson applied true \
+      --argjson initial_task_count "$native_task_count_initial" \
+      --argjson retry_task_count "$retry_task_count" \
+      --argjson target_min_task_count "$NATIVE_DECOMP_TARGET_MIN_TASKS" \
+      '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, retry_task_count:$retry_task_count, target_min_task_count:$target_min_task_count}')"
+  else
+    NATIVE_DECOMP_RETRY_JSON="$(jq -nc \
+      --argjson attempted true \
+      --argjson applied false \
+      --argjson initial_task_count "$native_task_count_initial" \
+      --argjson retry_task_count "$retry_task_count" \
+      --argjson target_min_task_count "$NATIVE_DECOMP_TARGET_MIN_TASKS" \
+      '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, retry_task_count:$retry_task_count, target_min_task_count:$target_min_task_count}')"
+  fi
+else
+  NATIVE_DECOMP_RETRY_JSON="$(jq -nc \
+    --argjson attempted false \
+    --argjson applied false \
+    --argjson initial_task_count "$native_task_count_initial" \
+    --argjson target_min_task_count "$NATIVE_DECOMP_TARGET_MIN_TASKS" \
+    '{attempted:$attempted, applied:$applied, initial_task_count:$initial_task_count, target_min_task_count:$target_min_task_count}')"
+fi
 if [[ "$NATIVE_REASON_ENRICHMENT" == "1" && -f "$OUT_DIR/01c_semantic_injected_requirements.json" ]]; then
   TASKS="$(jq -nc \
     --argjson tasks "$TASKS" \
@@ -459,6 +509,7 @@ SUMMARY_JSON="$(jq -nc \
   --argjson semantic_task_expansion "$SEMANTIC_TASK_EXPANSION_JSON" \
   --argjson native_decomposition_gate "$NATIVE_DECOMP_GATE_JSON" \
   --argjson native_reason_enrichment "$NATIVE_REASON_ENRICHMENT_JSON" \
+  --argjson native_decomposition_retry "$NATIVE_DECOMP_RETRY_JSON" \
   --argjson intake "$INTAKE_JSON" \
   --argjson generated "$GEN_JSON" \
   --argjson queue "$QUEUE_JSON" \
@@ -478,6 +529,7 @@ SUMMARY_JSON="$(jq -nc \
     semantic_task_expansion: $semantic_task_expansion,
     native_decomposition_gate: $native_decomposition_gate,
     native_reason_enrichment: $native_reason_enrichment,
+    native_decomposition_retry: $native_decomposition_retry,
     intake: {
       success: ($intake.success // false),
       normalized_requirement_count: (($intake.normalizedRequirements // [])|length),
