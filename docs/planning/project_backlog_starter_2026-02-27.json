@@ -1,0 +1,111 @@
+{
+  "schema_version": "project_backlog_v1",
+  "generated_at": "2026-02-27",
+  "projects": [
+    {
+      "project_id": "core-001",
+      "project_name": "Whetstone Constructive Execution Hardening",
+      "priority_tier": "P0",
+      "personal_significance_tier": "core_life_work",
+      "execution_readiness": "spec_ready",
+      "domain_tags": ["developer-tools", "codegen", "determinism"],
+      "platform_tags": ["linux", "cli", "mcp"],
+      "constraint_profile": {
+        "latency_ms_p95_max": 300,
+        "throughput_target": "100 taskitems/hour",
+        "hardware_target": "consumer desktop",
+        "availability_target": "99.9%",
+        "cost_ceiling_monthly_usd": 300
+      },
+      "risk_level": "critical",
+      "estimated_size": "XL",
+      "depends_on": [],
+      "spec_path": "docs/planning/specs/core-001.md",
+      "notes": "Primary strategic project. Protect quality over speed."
+    },
+    {
+      "project_id": "core-002",
+      "project_name": "Project Portfolio Execution Engine",
+      "priority_tier": "P0",
+      "personal_significance_tier": "high",
+      "execution_readiness": "spec_draft",
+      "domain_tags": ["planning", "automation", "productivity"],
+      "platform_tags": ["cli", "api"],
+      "constraint_profile": {
+        "latency_ms_p95_max": 500,
+        "throughput_target": "200 project-updates/hour",
+        "hardware_target": "consumer desktop",
+        "availability_target": "99.5%",
+        "cost_ceiling_monthly_usd": 200
+      },
+      "risk_level": "high",
+      "estimated_size": "L",
+      "depends_on": ["core-001"],
+      "spec_path": "docs/planning/specs/core-002.md",
+      "notes": "Optimize for your burst-month throughput."
+    },
+    {
+      "project_id": "domain-001",
+      "project_name": "High-Reliability Full-Stack Service Template",
+      "priority_tier": "P1",
+      "personal_significance_tier": "high",
+      "execution_readiness": "spec_needed",
+      "domain_tags": ["fullstack", "api", "observability"],
+      "platform_tags": ["server", "web"],
+      "constraint_profile": {
+        "latency_ms_p95_max": 250,
+        "throughput_target": "1k req/s",
+        "hardware_target": "2 vCPU / 4GB",
+        "availability_target": "99.9%",
+        "cost_ceiling_monthly_usd": 500
+      },
+      "risk_level": "high",
+      "estimated_size": "L",
+      "depends_on": [],
+      "spec_path": "docs/planning/specs/domain-001.md",
+      "notes": "Use as baseline for multiple professional projects."
+    },
+    {
+      "project_id": "domain-002",
+      "project_name": "Compose Multiplatform Product Core",
+      "priority_tier": "P1",
+      "personal_significance_tier": "core_life_work",
+      "execution_readiness": "spec_draft",
+      "domain_tags": ["mobile", "desktop", "kotlin", "shared-core"],
+      "platform_tags": ["android", "ios", "desktop"],
+      "constraint_profile": {
+        "latency_ms_p95_max": null,
+        "throughput_target": "UI interactions < 16ms budget",
+        "hardware_target": "mid-range mobile + desktop",
+        "availability_target": null,
+        "cost_ceiling_monthly_usd": null
+      },
+      "risk_level": "critical",
+      "estimated_size": "XL",
+      "depends_on": [],
+      "spec_path": "docs/planning/specs/domain-002.md",
+      "notes": "Explicitly separate shared behavior from platform-exclusive behavior."
+    },
+    {
+      "project_id": "infra-001",
+      "project_name": "Deterministic Benchmark Corpus Expansion",
+      "priority_tier": "P1",
+      "personal_significance_tier": "medium",
+      "execution_readiness": "execution_ready",
+      "domain_tags": ["benchmark", "quality", "evaluation"],
+      "platform_tags": ["cli"],
+      "constraint_profile": {
+        "latency_ms_p95_max": null,
+        "throughput_target": "50 benchmark projects/day",
+        "hardware_target": "consumer desktop",
+        "availability_target": null,
+        "cost_ceiling_monthly_usd": 100
+      },
+      "risk_level": "medium",
+      "estimated_size": "M",
+      "depends_on": ["core-001"],
+      "spec_path": "docs/planning/specs/infra-001.md",
+      "notes": "Needed to prove generalization, not just single-path wins."
+    }
+  ]
+}

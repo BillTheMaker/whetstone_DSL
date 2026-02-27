@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "whetstone/planning/project_backlog_schema_v1",
+  "title": "Project Backlog Schema v1",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "projects"],
+  "properties": {
+    "schema_version": { "const": "project_backlog_v1" },
+    "generated_at": { "type": "string" },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "project_id",
+          "project_name",
+          "priority_tier",
+          "personal_significance_tier",
+          "execution_readiness",
+          "domain_tags",
+          "spec_path"
+        ],
+        "properties": {
+          "project_id": { "type": "string" },
+          "project_name": { "type": "string" },
+          "priority_tier": {
+            "type": "string",
+            "enum": ["P0", "P1", "P2", "P3"]
+          },
+          "personal_significance_tier": {
+            "type": "string",
+            "enum": ["core_life_work", "high", "medium", "low"]
+          },
+          "execution_readiness": {
+            "type": "string",
+            "enum": ["spec_needed", "spec_draft", "spec_ready", "execution_ready", "done"]
+          },
+          "domain_tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "platform_tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "constraint_profile": {
+            "type": "object",
+            "properties": {
+              "latency_ms_p95_max": { "type": ["number", "null"] },
+              "throughput_target": { "type": ["string", "null"] },
+              "hardware_target": { "type": ["string", "null"] },
+              "availability_target": { "type": ["string", "null"] },
+              "cost_ceiling_monthly_usd": { "type": ["number", "null"] }
+            },
+            "additionalProperties": false
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "estimated_size": {
+            "type": "string",
+            "enum": ["XS", "S", "M", "L", "XL"]
+          },
+          "depends_on": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "spec_path": { "type": "string" },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
