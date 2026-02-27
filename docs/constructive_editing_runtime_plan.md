@@ -253,3 +253,6 @@ Planning runtime controls (active):
   - `native_raw_structural_projector`
 - raw candidate selection now persists selected tasks into generation artifacts for gate parity:
   - keeps `native_raw_candidate_search` and `native_impact_coverage` on the same task set
+- raw score/gate parity can be emitted and hard-enforced:
+  - `native_raw_score_gate_parity`
+  - `WSTONE_NATIVE_RAW_SCORE_GATE_PARITY_ENFORCE`

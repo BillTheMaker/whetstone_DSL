@@ -556,3 +556,15 @@
   - `best_failing_profile_count=0`
   - `native_impact_coverage.failing_profile_count=0`
   - scorer and gate are aligned.
+
+## Sprint 265 Added (Same Day)
+
+- Added explicit score/gate parity telemetry + enforcement:
+  - `WSTONE_NATIVE_RAW_SCORE_GATE_PARITY_ENFORCE`
+  - summary packet:
+    - `native_raw_score_gate_parity`
+- Dated validation artifact:
+  - `logs/taskitem_runs/01a_fallback_intake_spec_20260226_170301/00_summary.json`
+- Current measured result on hard sample:
+  - parity packet reports `pass=true`
+  - enforcement enabled and run succeeds (`rc=0`).

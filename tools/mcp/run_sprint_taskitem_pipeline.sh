@@ -42,6 +42,7 @@ NATIVE_DECOMP_TARGET_MIN_TASKS="${WSTONE_NATIVE_DECOMP_TARGET_MIN_TASKS:-5}"
 NATIVE_IMPACT_COVERAGE_GATE="${WSTONE_NATIVE_IMPACT_COVERAGE_GATE:-0}"
 NATIVE_IMPACT_COVERAGE_ENFORCE="${WSTONE_NATIVE_IMPACT_COVERAGE_ENFORCE:-0}"
 NATIVE_IMPACT_COVERAGE_PROFILES="${WSTONE_NATIVE_IMPACT_COVERAGE_PROFILES:-$ROOT_DIR/tools/mcp/profiles/native_decomposition_impact_profiles.json}"
+NATIVE_RAW_SCORE_GATE_PARITY_ENFORCE="${WSTONE_NATIVE_RAW_SCORE_GATE_PARITY_ENFORCE:-0}"
 NATIVE_PROFILE_AUTOFILL="${WSTONE_NATIVE_PROFILE_AUTOFILL:-0}"
 NATIVE_PROFILE_AUTOFILL_MAX_TASKS="${WSTONE_NATIVE_PROFILE_AUTOFILL_MAX_TASKS:-12}"
 NATIVE_INTRINSIC_BOOST="${WSTONE_NATIVE_INTRINSIC_BOOST:-0}"
@@ -124,6 +125,7 @@ NATIVE_DECOMP_GATE_JSON='{}'
 NATIVE_REASON_ENRICHMENT_JSON='{}'
 NATIVE_DECOMP_RETRY_JSON='{}'
 NATIVE_IMPACT_COVERAGE_JSON='{}'
+NATIVE_RAW_SCORE_GATE_PARITY_JSON='{}'
 NATIVE_PROFILE_AUTOFILL_JSON='{}'
 NATIVE_INTRINSIC_BOOST_JSON='{}'
 NATIVE_SINGLESHOT_PROFILE_SHAPE_JSON='{}'
@@ -1158,6 +1160,31 @@ if [[ "$NATIVE_IMPACT_COVERAGE_GATE" == "1" ]]; then
     exit 11
   fi
   SUMMARY_JSON="$(printf '%s' "$SUMMARY_JSON" | jq --argjson nic "$NATIVE_IMPACT_COVERAGE_JSON" '.native_impact_coverage = $nic')"
+fi
+
+if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" && "$NATIVE_IMPACT_COVERAGE_GATE" == "1" ]]; then
+  raw_fail_count="$(printf '%s' "$NATIVE_RAW_CANDIDATE_SEARCH_JSON" | jq '.best_failing_profile_count // null')"
+  gate_fail_count="$(printf '%s' "$NATIVE_IMPACT_COVERAGE_JSON" | jq '.failing_profile_count // null')"
+  parity_pass=false
+  if [[ "$raw_fail_count" == "$gate_fail_count" ]]; then
+    parity_pass=true
+  fi
+  NATIVE_RAW_SCORE_GATE_PARITY_JSON="$(jq -nc \
+    --argjson enabled true \
+    --argjson pass "$parity_pass" \
+    --argjson raw_failing_profile_count "$raw_fail_count" \
+    --argjson gate_failing_profile_count "$gate_fail_count" \
+    '{enabled:$enabled, pass:$pass, raw_failing_profile_count:$raw_failing_profile_count, gate_failing_profile_count:$gate_failing_profile_count}')"
+  SUMMARY_JSON="$(printf '%s' "$SUMMARY_JSON" | jq --argjson p "$NATIVE_RAW_SCORE_GATE_PARITY_JSON" '.native_raw_score_gate_parity = $p')"
+  if [[ "$NATIVE_RAW_SCORE_GATE_PARITY_ENFORCE" == "1" && "$parity_pass" != "true" ]]; then
+    printf '%s\n' "$SUMMARY_JSON" > "$OUT_DIR/00_summary.json"
+    echo "error: raw score/gate parity check failed" >&2
+    echo "error: raw_failing_profile_count=$raw_fail_count gate_failing_profile_count=$gate_fail_count" >&2
+    exit 19
+  fi
+else
+  NATIVE_RAW_SCORE_GATE_PARITY_JSON='{"enabled":false}'
+  SUMMARY_JSON="$(printf '%s' "$SUMMARY_JSON" | jq --argjson p "$NATIVE_RAW_SCORE_GATE_PARITY_JSON" '.native_raw_score_gate_parity = $p')"
 fi
 
 if [[ "$CALIBRATE_AFTER_RUN" == "1" ]]; then
