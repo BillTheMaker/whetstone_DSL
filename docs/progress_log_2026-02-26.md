@@ -542,3 +542,17 @@
     - `best_top_gap_score 0 -> 88`
     - `best_task_count 2 -> 6`
   - but `native_impact_coverage.failing_profile_count` remained `1`, exposing scorer/gate parity mismatch.
+
+## Sprint 264 Added (Same Day)
+
+- Fixed scorer/gate parity in raw candidate path:
+  - selected raw `TASKS` are now persisted into `02_generate_taskitems.json`
+  - downstream impact coverage checker reads the same selected task set as raw scorer
+- Dated validation artifacts:
+  - pre-fix mismatch reference: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_165746/00_summary.json`
+  - post-fix parity run: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_170014/00_summary.json`
+  - post-fix coverage report: `logs/taskitem_runs/01a_fallback_intake_spec_20260226_170014/06_native_impact_coverage.json`
+- Current measured result on hard sample (projector ON):
+  - `best_failing_profile_count=0`
+  - `native_impact_coverage.failing_profile_count=0`
+  - scorer and gate are aligned.

@@ -700,6 +700,9 @@ if [[ "$NATIVE_RAW_CANDIDATE_SEARCH" == "1" ]]; then
       exit 18
     fi
   fi
+  # Keep downstream coverage gates aligned with selected raw candidate task set.
+  GEN_JSON="$(jq -nc --argjson base "$GEN_JSON" --argjson tasks "$TASKS" '$base + {tasks:$tasks}')"
+  printf '%s\n' "$GEN_JSON" > "$OUT_DIR/02_generate_taskitems.json"
 else
   NATIVE_RAW_CANDIDATE_SEARCH_JSON='{"enabled":false}'
   NATIVE_RAW_SIGNAL_TARGETED_VARIANTS_JSON='{"enabled":false}'

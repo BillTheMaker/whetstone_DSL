@@ -251,3 +251,5 @@ Planning runtime controls (active):
   - `tools/mcp/project_raw_candidate_structure.py`
   - `WSTONE_NATIVE_RAW_STRUCTURAL_PROJECTOR`
   - `native_raw_structural_projector`
+- raw candidate selection now persists selected tasks into generation artifacts for gate parity:
+  - keeps `native_raw_candidate_search` and `native_impact_coverage` on the same task set
