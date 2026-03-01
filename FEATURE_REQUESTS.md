@@ -2,6 +2,22 @@
 
 > Backlog of feature ideas to triage into future sprints (e.g., Sprint 6/7).
 
+## Title Convention (Semantic Logging)
+
+Feature request titles must include derivation source so provenance is explicit.
+
+Required title prefix format:
+
+- `[Derived:<source>] <feature title>`
+
+Examples:
+
+- `[Derived:DataPipeline-LoRA] Semantic Validation Gate APIs for Taskitem Promotion`
+- `[Derived:UserFeedback-HiveMind] Resource Lock Constraints on TaskItems`
+- `[Derived:RunLogs-NativeTools] MCP Tool-Call Completion Diagnostics`
+
+Source tags should map to where the signal came from (run logs, user request, external project, postmortem, etc.), not just the proposed implementation area.
+
 ## Security Vulnerability Awareness (Dependencies) — IMPLEMENTED (Sprint 6, Steps 190–195)
 
 **Goal:** Warn when a dependency has known vulnerabilities and surface safer alternatives.
@@ -141,6 +157,127 @@
 - Provide recommended defaults for CLI tools vs GUI apps
 - Include guidance for minimizing startup latency and bundle size
 
+## [Derived:PersonalVaultTool-MultiPlatform] Platform-Agnostic Projection via SemAnno Adapter Boundaries — PROPOSED
+
+**Filed:** 2026-02-27
+**Filed by:** personal_vault_tool session (2026-02-27)
+**Priority:** High — required for any real-world cross-platform projection (Python → Android/Kotlin, Python → Swift/iOS, etc.)
+**Source context:** `personal_vault_tool/vault_core.py` — clean business logic and platform I/O are entangled in the same class with no annotation boundary.
+
+### Problem
+
+Whetstone's projector today treats a source file as a unit. When projecting `VaultStore`
+to Kotlin, it faithfully projects `sqlite3.connect()` — which doesn't exist on Android.
+The projector has no way to distinguish:
+
+- **Pure logic nodes** — `share_evaluate()` selector scoring, audit hash chain computation,
+  grant TTL enforcement — zero platform dependency, projectable to any target.
+- **Platform adapter nodes** — `sqlite3.connect()`, `Fernet.encrypt()`, `socket.bind()` —
+  completely platform-specific, must be substituted per-target, not projected literally.
+
+This is not a generator quality issue (GR-022/023/024). It is an architectural gap:
+the AST has no annotation that marks where the platform boundary is.
+
+### The Correct Architecture (already implied by SemAnno's design goals)
+
+```
+Source file with SemAnno annotations
+│
+├── @pure.logic nodes     → project as-is to any language
+│     share_evaluate()
+│     audit_hash_chain()
+│     grant_scope_check()
+│
+└── @platform.storage     → generate abstract interface + per-target impl
+│     _db() / read_records() / write_record()     → Python: sqlite3
+│                                                  → Android: Room DAO
+│                                                  → iOS: CoreData
+│
+├── @platform.crypto      → generate abstract interface + per-target impl
+│     FernetEncryptor                              → Python: cryptography.Fernet
+│                                                  → Android: Android Keystore AES
+│
+└── @platform.network     → omit on mobile (caller drives transport)
+      ThreadingHTTPServer
+```
+
+The platform adapters become **generated abstract interfaces** with per-target
+implementations, not projected concrete calls.
+
+### Feature Request A: SemAnno Platform Boundary Annotations
+
+**New annotation tags:**
+- `@pure.logic` — no I/O, no platform imports; freely projectable
+- `@platform.storage` — interacts with a persistence layer; requires adapter
+- `@platform.crypto` — interacts with a key/encryption service; requires adapter
+- `@platform.network` — interacts with sockets/HTTP; usually omitted on mobile
+- `@platform.os` — interacts with filesystem, env vars, signals
+
+**Generator behavior:** annotated nodes are flagged before projection; the projector
+emits an `AdapterInterface` node instead of projecting the implementation.
+
+**Validation gate:** `whetstone_validate_taskitem` or a new `whetstone_check_platform_purity`
+tool should verify that `@pure.logic` nodes have zero `@platform.*` imports in their
+transitive dependency graph.
+
+### Feature Request B: Platform Profile System
+
+**New concept:** a named platform profile describes what substitutions exist for each
+`@platform.*` category.
+
+```json
+{
+  "profile": "android-kotlin",
+  "substitutions": {
+    "platform.storage": "androidx.room.RoomDatabase",
+    "platform.crypto":  "android.security.keystore.KeyGenParameterSpec",
+    "platform.network": null
+  }
+}
+```
+
+Built-in profiles to start:
+- `python-stdlib` (current, implicit)
+- `android-kotlin` (Room + Android Keystore)
+- `swift-ios` (CoreData + CryptoKit)
+- `node-js` (better-sqlite3 + node:crypto)
+
+**Generator behavior:** when projecting with a profile active, `@platform.*` nodes
+are replaced by the profile's adapter interface stub rather than the source
+implementation. The developer fills the stub; the logic layer is complete.
+
+### Feature Request C: Multi-Target Projection Command
+
+**Tool:** extend `whetstone_run_pipeline` or add `whetstone_project_multiplatform`
+
+**Input:** annotated source file + list of target profiles
+**Output:** one generated artifact per target, plus a shared pure-logic module
+that all targets import unchanged.
+
+**Acceptance criteria:**
+- `personal_vault_tool/vault_core.py` (fully annotated) projects to:
+  - `out/python/vault_logic.py` + `out/python/adapters/sqlite_adapter.py`
+  - `out/kotlin/VaultLogic.kt` + `out/kotlin/adapters/RoomAdapter.kt` (stub)
+- All `@pure.logic` methods are byte-identical in content between targets (modulo syntax).
+- `@platform.*` methods emit only the interface signature + a `TODO` body in each target.
+
+### Relationship to existing gaps
+
+| Gap | Relationship |
+|-----|-------------|
+| GR-006 | Complex class generation — same root; multi-method class projection needed for VaultStore |
+| GR-007 | Cross-language class node emission — must be closed before this works |
+| GR-022/023/024 | Python generator string/import/comment bugs — must fix before Python→Python round-trip is clean enough to annotate |
+
+### Suggested sprint scope
+
+- Sprint N: SemAnno tags `@pure.logic`, `@platform.storage`, `@platform.crypto` (schema + parser + editor UI)
+- Sprint N+1: Platform profile schema + substitution registry (2 built-in profiles: python-stdlib, android-kotlin)
+- Sprint N+2: Projection gate — `whetstone_check_platform_purity` tool
+- Sprint N+3: Multi-target pipeline output with stub generation
+
+---
+
 ## Python/C++/JS-TS Support Enhancements � PROPOSED
 
 **Goal:** Expand first-class support for Python, C++, and JS/TS beyond current parse/generate.
@@ -217,6 +354,23 @@ HiveMind's scheduler knows the dispatch target node and enforces accordingly.
 ---
 
 ## Deterministic MCP Debugging Workflow for SLM Agents — PROPOSED
+
+## [Derived:DataPipeline-LoRA] Semantic + Recursive Taskitem Validation APIs — PROPOSED
+
+**Goal:** Expose first-class MCP/editor APIs to score task completion beyond test-pass and feed recursive quality signals back into taskitem generation.
+
+**Why derived:** Current dataset curation needs semantic validity checks and recursive re-validation loops to avoid local minima in training data.
+
+**Scope:**
+- Semantic completion validator API (invariant checks, intent/diff consistency, equivalence hooks).
+- Recursive taskitem quality scorer (self-containment, dependency correctness, blocker detectability).
+- Promotion-grade result packet (`execution_pass`, `semantic_pass`, `recursive_pass`, confidence).
+- MCP endpoints for batch scoring and audit export.
+
+**Data-pipeline impact:**
+- Reduces script-only heuristics.
+- Enables consistent promotion gates across projects.
+- Improves good/bad labeling quality for LoRA datasets.
 
 **Filed by:** Whetstone execution session (2026-02-21)
 **Priority:** Critical for self-improving low-context agents
@@ -389,3 +543,214 @@ A fix may pass one test but silently break prior working behavior.
   - deterministic regression guard set,
   - MCP tool schema checks,
   - with full repro packet trace and no manual intervention.
+
+---
+
+## Polyglot Orchestrator — PROPOSED
+
+> Origin: design session 2026-02-28. Goal: true lossless polyglot code generation —
+> every component of a project written in the language best suited to it, with
+> type-safe boundaries, unified editing (LSP), and unified debugging (DAP),
+> all driven from a single shared AST.
+>
+> This is a multi-phase capability that extends Whetstone from a single-target
+> code generator into a polyglot orchestration platform. The theoretical proof
+> is a project where every supported generation language participates, each
+> responsible for the component it is most fit for, with no manual FFI code.
+
+### Feature Request I: Language Fitness Scorer
+
+**Tool name:** `whetstone_score_language_fitness`
+
+**Derived:** `[Derived:DesignSession-Polyglot] Language Fitness Scorer`
+
+**Problem:**
+Language selection today is implicit — the caller picks a target language. There is no
+mechanism to analyze an AST subtree and recommend which language best fits its
+computational shape. This means the caller must already know the answer, which defeats
+the purpose of language-agnostic AST representation.
+
+**Requirements:**
+- Extract structural features from an AST node or spec section:
+  - mutation ratio (writes/reads per node)
+  - recursion shape (tail-recursive, tree-recursive, flat loop)
+  - concurrency primitives present (channels, shared memory, actors)
+  - memory lifetime pattern (arena, GC, borrow-shaped)
+  - type complexity (simple generics, dependent types, none)
+  - I/O pattern (blocking, async, event-driven)
+- Score each supported generation language against a language idiom profile.
+- Return ranked list with per-language score and feature explanation.
+
+**Acceptance criteria:**
+- Given an AST node representing a data-parallel reduction loop, scores Julia/Rust
+  above Python/Lisp.
+- Given an AST node representing a supervision tree with restart policies, scores
+  Erlang/Elixir above C++/Go.
+- Ranking rationale is human-readable (per-feature delta from ideal profile).
+- Tool runs in < 50ms on AST subtrees up to 500 nodes.
+
+---
+
+### Feature Request J: Polyglot FFI Glue Generator
+
+**Tool name:** `whetstone_generate_ffi_glue`
+
+**Derived:** `[Derived:DesignSession-Polyglot] Polyglot FFI Glue Generator`
+
+**Problem:**
+When a project uses multiple languages, the boundary between them (FFI, C ABI,
+ctypes, JNI, pybind11, etc.) is written by hand. This is the primary source of
+polyglot integration failures — type mismatches, lifetime errors, and ABI drift
+are all caught only at runtime. The shared AST already encodes the type information
+needed to generate these boundaries correctly.
+
+**Requirements:**
+- Given an AST boundary node (a function or struct visible to two language targets):
+  - Emit the correct binding on both sides (e.g. Rust `extern "C"` + Python ctypes struct)
+  - Emit a C ABI header as the neutral intermediary when needed
+  - Annotate the boundary with source AST node ID for cross-language debug symbol linking
+- Support at minimum: Rust↔Python, Go↔C++, C++↔JavaScript (N-API), Rust↔Go (CGo)
+- Generated glue must compile and pass a round-trip type check
+
+**Acceptance criteria:**
+- A Rust function callable from Python via generated ctypes binding, where the
+  binding was produced entirely from the shared AST — no hand-written glue.
+- Round-trip test: Python calls Rust, Rust returns value, Python receives correct type.
+- Boundary annotations present in generated DWARF (for DAP orchestrator).
+
+---
+
+### Feature Request K: Cross-Language Symbol Index Emitter
+
+**Tool name:** `whetstone_emit_symbol_index`
+
+**Derived:** `[Derived:DesignSession-Polyglot] Cross-Language Symbol Index`
+
+**Problem:**
+LSPs are language-specific and share no state. Cross-language goto-definition,
+rename, and find-references are broken in all polyglot projects. The shared AST
+already contains the symbol graph — it just isn't being emitted in a queryable format.
+
+**Requirements:**
+- Emit a SCIP-format (Sourcegraph Code Intelligence Protocol) symbol index from
+  the shared AST after multi-language generation.
+- Index must include:
+  - Definition sites (per-language file + line)
+  - Reference sites across all generated languages
+  - Type information at language boundaries
+  - Cross-language "same symbol" links (Rust `my_fn` ↔ Python `my_fn` ↔ C ABI `my_fn`)
+- Index is updated incrementally on re-generation of any language target.
+
+**Acceptance criteria:**
+- A symbol defined in Rust and called from Python: goto-definition from Python
+  resolves to Rust source file and line.
+- Rename in the shared AST propagates to all language targets and updates index.
+- Index generation adds < 200ms to a full polyglot generation run.
+
+---
+
+### Feature Request L: LSP Orchestration Layer
+
+**Tool name:** (editor integration, no standalone MCP tool)
+
+**Derived:** `[Derived:DesignSession-Polyglot] LSP Orchestrator`
+
+**Problem:**
+Editors run one LSP per language. Cross-language queries (goto-definition, hover,
+rename) are silently broken at language seams. There is no mechanism to route an
+LSP request through the shared AST when the answer crosses a language boundary.
+
+**Requirements:**
+- A thin LSP proxy that sits between the editor and all per-language LSP servers.
+- Intercepts requests at known cross-language boundary symbols (identified via symbol index).
+- For intra-language requests: forwards directly to the appropriate language server.
+- For cross-language requests: resolves via the SCIP symbol index and returns a
+  synthesized response to the editor.
+- Supports: textDocument/definition, textDocument/references, textDocument/rename,
+  textDocument/hover (shows both-side type information at boundaries).
+
+**Acceptance criteria:**
+- Goto-definition from a Python call site lands on Rust function definition.
+- Rename of a boundary symbol in the orchestrator propagates rename requests to
+  both the Rust LSP and the Python LSP simultaneously.
+- Hover at a Rust↔Python boundary shows the C ABI type as well as both native types.
+
+---
+
+### Feature Request M: DAP Orchestration Layer
+
+**Tool name:** (debugger integration, no standalone MCP tool)
+
+**Derived:** `[Derived:DesignSession-Polyglot] DAP Orchestrator`
+
+**Problem:**
+Debuggers are language-specific. A polyglot stack trace (Rust → Go → Lisp) is
+unreadable — native frames, goroutine scheduler frames, and Lisp continuations
+are interleaved with no cross-language annotation. Stepping across a language
+boundary is not possible.
+
+**Requirements:**
+- A DAP proxy sitting above per-language debug adapters (CodeLLDB for Rust,
+  Delve for Go, etc.).
+- Uses DWARF boundary annotations (emitted by FFI Glue Generator) to identify
+  language seam frames in a mixed stack.
+- Presents a unified, annotated stack trace: each frame labeled with its origin
+  language, AST node ID, and source location.
+- Supports cross-language step-over: stepping past a boundary call executes
+  the foreign call and pauses at the next source line in the calling language.
+- Breakpoints set by AST node ID fire in all generated language targets
+  simultaneously.
+
+**Acceptance criteria:**
+- Single debugger session, stack trace shows Rust frames and Python frames
+  correctly interleaved and labeled.
+- Step-over at a Rust→Python call boundary pauses at the next Rust line
+  (Python call executes atomically).
+- Breakpoint on AST boundary node fires when either the Rust or Python side
+  of the call is entered.
+
+---
+
+### Feature Request N: Polyglot Project Test Harness
+
+**Tool name:** `whetstone_run_polyglot_suite`
+
+**Derived:** `[Derived:DesignSession-Polyglot] Polyglot Test Harness`
+
+**Problem:**
+There is no systematic way to verify that a multi-language generation round-trip
+is semantically correct — that the same intent expressed in N languages produces
+equivalent observable behavior. Without this, "lossless polyglot transpiling"
+is a claim, not a proof.
+
+**Requirements:**
+- Given a spec and a set of target languages, generate all language variants.
+- Run each variant against the same black-box test suite (input/output pairs).
+- Compare outputs across all variants; report any semantic divergence.
+- Track parity over time: if adding a new language breaks an existing variant's
+  parity, block the generation.
+
+**Acceptance criteria:**
+- A sorting algorithm spec generates Python, Rust, Go, and Haskell variants.
+- All four variants produce identical output for the same 1000 random inputs.
+- Introducing a deliberate bug in the Rust generator causes the harness to flag
+  Rust as divergent without affecting the Python/Go/Haskell parity report.
+
+---
+
+### Rollout Plan (Polyglot Orchestrator)
+
+1. **Phase 1 — Language Fitness** (Sprint 271-272): `LanguageFitnessScorer` + 2-language test projects
+2. **Phase 2 — FFI + Symbol Index** (Sprint 273-275): `PolyglotFFIGlueGenerator` + `CrossLanguageSymbolIndexEmitter`
+3. **Phase 3 — LSP Orchestration** (Sprint 276-278): LSP proxy + cross-language goto/rename/hover
+4. **Phase 4 — DAP Orchestration** (Sprint 279-281): DAP proxy + unified stack traces + boundary breakpoints
+5. **Phase 5 — Proof** (Sprint 282-285): Full polyglot test harness + all-language test projects
+
+### Done definition for "lossless polyglot transpiling"
+
+- A single spec generates N language variants (N = all supported Whetstone generators).
+- All variants pass an identical black-box test suite.
+- Cross-language calls work at runtime via generated FFI glue (no hand-written bindings).
+- Goto-definition, rename, and hover work across all language seams in the editor.
+- A unified debugger session can step through a call that crosses three or more language boundaries.
+- The only hand-written artifact is the spec.
