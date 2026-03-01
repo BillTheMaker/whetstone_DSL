@@ -18,6 +18,7 @@
     }
 
     void registerWhetstoneTools() {
+        registerToolContractTools();
         registerASTTools();
         registerAnnotationTools();
         registerFileTools();
@@ -153,5 +154,6 @@
         registerSprint154Tools();
         registerSprint155Tools();
         registerOnboardingTools();
+        registerLanguageFitnessTools();
     }
 };

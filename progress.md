@@ -1,29 +1,671 @@
-# Progress Log (Historical + Current Snapshot)
+# Whetstone DSL — Progress Log
 
-## Current Snapshot (2026-02-26)
+> **Authoritative record.** Sprint-level summary table followed by step-by-step detail.
+> Merged from PROGRESS.md (sprint table + sprints 1-7 + session log) and progress.md (sprints 9+).
+> Last updated: 2026-03-01
 
-This file is a historical step log. The latest completed work in this workspace is:
-
-- Sprint 161 (steps 1849-1853): `whetstone_architect_intake` requirements extraction fix
-- Sprint 162 (steps 1854-1858): class emission fix across all language generators
-- Sprint 163-165 (steps 1859-1873): strict MCP grammar completion pipeline
-  (schema normalization, recursive grammar generation, strictness policy gate,
-  manifest/lock verification, strict runtime preflight checks)
-
-Artifacts and logs:
-- `docs/sprint161_162_taskitem_execution_log_2026-02-25.md`
-- `docs/sprint163_165_taskitem_execution_log_2026-02-26.md`
-- `tools/mcp/grammars/dispatch.gbnf`
-- `tools/mcp/grammars/dispatch_schema.json`
-- `tools/mcp/grammars/per_tool_schemas.json`
-- `tools/mcp/grammars/strictness_report.json`
-
-Current coverage:
-- 347 tool schemas
-- 347 per-tool grammars
-- 347 dispatch schema branches
+**Stack:** C++20, Dear ImGui + SDL2 + OpenGL3, nlohmann-json, vcpkg, CMake
 
 ---
+
+## Current State
+
+**Updated: 2026-03-01**
+
+- Sprint 271 complete (steps 1883-1887): LanguageFitnessScorer Phase 1
+  - ASTFeatureExtractor, LanguageIdiomProfile, LanguageFitnessScorer, whetstone_score_language_fitness MCP tool
+- Sprints 267-270 (steps 1873-1882): all 26 generator readiness gaps (GR-series) closed
+- MCP tool count: 91 (whetstone_score_language_fitness added)
+- Next: Sprint 272 — fitness-routed 2-language test projects (poly-sort, poly-api, poly-parse)
+
+---
+
+## Sprint Summary
+
+| Sprint | Steps | Status | Description |
+|--------|-------|--------|-------------|
+| Sprint 1 | — | **Complete** | MPS-based prototype (JetBrains MPS language plugin) |
+| Sprint 2 | 1–38 | **Complete** | C++ editor stack: AST, serialization, generators, ImGui shell, orchestrator, agents |
+| Sprint 3 | 39–75 | **Complete** | Core functionality: C++ generator, tree-sitter, classical editing, optimization |
+| Sprint 4 | 76–126 | **Complete** | Professional editor: layout presets, code editor, LSP, annotation UI, terminal, build |
+| Sprint 5 | 127–165 | **Complete** | Library-aware coding: package registries, constructive coding, Emacs ecosystem, full language coverage, agents |
+| Sprint 6 | 166–201 | **Complete** | UX & editor polish: structural refactor, themes, multi-cursor, onboarding, security, accessibility, performance |
+| Sprint 7 | 202–234 | **Complete** | MCP Bridge & agent tooling: API docs/schemas, MCP server, synthetic traces, eval harness, model-specific tools, session recording |
+| Sprint 8 | 235–244 | **Complete** | Refactor & UX polish: EditorState split, text-first default, DockBuilder layout, first-launch polish |
+| Sprint 9 | 245–265 | **Complete** | Agent-first tooling: headless MCP binary (`whetstone_mcp`), file ops tools, 34 MCP tools total |
+| Sprint 10 | 266–289 | **Complete** | Semantic annotation taxonomy: 67+ annotation types (Subjects 1–8), sidecar persistence, environment layer |
+| Sprint 11 | 290–319 | **Complete** | Annotation codegen + Kotlin/C# languages, Semanno inline comment format, Subject 9 workflow annotations |
+| Sprint 12 | 320–341 | **Complete** | Workflow model: WorkItem, TaskQueue, RoutingEngine, Workers (Deterministic/SLM/LLM/Human), ReviewGates, C++ depth |
+| Sprint 13 | 342–360 | **Complete** | GUI Overhaul Phase 1: docking, visual system, panel layout, modifier-edge shortcut notation |
+| Sprint 14 | 361–377 | **Complete** | Language Batch 1: C, WebAssembly, Common Lisp, Scheme parsers + generators |
+| Sprint 15 | 378–393 | **Complete** | Orchestration Engine: full workflow pipeline, context assembly, parallel dispatch, review gates |
+| Sprint 16 | 394–404 | **Complete** | C++ depth + Self-Hosting Phase 1: type aliases, static members, constexpr, smart pointers, auto |
+| Sprint 17 | 405–416 | **Complete** | Language Batch 2: F#, VB.NET, SQL parsers + generators (17 total languages) |
+| Sprint 18 | 417–427 | **Complete** | Claude Code Plugin: MCP workflow tools, prompt templates, annotation-driven workflow integration |
+| Sprint 19 | 428–437 | **Complete** | GUI Phase 2 — Workflow Visualization: task board, dependency graph, routing decisions panel |
+| Sprint 20 | 438–448 | **Complete** | Legacy Code Ingestion: code age analysis, safety audit, modernization workflow generation |
+| Sprint 21 | 449–459 | **Complete** | Cross-Language Transpilation Engine: intent-driven semantic translation, annotation-guided targeting |
+| Sprint 22 | 460–470 | **Complete** | Language Batch 3: x86/ARM Assembly, remaining C++ gaps (19+ total languages) |
+| Sprint 23 | 471–481 | **Complete** | Architect Mode: natural language → tech stack + annotated skeleton + workflow |
+| Sprint 24 | 482–492 | **Complete** | Security + Static Analysis: Subject 10 security annotations, OWASP detection, dependency audit |
+| Sprint 25 | 493–508 | **Complete** | Integration + Self-Hosting capstone: Whetstone parses/annotates its own source, end-to-end validation |
+| Sprint 26 | 509–523 | **Complete** | GUI/UX foundations: docking reliability, visual design system, black/white/stone identity |
+| Sprint 27 | 524–533 | **Complete** | Constrained Constructive Editing I: typed taskitem contracts, legal operation surface |
+| Sprint 28 | 534–543 | **Complete** | Constrained Constructive Editing II: legal-choice UX, multi-language adapters, token-budget reduction |
+| Sprint 29 | 544–553 | **Complete** | Workflow Intelligence + Cost Discipline: routing confidence, context minimization, cost policy |
+| Sprint 30 | 554–563 | **Complete** | Debugger + Runtime Observability I: breakpoints, stepping, stack frames, locals/watches |
+| Sprint 31 | 564–573 | **Complete** | Debugger + Runtime Observability II: memory reflection, allocation traces, perf probes |
+| Sprint 32 | 574–583 | **Complete** | Architect Intake: MarkdownSpecParser, TaskitemGeneratorV2, confidence/ambiguity annotation, queue simulation |
+| Sprint 33 | 584–593 | **Complete** | Productization: value-forward onboarding, workflow visualization 2.0, release readiness, policy governance |
+| Sprint 34 | 594–600 | **Complete** | Security Governance: escalation ledger, guardrail catalog, approval planner, incident runbook, exception review |
+| Sprint 35 | 601–613 | **Complete** | Operational Readiness: SLO watches, change freeze calendar, incident postmortem ledger, canary promotion |
+| Sprint 36 | 614–623 | **Complete** | MCP Expansion: `whetstone_architect_intake`, `whetstone_generate_taskitems`, `whetstone_queue_ready` MCP tools, per-project config |
+| Sprint 37 | 624–633 | **Complete** | In-Editor Agent Chat Panel: embedded chat, live tool call visualization, mutation preview, accept/reject controls |
+| Sprint 38 | 634–643 | **Complete** | HiveMind Build Support: schema→C++ generator, MQTT boilerplate, SQLite layer, drone skeleton, dispatch table generators |
+| Sprint 39 | 644–653 | **Complete** | Self-Hosting + Release Pipeline: CMake from AST, in-editor test runner, AppImage, HiveMind auto-update, plugin system |
+| Sprint 40 | 654–663 | **Complete** | HiveMind Integration: job publisher, swarm status, apiary browser, energy context, entropy scanner, inference engine, pilot queue, cross-session bridge |
+| Sprint 41 | 664–668 | **Complete** | Codegen MCP tools: `whetstone_schema_to_cpp` (SchemaToCppGenerator) + `whetstone_generate_dispatch_table` (JobDispatchTableGenerator) wired via RegisterCodegenTools.h. Tool count 82→84. |
+| Sprint 42 | 669–673 | **Complete** | Stabilization + new generators: ProjectSkeletonGenerator + InferenceJobGenerator. Fixed class-scope json alias collisions. Tool count 84→86. |
+| Sprint 43 | 674–678 | **Complete** | Context assembly: WorkspaceFileIndex, ContextSliceAssembler, TokenBudgetEnforcer, `whetstone_assemble_context` MCP tool. Tool count 86→87. |
+| Sprint 44 | 679–683 | **Complete** | Taskitem quality: PrerequisiteOpResolver, SelfContainmentScorer, TaskitemQualityAuditor, `whetstone_validate_taskitem` MCP tool. Tool count 87→88. |
+| Sprint 45 | 684–688 | **Complete** | Agent metrics: AgentSessionRecorder, TaskCompletionMetrics, ABTestComparison, `whetstone_start_recording` + `whetstone_get_metrics` MCP tools. Live tool-call instrumentation. Tool count 88→90. |
+| Sprint 46 | 689–698 | **Complete** | Porting foundation: SemanticCoreIR, LanguageToIRAdapter, IRToLanguageAdapter, LanguageSupportTier, LanguageCapabilityMatrix, MigrationAcceptanceContract. |
+| Sprint 47 | 699–708 | **Complete** | Rust IR semantics: ownership/borrow extractor, lifetime region lowering, trait/impl lowering, async intent, error model, macro boundary, unsafe risk, generic intent. |
+| Sprint 48 | 709–718 | **Complete** | C++ IR raising: ownership policy, borrow mapping, template raising, async mapping, error model, algorithm lifting, build artifact generator. |
+| Sprint 49 | 719–728 | **Complete** | Equivalence checking: differential execution harness, test vector spec, fuzz runner, property runner, behavioral divergence packet, evidence bundle, Rust/C++ runner adapters. |
+| Sprint 50 | 729–738 | **Complete** | Porting gates: gate severity policy, sanitizer gate, perf benchmarking/comparator, security scan orchestrator, supply chain audit, C++ review report template. |
+| Sprint 51 | 739–748 | **Complete** | Systems language family: C/Go/Java adapters + raising adapters, systems compatibility matrix, family acceptance report. |
+| Sprint 52 | 749–758 | **Complete** | Managed language family: C#/Kotlin/F#/VB.NET adapters, ADT pattern lowering, async model bridge, nullability/optionality bridge, family promotion. |
+| Sprint 53 | 759–768 | **Complete** | Dynamic language family: Python/JS/TS/Ruby/Lua adapters V2, dynamic risk classifier, strictness policy, family acceptance report. |
+| Sprint 54 | 769–778 | **Complete** | AST-native family: S-expression lowering, Lisp/Scheme/Elisp/Smalltalk adapters, macro hygiene boundary, eval runtime risk, projection benchmark. |
+| Sprint 55 | 779–788 | **Complete** | Logic/Actor family: Prolog/Erlang/Elixir adapters, supervision tree packet, semantic blocklist gate, logic→imperative policy, async projection policy, family report. |
+| Sprint 56 | 789–798 | **Complete** | Low-level family: x86/ARM/Wasm/C adapters, ABI calling convention, memory layout checker, host boundary contract, family acceptance report. |
+| Sprint 57 | 799–808 | **Complete** | Legacy ingestion: semantic recovery graph, assumption inference, ambiguity packet, cross-file API inference, confidence calibration, review queue generator, modernization dossier. |
+| Sprint 58 | 809–818 | **Complete** | Data query family: SQL canonical IR, MySQL/PostgreSQL/T-SQL adapters, transaction isolation packet, divergence classifier, query equivalence runner, family acceptance report. |
+| Sprint 59 | 819–828 | **Complete** | Governance: PortingReviewBoard, ReviewerDecisionLedger, WaiverPolicyPacket, PolicyPackSystem, AmbiguityTriageModel, DecisionReplayChecker, GovernanceAuditReport, `whetstone_review_porting_decision` MCP tool. |
+| Sprint 60 | 829–838 | **Complete** | Language graduation: PairMatrixRunner, TierPromotionEngine, KnownLimitationsGenerator, ReleaseReadinessScoreboard, StableCorpusCertifier, RegressionWatchlist, DocumentationPackGenerator, `whetstone_get_transpile_support_matrix` MCP tool. |
+| Sprint 61 | 839–848 | **Complete** | Continuous certification: CertificationJobScheduler, PairSelectionStrategy, EvidenceArchive, PairRegressionDetector, BlastRadiusAnalyzer, AutoBlockRuleEngine, CertificationDashboard, `whetstone_run_certification_cycle` + `whetstone_get_certification_status` MCP tools. |
+| Sprint 62 | 849–858 | **Complete** | Failure telemetry: FailureTaxonomy, PacketTagging, FailureAggregationIndexer, TrendDetector, PrioritizationScorer, RemediationGenerator, WeeklyQualityReport, `whetstone_get_failure_trends` + `whetstone_get_top_adapter_gaps` MCP tools. |
+| Sprint 63 | 859–868 | **In Progress** | Learned adapter hints (next to implement) |
+| Sprints 64–120 | 869–1448 | **Pending** | Cost planning, queue optimization, runtime packs, drift detection, corpus benchmarks, tenant policy, improvement proposals, web/API semantics, data pipelines, embedded constraints, and more |
+| Sprints 121–130 | 1449–1548 | **Complete** | Pre-built debug workflow tooling (closed-loop iteration epoch) |
+
+---
+
+| Sprint 271 | 1883–1887 | **Complete** | Polyglot Phase 1: ASTFeatureExtractor, LanguageIdiomProfile, LanguageFitnessScorer, whetstone_score_language_fitness MCP tool |
+
+## Hotfix — MCPBridge NDJSON Transport (2026-02-19, between sprints)
+
+**Problem:** `whetstone_mcp` was silently ignoring all messages from Claude Code 2.x.
+Claude Code 2.x uses MCP protocol `2025-11-25` which sends newline-delimited JSON (NDJSON).
+The binary only handled the older `2024-11-05` Content-Length framing — unrecognized lines
+were silently dropped, causing a 30-second timeout on every session startup.
+
+**Fix:** `editor/src/MCPBridge.h` — `runStdio()` now detects both transports:
+- Lines beginning with `Content-Length:` → Content-Length framing (old protocol)
+- Lines beginning with `{` → NDJSON (new protocol, responds with `{json}\n`)
+- Also fixed header-skip loop to drain ALL headers before body read (not just one line)
+
+**Binary rebuilt** 2026-02-19. No sprint step assigned (single-function fix, no new test needed).
+Next sprint starts at Step 689 as planned.
+
+---
+
+
+---
+
+## Detailed Sprint Records — Sprints 1–7 (Steps 1–234)
+
+## Sprint 1: MPS Prototype (Complete)
+
+Built the initial SemAnno language in JetBrains MPS:
+- 33 AST concepts (Module, Function, Variable, statements, expressions, types, annotations)
+- Editor definitions for all concepts
+- TextGen definitions for Python output
+- Phase1Example sandbox model
+
+**Key files:** `languages/SemAnno/`, `solutions/SemAnno.sandbox/`
+
+---
+
+## Sprint 2: C++ Editor Stack (Steps 1–38) — COMPLETE
+
+All 38 steps implemented and passing. Each step has a corresponding test (`step1_test.exe` through `step38_test.exe`).
+
+### Phase 2a: AST in C++ (Steps 1–6)
+- [x] Step 1: Base `ASTNode` class + `Module` concept
+- [x] Step 2: Child links, `Function` and `Variable`
+- [x] Step 3: All Statement, Expression, Type, Parameter concepts
+- [x] Step 4: Annotation concepts (`DerefStrategy`, `OptimizationLock`, `LangSpecific`)
+- [x] Step 5: JSON serialization (`toJson`)
+- [x] Step 6: JSON deserialization + round-trip verification
+
+### Phase 2b: Validation & Generation (Steps 7–11)
+- [x] Step 7: Schema validation (`ASTSchema`)
+- [x] Step 8: Python generator base (Module/Function)
+- [x] Step 9: Python generator — statements and expressions
+- [x] Step 10: Python generator — remaining concepts
+- [x] Step 11: Python generator — annotation output
+
+### Phase 2c: ImGui Editor Shell (Steps 12–15)
+- [x] Step 12: Dear ImGui shell scaffolding (SDL2 + OpenGL3)
+- [x] Step 13: Text viewport
+- [x] Step 14: AST-to-text viewport
+- [x] Step 15: Projection toggle
+
+### Phase 2d: Orchestrator (Steps 16–22)
+- [x] Step 16: Orchestrator process
+- [x] Step 17: JSON-RPC server
+- [x] Step 18: AST mutation via RPC
+- [x] Step 19: Connect ImGui to orchestrator
+- [x] Step 20: Mutation via UI
+- [x] Step 21: Undo/Redo journal
+- [x] Step 22: Undo/Redo UI
+
+### Phase 2e: Emacs Integration (Steps 23–29)
+- [x] Step 23: Emacs integration
+- [x] Step 24: Orchestrator spawns Emacs
+- [x] Step 25: AST-to-Elisp projection
+- [x] Step 26: Orchestrator-to-Emacs RPC
+- [x] Step 27: File operations via Emacs
+- [x] Step 28: File operations via RPC
+- [x] Step 29: AST-to-File synchronization
+
+### Phase 2f: Round-trip & Agents (Steps 30–38)
+- [x] Step 30: Emacs-to-MPS synchronization
+- [x] Step 31: Tree-sitter integration (stubs)
+- [x] Step 32: Import via tree-sitter
+- [x] Step 33: Export via generator
+- [x] Step 34: Full round-trip / C++ generator basic output
+- [x] Step 35: C++ generator — memory strategies
+- [x] Step 36: Agent API
+- [x] Step 37: Agent batch mode
+- [x] Step 38: OptimizationLock warnings
+
+---
+
+## Sprint 3: Core Functionality (Steps 39–75) — COMPLETE
+
+### Phase 3a: C++ Generator Implementation (Steps 39–44) — COMPLETE
+- [x] Step 39: CppGenerator basic skeleton
+- [x] Step 40: Statement generation (Assignment, Return, If)
+- [x] Step 41: Expression generation (BinaryOp, literals, precedence)
+- [x] Step 42: Type generation (PrimitiveType → C++ types, containers)
+- [x] Step 43: Memory strategy code generation (canonical annotations)
+- [x] Step 44: C++-specific idioms (const, references, includes)
+
+> Steps 39–44 have TDD tests that compile and pass. The CppGenerator and canonical
+> memory annotation classes (`DeallocateAnnotation`, `LifetimeAnnotation`,
+> `ReclaimAnnotation`, `OwnerAnnotation`, `AllocateAnnotation`) are implemented in
+> `editor/src/ast/Generator.h`.
+
+### Phase 3b: Tree-sitter Integration (Steps 45–49) — COMPLETE
+- [x] Step 45: Real tree-sitter Python parsing (6/6 tests pass)
+- [x] Step 46: Real tree-sitter C++ parsing with memory pattern detection (7/7 tests pass)
+- [x] Step 47: Real tree-sitter Elisp parsing + cross-language equivalence (6/6 tests pass)
+- [x] Step 48: CST-to-AST mapping refinement — default params, if/for, multi-statement, void, multi-function, string literals (8/8 tests pass)
+- [x] Step 49: Error recovery and diagnostics — ParseResult/ParseDiagnostic types, partial parse, hasErrors() (7/7 tests pass)
+
+> Tree-sitter core via vcpkg (`tree-sitter` 0.26.5). Language grammars via FetchContent:
+> `tree-sitter-python` v0.23.6, `tree-sitter-cpp` v0.23.4, `tree-sitter-elisp` 1.3.0.
+> `TreeSitterParser` in `Parser.h` implements full CST-to-AST conversion for all three languages
+> with auto-annotation (Python/Elisp → @Reclaim(Tracing), C++ → memory pattern detection).
+
+### Phase 3c: Classical Editing Mode (Steps 50–54) — COMPLETE
+- [x] Step 50: **IMPLEMENTED** — TextEditor component + TextASTSync (8/8 tests pass)
+- [x] Step 51: **IMPLEMENTED** — Text↔AST bidirectional sync with debounce (5/5 tests pass)
+- [x] Step 52: **IMPLEMENTED** — Syntax highlighting via tree-sitter CST walk (8/8 tests pass)
+- [x] Step 53: **IMPLEMENTED** — Classical editing ops: undo/redo, find/replace, selection (6/6 tests pass)
+- [x] Step 54: **IMPLEMENTED** — Configurable keybinding profiles: VSCode (default), JetBrains, Emacs (10/10 tests pass)
+
+> Phase 3c complete (37/37 tests pass). Backend components:
+> - `TextASTSync.h`: bidirectional text↔AST sync with debounce
+> - `TextEditor.h`: edit ops, undo/redo with AST tracking, find/replace, selection
+> - `SyntaxHighlighter.h`: tree-sitter CST walk → colored spans (keyword, string, comment, etc.)
+> - `KeybindingManager.h`: swappable profiles (VSCode/JetBrains/Emacs), custom overrides
+>
+> **Design direction:** Editor UI targets VSCode/JetBrains look-and-feel (not Emacs).
+> Keybinding profile is selectable at startup or via settings. VSCode is default.
+
+### Phase 3d: Editor Infrastructure (Steps 55–58) — COMPLETE
+- [x] Step 55: **IMPLEMENTED** — WelcomeScreen component (actions, recent files, tips, visibility toggle) (7/7 tests pass)
+- [x] Step 56: **IMPLEMENTED** — ElispCommandBuilder (escape, findFile, saveBuffer) + MockEmacsConnection (daemon lifecycle) (6/6 tests pass)
+- [x] Step 57: **IMPLEMENTED** — BufferManager (open/close/switch, multi-buffer tracking, language/modified info) (7/7 tests pass)
+- [x] Step 58: **IMPLEMENTED** — EditorMode (per-language indent, comment toggle, bracket pairs, snippets for Python/C++/Elisp) (8/8 tests pass)
+
+### Phase 3e: Agent API Extend (Steps 59–63) — COMPLETE
+- [x] Step 59: **IMPLEMENTED** — WebSocketAgentServer with session management, JSON-RPC routing, MockWebSocketTransport (10/10 tests pass)
+- [x] Step 60: **IMPLEMENTED** — ASTQueryAPI with getAST, findNodesByType/Property/Annotation, getSubtree (8/8 tests pass)
+- [x] Step 61: **IMPLEMENTED** — ASTMutationAPI with setProperty, updateNode, deleteNode, insertNode, journal recording, OptimizationLock warning (6/6 tests pass)
+- [x] Step 62: **IMPLEMENTED** — ContextAPI with getInScopeSymbols (scope walk), getCallHierarchy (caller/callee resolution), getDependencyGraph (VariableRef data flow) (6/6 tests pass)
+- [x] Step 63: **IMPLEMENTED** — BatchMutationAPI with atomic applySequence, reverse-order rollback on failure, journal recording (5/5 tests pass)
+
+### Phase 3f: Advanced Memory Management (Steps 64–67) — COMPLETE
+- [x] Step 64: **IMPLEMENTED** — AnnotationValidator: @Deallocate(Explicit) missing-intent check, @Owner(Single) alias detection, parent/child conflict detection (5/5 tests pass)
+- [x] Step 65: **IMPLEMENTED** — MemoryStrategyInference: language-based defaults (Python/Elisp→Tracing, C→Explicit, Rust→Single), per-function pattern analysis, confidence scores (5/5 tests pass)
+- [x] Step 66: **IMPLEMENTED** — CrossLanguageProjector: deep-copy AST projection with language change, annotation-aware CppGenerator (shared_ptr for @Reclaim(Tracing), unique_ptr for @Lifetime(RAII)), round-trip annotation preservation (5/5 tests pass)
+- [x] Step 67: **IMPLEMENTED** — Optimization annotations: HotColdAnnotation(@Hot→__attribute__((hot)), @Cold→__attribute__((cold))), InlineAnnotation(@Inline(Always)→[[gnu::always_inline]]), PureAnnotation(@Pure→[[nodiscard]]), ConstExprAnnotation(@ConstExpr→constexpr); all 3 generators updated (9/9 tests pass)
+
+### Phase 3g: Optimization Pipeline (Steps 68–71) — COMPLETE
+- [x] Step 68: **IMPLEMENTED** — TransformEngine: constant folding (BinaryOp on IntegerLiterals), dead code elimination (after Return), OptimizationLock warning (4/4 tests pass)
+- [x] Step 69: **IMPLEMENTED** — StrategyAwareOptimizer: annotation-constrained optimization (@Reclaim→allow, @Owner(Single)→block duplication, @Deallocate(Explicit)→block reorder, @Allocate(Static)→block dynamic alloc) (4/4 tests pass)
+- [x] Step 70: **IMPLEMENTED** — StrategyValidator: post-optimization invariant checking (use-after-free, leak, aliasing under @Owner(Single), clean code passes) (5/5 tests pass)
+- [x] Step 71: **IMPLEMENTED** — IncrementalOptimizer: transform journal with unique IDs, undoLast, undoTransform(id), provenance tracking (4/4 tests pass)
+
+### Phase 3h: Integration & Validation (Steps 72–75) — COMPLETE
+- [x] Step 72: **IMPLEMENTED** — Pipeline: end-to-end parse→infer→validate→optimize→generate for Python and C++, cross-language projection, constant folding in pipeline (6/6 tests pass)
+- [x] Step 73: **IMPLEMENTED** — Error handling: empty AST, null roots, unannotated code, nonexistent node IDs, empty history, empty module (8/8 tests pass)
+- [x] Step 74: **IMPLEMENTED** — Performance benchmarks: 1000-function AST creation (1ms), 500-function constant fold (0ms), 100-variable leak detection (0ms), JSON round-trip 100 functions (4ms), 50 incremental transforms+undo (1ms) (6/6 tests pass)
+- [x] Step 75: **IMPLEMENTED** — APIDocGenerator: structured docs for 23 components across 6 categories, markdown generation, coverage verification (6/6 tests pass)
+
+---
+
+## Sprint 4: Professional Editor (Steps 76–126) — COMPLETE
+
+### Phase 4a: Layout & Code Editor Core (Steps 76–83) — COMPLETE
+- [x] Step 76: **IMPLEMENTED** — LayoutManager: 3 preset docking layouts (VSCode/Emacs/JetBrains), panel visibility/ratio queries, dirty flag for rebuild, save/load persistence, preset name round-trip (10/10 tests pass)
+- [x] Step 77: **IMPLEMENTED** — Custom CodeEditorWidget renderer: per-token coloring, cursor/selection/input handling, monospace grid, blinking cursor, visible whitespace toggle (3/3 tests pass)
+- [x] Step 78: **IMPLEMENTED** — Line numbers and gutter: fixed-width gutter with right-aligned line numbers, current line highlight, gutter click selects line (2/2 tests pass)
+- [x] Step 79: **IMPLEMENTED** — Auto-indent and smart editing: EditorMode integration, enter auto-indent, tab inserts spaces, auto-close brackets/quotes (3/3 tests pass)
+- [x] Step 80: **IMPLEMENTED** — Scroll/selection/clipboard: shift-extend selection, double/triple click selection, Ctrl+C/X/V clipboard, drag select (3/3 tests pass)
+- [x] Step 81: **IMPLEMENTED** — Code folding: tree-sitter fold regions, gutter fold toggles, hidden ranges with placeholders (2/2 tests pass)
+- [x] Step 82: **IMPLEMENTED** — Minimap: right-side overview with viewport indicator and click-to-scroll (1/1 tests pass)
+- [x] Step 83: **IMPLEMENTED** — Additional tree-sitter grammars (JS/TS/Java/Rust/Go), new EditorMode configs, syntax highlighting for 8 languages (2/2 tests pass)
+
+### Phase 4b: File Management (Steps 84–89) — COMPLETE
+- [x] Step 84: **IMPLEMENTED** — Native file dialogs via tinyfiledialogs, FileDialog wrapper with test provider injection (2/2 tests pass)
+- [x] Step 85: **IMPLEMENTED** — Filesystem tree with .gitignore filtering, recursive Explorer rendering (1/1 tests pass)
+- [x] Step 86: **IMPLEMENTED** — Multi-tab editing with BufferManager and per-buffer editor state (3/3 tests pass)
+- [x] Step 87: **IMPLEMENTED** — Welcome screen wired with recent files persistence and quick actions (2/2 tests pass)
+- [x] Step 88: **IMPLEMENTED** — Drag-and-drop file/folder open via SDL_DROPFILE (2/2 tests pass)
+- [x] Step 89: **IMPLEMENTED** — File watcher polling with auto-reload for clean buffers (1/1 tests pass)
+
+### Phase 4c: LSP Client & Diagnostics (Steps 90–96) — COMPLETE
+
+### Phase 4d: Annotation UI (Steps 97–102) — COMPLETE
+
+### Phase 4e: Cross-Language & Optimization UI (Steps 103–107c) — COMPLETE
+
+### Phase 4f: Navigation & Search (Steps 108–114) — COMPLETE
+
+### Phase 4g: Project & Session Management (Steps 115–119) — COMPLETE
+
+### Phase 4h: Integration & Build (Steps 120–126) — COMPLETE
+- [x] Step 90: **IMPLEMENTED** — LSPClient core with JSON-RPC initialize/shutdown, injectable transport (2/2 tests pass)
+- [x] Step 91: **IMPLEMENTED** — LSP diagnostics: didOpen/didChange/didSave notifications, publishDiagnostics parsing/storage, Problems panel UI (1/1 tests pass)
+- [x] Step 92: **IMPLEMENTED** — LSP completion requests, response parsing, and completion popup with filtering/acceptance (1/1 tests pass)
+- [x] Step 93: **IMPLEMENTED** — LSP hover and signature help requests, response parsing, and inline tooltip/popup (2/2 tests pass)
+- [x] Step 94: **IMPLEMENTED** — Whetstone diagnostics aggregation via Pipeline, merged Problems panel, and gutter markers (1/1 tests pass)
+- [x] Step 94a: **IMPLEMENTED** — AST source span tracking via tree-sitter, serialized in JSON (2/2 tests pass)
+- [x] Step 95: **IMPLEMENTED** — Diagnostic gutter markers with tooltips and inline squiggles (1/1 tests pass)
+- [x] Step 96: **IMPLEMENTED** — LSP server settings UI with defaults, auto-detect, and schema validation hook (2/2 tests pass)
+- [x] Step 97: **IMPLEMENTED** — Annotation gutter markers with hover details and click-to-open placeholder editor (1/1 tests pass)
+- [x] Step 98: **IMPLEMENTED** — Inline annotation tags with layout-aware placement and view toggle (1/1 tests pass)
+- [x] Step 99: **IMPLEMENTED** — Annotation context menu for add/edit/remove via ASTMutationAPI (2/2 tests pass)
+- [x] Step 100: **IMPLEMENTED** — Memory strategy suggestions with lightbulb gutter icons and apply popup (1/1 tests pass)
+- [x] Step 101: **IMPLEMENTED** — Annotation conflict highlighting with gutter linkage and quick-fix actions (1/1 tests pass)
+- [x] Step 102: **IMPLEMENTED** — Memory strategy dashboard panel with counts and JSON export (1/1 tests pass)
+- [x] Step 103: **IMPLEMENTED** — Side-by-side generated code view with scroll lock, target language selection, and line highlighting (1/1 tests pass)
+- [x] Step 104: **IMPLEMENTED** — Cross-language projection button with read-only projected tabs and annotation summary (2/2 tests pass)
+- [x] Step 105: **IMPLEMENTED** — Optimization controls panel with constraint-aware buttons and summaries (2/2 tests pass)
+- [x] Step 106: **IMPLEMENTED** — Transform history panel with undo controls and provenance coloring (1/1 tests pass)
+- [x] Step 107: **IMPLEMENTED** — Before/after diff view with preview and accept/reject (1/1 tests pass)
+- [x] Step 107a: **IMPLEMENTED** — Text-Editor Mode toggle and per-buffer mode tracking (2/2 tests pass)
+- [x] Step 107b: **IMPLEMENTED** — Mode-specific UI behavior and feature gating (2/2 tests pass)
+- [x] Step 107c: **IMPLEMENTED** — Per-buffer mode persistence in recent files (2/2 tests pass)
+- [x] Step 108: **IMPLEMENTED** — Batch mutation UI with refactor actions and diff preview (3/3 tests pass)
+- [x] Step 109: **IMPLEMENTED** — Command palette with fuzzy search and MRU ranking (2/2 tests pass)
+- [x] Step 110: **IMPLEMENTED** — Go-to-definition (LSP + Whetstone) with hover preview (2/2 tests pass)
+- [x] Step 111: **IMPLEMENTED** — Symbol outline panel with LSP + AST fallback (2/2 tests pass)
+- [x] Step 112: **IMPLEMENTED** — Breadcrumb navigation with scope roles (1/1 tests pass)
+- [x] Step 113: **IMPLEMENTED** — Project-wide search panel with regex and glob filters (3/3 tests pass)
+- [x] Step 114: **IMPLEMENTED** — Go-to-line popup with :line:col parsing (4/4 tests pass)
+- [x] Step 115: **IMPLEMENTED** — Orchestrator wired for structured mutations; Emacs config path setting (3/3 tests pass)
+- [x] Step 116: **IMPLEMENTED** — Project save/load (.whetstone) with AST serialization (4/4 tests pass)
+- [x] Step 117: **IMPLEMENTED** — Session persistence (layout, buffers, cursors, folds) (5/5 tests pass)
+- [x] Step 118: **IMPLEMENTED** — Settings panel + persistence (11/11 tests pass)
+- [x] Step 119: **IMPLEMENTED** — Zoom controls and status bar indicator (5/5 tests pass)
+
+---
+
+## Sprint 5: Library-Aware Constructive Coding (Steps 127–165) — COMPLETE
+
+### Phase 5a: Library & Dependency Management (Steps 127–133) — COMPLETE
+- [x] Step 127: Package registry abstraction stubs (PyPI, npm, crates.io, Maven, Go, vcpkg). 4/4 tests pass.
+- [x] Step 128: Dependency file parsing with Import population. 6/6 tests pass.
+- [x] Step 129: Dependency management UI panel with add/remove/update and writeback. 8/8 tests pass.
+- [x] Step 130: LSP workspace symbol + completion indexing for dependencies. 7/7 tests pass.
+- [x] Step 131: Stub-based library indexing (pyi/d.ts/headers/lib.rs). 8/8 tests pass.
+- [x] Step 132: Library symbol browser panel with filtering and insert templates. 5/5 tests pass.
+- [x] Step 133: Import statement generation + unused import warnings across 6 languages. 7/7 tests pass.
+
+### Phase 5b: Constructive Coding Flow (Steps 134–140) — COMPLETE
+- [x] Step 134: PrimitivesRegistry aggregating builtins, imports, and in-scope symbols. 6/6 tests pass.
+- [x] Step 135: Library-aware completion ordering with auto-import hints. 5/5 tests pass.
+- [x] Step 136: Agent preferImports/strictMode policy checks on mutations. 4/4 tests pass.
+- [x] Step 137: Composition builder panel with pipeline generation and code insertion. 4/4 tests pass.
+- [x] Step 138: Type-aware C++ generation via library call mappings. 2/2 tests pass.
+- [x] Step 139: Library compatibility matrix with default mappings. 3/3 tests pass.
+- [x] Step 140: Constructive coding integration tests. 7/7 tests pass.
+
+### Phase 5c: Emacs Ecosystem Integration (Steps 141–146) — COMPLETE
+- [x] Step 141: Emacs daemon startup with user config path and init logging. 4/4 tests pass.
+- [x] Step 142: Emacs package browser panel with load actions and queries. 7/7 tests pass.
+- [x] Step 143: Elisp function discovery via apropos/describe-function. 7/7 tests pass.
+- [x] Step 144: Emacs keybinding integration (prefix handling, M-x, mode line). 11/11 tests pass.
+- [x] Step 145: Org-mode rendering with source blocks, inline results, tree-sitter-org. 11/11 tests pass.
+- [x] Step 146: Emacs-Whetstone bridge with buffer pull/push and sync commands. 5/5 tests pass.
+
+### Phase 5d: Full Language Coverage (Steps 147–153) — COMPLETE
+- [x] Step 147: JavaScript/TypeScript CST-to-AST parsing. 4/4 tests pass.
+- [x] Step 148: JavaScript/TypeScript generator with imports, classes, WeakRef mapping. 6/6 tests pass.
+- [x] Step 149: Java CST-to-AST + generator with class/method/constructor handling. 8/8 tests pass.
+- [x] Step 150: Rust CST-to-AST + generator with impl methods, RAII annotations. 7/7 tests pass.
+- [x] Step 151: Go CST-to-AST + generator with receivers, Go-style control flow. 8/8 tests pass.
+- [x] Step 152: Cross-language projection extended for all new languages. 6/6 tests pass.
+- [x] Step 153: Language coverage integration tests (full projection matrix). 208/208 tests pass.
+
+### Phase 5e: Advanced Agent Capabilities (Steps 154–159) — COMPLETE
+- [x] Step 154: Agent library context payload on connect with primitives snapshot. 4/4 tests pass.
+- [x] Step 155: Agent library-aware code generation RPC + generator helper. 3/3 tests pass.
+- [x] Step 156: Agent annotation assistant RPC with suggestions and feedback learning. 5/5 tests pass.
+- [x] Step 157: Multi-agent roles with permission policy and provenance tracking. 8/8 tests pass.
+- [x] Step 158: Agent workflow recorder with JSON export and replay. 5/5 tests pass.
+- [x] Step 159: Agent marketplace registry with UI panel and install toggles. 6/6 tests pass.
+
+### Phase 5f: Polish & Ecosystem (Steps 160–165) — COMPLETE
+- [x] Step 160: Theme engine with JSON themes, ImGui styling, syntax color mapping. 4/4 tests pass.
+- [x] Step 161: Plugin API + loader with registry hooks for concepts/generators/panels/commands. 10/10 tests pass.
+- [x] Step 162: Help panel with Markdown sections + docs/help.md. 4/4 tests pass.
+- [x] Step 163: Telemetry + crash logging (opt-in) with settings toggle. 3/3 tests pass.
+- [x] Step 164: Update checker stub + installer manifests/config. 3/3 tests pass.
+- [x] Step 165: Sprint 5 integration tests across primitives, projection, pipeline, composition. 8/8 tests pass.
+
+---
+
+## Sprint 6: UX & Editor Polish (Steps 166–201) — COMPLETE
+
+### Phase 6a: Structural Refactor (Steps 166–170) — COMPLETE
+- [x] Step 166: Panel extraction to `panels/` directory (main.cpp 4,102 → 444 lines). Tests pass.
+- [x] Step 167: EditorState split into focused sub-states (Search/Agent/Build/Library/Emacs/UIFlags). 1/1 tests pass.
+- [x] Step 168: Split oversized component headers (CodeEditorWidget, Parser, SyntaxHighlighter, CppGenerator). 79/79 tests pass.
+- [x] Step 169: Notification/toast system with status bar history and output log rewire. 2/2 tests pass.
+- [x] Step 170: UI event bus with debounced dispatch, settings/theme events. 2/2 tests pass.
+
+### Phase 6b: Theme Engine & Visual Design (Steps 171–176) — COMPLETE
+- [x] Step 171: ThemeEngine core enhancements (ThemeColor API, user theme dir, hot reload). 2/2 tests pass.
+- [x] Step 172: Bundled theme pack (Whetstone Dark/Light, Monokai Pro). 2/2 tests pass.
+- [x] Step 173: Theme gallery UI with hover preview, apply/reset, swatches. 2/2 tests pass.
+- [x] Step 174: IconSet system with theme-aware, zoom-scaled icons. 2/2 tests pass.
+- [x] Step 175: Typography controls (fonts, line height, letter spacing). 2/2 tests pass.
+- [x] Step 176: Smooth UI transitions (panel slides, tab fade, toast animations, reduce-motion). 2/2 tests pass.
+
+### Phase 6c: Editor UX Enhancements (Steps 177–183) — COMPLETE
+- [x] Step 177: Enhanced find/replace (match counts, regex preview, selection scope, history). 2/2 tests pass.
+- [x] Step 178: Multi-cursor editing (Alt+Click, Ctrl+D, Ctrl+Alt+Up/Down, column selection). 2/2 tests pass.
+- [x] Step 179: Rainbow brackets, bracket-pair highlight, scope tint, auto-surround. 2/2 tests pass.
+- [x] Step 180: Rich tooltip system with markdown rendering, pinning, max size/scrolling. 2/2 tests pass.
+- [x] Step 181: Enhanced status bar (segments, notifications, selection counts, git branch). 2/2 tests pass.
+- [x] Step 182: Problems panel overhaul with grouping, sortable table, diagnostic badges. 2/2 tests pass.
+- [x] Step 183: Tab reordering and untitled rename flow. 2/2 tests pass.
+
+### Phase 6d: Onboarding & Discoverability (Steps 184–189) — COMPLETE
+- [x] Step 184: First-run wizard (layout/theme/keybindings + get-started actions). 2/2 tests pass.
+- [x] Step 185: Contextual feature hints with persistence + dismiss/disable. 2/2 tests pass.
+- [x] Step 186: Keyboard shortcut reference panel with filter and live bindings. 2/2 tests pass.
+- [x] Step 187: In-editor help panel with Markdown renderer reuse. 2/2 tests pass.
+- [x] Step 188: Command palette upgrade (categories, recent section, fuzzy highlights). 1/1 tests pass.
+- [x] Step 189: Guided workflow wizards (annotate file, cross-language, connect agent). 1/1 tests pass.
+
+### Phase 6e: Security & Library UX (Steps 190–195) — COMPLETE
+- [x] Step 190: Vulnerability database (OSV parsing, cache+TTL, offline mode). 1/1 tests pass.
+- [x] Step 191: Dependency security badges with severity colors and safe upgrade path. 1/1 tests pass.
+- [x] Step 192: Security diagnostics integration (gutter shields, [Security] problems). 1/1 tests pass.
+- [x] Step 193: Semantic library tags (auto-tagging heuristics, 10+ predefined tags). 1/1 tests pass.
+- [x] Step 194: Semantic-filtered library browser (tag filter bar, context-aware boosting). 1/1 tests pass.
+- [x] Step 195: Security & semantic UX integration tests. 1/1 tests pass.
+
+### Phase 6f: Accessibility & Performance (Steps 196–201) — COMPLETE
+- [x] Step 196: High contrast + colorblind modes (annotation shapes, diagnostic patterns). 1/1 tests pass.
+- [x] Step 197: Keyboard navigation audit (F6 panel cycle, Esc focus, focus ring). 1/1 tests pass.
+- [x] Step 198: Virtual scrolling for large files (viewport + buffered rendering). 1/1 tests pass.
+- [x] Step 199: Large file handling (size thresholds, text-mode fallback, memory indicator). 1/1 tests pass.
+- [x] Step 200: Startup/perf (LSP/highlight debounce, deferred AST sync, frame budget warnings). 1/1 tests pass.
+- [x] Step 201: Sprint 6 integration tests (panel wiring, themes, multicursor, wizard, security, keyboard nav). 1/1 tests pass.
+
+---
+
+## Sprint 7: MCP Bridge & Agent Tooling (Steps 202–234) — IN PROGRESS
+
+### Phase 7a: API Documentation & Schemas (Steps 202–206) — COMPLETE
+- [x] Step 202: JSON-RPC API reference document (`docs/AGENT_API.md`): 23 methods documented with schemas, examples, error codes.
+- [x] Step 203: JSON Schema definitions (`schemas/`): 8 type schemas + 12 method schemas for request/response validation.
+- [x] Step 204: Exposed ContextAPI and BatchMutationAPI via RPC (getInScopeSymbols, getCallHierarchy, getDependencyGraph, applyBatch).
+- [x] Step 205: Exposed Pipeline operations via RPC (runPipeline, parseSource, generateFromAST, projectLanguage).
+- [x] Step 206: API schema validation tests. 51/51 tests pass.
+
+### Phase 7b: MCP Server (Steps 207–213) — COMPLETE
+- [x] Step 207: MCP server core (`MCPServer.h`): JSON-RPC 2.0 with initialize handshake, protocol version "2024-11-05".
+- [x] Step 208: MCP tools — AST query and mutation (5 tools: get_ast, mutate, batch_mutate, get_scope, get_call_hierarchy).
+- [x] Step 209: MCP tools — annotation and generation (5 tools: suggest_annotations, apply_annotation, generate_code, run_pipeline, project_language).
+- [x] Step 210: MCP resources (5 resources: ast, diagnostics, libraries, annotations, settings).
+- [x] Step 211: MCP prompts (4 prompts: annotate_module, cross_language_projection, security_audit, refactor_memory).
+- [x] Step 212: MCP bridge (`MCPBridge.h`): stdio transport with Content-Length framing, embedded mode support.
+- [x] Step 213: MCP server tests. 90/90 tests pass.
+
+### Phase 7c: Synthetic Trace Generation (Steps 214–219) — COMPLETE
+- [x] Step 214: Trace data model (`TraceGenerator.h`): TraceStep (user/assistant/tool_call/tool_result), Trace with metadata.
+- [x] Step 215: 6 scenario templates: ReadAndUnderstand, AddAnnotations, CrossLanguage, Refactor, SecurityAudit, MultiStepDebug.
+- [x] Step 216: Built-in code corpus: 9 samples across 4 languages (Python, C++, JavaScript, Rust).
+- [x] Step 217: Generator engine with deterministic seeding, batch generation, and real Pipeline.parse() integration.
+- [x] Step 218: Trace export pipeline (`TraceExporter.h`): Anthropic Messages, OpenAI Chat, JSONL, Markdown formats. Filtering and statistics.
+- [x] Step 219: Trace generation tests. 294/294 tests pass.
+
+### Phase 7d: Evaluation Harness (Steps 220–224) — PENDING
+### Phase 7e: Model-Specific Tool Definitions (Steps 225–229) — PENDING
+### Phase 7f: Session Recording Pipeline (Steps 230–234) — PENDING
+
+---
+
+## Build Infrastructure
+
+Created in the most recent session:
+
+| File | Purpose |
+|------|---------|
+| `editor/vcpkg.json` | vcpkg manifest (dependencies declaration) |
+| `editor/CMakePresets.json` | Standardized CMake presets (Windows/Linux) |
+| `installer/windows/build.ps1` | PowerShell build script (prerequisites, vcpkg, cmake, staging) |
+| `installer/windows/setup.iss` | Inno Setup installer script (produces `.exe` installer) |
+| `installer/linux/build.sh` | Bash build script for Linux |
+| `installer/linux/install.sh` | Linux install script (system deps, desktop entry) |
+
+### Building on Windows
+
+```powershell
+# Prerequisites: VS2022, CMake 3.20+, vcpkg at E:\vcpkg
+cd E:\Whetstone_DSL\installer\windows
+.\build.ps1 -Config Release -VcpkgRoot E:\vcpkg
+
+# Then compile installer (requires Inno Setup 6):
+& "C:\Users\Bill\AppData\Local\Programs\Inno Setup 6\ISCC.exe" setup.iss
+```
+
+### vcpkg Packages Required
+- `nlohmann-json:x64-windows`
+- `sdl2:x64-windows`
+- `imgui[docking-experimental,opengl3-binding]:x64-windows`
+- `glad:x64-windows`
+- `tree-sitter:x64-windows`
+
+### Known Issue: imgui SDL2 Backend
+vcpkg's imgui 1.91.9 removed the `sdl2-binding` feature (only `sdl3-binding` exists). The SDL2 backend files are vendored locally in `editor/src/imgui_backends/` and compiled directly by CMake.
+
+---
+
+## Test Results (Last Verified)
+
+**All 663 steps complete. All sprints 1–40 passing.**
+Step-by-step test results in `progress.md` (lowercase). Architecture gate
+(header ≤ 600 lines) enforced every sprint. Sprint 40 final matrix: 112/112 passing.
+
+**Sprints 2–7 (Steps 1–234):** All pass. See session log below for details.
+**Sprints 8–40 (Steps 235–663):** All pass. See `progress.md` for step-level results.
+
+---
+
+## Key Source Files
+
+### Core AST & Generation
+| File | Contents |
+|------|----------|
+| `editor/src/ast/ASTNode.h` | All 33+ AST node classes, Import, ExternalModule, TypeSignature, JSON serialization |
+| `editor/src/ast/ProjectionGenerator.h` | Base generator class + shared dispatch helper |
+| `editor/src/ast/PythonGenerator.h` | Python code generator |
+| `editor/src/ast/ElispGenerator.h` | Elisp code generator |
+| `editor/src/ast/CppGenerator.h` | C++ code generator with memory annotations |
+| `editor/src/ast/JavaScriptGenerator.h` | JS/TS generator with WeakRef/FinalizationRegistry mapping |
+| `editor/src/ast/JavaGenerator.h` | Java generator with class wrapping and GC annotations |
+| `editor/src/ast/RustGenerator.h` | Rust generator with ownership semantics |
+| `editor/src/ast/GoGenerator.h` | Go generator with escape analysis annotations |
+| `editor/src/ast/Parser.h` | TreeSitterParser dispatcher for all languages |
+| `editor/src/ast/PythonParser.h` | Python CST-to-AST conversion |
+| `editor/src/ast/CppParser.h` | C++ CST-to-AST with memory pattern detection |
+| `editor/src/ast/ElispParser.h` | Elisp CST-to-AST conversion |
+| `editor/src/ast/Schema.h` | AST schema validation |
+
+### Editor Infrastructure
+| File | Contents |
+|------|----------|
+| `editor/src/main.cpp` | ImGui shell: init, event loop, docking, panel dispatch (444 lines) |
+| `editor/src/EditorState.h` | Top-level state composing sub-states |
+| `editor/src/state/SearchState.h` | Find/replace, project search state |
+| `editor/src/state/AgentState.h` | WebSocket server, agent log, permissions |
+| `editor/src/state/BuildState.h` | Build system, errors, run state |
+| `editor/src/state/LibraryState.h` | Dependency panel, library browser, composition |
+| `editor/src/state/EmacsState.h` | Packages, function index, keybindings, org doc |
+| `editor/src/state/UIFlags.h` | Panel visibility toggles, bottom tab selection |
+| `editor/src/CodeEditorWidget.h` | Custom ImGui code editor (core) |
+| `editor/src/CodeEditorRendering.h` | Editor rendering helpers |
+| `editor/src/TextEditor.h` | Edit ops, undo/redo, find/replace, selection |
+| `editor/src/TextASTSync.h` | Bidirectional text↔AST synchronization with debounce |
+| `editor/src/SyntaxHighlighter.h` | Tree-sitter CST walk → colored token spans (8 languages) |
+| `editor/src/KeybindingManager.h` | Configurable keybinding profiles (VSCode/JetBrains/Emacs) |
+| `editor/src/BufferManager.h` | Multi-buffer management (open/close/switch/track) |
+| `editor/src/LayoutManager.h` | Docking layout presets, panel queries, persistence |
+| `editor/src/LSPClient.h` | Language Server Protocol client |
+
+### Panels (extracted Sprint 6)
+| File | Contents |
+|------|----------|
+| `editor/src/panels/MenuBarPanel.h` | Menu bar and toolbar |
+| `editor/src/panels/ExplorerPanel.h` | File tree and workspace browser |
+| `editor/src/panels/EditorPanel.h` | Code editor area, tabs, split view |
+| `editor/src/panels/BottomPanel.h` | Output, AST, terminal, problems, agents tabs |
+| `editor/src/panels/StatusBarPanel.h` | Status bar with mode/language/position |
+| `editor/src/panels/SidePanels.h` | Outline, dependencies, library browser, etc. |
+| `editor/src/panels/SearchPanels.h` | Find/replace and project search |
+| `editor/src/panels/SettingsPanel.h` | Settings UI |
+| `editor/src/panels/WizardPanels.h` | Guided workflow wizards |
+| `editor/src/panels/DialogPanels.h` | Dialog panels |
+
+### Intelligence & Analysis
+| File | Contents |
+|------|----------|
+| `editor/src/Pipeline.h` | End-to-end: parse → infer → validate → optimize → generate |
+| `editor/src/CrossLanguageProjector.h` | AST deep-copy with language change and annotation adaptation |
+| `editor/src/MemoryStrategyInference.h` | Language defaults, pattern analysis, confidence scoring |
+| `editor/src/AnnotationValidator.h` | Missing intent, alias detection, conflict checking |
+| `editor/src/TransformEngine.h` | Constant folding, dead code elimination, OptimizationLock |
+| `editor/src/StrategyAwareOptimizer.h` | Annotation-constrained optimization |
+| `editor/src/StrategyValidator.h` | Post-optimization invariant validation |
+| `editor/src/IncrementalOptimizer.h` | Incremental transforms with journal and provenance |
+
+### Library & Security
+| File | Contents |
+|------|----------|
+| `editor/src/PrimitivesRegistry.h` | Available symbols aggregation (builtins + imports + scope) |
+| `editor/src/PackageRegistry.h` | Multi-ecosystem package queries |
+| `editor/src/DependencyParser.h` | Parse requirements/package.json/Cargo.toml/go.mod |
+| `editor/src/LibraryIndexer.h` | API surface indexing via stubs and LSP |
+| `editor/src/SemanticTags.h` | Semantic library annotations (@serialize, @crypto, @io, etc.) |
+| `editor/src/VulnerabilityDatabase.h` | OSV-based vulnerability tracking with cache |
+| `editor/src/LibraryCompatibility.h` | Cross-language library equivalents |
+
+### Agent System
+| File | Contents |
+|------|----------|
+| `editor/src/WebSocketServer.h` | Agent WebSocket endpoint with JSON-RPC routing |
+| `editor/src/ASTMutationAPI.h` | AST mutations with lock checking and journal |
+| `editor/src/ASTQueryAPI.h` | AST queries (findByType, findByAnnotation, subtree) |
+| `editor/src/ContextAPI.h` | Scope analysis, call hierarchy, dependency graph |
+| `editor/src/BatchMutationAPI.h` | Atomic batch mutations with rollback |
+| `editor/src/AgentPermissionPolicy.h` | Role-based agent permissions |
+| `editor/src/AgentAnnotationAssistant.h` | Annotation suggestion system with feedback |
+| `editor/src/WorkflowRecorder.h` | Workflow recording and replay |
+
+### Sprint 6 UX Components
+| File | Contents |
+|------|----------|
+| `editor/src/ThemeEngine.h` | Theme loading, color lookup, hot-reload, bundled themes |
+| `editor/src/IconSet.h` | Theme-aware, zoom-scaled file/panel/diagnostic icons |
+| `editor/src/NotificationSystem.h` | Toast notifications with history |
+| `editor/src/UIEventBus.h` | Pub/sub for decoupled panel updates |
+| `editor/src/RichTooltip.h` | Markdown-capable hover tooltips with pinning |
+| `editor/src/SearchUtils.h` | Advanced search (regex, match counts, history) |
+| `editor/src/AnimationUtils.h` | Smooth transitions and easing functions |
+| `editor/src/FirstRunWizard.h` | First-launch setup experience |
+| `editor/src/WizardFramework.h` | Multi-step wizard UI component |
+| `editor/src/FeatureHints.h` | Contextual tip system |
+| `editor/src/ShortcutReference.h` | Keyboard shortcut browser panel |
+
+### MCP & Training Data (Sprint 7)
+| File | Contents |
+|------|----------|
+| `editor/src/MCPServer.h` | MCP protocol server: 10 tools, 5 resources, 4 prompts, JSON-RPC 2.0 |
+| `editor/src/MCPBridge.h` | MCP stdio transport bridge to Whetstone internal RPC |
+| `editor/src/TraceGenerator.h` | Synthetic trace generation: 6 scenarios, code corpus, batch engine |
+| `editor/src/TraceExporter.h` | Multi-format trace export (Anthropic/OpenAI/JSONL/Markdown), filtering, stats |
+| `docs/AGENT_API.md` | Complete JSON-RPC API reference (23 methods) |
+| `schemas/` | 20 JSON Schema files (8 types + 12 methods) |
+
+### Build & Infrastructure
+| File | Contents |
+|------|----------|
+| `editor/CMakeLists.txt` | CMake build config (vcpkg-based) |
+| `editor/src/orchestrator_main.cpp` | Orchestrator standalone process (JSON-RPC server) |
+| `editor/src/Orchestrator.h` | Central state manager, undo journal, Emacs integration |
+| `editor/src/EmacsIntegration.h` | ElispCommandBuilder + EmacsConnection lifecycle |
+
+---
+
+## Architecture Notes
+
+- **Editor** (`whetstone_editor`): ImGui + SDL2 + OpenGL3. Docking layout, 19+ language parsers/generators, LSP client, full annotation taxonomy (67+ types, 10 subjects), workflow model, security analysis. Sprint 40 adds HiveMind integration panels.
+- **MCP Server** (`whetstone_mcp`): Headless standalone binary, no GUI deps. Launched by Claude Code or any MCP client over stdio. Key tools: `whetstone_architect_intake`, `whetstone_generate_taskitems`, `whetstone_queue_ready` (Sprint 36), all code generation and annotation tools (Sprint 9+).
+- **Orchestration Engine**: Annotation-driven routing — Deterministic / SLM / LLM / Human tiers. Context assembly with budget enforcement. ReviewGates for human-in-loop.
+- **Language Coverage**: 19+ parsers and generators — Python, C++, Elisp, JS/TS, Java, Rust, Go, Kotlin, C#, F#, VB.NET, SQL, C, WebAssembly, Common Lisp, Scheme, x86 Assembly, ARM Assembly, Org-mode.
+- **Project Integration** (Sprints 38–40): `whetstone_schema_to_cpp` generates typed C++ from JSON schemas. MQTT and SQLite boilerplate generators. Sprint 40 adds swarm status, apiary browser, energy context, entropy scanner, pilot queue, and cross-session context bridge panels — generic integration surfaces usable by any distributed job system consuming the MCP tools.
+
+---
+
+## What's Next
+
+**Sprints 1–45 complete. Sprint 46 not yet planned.**
+
+The full MCP tool suite (90 tools) is ready. New sprint work should start
+with a `sprint46_plan.md` following the established sprint plan format.
+Check `feature-requests.md` and `FEATURE_REQUESTS.md` for queued capability work.
+
+The `whetstone_mcp` binary is registered in `/home/bill/Documents/.mcp.json`
+for use by Claude Code sessions in the `/home/bill/Documents` workspace.
+
+---
+
+
+---
+
+## Detailed Sprint Records — Sprint 9+ (Steps 245+)
 
 # Sprint 9 Progress — Agent-First Tooling
 
@@ -14509,3 +15151,256 @@ Implemented deterministic remediation routing and autonomous loop evidence contr
 - 26/26 gaps: done
 - 0/26 gaps: partial
 - 0/26 gaps: open
+
+---
+
+## Sprint 271 — LanguageFitnessScorer: Phase 1 Polyglot Orchestrator (2026-03-01)
+
+### Goal
+Language fitness scoring — analyze an AST subtree and recommend which language is best
+suited based on computational shape.
+
+### Files Created
+- `editor/src/ASTFeatureExtractor.h` — extracts 5 scalar features from JSON AST subtrees:
+  mutation ratio, recursion shape (Flat/Tail/Tree), concurrency primitive (Channels/SharedMemory/Actors),
+  I/O pattern (Blocking/Async/EventDriven), type complexity (SimpleGenerics/DependentTypes)
+- `editor/src/LanguageIdiomProfile.h` — 8 static language profiles (Python/Rust/Go/Haskell/C++/TypeScript/Elixir/Lisp)
+  each with ideal values for all 5 feature dimensions
+- `editor/src/LanguageFitnessScorer.h` — scores ASTFeatures against all profiles,
+  returns JSON array sorted descending by score with rationale strings
+- `editor/src/mcp/RegisterLanguageFitnessTools.h` — MCP wiring for `whetstone_score_language_fitness`
+  (accepts ast object or manual hint overrides for each feature dimension)
+- `editor/src/Sprint271IntegrationSummary.h` — sprint metadata
+
+### Tests
+| Step | Component | Tests | Result |
+|------|-----------|-------|--------|
+| 1883 | ASTFeatureExtractor | 5 | 5/5 PASS |
+| 1884 | LanguageIdiomProfile | 5 | 5/5 PASS |
+| 1885 | LanguageFitnessScorer | 5 | 5/5 PASS |
+| 1886 | MCP tool wiring | 5 | 5/5 PASS |
+| 1887 | Sprint 271 integration | 5 | 5/5 PASS |
+
+### Key Acceptance Criteria Met
+- Data-parallel reduction → Rust ranks higher than Python and Lisp ✓
+- Supervision tree with restart → Elixir ranks #1 ✓
+- Go ideal features → Go ranks #1 with score >= 75 ✓
+- Haskell ideal features → Haskell ranks #1 ✓
+- `whetstone_score_language_fitness` MCP tool wired and whetstone_mcp builds clean ✓
+
+### whetstone_mcp
+- New tool: `whetstone_score_language_fitness` (accepts ast JSON or hint overrides)
+- Binary rebuilt successfully, all MCPServer compilation errors resolved
+
+### LoRA Recording
+- Session: sprint271-polyglot-fitness-2026-03-01
+- Tool calls captured: 5 (architect_intake, generate_taskitems, 3x generate_code)
+- Estimated tokens in training data: 6016
+
+---
+
+## Session Log
+
+| Date | Agent | Work Done |
+|------|-------|-----------|
+| Pre-Sprint 2 | Multiple | Sprint 1 MPS prototype, language definitions, textgen |
+| Sprint 2 | Multiple | Steps 1–38 implemented sequentially |
+| Sprint 3 start | Unknown | Sprint 3 plan written, TDD stubs for steps 39–71 committed |
+| Sprint 3 | Unknown | Phase 3a steps 39–44 implemented (CppGenerator + canonical annotations) |
+| Sprint 3 | Unknown | Steps 34–38 re-committed with different implementations (agent API, batch mode) |
+| 2025-latest | Claude | Build infrastructure: vcpkg.json, CMakePresets.json, build.ps1, setup.iss, Linux scripts |
+| 2025-latest | Claude | Fixed 7 build errors (ElispGenerator, Orchestrator, main.cpp, orchestrator_main.cpp) |
+| 2025-latest | Claude | Vendored imgui SDL2 backend (vcpkg removed sdl2-binding feature) |
+| 2025-latest | Claude | Created Windows installer (Inno Setup), verified it installs and runs |
+| 2025-latest | Claude | Fixed editor hang when launched without orchestrator pipe |
+| 2026-02-07 | Claude Opus 4.6 | Step 60: Implemented ASTQueryAPI (tree walk, JSON output, find by type/property/annotation). 8/8 tests pass. Added PROGRESS.md. |
+| 2026-02-08 | Claude Opus 4.6 | Phase 3b: Real tree-sitter integration (Steps 45–49). Replaced Parser.h stubs with real tree-sitter C bindings. Python/C++/Elisp CST-to-AST conversion, memory pattern detection, error recovery. 34/34 tests pass. |
+| 2026-02-08 | Claude Opus 4.6 | Phase 3c: Steps 50–53. TextASTSync (bidirectional text↔AST sync with debounce) and TextEditor (edit ops, undo/redo with AST tracking, find/replace, selection). 19/19 tests pass. Fixed step53 find-position bug (was off-by-one). |
+| 2026-02-08 | Claude Opus 4.6 | Phase 3c complete: Steps 52+54. SyntaxHighlighter (tree-sitter CST→color spans for Python/C++/Elisp). KeybindingManager (VSCode/JetBrains/Emacs profiles, default VSCode). 37/37 total Phase 3c tests pass. Design pivot: editor targets VSCode/JetBrains look, not Emacs. |
+| 2026-02-08 | Claude Opus 4.6 | GUI wiring: Rewrote main.cpp from Step 12 scaffold to functional editor. VSCode Dark theme, docking layout, editable text with TextEditor/TextASTSync, syntax-highlighted preview, live AST view, generated code tab, find/replace, keybinding profile selector, status bar. Fixed WMOD_ prefix (Windows MOD_SHIFT/MOD_ALT macro conflicts). whetstone_editor.exe builds and links. |
+| 2026-02-08 | Claude Opus 4.6 | Phase 3d complete: Steps 55–58. WelcomeScreen (actions, recent files, tips). ElispCommandBuilder+MockEmacsConnection (Elisp escaping, daemon lifecycle). BufferManager (multi-file open/close/switch). EditorMode (per-language indent/comment/brackets/snippets for Python/C++/Elisp). 28/28 tests pass. |
+| 2026-02-08 | Claude Opus 4.6 | Step 59: WebSocketAgentServer with transport abstraction (WebSocketTransport base + MockWebSocketTransport), session management (connect/disconnect/unique IDs), JSON-RPC routing (ping/pong, setAgentName, listSessions, getSessionInfo), custom handler delegation. 10/10 tests pass. |
+| 2026-02-08 | Claude Opus 4.6 | Step 61: ASTMutationAPI with setProperty, updateNode (bulk), deleteNode, insertNode. OptimizationLock walk-up warning (warn, don't reject). Operation journal. Added removeChild() to ASTNode. 6/6 tests pass. |
+| 2026-02-08 | Claude Opus 4.6 | Step 62: ContextAPI with getInScopeSymbols (ancestor scope walk: function params/locals + module vars/functions), getCallHierarchy (FunctionCall scan → caller/callee resolution), getDependencyGraph (VariableReference → declaration lookup). 6/6 tests pass. |
+| 2026-02-08 | Claude Opus 4.6 | Step 63: BatchMutationAPI with atomic applySequence. Captures undo closures per mutation; on failure, rolls back in reverse order. Supports setProperty/insertNode/deleteNode. Journal recorded on success. Phase 3e complete (35/35 tests across steps 59–63). 5/5 tests pass. |
+| 2026-02-08 | Claude Opus 4.6 | Step 64: AnnotationValidator. @Deallocate(Explicit) → checks for dealloc evidence (FunctionCall to delete/free), emits "Missing Intent" error if absent. @Owner(Single) → scans for aliasing assignments to local vars. Conflicting same-family annotations on parent/child → conflict error. 5/5 tests pass. |
+| 2026-02-08 | Claude Opus 4.6 | Step 65: MemoryStrategyInference. Language-based defaults (Python/Elisp/Ruby/JS/Java→Tracing, C→Explicit, Rust→Single, Swift→Shared_ARC, C++→RAII). Per-function alloc/dealloc pattern scan. Confidence scores. Read-only (never modifies AST). 5/5 tests pass. |
+| 2026-02-09 | Claude Opus 4.6 | Phase 3g complete: Optimization Pipeline (Steps 68–71). TransformEngine (constant folding, DCE, OptimizationLock warning). StrategyAwareOptimizer (annotation-constrained: @Reclaim allows, @Owner blocks duplication, @Deallocate blocks reorder, @Allocate blocks dynamic). StrategyValidator (use-after-free, leak, aliasing detection). IncrementalOptimizer (journal, undo by ID, provenance). 17/17 tests pass. |
+| 2026-02-09 | Claude Opus 4.6 | Phase 3h complete: Integration & Validation (Steps 72–75). Pipeline (end-to-end parse→infer→validate→optimize→generate across Python/C++). Error handling (8 edge cases: null roots, empty ASTs, nonexistent IDs). Performance benchmarks (1000-fn AST in 1ms, JSON round-trip 4ms). APIDocGenerator (23 components, 6 categories, markdown output). 26/26 tests pass. **Sprint 3 complete: all 75 steps done.** |
+| 2026-02-09 | Claude Opus 4.6 | Step 76: LayoutManager with 3 preset docking layouts (VSCode/Emacs/JetBrains). Panel visibility/ratio queries, dirty flag, save/load persistence. 10/10 tests pass. Sprint 4 started. |
+| 2026-02-09 | Codex | Step 77: Custom code editor renderer (CodeEditorWidget). Per-token coloring, cursor/selection/input, blinking cursor, whitespace toggle. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 78: Line numbers and gutter. Gutter width auto-adjusts, current line highlight, gutter click selects line. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 79: Auto-indent and smart editing. EditorMode wired for newline indent, tab spacing, and bracket auto-close. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 80: Selection and clipboard operations (Ctrl+C/X/V, shift-extend, double/triple click). 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 81: Code folding with tree-sitter fold regions and gutter toggles. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 82: Minimap overview with viewport indicator and click-to-scroll. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 83: Added tree-sitter grammars for JS/TS/Java/Rust/Go and editor modes; syntax highlighting extended to 8 languages. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 84: Native file dialogs via tinyfiledialogs; FileDialog wrapper with injectable provider. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 85: Filesystem tree with .gitignore filtering and Explorer rendering. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 86: Multi-tab editing wired via BufferManager with per-buffer state. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 87: Welcome screen wired with recent files persistence and quick actions. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 88: Drag-and-drop open for files and folders. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 89: File watcher polling with auto-reload for clean buffers. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 90: LSPClient core with JSON-RPC initialize/shutdown and injectable transport. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 91: LSP diagnostics integration: didOpen/didChange/didSave notifications, publishDiagnostics parsing, Problems panel with jump-to-location. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 92: LSP completion requests/response parsing; completion popup with filtering and acceptance. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 93: LSP hover and signature help requests/response parsing; tooltip and signature popup. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 94: Whetstone diagnostics aggregation via Pipeline; merged Problems panel and gutter markers. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 94a: AST source span tracking (tree-sitter) with JSON serialization. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 95: Diagnostic gutter markers with tooltips and inline squiggles. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 96: LSP server settings UI with defaults, auto-detect, and schema validation hook. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 97: Annotation gutter markers with hover details and click-to-open placeholder editor. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 98: Inline annotation tags with layout-aware placement and view toggle. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 99: Annotation context menu (add/edit/remove) via ASTMutationAPI. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 100: Memory strategy suggestions with lightbulb icons and apply popup. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 101: Annotation conflict highlighting with quick-fix actions. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 102: Memory strategy dashboard panel with counts and JSON export. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 103: Side-by-side generated code view with scroll lock, target language selector, and line highlighting. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 104: Cross-language projection button with read-only projected tabs and annotation summary. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 105: Optimization controls panel with constraint-aware buttons and summaries. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 106: Transform history panel with undo controls and provenance coloring. 1/1 tests pass. |
+| 2026-02-09 | Codex | Planned Step 107a–107c: add Text-Editor Mode toggle, mode-specific UI behavior, and per-buffer persistence. |
+| 2026-02-09 | Codex | Step 107: Before/after diff view with preview and accept/reject. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 107a: Text-Editor Mode toggle and per-buffer mode tracking. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 107b: Mode-specific UI behavior and feature gating. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 107c: Per-buffer mode persistence in recent files. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 108: Batch mutation UI with refactor actions and diff preview. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 109: Command palette with fuzzy search and MRU ranking. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 110: Go-to-definition (LSP + Whetstone) with hover preview. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 111: Symbol outline panel with LSP + AST fallback. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 112: Breadcrumb navigation with scope roles. 1/1 tests pass. |
+| 2026-02-09 | Codex | Step 113: Project-wide search panel with regex and glob filters. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 114: Go-to-line popup with :line:col parsing. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 115: Orchestrator wired for structured mutations; Emacs config path setting. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 116: Project save/load (.whetstone) with AST serialization. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 117: Session persistence (layout, buffers, cursors, folds). 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 118: Settings panel + persistence. 11/11 tests pass. |
+| 2026-02-09 | Codex | Step 119: Zoom controls and status bar indicator. 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 120: Unified undo/redo via orchestrator snapshots (per-buffer), status bar undo depth, snapshot-based undo/redo wiring. 4/4 tests pass. |
+| 2026-02-09 | Claude Opus 4.6 | Pre-Sprint 5 refactoring: Created ARCHITECTURE.md (coding standards). Split Generator.h (2150→4 files, shared dispatch eliminates 279 lines duplication). Extracted EditorState.h and EditorUtils.h from main.cpp (4102→~2235 lines). Pinned 6 FetchContent deps to release tags. Orchestrator.h cleanup: wired CppGenerator, added platform guards, fixed shell injection, replaced stale TODOs with STUB markers. Sprint 4 marked complete (Steps 121–126 deferred to Sprint 5). |
+| 2026-02-09 | Codex | Step 121: Added Import, ExternalModule, TypeSignature AST concepts with serialization + schema wiring. 10/10 tests pass. |
+| 2026-02-09 | Codex | Step 122: Integrated terminal panel with command runner, ANSI color rendering, and Ctrl+` toggle. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 123: Run/build command support with toolbar buttons, build menu, and status bar run state. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 124: Agent server wiring (Mock transport), RPC handler, and Agents tab/log. 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 125: Agents panel enhancements (permissions, disconnect, request logging). 2/2 tests pass. |
+| 2026-02-09 | Codex | Added integration test for Step 125 agent mutation flow; updated testing policy in ARCHITECTURE.md. 3/3 integration tests pass. |
+| 2026-02-09 | Codex | Step 126: Build system detection, build commands, and error parsing/jump. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 127: Package registry abstraction stubs for major ecosystems. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 128: Dependency file parsing with Import population. 6/6 tests pass. |
+| 2026-02-09 | Codex | Step 129: Dependency management UI panel with add/remove/update, source targeting, and writeback support for requirements.txt/package.json/Cargo.toml/go.mod/vcpkg.json. 8/8 tests pass. |
+| 2026-02-09 | Codex | Step 130: LSP workspace symbol + completion indexing for dependencies with ExternalModule population and library index polling. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 131: Stub-based library indexing (pyi/d.ts/headers/lib.rs) with workspace scan fallback. 8/8 tests pass. |
+| 2026-02-09 | Codex | Step 132: Library symbol browser panel with filtering, doc detail display, and insert template helpers. 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 133: Import statement generation + unused import warnings across Python/JS/Rust/Go/Elisp with auto-insert on library symbol use. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 134: PrimitivesRegistry aggregating builtins, imports, and in-scope symbols. 6/6 tests pass. |
+| 2026-02-09 | Codex | Step 135: Library-aware completion ordering with auto-import hints for non-primitive symbols. 5/5 tests pass. |
+| 2026-02-09 | Codex | Step 136: Agent preferImports/strictMode policy checks on mutations with warnings or blocking. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 137: Composition builder panel with pipeline generation and code insertion. 4/4 tests pass. |
+| 2026-02-09 | Codex | Step 138: Type-aware C++ generation via library call mappings. 2/2 tests pass. |
+| 2026-02-09 | Codex | Step 139: Library compatibility matrix with default mappings. 3/3 tests pass. |
+| 2026-02-09 | Codex | Step 140: Constructive coding integration tests covering imports, policy modes, composition, and type-aware generation. 7/7 tests pass. |
+| 2026-02-09 | Codex | Step 141: Emacs daemon startup uses user config path with init logging and diagnostics. 4/4 tests pass. |
+| 2026-02-09 | Codex | Added FEATURE_REQUESTS.md to track security vulnerability awareness and semantic library annotations for future sprints. |
+| 2026-02-09 | Codex | Added LLM tooling + MCP bridge feature request to FEATURE_REQUESTS.md. |
+| 2026-02-10 | Codex | Step 142: Emacs package browser panel with loaded/available status, load actions, and package queries via emacsclient. 7/7 tests pass. |
+| 2026-02-10 | Codex | Step 143: Elisp function discovery via apropos/describe-function, Emacs function indexing into ExternalModule + LibraryIndex, and elisp primitive updates. 7/7 tests pass. |
+| 2026-02-10 | Codex | Step 144: Emacs keybinding integration (prefix handling, M-x minibuffer, mode line display, key-binding lookup via daemon). 11/11 tests pass. |
+| 2026-02-10 | Codex | Step 145: Org-mode rendering with headings/blocks, editable source blocks, inline results, org temp runner, and tree-sitter-org integration. 11/11 tests pass. |
+| 2026-02-10 | Codex | Step 146: Emacs-Whetstone bridge with buffer pull/push, Emacs frame opening, and sync commands. 5/5 tests pass. |
+| 2026-02-10 | Codex | Step 147: JavaScript/TypeScript CST-to-AST parsing with functions, params, classes, and arrow-function discovery. 4/4 tests pass. |
+| 2026-02-10 | Codex | Step 148: JavaScript/TypeScript generator with imports, class method grouping, type annotations, and WeakRef/FinalizationRegistry mapping. 6/6 tests pass. |
+| 2026-02-10 | Codex | Step 149: Java CST-to-AST parsing + generator with class/method/constructor handling, import support, and GC-aware annotations. 8/8 tests pass. |
+| 2026-02-10 | Codex | Step 150: Rust CST-to-AST parsing + generator with impl methods, imports, and RAII annotations. 7/7 tests pass. |
+| 2026-02-10 | Codex | Step 151: Go CST-to-AST parsing + generator with receivers, imports, and Go-style control flow. 8/8 tests pass. |
+| 2026-02-10 | Codex | Step 152: Cross-language projection extended for new languages with annotation adaptation and richer node cloning. 6/6 tests pass. |
+| 2026-02-10 | Codex | Step 153: Language coverage integration tests across all supported languages + full projection matrix. 208/208 tests pass. |
+| 2026-02-10 | Codex | Step 154: Agent library context payload sent on connect with primitives snapshot. 4/4 tests pass. |
+| 2026-02-10 | Codex | Step 155: Agent library-aware code generation RPC + generator helper. 3/3 tests pass. |
+| 2026-02-10 | Codex | Step 156: Agent annotation assistant RPC with suggestions/diagnostics, feedback learning, and mutation apply helpers. 5/5 tests pass. |
+| 2026-02-10 | Codex | Step 157: Multi-agent roles with permission policy, agent provenance in transform history, and UI role controls. 8/8 tests pass. |
+| 2026-02-10 | Codex | Step 158: Agent workflow recorder with JSON export, replay support, and RPC wiring. 5/5 tests pass. |
+| 2026-02-10 | Codex | Step 159: Agent marketplace registry with UI panel, install toggles, and registry serialization. 6/6 tests pass. |
+| 2026-02-10 | Codex | Step 160: Theme engine with JSON themes, ImGui styling, and syntax/editor color mapping. 4/4 tests pass. |
+| 2026-02-10 | Codex | Step 161: Plugin API + loader with registry hooks for concepts/generators/grammars/annotations/panels/commands. 10/10 tests pass. |
+| 2026-02-10 | Codex | Step 162: Help panel with Markdown sections + docs/help.md wired in UI. 4/4 tests pass. |
+| 2026-02-10 | Codex | Step 163: Telemetry + crash logging (opt-in), settings toggle, and log writer. 3/3 tests pass. |
+| 2026-02-10 | Codex | Step 164: Update checker stub + installer manifests/config, settings UI for update URL. 3/3 tests pass. |
+| 2026-02-10 | Codex | Step 165: Sprint 5 integration tests across primitives, projection, pipeline, composition, and Emacs indexing. 8/8 tests pass. |
+| 2026-02-10 | Codex | Added `file_limits_test` to enforce architecture file size limits (with temporary allowlist for known oversize headers). 4/4 tests pass. |
+| 2026-02-10 | Codex | Step 167: Split EditorState into focused sub-states (Search/Agent/Build/Library/Emacs/UI), updated panels/handlers, and added step167_test. 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 168: Split oversized editor/AST component headers (CodeEditorWidget, SyntaxHighlighter, Parser, CppGenerator) with new step168 unit + integration tests. 79/79 tests pass (step168_test 75/75, step168_integration_test 4/4). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 169: Notification/toast system with status bar history, output log rewire, and notification tests. 2/2 tests pass (step169_test, step169_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 170: UI event bus with debounced dispatch, editor wiring, and settings/theme events. 2/2 tests pass (step170_test, step170_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 171: Theme engine core enhancements (ThemeColor API, user theme dir, hot reload) with tests. 2/2 tests pass (step171_test, step171_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 172: Bundled theme pack renamed to Whetstone Dark/Light and Monokai Pro with tests. 2/2 tests pass (step172_test, step172_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 173: Theme gallery UI with hover preview, apply/reset, and swatches. 2/2 tests pass (step173_test, step173_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 174: Added IconSet system with theme-aware, zoom-scaled icons + tests. 2/2 tests pass (step174_test, step174_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 175: Typography controls (fonts, line height, letter spacing) + theme layout spacing. 2/2 tests pass (step175_test, step175_integration_test). file_limits_test 4/4 passes. |
+| 2026-02-10 | Codex | Step 176: Smooth UI transitions (panel slides, tab fade, tooltip fade, toast animations, search pulse, cursor blink) + reduce-motion/cursor blink settings. 2/2 tests pass (step176_test, step176_integration_test). |
+| 2026-02-10 | Codex | Step 177: Enhanced find/replace (match counts, regex preview, replace preview, selection scope, history, toggles, find next/prev) with SearchUtils. 2/2 tests pass (step177_test, step177_integration_test). |
+| 2026-02-10 | Codex | Step 178: Multi-cursor editing (Alt+Click, Ctrl+D, Ctrl+Alt+Up/Down, column selection) with multi-caret rendering and shared edits. 2/2 tests pass (step178_test, step178_integration_test). |
+| 2026-02-10 | Codex | Step 179: Rainbow brackets, bracket-pair highlight, scope tint, and auto-surround with language-specific auto-close. 2/2 tests pass (step179_test, step179_integration_test). |
+| 2026-02-10 | Codex | Step 180: Rich tooltip system with markdown rendering, pinning, max size/scrolling, and tooltip replacements. 2/2 tests pass (step180_test, step180_integration_test). |
+| 2026-02-10 | Codex | Step 181: Enhanced status bar (mode/language/encoding segments, centered notifications, selection counts, git branch, adaptive background). 2/2 tests pass (step181_test, step181_integration_test). |
+| 2026-02-10 | Codex | Step 182: Problems panel overhaul with grouping, sortable table, and diagnostic badges on tabs. 2/2 tests pass (step182_test, step182_integration_test). |
+| 2026-02-10 | Codex | Step 183: Tab reordering and untitled rename flow, plus buffer rename support. 2/2 tests pass (step183_test, step183_integration_test). |
+| 2026-02-10 | Codex | Step 184: First-run wizard (layout/theme/keybindings + get-started actions) wired on missing session. 2/2 tests pass (step184_test, step184_integration_test). |
+| 2026-02-10 | Codex | Step 185: Contextual feature hints with persistence + dismiss/disable. 2/2 tests pass (step185_test, step185_integration_test). |
+| 2026-02-10 | Codex | Step 186: Keyboard shortcut reference panel with filter and live bindings. 2/2 tests pass (step186_test, step186_integration_test). |
+| 2026-02-10 | Codex | Step 187: In-editor help panel window wired from menu with Markdown renderer reuse. 2/2 tests pass (step187_test, step187_integration_test). |
+| 2026-02-10 | Codex | Step 188: Command palette upgrade (command/file modes, categories, recent section, context-aware filtering, inline params, fuzzy highlights). 1/1 tests pass (step188_test). |
+| 2026-02-10 | Codex | Step 189: Guided workflow wizards (annotate file, cross-language project, connect agent) with shared wizard framework. 1/1 tests pass (step189_test). |
+| 2026-02-10 | Codex | Step 190: Vulnerability database (OSV parsing, cache+TTL, offline mode, query/range matching, background refresh hook). 1/1 tests pass (step190_test). |
+| 2026-02-10 | Codex | Step 191: Dependency security badges with severity colors, advisory details, safe upgrade path, and ignore list persistence. 1/1 tests pass (step191_test). |
+| 2026-02-10 | Codex | Step 192: Security diagnostics integration (gutter shields, [Security] problems, vulnerable import blocking, and agent import deprioritization). 1/1 tests pass (step192_test). |
+| 2026-02-10 | Codex | Step 193: Semantic library tags (semantic_tags.json storage, auto-tagging heuristics, tags attached to ExternalModule/TypeSignature). 1/1 tests pass (step193_test). |
+| 2026-02-10 | Codex | Step 194: Semantic-filtered library browser (tag filter bar, active tag chips, tag badges, context-aware completion boosting, agent tag context). 1/1 tests pass (step194_test). |
+| 2026-02-10 | Codex | Step 195: Security & semantic UX tests (vulnerability badges/advisories, security diagnostics severity mapping, semantic tag auto-assign, library tag filtering, vulnerable import deprioritization, safe upgrade writeback). 1/1 tests pass (step195_test). |
+| 2026-02-10 | Codex | Step 196: High contrast + colorblind modes (high contrast theme, annotation shapes toggle, diagnostic pattern underlines). 1/1 tests pass (step196_test). |
+| 2026-02-10 | Codex | Step 197: Keyboard navigation audit (F6 panel cycle, Esc focus return, focus ring defaults, nav focus enabled on panels). 1/1 tests pass (step197_test). |
+| 2026-02-10 | Codex | Step 198: Virtual scrolling for large files (viewport + buffered rendering, fold hiding optimized). 1/1 tests pass (step198_test). |
+| 2026-02-10 | Codex | Step 199: Large file handling (size thresholds, text-mode fallback, large file prompt, highlight disable, memory indicator). 1/1 tests pass (step199_test). |
+| 2026-02-10 | Codex | Step 200: Startup/perf (LSP & highlight debounce, deferred AST sync on session restore, debug frame budget warnings). 1/1 tests pass (step200_test). |
+| 2026-02-10 | Codex | Step 201: Sprint 6 integration checks (panel wiring, theme switching, multicursor, first-run wizard, security badge, keyboard navigation, large file settings, notifications). 1/1 tests pass (step201_test). |
+| 2026-02-10 | Codex | Step 220: Evaluation framework scaffolding (EvalHarness, task/trace loading, scoring). 1/1 tests pass (step220_test). |
+| 2026-02-10 | Codex | Step 221: Evaluation basic task suite (30 tasks across core tool flows). 1/1 tests pass (step221_test). |
+| 2026-02-10 | Codex | Step 222: Evaluation workflow task suite (20 multi-step tasks). 1/1 tests pass (step222_test). |
+| 2026-02-10 | Codex | Step 223: Evaluation runner CLI (whetstone_eval, task/trace/report pipeline). 1/1 tests pass (step223_test). |
+| 2026-02-10 | Codex | Step 224: Evaluation harness tests (good/bad/partial scoring). 1/1 tests pass (step224_test). |
+| 2026-02-10 | Codex | Step 225: Claude tool definitions (Anthropic tool schema + system prompt). 1/1 tests pass (step225_test). |
+| 2026-02-10 | Codex | Step 226: OpenAI tool definitions (function schema + system prompt). 1/1 tests pass (step226_test). |
+| 2026-02-10 | Codex | Step 166: Extract main.cpp into panel headers marked complete (already implemented). step166_test passes; file_limits_test 4/4 passes. |
+| 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7a (Steps 202–206): API docs (AGENT_API.md, 23 methods), JSON schemas (20 files), exposed ContextAPI/BatchMutationAPI/Pipeline via RPC, permission policy updates. 51/51 tests pass. |
+| 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7b (Steps 207–213): MCPServer.h (10 tools, 5 resources, 4 prompts, JSON-RPC 2.0 initialize handshake), MCPBridge.h (stdio transport). 90/90 tests pass. |
+| 2026-02-10 | Claude Opus 4.6 | Sprint 7 Phase 7c (Steps 214–219): TraceGenerator.h (6 scenario templates, 9-sample code corpus, batch engine), TraceExporter.h (Anthropic/OpenAI/JSONL/Markdown export, filtering, statistics). 294/294 tests pass. |
+| 2026-02-10 | Codex | Step 227: Open-source model tool definitions (ReAct-style prompt, XML tool call format, simplified schemas, adapter rules). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 228: Prompt engineering templates (5 prompt files with system/user templates, expected tools, success criteria). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 229: Tool definition tests (schema alignment, prompt coverage, examples validation, prompt variable checks). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 230: Enhanced session recorder (metadata, event capture, ms timestamps, UI toggle, auto-record setting). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 231: Session anonymizer (paths, secrets, identifier anonymization, comment/string stripping, levels, deterministic seed). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 232: Session-to-trace converter (events->user msgs, RPC->tool calls/results, gap splitting, synthetic thinking). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 233: Training data pipeline CLI (load/anonymize/convert/filter/dedup/export + stats). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 234: Session pipeline tests (anonymizer round-trip, no PII, trace conversion, pipeline output count, quality filter, dedup). 1/1 tests pass. |
+| 2026-02-10 | Codex | Step 241: Text-first default mode (default buffer mode Text, settings preference, wizard step, tips updated). 1/1 tests pass (`file_limits_test`). |
+| 2026-02-10 | Codex | Step 242: DockBuilder initial layout on first launch + View→Reset Layout (applies preset docking for Explorer/Editor/Panel and tool windows). Tests not run. |
+| 2026-02-10 | Codex | Step 243: First-launch polish — Explorer shows Open Folder prompt when no workspace, status bar shows “Text Mode/Structured Mode”, bottom panel collapses on initial layout/reset. Tests not run. |
+| 2026-02-10 | Codex | Ubuntu 24 build portability pass: fixed Linux/GCC compile/link regressions and validated product target build (`whetstone_editor`, `orchestrator`) via `installer/linux/build.sh`. Updated Linux build/install scripts with explicit prerequisite checks/deps and product-target build mode. |
+| 2026-02-10 | Codex | Step 244: Added integration-style test target `step244_test` validating text-first defaults, mode policy gating, per-buffer mode persistence, VSCode preset layout ratios, and settings-driven default buffer mode mapping. 6/6 checks pass (`./editor/build/step244_test`). |
+| 2026-02-18 | Claude Code | Sprint 41 complete (Steps 664–668): registered `SchemaToCppGenerator` as `whetstone_schema_to_cpp` and `JobDispatchTableGenerator` as `whetstone_generate_dispatch_table` via new `RegisterCodegenTools.h`. Wired into `MCPServer.h` + `RegisterOnboardingAndAllTools.h`. `tools.json` updated (82→84 tools). `whetstone_mcp` rebuilt and smoke-tested over MCP stdio. 40/40 tests passing. |
+| 2026-02-19 | Codex | Sprint 42 complete (Steps 669–673): added `ProjectSkeletonGenerator` and `InferenceJobGenerator`; stabilization pass fixed class-scope `json` alias collisions in those headers and test include ordering for Steps 669/670. Rebuilt `whetstone_mcp`. Tool count 84→86. Steps 669–673 all pass. |
+| 2026-02-19 | Codex | Sprint 43 complete (Steps 674–678): added `WorkspaceFileIndex`, `ContextSliceAssembler`, `TokenBudgetEnforcer`, and MCP tool `whetstone_assemble_context` via new `RegisterContextTools.h`. Tool count 86→87. Full matrix passes (52/52). |
+| 2026-02-19 | Codex | Sprint 44 complete (Steps 679–683): added `PrerequisiteOpResolver`, `SelfContainmentScorer`, `TaskitemQualityAuditor`, and MCP tool `whetstone_validate_taskitem` via new `RegisterValidationTools.h`. Tool count 87→88. Full matrix passes (52/52). |
+| 2026-02-19 | Codex | Sprint 45 complete (Steps 684–688): added `AgentSessionRecorder`, `TaskCompletionMetrics`, `ABTestComparison`, MCP tools `whetstone_start_recording` + `whetstone_get_metrics` via new `RegisterMetricsTools.h`, and live MCP tool-call instrumentation in dispatch path. Tool count 88→90. Full matrix passes (52/52). |
+| 2026-02-19 | Claude Code | Updated PROGRESS.md sprint table and session log to reflect Sprints 41–45 (was stale at Sprint 40). Created `CLionProjects/whetstone_DSL/CLAUDE.md` for Claude Code session orientation. |
+| 2026-02-23 | Codex | Data-pipeline expansion: added run-spec-first orchestration (`tools/mcp/run_spec_batch_with_capture.sh`), decoupled pipeline inputs from sprint plans in `tools/mcp/run_sprint_taskitem_pipeline.sh`, generated novelty corpus (`datasets/run_specs/*`), and introduced category-balanced build controls (`tools/mcp/build_category_balanced_dataset.sh`) plus novelty churn loop (`tools/mcp/run_novelty_churn_loop.sh`). |
+| 2026-02-23 | Codex | Multi-project corpus added for anti-local-minima coverage: `example_projects/` (10 curated fixtures), `datasets/example_run_specs/` (600 project-scoped specs), generator script `tools/mcp/generate_example_projects_and_specs.sh`, novelty loop integration (`INCLUDE_EXAMPLE_PROJECT_SPECS=1`), and batch-summary collision fix (`run_spec_batch_with_capture.sh` unique stamp). |
+| 2026-02-23 | Codex | Data quality metadata upgrade: `tools/mcp/reclassify_tool_execution_quality.sh` now writes `tool_call_success`, `failure_class`, `recovery_pattern`, `failure_terminality`, `quality_schema_version=2`; loop now reclassifies each cycle and emits UTC heartbeat telemetry. Session ended with churn intentionally stopped on user request. |
+| 2026-02-24 | Codex | Sprints 93–117 implemented in one pass: added step coverage 1159–1407 (models, MCP tool registrations, integration summaries, and tests), wired CMake targets, and validated representative build/run set (`step1159_test`, `step1165_test`, `step1208_test`, `step1248_test`, `step1308_test`, `step1348_test`, `step1358_test`, `step1368_test`, `step1378_test`, `step1388_test`, `step1398_test`, `step1407_test`) all passing. |
+| 2026-02-24 | Codex | Sprints 118–119 complete: added steps 1419–1438 (distributed failure evidence capture + deterministic cross-node triage), wired MCP registrations, added tests/CMake targets, and validated representative targets (`step1419_test`, `step1423_test`, `step1428_test`, `step1429_test`, `step1433_test`, `step1438_test`) all passing. |
+| 2026-02-26 | Codex | Sprint 169 implemented for production `run_pipeline` output: Python method receiver normalization (`self`/`cls` stripping), typed parameter/return extraction with text fallback, `__init__` field materialization, list literal handling, stronger C++ queue method typing, Rust/Go/Java method fallback scaffolding, and gate payload hardening (`reason` + `failure_reasons`). Rebuilt `whetstone_mcp` target and validated Python->C++ PriorityQueue sample with `overall_ready=true` plus production loop artifact at `logs/taskitem_runs/production_loop_20260225_181948`. |
+| 2026-02-26 | Codex | Sprint 170 implemented: `tools/mcp/evaluate_generated_code_gates.py` now executes real compile/test gates across C++/Python/Rust/Go, emits normalized diagnostics, and enforces strict-mode blocking on missing toolchain/failed gates. Added `editor/src/Sprint170IntegrationSummary.h` and taskitem artifact `logs/taskitem_runs/sprint170_plan_20260225_185146`. |
+| 2026-02-26 | Codex | Sprint 171 implemented: added deterministic remediation router (`tools/mcp/remediation_router.py`), upgraded production loop to chained generate→gate→pipeline-diagnostics→route with auditable `trace.jsonl` and explicit `green|blocked` contract, and added repeated benchmark runner `tools/mcp/run_production_benchmark_suite.sh`. Added `editor/src/Sprint171IntegrationSummary.h`; artifacts: `logs/taskitem_runs/sprint171_plan_20260225_185146`, `logs/taskitem_runs/production_loop_20260225_185133`, `logs/taskitem_runs/production_benchmark_20260225_185133`. |
+| 2026-02-26 | Codex | Sprint 172 executed: added deterministic compile-diagnostic include repair tool (`tools/mcp/apply_cpp_diagnostic_fixes.py`) and integrated auto-fix pass into production loop before blocked exit. Added `editor/src/Sprint172IntegrationSummary.h`; taskitem artifact `logs/taskitem_runs/sprint172_plan_20260225_190632`. |
+| 2026-02-26 | Codex | Sprint 173 executed: added pre-gate lint hook to `tools/mcp/evaluate_generated_code_gates.py` with explicit skipped/tool-missing signaling and optional strict lint blocking mode. Added `editor/src/Sprint173IntegrationSummary.h`; taskitem artifact `logs/taskitem_runs/sprint173_plan_20260225_190632`. |
+| 2026-02-26 | Codex | Sprint 174 executed: expanded debug-chain routing for include/compile classes in `tools/mcp/remediation_router.py`, added token-accounted A/B runner (`tools/mcp/run_ab_test_ast_vs_language_first.sh`) and estimator (`tools/mcp/estimate_tokens.py`), plus `editor/src/Sprint174IntegrationSummary.h`. Taskitem artifact `logs/taskitem_runs/sprint174_plan_20260225_190639`; strict production loop rerun reached `status=green` at `logs/taskitem_runs/production_loop_20260225_190639`. |
+| 2026-03-01 | Claude Code | Sprint 271 complete (Steps 1883–1887): LanguageFitnessScorer phase 1. Added ASTFeatureExtractor.h (5 scalar features from JSON AST), LanguageIdiomProfile.h (8 language profiles), LanguageFitnessScorer.h (weighted scoring + JSON output), RegisterLanguageFitnessTools.h (whetstone_score_language_fitness MCP tool). 25/25 tests passing. whetstone_mcp rebuilt and wired. LoRA session recorded (5 tool calls, 6016 tokens). |

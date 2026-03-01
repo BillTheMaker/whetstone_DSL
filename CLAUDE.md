@@ -14,7 +14,7 @@ is one of many projects that consumes it. Whetstone's core capabilities:
 - Semantic annotation DSL (SemAnno): annotate code with memory/ownership intent
 - 19+ language parsers and generators (Python, C++, Rust, Go, JS/TS, Java, and more)
 - Cross-language transpilation (AST-level, annotation-guided)
-- 90 MCP tools callable by any MCP client over stdio
+- 91+ MCP tools callable by any MCP client over stdio
 - Headless `whetstone_mcp` binary + full ImGui GUI editor (`whetstone_editor`)
 
 **Stack:** C++20, Dear ImGui + SDL2 + OpenGL3, nlohmann-json, tree-sitter, vcpkg, CMake
@@ -25,15 +25,15 @@ is one of many projects that consumes it. Whetstone's core capabilities:
 
 | Item | Value |
 |------|-------|
-| Last step | **Step 688** |
-| Last sprint | **Sprint 45 — COMPLETE** |
-| MCP tool count | **90 tools** |
-| Test matrix | 52/52 passing (Sprint 45 matrix) |
-| Architecture gate | All headers ≤ 600 lines |
-| `whetstone_mcp` binary | `editor/build-native/whetstone_mcp` (built 2026-02-19) |
+| Last step | **Step 1887** |
+| Last sprint | **Sprint 271 — COMPLETE** |
+| MCP tool count | **91 tools** |
+| Architecture gate | All headers ≤ 600 lines (pre-existing BufferOps.h violation) |
+| `whetstone_mcp` binary | `editor/build-native/whetstone_mcp` |
+| Active track | **Polyglot Orchestrator** (Phase 1 complete, Phase 2 next) |
 
-Sprint history: see `PROGRESS.md` for sprint-level summary,
-`progress.md` (lowercase, 14k+ lines) for step-by-step detail.
+Sprint history: see `progress.md` (15k+ lines) — single authoritative file,
+sprint summary table at top, step-by-step detail below.
 
 ---
 
@@ -47,7 +47,8 @@ Every sprint follows this exact pattern:
 5. Sprint integration summary step (always the 5th step)
 6. Full matrix verification before closing sprint
 
-**New sprint starts at Step 689. Create `sprint46_plan.md` first.**
+**New sprint starts at Step 1888. Sprint 272: fitness-routed 2-language test projects.**
+See `docs/polyglot_orchestrator_sprint_plan.md` for the full phase plan.
 
 ---
 
@@ -62,7 +63,7 @@ cmake --build editor/build-native --target whetstone_mcp --parallel
 cmake --build editor/build-native --target whetstone_editor --parallel
 
 # Run a specific step test
-./editor/build-native/step688_test
+./editor/build-native/step1887_test
 
 # Run the architecture gate
 ./editor/build-native/file_limits_test
@@ -125,8 +126,9 @@ Reference implementations: `RegisterCodegenTools.h`, `RegisterContextTools.h`,
 | `whetstone_validate_taskitem` | 44 | Score taskitem self-containment (0–100), batch audit report |
 | `whetstone_start_recording` | 45 | Start per-session tool-call recording |
 | `whetstone_get_metrics` | 45 | Get session metrics + A/B comparison vs baseline |
+| `whetstone_score_language_fitness` | 271 | Score AST features against language profiles → ranked list |
 
-Full tool list: `tools/claude/tools.json` (90 entries).
+Full tool list: `tools/claude/tools.json` (91 entries).
 
 ---
 

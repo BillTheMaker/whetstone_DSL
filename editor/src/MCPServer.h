@@ -36,6 +36,9 @@
 #include "SelfContainmentScorer.h"
 #include "TaskitemQualityAuditor.h"
 #include "AgentSessionRecorder.h"
+#include "ASTFeatureExtractor.h"
+#include "LanguageIdiomProfile.h"
+#include "LanguageFitnessScorer.h"
 #include "graduation/PairUpgradeQueue.h"
 #include "graduation/UpgradePriorityPolicy.h"
 #include "graduation/RuntimeAssumptionExtractor.h"
@@ -467,6 +470,7 @@ private:
     std::vector<MCPResource> resources_;
     std::vector<MCPPrompt> prompts_;
     std::map<std::string, std::function<json(const json&)>> toolHandlers_;
+    std::map<std::string, json> toolExecuteIdempotencyCache_;
     RpcCallback rpcCallback_;
     ResourceReader resourceReader_;
     bool initialized_ = false;
@@ -526,10 +530,12 @@ private:
         response["id"] = request.contains("id") ? request["id"] : json(nullptr);
         json toolArr = json::array();
         for (const auto& t : tools_) {
+            json schema = t.inputSchema;
+            if (!schema.contains("type")) schema["type"] = "object";
             toolArr.push_back({
                 {"name", t.name},
                 {"description", t.description},
-                {"inputSchema", t.inputSchema},
+                {"inputSchema", schema},
                 {"x-whetstone", {
                     {"contractVersion", t.contractVersion.empty() ? "1.0" : t.contractVersion},
                     {"compatibilityLedger", kCompatibilityLedgerPath}
@@ -703,6 +709,36 @@ private:
 
     static void appendWarning(json& warnings, const std::string& message) {
         warnings.push_back(message);
+    }
+
+    static long long nowEpochMs() {
+        auto now = std::chrono::system_clock::now().time_since_epoch();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    }
+
+    const MCPTool* findToolByName(const std::string& name) const {
+        for (const auto& t : tools_) {
+            if (t.name == name) return &t;
+        }
+        return nullptr;
+    }
+
+    static json validateRequiredFields(const json& schema, const json& input) {
+        json violations = json::array();
+        if (!schema.is_object()) return violations;
+        if (!schema.contains("required") || !schema["required"].is_array()) return violations;
+        for (const auto& req : schema["required"]) {
+            if (!req.is_string()) continue;
+            const std::string key = req.get<std::string>();
+            if (!input.is_object() || !input.contains(key)) {
+                violations.push_back({
+                    {"code", "MISSING_REQUIRED_FIELD"},
+                    {"path", "input." + key},
+                    {"message", "Missing required field: " + key}
+                });
+            }
+        }
+        return violations;
     }
 
     static std::string toLowerCopy(std::string s) {
@@ -1123,11 +1159,13 @@ private:
 #include "mcp/RegisterOrchestratorTools.h"
 #include "mcp/RegisterReviewTools.h"
 #include "mcp/RegisterArchitectIntakeTools.h"
+#include "mcp/RegisterToolContractTools.h"
 #include "mcp/RegisterCodegenTools.h"
 #include "mcp/RegisterModelingTools.h"
 #include "mcp/RegisterContextTools.h"
 #include "mcp/RegisterValidationTools.h"
 #include "mcp/RegisterMetricsTools.h"
+#include "mcp/RegisterLanguageFitnessTools.h"
 #include "mcp/RegisterPortingFoundationTools.h"
 #include "mcp/RegisterRustSemanticTools.h"
 #include "mcp/RegisterCppRaisingTools.h"

@@ -10819,3 +10819,23 @@ target_link_libraries(step1881_test PRIVATE nlohmann_json::nlohmann_json unoffic
 add_executable(step1882_test tests/step1882_test.cpp)
 target_include_directories(step1882_test PRIVATE src)
 target_link_libraries(step1882_test PRIVATE nlohmann_json::nlohmann_json unofficial::tree-sitter::tree-sitter tree_sitter_python tree_sitter_cpp tree_sitter_elisp tree_sitter_javascript tree_sitter_typescript tree_sitter_java tree_sitter_rust tree_sitter_go)
+
+add_executable(step1883_test tests/step1883_test.cpp)
+target_include_directories(step1883_test PRIVATE src)
+target_link_libraries(step1883_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1884_test tests/step1884_test.cpp)
+target_include_directories(step1884_test PRIVATE src)
+target_link_libraries(step1884_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1885_test tests/step1885_test.cpp)
+target_include_directories(step1885_test PRIVATE src)
+target_link_libraries(step1885_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1886_test tests/step1886_test.cpp)
+target_include_directories(step1886_test PRIVATE src)
+target_link_libraries(step1886_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1887_test tests/step1887_test.cpp)
+target_include_directories(step1887_test PRIVATE src)
+target_link_libraries(step1887_test PRIVATE nlohmann_json::nlohmann_json)
