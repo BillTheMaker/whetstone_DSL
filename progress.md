@@ -93,6 +93,7 @@
 ---
 
 | Sprint 271 | 1883–1887 | **Complete** | Polyglot Phase 1: ASTFeatureExtractor, LanguageIdiomProfile, LanguageFitnessScorer, whetstone_score_language_fitness MCP tool |
+| Sprint 272 | 1888–1892 | **Complete** | Polyglot Phase 2: PolyglotProjectSpec, fitness-routed poly-sort/poly-api/poly-parse test projects |
 
 ## Hotfix — MCPBridge NDJSON Transport (2026-02-19, between sprints)
 
@@ -15199,6 +15200,41 @@ suited based on computational shape.
 
 ---
 
+## Sprint 272: Fitness-Routed Polyglot Test Projects (Steps 1888–1892)
+
+**Goal:** Define `PolyglotProjectSpec` + `PolyglotFitnessRouter`, then validate with three concrete
+2-language test projects (poly-sort, poly-api, poly-parse) that route correctly via the fitness scorer.
+
+### Step Results
+
+| Step | Description | Tests | Result |
+|------|-------------|-------|--------|
+| 1888 | PolyglotProjectSpec + PolyglotFitnessRouter | 5 | 5/5 PASS |
+| 1889 | poly-sort (Rust sort-core + Python data-gen) | 5 | 5/5 PASS |
+| 1890 | poly-api (Go http-server + TypeScript api-client) | 5 | 5/5 PASS |
+| 1891 | poly-parse (C++ lexer + Haskell ast-transform) | 5 | 5/5 PASS |
+| 1892 | Sprint 272 integration | 5 | 5/5 PASS |
+
+### Key Files
+- `editor/src/PolyglotProjectSpec.h` — `PolyglotInterface`, `PolyglotSection`, `PolyglotProjectSpec` structs + `PolyglotFitnessRouter::route()`
+- `editor/src/PolySortProject.h` — poly-sort factory (sort-core→Rust, data-gen→Python)
+- `editor/src/PolyApiProject.h` — poly-api factory (http-server→Go, api-client→TypeScript)
+- `editor/src/PolyParseProject.h` — poly-parse factory (lexer→C++, ast-transform→Haskell)
+- `editor/src/Sprint272IntegrationSummary.h` — sprint summary struct
+
+### Key Acceptance Criteria Met
+- poly-sort routes sort-core to Rust and data-gen to Python ✓
+- poly-api routes http-server to Go and api-client to TypeScript ✓
+- poly-parse routes lexer to C++ and ast-transform to Haskell ✓
+- Explicit language overrides survive routing ✓
+
+### LoRA Recording
+- Session: sprint272-polyglot-test-projects-2026-03-01
+- Tool calls captured: 5 (architect_intake, 4x generate_code)
+- Note: session split across context boundary; both halves recorded to binary log
+
+---
+
 ## Session Log
 
 | Date | Agent | Work Done |
@@ -15404,3 +15440,5 @@ suited based on computational shape.
 | 2026-02-26 | Codex | Sprint 173 executed: added pre-gate lint hook to `tools/mcp/evaluate_generated_code_gates.py` with explicit skipped/tool-missing signaling and optional strict lint blocking mode. Added `editor/src/Sprint173IntegrationSummary.h`; taskitem artifact `logs/taskitem_runs/sprint173_plan_20260225_190632`. |
 | 2026-02-26 | Codex | Sprint 174 executed: expanded debug-chain routing for include/compile classes in `tools/mcp/remediation_router.py`, added token-accounted A/B runner (`tools/mcp/run_ab_test_ast_vs_language_first.sh`) and estimator (`tools/mcp/estimate_tokens.py`), plus `editor/src/Sprint174IntegrationSummary.h`. Taskitem artifact `logs/taskitem_runs/sprint174_plan_20260225_190639`; strict production loop rerun reached `status=green` at `logs/taskitem_runs/production_loop_20260225_190639`. |
 | 2026-03-01 | Claude Code | Sprint 271 complete (Steps 1883–1887): LanguageFitnessScorer phase 1. Added ASTFeatureExtractor.h (5 scalar features from JSON AST), LanguageIdiomProfile.h (8 language profiles), LanguageFitnessScorer.h (weighted scoring + JSON output), RegisterLanguageFitnessTools.h (whetstone_score_language_fitness MCP tool). 25/25 tests passing. whetstone_mcp rebuilt and wired. LoRA session recorded (5 tool calls, 6016 tokens). |
+| 2026-03-01 | Claude Code | Sprint 272 Step 1888: PolyglotProjectSpec + PolyglotFitnessRouter. PolyglotProjectSpec.h (3 structs: PolyglotInterface, PolyglotSection, PolyglotProjectSpec; PolyglotFitnessRouter::route() for explicit/auto-assignment). step1888_test: 5/5 PASS. LoRA session sprint272 recording active. |
+| 2026-03-01 | Claude Code | Sprint 272 complete (Steps 1888–1892): Polyglot Phase 2 test projects. Added PolyglotProjectSpec.h (spec/router structs), PolySortProject.h (Rust+Python), PolyApiProject.h (Go+TypeScript), PolyParseProject.h (C+++Haskell), Sprint272IntegrationSummary.h. 25/25 tests passing. All 3 projects route correctly via LanguageFitnessScorer. LoRA session sprint272 recorded (5 calls across 2 context segments). |

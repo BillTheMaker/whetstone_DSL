@@ -48,7 +48,7 @@
     },
     {
       "name": "whetstone_architect_intake",
-      "description": "See Whetstone MCP docs.",
+      "description": "Parses markdown goals/constraints and extracts functional requirement bullets (including field lists) into normalized requirements.",
       "input_schema": {
         "type": "object",
         "properties": {}
@@ -1194,6 +1194,50 @@
       },
       "examples": [
         {}
+      ]
+    },
+    {
+      "name": "whetstone_score_language_fitness",
+      "description": "Analyze an AST subtree or spec text and return a ranked list of languages best suited to implement it, with per-language score (0-100) and rationale. Scores against 8 language profiles: Python, Rust, Go, Haskell, C++, TypeScript, Elixir, Lisp.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "ast": {
+            "type": "object",
+            "description": "JSON AST subtree to score. Features are extracted automatically."
+          },
+          "spec_text": {
+            "type": "string",
+            "description": "Spec text section to extract features from (used when ast absent)."
+          },
+          "mutation_ratio": {
+            "type": "number",
+            "description": "Override mutation ratio [0,1]. Fraction of AST nodes that are assignments/mutations."
+          },
+          "recursion_hint": {
+            "type": "string",
+            "description": "Override recursion shape: none | tail | tree | loop"
+          },
+          "concurrency_hint": {
+            "type": "string",
+            "description": "Override concurrency primitive: none | channels | shared | actors"
+          },
+          "io_hint": {
+            "type": "string",
+            "description": "Override I/O pattern: none | blocking | async | event"
+          },
+          "type_hint": {
+            "type": "string",
+            "description": "Override type complexity: none | generics | dependent"
+          }
+        },
+        "required": []
+      },
+      "examples": [
+        {
+          "description": "Score with manual hints (actor concurrency + event I/O → Elixir)",
+          "input": { "concurrency_hint": "actors", "io_hint": "event", "recursion_hint": "tail" }
+        }
       ]
     }
   ]

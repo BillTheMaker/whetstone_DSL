@@ -25,12 +25,12 @@ is one of many projects that consumes it. Whetstone's core capabilities:
 
 | Item | Value |
 |------|-------|
-| Last step | **Step 1887** |
-| Last sprint | **Sprint 271 — COMPLETE** |
+| Last step | **Step 1892** |
+| Last sprint | **Sprint 272 — COMPLETE** |
 | MCP tool count | **91 tools** |
 | Architecture gate | All headers ≤ 600 lines (pre-existing BufferOps.h violation) |
 | `whetstone_mcp` binary | `editor/build-native/whetstone_mcp` |
-| Active track | **Polyglot Orchestrator** (Phase 1 complete, Phase 2 next) |
+| Active track | **Polyglot Orchestrator** (Phase 2 complete, Phase 3 next: FFI glue) |
 
 Sprint history: see `progress.md` (15k+ lines) — single authoritative file,
 sprint summary table at top, step-by-step detail below.
@@ -47,7 +47,7 @@ Every sprint follows this exact pattern:
 5. Sprint integration summary step (always the 5th step)
 6. Full matrix verification before closing sprint
 
-**New sprint starts at Step 1888. Sprint 272: fitness-routed 2-language test projects.**
+**New sprint starts at Step 1893. Sprint 273: FFI glue layer (polyglot component interfaces).**
 See `docs/polyglot_orchestrator_sprint_plan.md` for the full phase plan.
 
 ---
