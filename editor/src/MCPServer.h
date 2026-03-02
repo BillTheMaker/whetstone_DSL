@@ -1166,6 +1166,8 @@ private:
 #include "mcp/RegisterValidationTools.h"
 #include "mcp/RegisterMetricsTools.h"
 #include "mcp/RegisterLanguageFitnessTools.h"
+#include "mcp/RegisterFFIGlueTools.h"
+#include "mcp/RegisterSymbolIndexTools.h"
 #include "mcp/RegisterPortingFoundationTools.h"
 #include "mcp/RegisterRustSemanticTools.h"
 #include "mcp/RegisterCppRaisingTools.h"

@@ -155,5 +155,7 @@
         registerSprint155Tools();
         registerOnboardingTools();
         registerLanguageFitnessTools();
+        registerFFIGlueTools();
+        registerSymbolIndexTools();
     }
 };

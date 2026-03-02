@@ -10859,3 +10859,84 @@ target_link_libraries(step1891_test PRIVATE nlohmann_json::nlohmann_json)
 add_executable(step1892_test tests/step1892_test.cpp)
 target_include_directories(step1892_test PRIVATE src)
 target_link_libraries(step1892_test PRIVATE nlohmann_json::nlohmann_json)
+
+
+add_executable(step1893_test tests/step1893_test.cpp)
+target_include_directories(step1893_test PRIVATE src)
+target_link_libraries(step1893_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1894_test tests/step1894_test.cpp)
+target_include_directories(step1894_test PRIVATE src)
+target_link_libraries(step1894_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1895_test tests/step1895_test.cpp)
+target_include_directories(step1895_test PRIVATE src)
+target_link_libraries(step1895_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1896_test tests/step1896_test.cpp)
+target_include_directories(step1896_test PRIVATE src)
+target_link_libraries(step1896_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1897_test tests/step1897_test.cpp)
+target_include_directories(step1897_test PRIVATE src)
+target_link_libraries(step1897_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1898_test tests/step1898_test.cpp)
+target_include_directories(step1898_test PRIVATE src)
+target_link_libraries(step1898_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1899_test tests/step1899_test.cpp)
+target_include_directories(step1899_test PRIVATE src)
+target_link_libraries(step1899_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1900_test tests/step1900_test.cpp)
+target_include_directories(step1900_test PRIVATE src)
+target_link_libraries(step1900_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1901_test tests/step1901_test.cpp)
+target_include_directories(step1901_test PRIVATE src)
+target_link_libraries(step1901_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1902_test tests/step1902_test.cpp)
+target_include_directories(step1902_test PRIVATE src)
+target_link_libraries(step1902_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1903_test tests/step1903_test.cpp)
+target_include_directories(step1903_test PRIVATE src)
+target_link_libraries(step1903_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1904_test tests/step1904_test.cpp)
+target_include_directories(step1904_test PRIVATE src)
+target_link_libraries(step1904_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1905_test tests/step1905_test.cpp)
+target_include_directories(step1905_test PRIVATE src)
+target_link_libraries(step1905_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1906_test tests/step1906_test.cpp)
+target_include_directories(step1906_test PRIVATE src)
+target_link_libraries(step1906_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1907_test tests/step1907_test.cpp)
+target_include_directories(step1907_test PRIVATE src)
+target_link_libraries(step1907_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1908_test tests/step1908_test.cpp)
+target_include_directories(step1908_test PRIVATE src)
+target_link_libraries(step1908_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1909_test tests/step1909_test.cpp)
+target_include_directories(step1909_test PRIVATE src)
+target_link_libraries(step1909_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1910_test tests/step1910_test.cpp)
+target_include_directories(step1910_test PRIVATE src)
+target_link_libraries(step1910_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1911_test tests/step1911_test.cpp)
+target_include_directories(step1911_test PRIVATE src)
+target_link_libraries(step1911_test PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(step1912_test tests/step1912_test.cpp)
+target_include_directories(step1912_test PRIVATE src)
+target_link_libraries(step1912_test PRIVATE nlohmann_json::nlohmann_json)
